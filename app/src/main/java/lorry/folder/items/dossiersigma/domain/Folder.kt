@@ -1,7 +1,9 @@
 package lorry.folder.items.dossiersigma.domain
 
-class Folder(val id: Int){
-    var content: MutableList<Item> = mutableListOf()
-    var path: String = String()
-
+class Folder(var path: String, val items: List<Item>){
+    
+    val isEmpty: Boolean
+        get() = items.isEmpty()
+    
+    
 }
