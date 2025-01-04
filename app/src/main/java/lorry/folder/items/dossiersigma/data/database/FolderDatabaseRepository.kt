@@ -1,4 +1,6 @@
 package lorry.folder.items.dossiersigma.data.database
 
-class FolderDatabaseRepository {
+import lorry.folder.items.dossiersigma.domain.interfaces.IFolderDatabaseRepository
+
+class FolderDatabaseRepository : IFolderDatabaseRepository{
 }
