@@ -1,4 +1,4 @@
 package lorry.folder.items.dossiersigma.domain.interfaces
 
-interface IFolderDiskRepository {
+interface IDiskRepository {
 }

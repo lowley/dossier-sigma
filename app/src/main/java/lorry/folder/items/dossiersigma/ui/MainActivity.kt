@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        val viewModel: FolderViewModel by viewModels()
+        val viewModel: ViewModel by viewModels()
         
         enableEdgeToEdge()
         setContent {

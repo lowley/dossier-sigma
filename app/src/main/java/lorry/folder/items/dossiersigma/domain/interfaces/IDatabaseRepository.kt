@@ -1,5 +1,5 @@
 package lorry.folder.items.dossiersigma.domain.interfaces
 
-interface IFolderDatabaseRepository
+interface IDatabaseRepository
 {
 }
