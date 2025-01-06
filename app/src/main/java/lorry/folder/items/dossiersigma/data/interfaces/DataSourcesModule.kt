@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import lorry.folder.items.dossiersigma.data.clipboard.ClipboardDataSource
 import lorry.folder.items.dossiersigma.data.disk.DiskDataSource
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
@@ -18,6 +19,11 @@ abstract class DataSourcesModule {
     abstract fun bindDiskDataSource(
         diskDataSource: DiskDataSource
     ): IDiskDataSource
+
+    @Binds
+    abstract fun bindClipboardDataSource(
+        clipboardDataSource: ClipboardDataSource
+    ): IClipboardDataSource
 
 //    @Binds
 //    abstract fun bindDatabaseRepository(

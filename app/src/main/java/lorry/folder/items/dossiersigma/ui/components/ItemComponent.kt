@@ -110,7 +110,7 @@ public fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item
                 androidx.compose.material3.DropdownMenuItem(
                     text = { Text("Clipboard -> icône") },
                     leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },
-                    onClick = {}
+                    onClick = { viewModel.setPictureWithClipboard(item) }
                 )
             }
         }
