@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
+import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 
 @AndroidEntryPoint
@@ -29,6 +30,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val permissionsManager = PermissionsManager()
+        if (!permissionsManager.hasExternalStoragePermission())
+            permissionsManager.requestExternalStoragePermission(this)
+        
         val viewModel: SigmaViewModel by viewModels()
 
         setContent {

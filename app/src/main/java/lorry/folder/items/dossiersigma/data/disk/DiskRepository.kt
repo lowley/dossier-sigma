@@ -1,7 +1,9 @@
 package lorry.folder.items.dossiersigma.data.disk
 
 import android.util.Range
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.domain.Folder
 import lorry.folder.items.dossiersigma.domain.Item
@@ -15,5 +17,17 @@ class DiskRepository @Inject constructor(val datasource: IDiskDataSource) : IDis
             path = "C:/Users/olivier/Desktop",
             items = List<Item>(80, init = { Item("fichier ${it}", true, "")})
         )
+    }
+
+    suspend override fun getFolderItems(folderPath: String): List<Item>{
+        return withContext(Dispatchers.IO){
+            return@withContext datasource.getFolderContent(folderPath).map { itemDTO ->
+                Item(
+                    name = itemDTO.name,
+                    isFile = itemDTO.isFile,
+                    content = ""
+                )
+            }
+        }
     }
 }
