@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,13 +22,14 @@ import lorry.folder.items.dossiersigma.R
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 
 @Composable
 public fun ItemComponent(item: Item) {
     Column(
         modifier = Modifier
             .width(120.dp)
-            .height(150.dp)
+            .height(165.dp)
     ) {
         Box(
             modifier = Modifier
@@ -45,7 +47,12 @@ public fun ItemComponent(item: Item) {
         }
         Text(
             modifier = Modifier
+                .fillMaxHeight()
                 .align(alignment = CenterHorizontally),
+            softWrap = true,
+            lineHeight = 13.sp,
+            maxLines = 3,
+            fontSize = 12.sp,
             color = Color.Black,
             text = item.name
         )
