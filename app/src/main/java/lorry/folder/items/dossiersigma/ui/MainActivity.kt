@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import lorry.folder.items.dossiersigma.PermissionsManager
@@ -54,9 +56,10 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxWidth(),
                         
                     ) {
+                        
                         if (folderState.value.items.isNotEmpty())
                             folderState.value.items.forEach { item ->
-                                ItemComponent(item)
+                                ItemComponent(this@MainActivity, viewModel, item)
                             }
                     }
                 }

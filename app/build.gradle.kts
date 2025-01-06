@@ -63,7 +63,9 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     implementation(libs.accompanist.flowlayout)
-    implementation(libs.popup)
+    implementation("me.saket.cascade:cascade:2.3.0")
+    implementation("me.saket.cascade:cascade-compose:2.3.0")
+
 }
 
 // Allow references to generated code

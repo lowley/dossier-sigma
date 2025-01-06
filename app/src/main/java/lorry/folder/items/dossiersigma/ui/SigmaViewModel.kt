@@ -24,7 +24,6 @@ class SigmaViewModel @Inject constructor(private val diskRepository: IDiskReposi
         _folder.value = newFolder
     }
     
-    
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
         
