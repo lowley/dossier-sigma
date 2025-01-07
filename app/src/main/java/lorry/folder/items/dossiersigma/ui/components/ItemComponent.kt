@@ -2,6 +2,8 @@ package lorry.folder.items.dossiersigma.ui.components
 
 import android.R.attr.onClick
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 
 import android.provider.CalendarContract
 import android.view.Gravity
@@ -41,11 +43,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import kotlinx.coroutines.NonCancellable.children
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.CascadeDropdownMenu
@@ -83,8 +88,10 @@ public fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item
                             }
                         )
                     },
-                painter = if (item.isFile) painterResource(R.drawable.file)
-                else painterResource(R.drawable.folder),
+                bitmap = item.content?.asImageBitmap() ?: 
+                    if (item.isFile) (ContextCompat.getDrawable(context, R.drawable.file)?.toBitmap()?.asImageBitmap() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
+                    else (ContextCompat.getDrawable(context, R.drawable.folder)?.toBitmap()?.asImageBitmap() ?: 
+                    Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap()),
                 contentDescription = null
             )
 
@@ -110,7 +117,10 @@ public fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item
                 androidx.compose.material3.DropdownMenuItem(
                     text = { Text("Clipboard -> icône") },
                     leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },
-                    onClick = { viewModel.setPictureWithClipboard(item) }
+                    onClick = { 
+                        viewModel.setPictureWithClipboard(item)
+                        isMenuVisible = false
+                    }
                 )
             }
         }

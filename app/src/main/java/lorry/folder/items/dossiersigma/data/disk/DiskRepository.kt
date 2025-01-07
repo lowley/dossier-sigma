@@ -16,7 +16,7 @@ class DiskRepository @Inject constructor(val datasource: IDiskDataSource) : IDis
     override suspend fun getInitialFolder() : Folder {
         return Folder(
             path = "C:/Users/olivier/Desktop",
-            items = List<Item>(80, init = { Item("fichier ${it}", true, "")})
+            items = List<Item>(80, init = { Item("fichier ${it}", true, null)})
         )
     }
 
@@ -26,7 +26,7 @@ class DiskRepository @Inject constructor(val datasource: IDiskDataSource) : IDis
                 Item(
                     name = itemDTO.name,
                     isFile = itemDTO.isFile,
-                    content = ""
+                    content = null
                 )
             }
         }
