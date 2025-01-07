@@ -12,6 +12,4 @@ class PastingPictureService @Inject constructor(
     fun getImageFromClipboard() : Bitmap? {
         return clipboardRepository.getImageFromClipboard(context)
     }
-
-
 }

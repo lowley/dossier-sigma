@@ -6,6 +6,6 @@ import java.util.UUID
 data class Item(
     val name: String,
     val isFile: Boolean,
-    val content: Bitmap?,
+    val picture: Bitmap?,
     val id: String = UUID.randomUUID().toString()) { }
 

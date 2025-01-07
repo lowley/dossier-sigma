@@ -1,16 +1,9 @@
 package lorry.folder.items.dossiersigma.ui.components
 
-import android.R.attr.onClick
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 
-import android.provider.CalendarContract
-import android.view.Gravity
-import android.view.MenuItem
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,43 +12,34 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.twotone.ArrowForward
-import androidx.compose.material.icons.twotone.ArrowForward
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.R
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntOffset
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import kotlinx.coroutines.NonCancellable.children
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.CascadeDropdownMenu
 import me.saket.cascade.rememberCascadeState
-import kotlin.math.roundToInt
 
 @Composable
 public fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
@@ -88,10 +72,10 @@ public fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item
                             }
                         )
                     },
-                bitmap = item.content?.asImageBitmap() ?: 
-                    if (item.isFile) (ContextCompat.getDrawable(context, R.drawable.file)?.toBitmap()?.asImageBitmap() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
-                    else (ContextCompat.getDrawable(context, R.drawable.folder)?.toBitmap()?.asImageBitmap() ?: 
-                    Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap()),
+                bitmap = getBitmap(
+                    context = context,
+                    item = item
+                ),
                 contentDescription = null
             )
 
@@ -107,7 +91,7 @@ public fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item
                 DropdownMenuHeader(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally)
+                        .align(CenterHorizontally)
                 ) { Text(
                     text = "Un item",
                     modifier = Modifier,
@@ -137,4 +121,20 @@ public fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item
             text = item.name
         )
     }
+}
+
+fun getBitmap(
+    context: Context,
+    item: Item
+) : ImageBitmap{
+    
+    if (item.picture != null) return item.picture.asImageBitmap()
+    
+    if (item.isFile) 
+            return (ContextCompat.getDrawable(context, R.drawable.file)?.toBitmap()?.asImageBitmap() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
+    
+    
+    
+    (ContextCompat.getDrawable(context, R.drawable.folder)?.toBitmap()?.asImageBitmap() ?:
+    Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
 }

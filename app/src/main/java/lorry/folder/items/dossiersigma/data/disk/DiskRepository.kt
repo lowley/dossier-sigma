@@ -1,9 +1,6 @@
 package lorry.folder.items.dossiersigma.data.disk
 
-import android.graphics.Bitmap
-import android.util.Range
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.domain.Folder
@@ -26,7 +23,7 @@ class DiskRepository @Inject constructor(val datasource: IDiskDataSource) : IDis
                 Item(
                     name = itemDTO.name,
                     isFile = itemDTO.isFile,
-                    content = null
+                    picture = null
                 )
             }
         }
