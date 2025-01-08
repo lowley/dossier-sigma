@@ -56,7 +56,6 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxWidth(),
                         
                     ) {
-                        
                         if (folderState.value.items.isNotEmpty())
                             folderState.value.items.forEach { item ->
                                 ItemComponent(this@MainActivity, viewModel, item)

@@ -3,9 +3,41 @@ package lorry.folder.items.dossiersigma.domain
 import android.graphics.Bitmap
 import java.util.UUID
 
-data class Item(
+abstract class Item(
+    val path: String,
     val name: String,
-    val isFile: Boolean,
     val picture: Bitmap?,
-    val id: String = UUID.randomUUID().toString()) { }
+    val id: String = UUID.randomUUID().toString()
+) {
+
+    fun isFile(): Boolean {
+        return this is SigmaFile
+    }
+
+    fun isFolder(): Boolean {
+        return this is SigmaFolder
+
+        fun copy(
+            path: String = this.path,
+            name: String = this.name,
+            picture: Bitmap? = this.picture
+        ): Item {
+            if (this is SigmaFolder) {
+                return (this as SigmaFolder).copy(
+                    path = path,
+                    name = name,
+                    picture = picture,
+                    id = id
+                )
+            } else {
+                return (this as SigmaFile).copy(
+                    path = path,
+                    name = name,
+                    picture = picture,
+                    id = id
+                )
+            }
+        }
+    }
+}
 

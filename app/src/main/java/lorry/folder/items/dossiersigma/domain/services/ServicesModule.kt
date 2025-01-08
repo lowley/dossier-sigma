@@ -29,8 +29,9 @@ class ServicesModule {
 
     @Provides
     fun provideChangingPictureService(
-        pastingPictureService: PastingPictureService
+        pastingPictureService: PastingPictureService,
+        diskRepository: IDiskRepository
     ): ChangingPictureService {
-        return ChangingPictureService(pastingPictureService)
+        return ChangingPictureService(pastingPictureService, diskRepository)
     }
 }

@@ -26,6 +26,7 @@ class DiskDataSource @Inject constructor() : IDiskDataSource {
             withContext(Dispatchers.IO, block = {
                 items = folder.listFiles()?.map { file ->
                     ItemDTO(
+                        path = file.path.substringBeforeLast("/"),
                         name = file.name,
                         isFile = file.isFile
                     )
