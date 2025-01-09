@@ -37,8 +37,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.ViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
@@ -46,7 +44,7 @@ import me.saket.cascade.CascadeDropdownMenu
 import me.saket.cascade.rememberCascadeState
 
 @Composable
-public fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
+fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
     var isMenuVisible by rememberSaveable { mutableStateOf(false) }
     val state = rememberCascadeState()
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
@@ -138,17 +136,24 @@ fun getBitmap(
     if (item.picture != null) return item.picture.asImageBitmap()
     
     if (item is SigmaFile) 
-            return (ContextCompat.getDrawable(context, R.drawable.file)?.toBitmap()?.asImageBitmap() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
+            return getImageBitmapFromDrawable(context, R.drawable.file_yellow)
     
     if (item is SigmaFolder) {
         if (viewModel.changingPictureService.isFolderPopulated(item))
-            return (ContextCompat.getDrawable(context, R.drawable.folder_full)?.toBitmap()?.asImageBitmap()
-                ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
+            return getImageBitmapFromDrawable(context, R.drawable.folder_full_blue)
         
-        return (ContextCompat.getDrawable(context, R.drawable.folder_empty)?.toBitmap()?.asImageBitmap()
-            ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
+        return getImageBitmapFromDrawable(context, R.drawable.folder_empty_blue)
     }
 
     //logiquement incohérent
-    return (ContextCompat.getDrawable(context, R.drawable.file)?.toBitmap()?.asImageBitmap() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
+    return getImageBitmapFromDrawable(context, R.drawable.file_yellow)
+}
+
+fun getImageBitmapFromDrawable(
+    context: Context,
+    drawable: Int
+): ImageBitmap {
+    return (ContextCompat.getDrawable(context, drawable)?.toBitmap()?.asImageBitmap() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap()) 
+    
+    
 }

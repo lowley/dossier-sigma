@@ -34,22 +34,6 @@ class SigmaViewModel @Inject constructor(
         updateItemList(newItem)
     }
 
-    fun updateItemPicture(itemId: String, newPicture: Bitmap?) {
-        val currentFolder = _folder.value
-        val index = currentFolder.items.indexOfFirst { it.id == itemId }
-        if (index != -1) {
-            val updatedItems = currentFolder.items.toMutableList()
-            val updatedItem =  when (val item = updatedItems[index]) {
-                is SigmaFile -> item.copy(picture = newPicture)
-                is SigmaFolder -> item.copy(picture = newPicture)
-                else -> item
-            }
-            
-            updatedItems[index] = updatedItem
-            _folder.value = currentFolder.copy(items = updatedItems)
-        }
-    }
-
     fun updateItemList(newItem: Item) {
         val currentFolder = _folder.value
         val index = currentFolder.items.indexOfFirst { it.id == newItem.id }
