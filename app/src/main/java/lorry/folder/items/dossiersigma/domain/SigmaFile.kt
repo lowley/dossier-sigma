@@ -13,7 +13,7 @@ class SigmaFile(
     override fun toString(): String {
         return "File(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${id.take(5)})"
     }
-    
+
     fun copy(
         path: String = this.path,
         name: String = this.name,

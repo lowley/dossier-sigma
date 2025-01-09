@@ -16,28 +16,35 @@ abstract class Item(
 
     fun isFolder(): Boolean {
         return this is SigmaFolder
+    }
 
-        fun copy(
-            path: String = this.path,
-            name: String = this.name,
-            picture: Bitmap? = this.picture
-        ): Item {
-            if (this is SigmaFolder) {
-                return (this as SigmaFolder).copy(
-                    path = path,
-                    name = name,
-                    picture = picture,
-                    id = id
-                )
-            } else {
-                return (this as SigmaFile).copy(
-                    path = path,
-                    name = name,
-                    picture = picture,
-                    id = id
-                )
-            }
+    val fullPath: String
+        get() = when (path.endsWith("/")) {
+            true -> "$path$name"
+            false -> "$path/$name"
+        }
+
+    fun copy(
+        path: String = this.path,
+        name: String = this.name,
+        picture: Bitmap? = this.picture
+    ): Item {
+        if (this is SigmaFolder) {
+            return (this as SigmaFolder).copy(
+                path = path,
+                name = name,
+                picture = picture,
+                id = id
+            )
+        } else {
+            return (this as SigmaFile).copy(
+                path = path,
+                name = name,
+                picture = picture,
+                id = id
+            )
         }
     }
 }
+
 

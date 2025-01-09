@@ -4,6 +4,8 @@ import android.content.Context
 import android.graphics.Bitmap
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,12 +57,12 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
         modifier = Modifier
             .width(imageHeight)
             .height(165.dp)
+            
     ) {
         Box(
             modifier = Modifier
                 .width(imageHeight - 20.dp)
                 .height(imageHeight - 20.dp)
-            
         ) {
             Image(
                 modifier = Modifier
@@ -68,6 +70,10 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
                     .aspectRatio(1f)
                     .pointerInput(true) {
                         detectTapGestures(
+                            onTap = {
+                                if (item.isFolder())
+                                    viewModel.goToFolder(item.fullPath)
+                            },
                             onLongPress = {
                                 imageOffset = DpOffset(it.x.toDp(), it.y.toDp())
                                 isMenuVisible = true

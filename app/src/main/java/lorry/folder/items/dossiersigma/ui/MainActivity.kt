@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
                         .verticalScroll(state)
                 ) {
                     val folderState = viewModel.folder.collectAsState()
-                    Text(text = folderState.value.path)
+                    Text(text = folderState.value.fullPath)
 
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
