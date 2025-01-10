@@ -55,6 +55,13 @@ class SigmaViewModel @Inject constructor(
         _folder.value = newFolder
     }
 
+    fun goToFolderSafely(folderPath: String) {
+        viewModelScope.launch {
+            val newFolder = SigmaFolder(folderPath, null, emptyList())
+            _folder.value = newFolder
+        }   
+    }
+
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
         goToFolder(initialDirectoryPath)

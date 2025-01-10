@@ -21,7 +21,7 @@ class DiskRepository @Inject constructor(val datasource: IDiskDataSource) : IDis
 
     suspend override fun getFolderItems(folderPath: String): List<Item>{
         return withContext(Dispatchers.IO){
-            return@withContext datasource.getFolderContent(folderPath).map { itemDTO ->
+            val initialItems = datasource.getFolderContent(folderPath).map { itemDTO ->
                 if (itemDTO.isFile){
                     SigmaFile(
                         path = itemDTO.name.substringBeforeLast("/"),
@@ -35,6 +35,8 @@ class DiskRepository @Inject constructor(val datasource: IDiskDataSource) : IDis
                     picture = null, 
                     items = listOf())
             }
+            
+            return@withContext initialItems.sortedBy { item -> item.isFile() }
         }
     }
 }

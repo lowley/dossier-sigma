@@ -39,6 +39,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
@@ -52,12 +54,13 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
     val imageHeight = 120.dp
+    val imageSource = remember(item) { getBitmap(context, item, viewModel) }
     
     Column(
         modifier = Modifier
             .width(imageHeight)
             .height(165.dp)
-            
+
     ) {
         Box(
             modifier = Modifier
@@ -71,8 +74,10 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
                     .pointerInput(true) {
                         detectTapGestures(
                             onTap = {
-                                if (item.isFolder())
+                                if (item.isFolder()) {
+//                                    viewModel.goToFolderSafely(item.fullPath)
                                     viewModel.goToFolder(item.fullPath)
+                                }
                             },
                             onLongPress = {
                                 imageOffset = DpOffset(it.x.toDp(), it.y.toDp())
@@ -80,11 +85,7 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
                             }
                         )
                     },
-                bitmap = getBitmap(
-                    context = context,
-                    item = item,
-                    viewModel
-                ),
+                painter = rememberAsyncImagePainter(model = imageSource),
                 contentDescription = null
             )
 
@@ -101,23 +102,25 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(CenterHorizontally)
-                ) { Text(
-                    text = "Un item",
-                    modifier = Modifier,
-                    fontSize = 18.sp
-                ) }
+                ) {
+                    Text(
+                        text = "Un item",
+                        modifier = Modifier,
+                        fontSize = 18.sp
+                    )
+                }
 
                 androidx.compose.material3.DropdownMenuItem(
                     text = { Text("Clipboard -> icône") },
                     leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },
-                    onClick = { 
+                    onClick = {
                         viewModel.setPictureWithClipboard(item)
                         isMenuVisible = false
                     }
                 )
             }
         }
-        
+
         Text(
             modifier = Modifier
                 .fillMaxHeight()
@@ -137,29 +140,25 @@ fun getBitmap(
     context: Context,
     item: Item,
     viewModel: SigmaViewModel
-) : ImageBitmap{
-    
-    if (item.picture != null) return item.picture.asImageBitmap()
-    
-    if (item is SigmaFile) 
-            return getImageBitmapFromDrawable(context, R.drawable.file_yellow)
-    
-    if (item is SigmaFolder) {
-        if (viewModel.changingPictureService.isFolderPopulated(item))
-            return getImageBitmapFromDrawable(context, R.drawable.folder_full_blue)
-        
-        return getImageBitmapFromDrawable(context, R.drawable.folder_empty_blue)
-    }
+): Any { // Retourne une valeur compatible avec Coil
+    return when {
+        item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
+        item is SigmaFile -> R.drawable.file_yellow // Icône de fichier
+        item is SigmaFolder -> {
+            val isPopulated = viewModel.changingPictureService.isFolderPopulated(item)
+            if (isPopulated) R.drawable.folder_full_blue else R.drawable.folder_empty_blue
+        }
 
-    //logiquement incohérent
-    return getImageBitmapFromDrawable(context, R.drawable.file_yellow)
+        else -> R.drawable.file_yellow // Valeur par défaut
+    }
 }
 
 fun getImageBitmapFromDrawable(
     context: Context,
     drawable: Int
 ): ImageBitmap {
-    return (ContextCompat.getDrawable(context, drawable)?.toBitmap()?.asImageBitmap() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap()) 
-    
-    
+    return (ContextCompat.getDrawable(context, drawable)?.toBitmap()?.asImageBitmap()
+        ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
+
+
 }
