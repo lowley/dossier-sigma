@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.R
@@ -32,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
@@ -46,6 +46,8 @@ import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.CascadeDropdownMenu
 import me.saket.cascade.rememberCascadeState
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
@@ -55,7 +57,7 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
     val density = LocalDensity.current
     val imageHeight = 120.dp
     val imageSource = remember(item) { getBitmap(context, item, viewModel) }
-    
+
     Column(
         modifier = Modifier
             .width(imageHeight)
@@ -67,74 +69,55 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
                 .width(imageHeight - 20.dp)
                 .height(imageHeight - 20.dp)
         ) {
-            Image(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .aspectRatio(1f)
-                    .pointerInput(true) {
-                        detectTapGestures(
-                            onTap = {
-                                if (item.isFolder()) {
-//                                    viewModel.goToFolderSafely(item.fullPath)
-                                    viewModel.goToFolder(item.fullPath)
-                                }
-                            },
-                            onLongPress = {
-                                imageOffset = DpOffset(it.x.toDp(), it.y.toDp())
-                                isMenuVisible = true
-                            }
-                        )
-                    },
-                painter = rememberAsyncImagePainter(model = imageSource),
-                contentDescription = null
-            )
-
-            CascadeDropdownMenu(
-                state = state,
-                modifier = Modifier,
-                expanded = isMenuVisible,
-                onDismissRequest = { isMenuVisible = false },
-                offset = with(density) {
-                    DpOffset(imageOffset.x, (-imageHeight / 2))
-                }) {
-
-                DropdownMenuHeader(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(CenterHorizontally)
-                ) {
-                    Text(
-                        text = "Un item",
-                        modifier = Modifier,
-                        fontSize = 18.sp
-                    )
-                }
-
-                androidx.compose.material3.DropdownMenuItem(
-                    text = { Text("Clipboard -> icône") },
-                    leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },
-                    onClick = {
-                        viewModel.setPictureWithClipboard(item)
-                        isMenuVisible = false
+            ImageSection(
+                imageSource = imageSource,
+                onTap = {
+                    if (item.isFolder()) {
+                        //iewModel.goToFolderSafely(item.fullPath)
+                        viewModel.goToFolder(item.fullPath)
                     }
-                )
-            }
+                },
+                onLongPress = { offset ->
+                    imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
+                    isMenuVisible = true
+                })
         }
 
-        Text(
-            modifier = Modifier
-                .fillMaxHeight()
-                .align(alignment = CenterHorizontally)
-                .padding(top = 5.dp),
-            softWrap = true,
-            lineHeight = 13.sp,
-            maxLines = 3,
-            fontSize = 12.sp,
-            color = Color.Black,
-            text = item.name
-        )
+
+        CascadeDropdownMenu(
+            state = state,
+            modifier = Modifier,
+            expanded = isMenuVisible,
+            onDismissRequest = { isMenuVisible = false },
+            offset = with(density) {
+                DpOffset(imageOffset.x, (-imageHeight / 2))
+            }) {
+
+            DropdownMenuHeader(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(CenterHorizontally)
+            ) {
+                Text(
+                    text = "Un item",
+                    modifier = Modifier,
+                    fontSize = 18.sp
+                )
+            }
+
+            androidx.compose.material3.DropdownMenuItem(
+                text = { Text("Clipboard -> icône") },
+                leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },
+                onClick = {
+                    viewModel.setPictureWithClipboard(item)
+                    isMenuVisible = false
+                }
+            )
+        }
+        TextSection(item.name)
     }
 }
+
 
 fun getBitmap(
     context: Context,
@@ -161,4 +144,45 @@ fun getImageBitmapFromDrawable(
         ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
 
 
+}
+
+@Composable
+fun TextSection(name: String) {
+    Text(
+        text = name,
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(top = 5.dp),
+        softWrap = true,
+        textAlign = TextAlign.Center,
+        lineHeight = 13.sp,
+        maxLines = 3,
+        fontSize = 12.sp,
+        color = Color.Black,
+    )
+}
+
+@Composable
+fun ImageSection(
+    imageSource: Any,
+    onTap: () -> Unit,
+    onLongPress: (Offset) -> Unit
+) {
+    val imagePainter = rememberAsyncImagePainter(
+        model = imageSource,
+    )
+
+    Image(
+        modifier = Modifier
+            .fillMaxSize()
+            .aspectRatio(1f)
+            .pointerInput(true) {
+                detectTapGestures(
+                    onTap = { onTap() },
+                    onLongPress = { onLongPress(it) }
+                )
+            },
+        painter = imagePainter,
+        contentDescription = null
+    )
 }
