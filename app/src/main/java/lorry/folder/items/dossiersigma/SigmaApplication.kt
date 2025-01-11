@@ -8,6 +8,8 @@ class SigmaApplication : Application() {
     
     companion object{
         val APPLICATION_NAME = "SigmaApplication"
+        val INTERNET_SITE_SEARCH = "https://www.iafd.com/results.asp?searchtype=comprehensive&searchstring="
+        
         
     }
 }

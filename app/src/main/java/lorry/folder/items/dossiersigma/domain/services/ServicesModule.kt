@@ -11,6 +11,7 @@ import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
+import lorry.folder.items.dossiersigma.domain.services.clipboard.AccessingToInternetSiteForPictureService
 import lorry.folder.items.dossiersigma.domain.services.clipboard.PastingPictureService
 import lorry.folder.items.dossiersigma.domain.services.pictures.ChangingPictureService
 
@@ -33,5 +34,12 @@ class ServicesModule {
         diskRepository: IDiskRepository
     ): ChangingPictureService {
         return ChangingPictureService(pastingPictureService, diskRepository)
+    }
+
+    @Provides
+    fun provideAccessingInternetService(
+        @ApplicationContext context: Context
+    ): AccessingToInternetSiteForPictureService {
+        return AccessingToInternetSiteForPictureService(context)
     }
 }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
+import androidx.compose.material.icons.sharp.AccountBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -105,6 +106,15 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
                 )
             }
 
+            androidx.compose.material3.DropdownMenuItem(
+                text = { Text("Ouvrir navigateur") },
+                leadingIcon = { Icons.Sharp.AccountBox },
+                onClick = {
+                    viewModel.openBrowser(item)
+                    isMenuVisible = false
+                }
+            )
+            
             androidx.compose.material3.DropdownMenuItem(
                 text = { Text("Clipboard -> icône") },
                 leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },

@@ -11,13 +11,15 @@ import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
+import lorry.folder.items.dossiersigma.domain.services.clipboard.AccessingToInternetSiteForPictureService
 import lorry.folder.items.dossiersigma.domain.services.pictures.ChangingPictureService
 import javax.inject.Inject
 
 @HiltViewModel
 class SigmaViewModel @Inject constructor(
     private val diskRepository: IDiskRepository,
-    val changingPictureService: ChangingPictureService
+    val changingPictureService: ChangingPictureService,
+    val accessingToInternet: AccessingToInternetSiteForPictureService
 ) : ViewModel() {
 
     private val _folder = MutableStateFlow<SigmaFolder>(SigmaFolder(
@@ -32,6 +34,14 @@ class SigmaViewModel @Inject constructor(
     fun setPictureWithClipboard(item: Item) {
         val newItem = changingPictureService.changeItemWithClipboardPicture(item)
         updateItemList(newItem)
+    }
+
+    fun openBrowser(item: Item) {
+        accessingToInternet.openBrowser(item)
+
+
+
+
     }
 
     fun updateItemList(newItem: Item) {
@@ -61,6 +71,8 @@ class SigmaViewModel @Inject constructor(
             _folder.value = newFolder
         }   
     }
+
+    
 
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
