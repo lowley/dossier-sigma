@@ -4,18 +4,18 @@ import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUsecase
 import java.io.File
 import javax.inject.Inject
 
 class ChangingPictureService @Inject constructor(
-    val pastingPictureService: PastingPictureService,
+    val pastingPictureUsecase: PastingPictureUsecase,
     val diskRepository: IDiskRepository){
     
     fun changeItemWithClipboardPicture(item: Item): Item {
         val result = when (item){
-            is SigmaFile -> item.copy(picture = pastingPictureService.getImageFromClipboard())
-            is SigmaFolder -> item.copy(picture = pastingPictureService.getImageFromClipboard())
+            is SigmaFile -> item.copy(picture = pastingPictureUsecase.getImageFromClipboard())
+            is SigmaFolder -> item.copy(picture = pastingPictureUsecase.getImageFromClipboard())
             else -> return item
         } 
         return result
