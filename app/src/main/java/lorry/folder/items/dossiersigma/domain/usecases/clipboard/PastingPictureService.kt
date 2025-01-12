@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.domain.services.clipboard
+package lorry.folder.items.dossiersigma.domain.usecases.clipboard
 
 import android.content.Context
 import android.graphics.Bitmap

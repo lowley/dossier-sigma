@@ -1,6 +1,5 @@
-package lorry.folder.items.dossiersigma.domain.services.content
+package lorry.folder.items.dossiersigma.domain.usecases.content
 
-import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import javax.inject.Inject
 

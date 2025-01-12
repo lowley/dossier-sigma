@@ -19,7 +19,7 @@
             android:name=".SigmaApplication"
             tools:targetApi="31">
         <service
-                android:name=".domain.services.clipboard.ClipboardService"
+                android:name=".domain.usecases.clipboard.ClipboardService"
                 android:exported="false"
                 android:foregroundServiceType="dataSync"/>
         <activity

@@ -1,22 +1,17 @@
-package lorry.folder.items.dossiersigma.domain.services
+package lorry.folder.items.dossiersigma.domain.usecases
 
 import android.content.Context
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.GlobalStateManager
-import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
-import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.services.clipboard.AccessingToInternetSiteForPictureService
-import lorry.folder.items.dossiersigma.domain.services.clipboard.ClipboardService
-import lorry.folder.items.dossiersigma.domain.services.clipboard.PastingPictureService
-import lorry.folder.items.dossiersigma.domain.services.pictures.ChangingPictureService
-import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureService
 import javax.inject.Singleton
 
 

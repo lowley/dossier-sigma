@@ -1,14 +1,11 @@
-package lorry.folder.items.dossiersigma.domain.services.pictures
+package lorry.folder.items.dossiersigma.domain.usecases.pictures
 
-import kotlinx.coroutines.Dispatchers
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.services.clipboard.PastingPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureService
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
 import javax.inject.Inject
 
 class ChangingPictureService @Inject constructor(

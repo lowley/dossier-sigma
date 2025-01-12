@@ -1,6 +1,5 @@
 package lorry.folder.items.dossiersigma.ui
 
-import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,10 +9,9 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
-import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.services.clipboard.AccessingToInternetSiteForPictureService
-import lorry.folder.items.dossiersigma.domain.services.pictures.ChangingPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureService
 import javax.inject.Inject
 
 @HiltViewModel
