@@ -1,4 +1,4 @@
 package lorry.folder.items.dossiersigma.domain.usecases.sorting
 
-class ChangingSortTypeUsecase {
+class ChangingSortTypeUseCase {
 }

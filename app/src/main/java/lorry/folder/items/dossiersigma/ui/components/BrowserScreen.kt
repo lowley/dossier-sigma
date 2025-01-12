@@ -8,12 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import lorry.folder.items.dossiersigma.GlobalStateManager
+import androidx.lifecycle.ViewModel
 import lorry.folder.items.dossiersigma.SigmaApplication
+import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 
 @Composable
 fun BrowserScreen(
-    globalStateManager: GlobalStateManager,
+    viewModel: SigmaViewModel,
     person: String
 ) {
     val context = LocalContext.current
@@ -46,7 +47,7 @@ fun BrowserScreen(
                     object {
                         @JavascriptInterface
                         fun onImageLongClick(imageUrl: String) {
-                            manageImageClick(globalStateManager, imageUrl)
+                            manageImageClick(viewModel, imageUrl)
                         }
                     },
                     "android"
@@ -58,9 +59,7 @@ fun BrowserScreen(
     )
 }
 
-fun manageImageClick(globalStateManager: GlobalStateManager, imageUrl: String) {
-    if (globalStateManager.selectedItem.value != null)
-        globalStateManager.setSelectedItem(
-            globalStateManager.selectedItem.value!!.copy(picture = imageUrl)
-        )
+fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
+    if (viewModel.selectedItem.value != null)
+        viewModel.updatePicture(imageUrl)
 }

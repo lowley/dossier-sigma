@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
-import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
@@ -44,9 +43,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var globalStateManager: GlobalStateManager
-    
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +52,7 @@ class MainActivity : ComponentActivity() {
             permissionsManager.requestExternalStoragePermission(this)
 
         val viewModel: SigmaViewModel by viewModels()
-        
+
         setContent {
             DossierSigmaTheme {
                 //barre d'outils
@@ -65,21 +61,25 @@ class MainActivity : ComponentActivity() {
                 val folderState = viewModel.folder.collectAsState()
                 val isBrowserVisible by viewModel.isBrowserVisible.collectAsState()
                 val browserPersonSearch by viewModel.browserPersonSearch.collectAsState()
-                val selectedItem by globalStateManager.selectedItem.collectAsState()
+                val selectedItemPicture by viewModel.selectedItemPicture.collectAsState()
+                val selectedItem by viewModel.selectedItem.collectAsState()
 
-                LaunchedEffect(selectedItem) {
+
+                LaunchedEffect(selectedItemPicture) {
+                    //exécuté juste après AccessingToInternetSiteForPictureUseCase/openBrowser 
+                    if (selectedItemPicture.reset) {
+                        viewModel.startPictureFlow()
+                        return@LaunchedEffect
+                    }
+
                     selectedItem?.let { item ->
-                        if (!globalStateManager.doNotTriggerChange) {
-                            viewModel.hideBrowser()
-                            viewModel.updateItemList(item)
-                            globalStateManager.setSelectedItem(null)
-                            Toast.makeText(this@MainActivity, "Changement effectué", Toast.LENGTH_SHORT).show()
-                        }
-                        else
-                            globalStateManager.doNotTriggerChange = false
+                        viewModel.hideBrowser()
+                        viewModel.updateItemList(item)
+                        Toast.makeText(this@MainActivity, "Changement effectué", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
-                
+
                 Column(modifier = Modifier.fillMaxSize()) {
                     Breadcrumb(
                         items = folderState.value.fullPath.split("/"),
@@ -99,12 +99,16 @@ class MainActivity : ComponentActivity() {
                             .weight(1f) // Permet au LazyVerticalGrid de prendre tout l'espace restant
                     ) {
                         lazyGridItems(folderState.value.items, key = { it.id }) { item ->
-                            ItemComponent(context = this@MainActivity, viewModel = viewModel, item = item)
+                            ItemComponent(
+                                context = this@MainActivity,
+                                viewModel = viewModel,
+                                item = item
+                            )
                         }
                     }
 
                     if (isBrowserVisible)
-                        BrowserScreen(globalStateManager, browserPersonSearch)
+                        BrowserScreen(viewModel, browserPersonSearch)
                 }
             }
         }

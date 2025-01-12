@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
@@ -19,7 +18,6 @@ class SigmaViewModel @Inject constructor(
     private val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
     val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
-    private val globalStateManager: GlobalStateManager
 ) : ViewModel() {
 
     private val _folder = MutableStateFlow<SigmaFolder>(SigmaFolder(
@@ -48,12 +46,27 @@ class SigmaViewModel @Inject constructor(
     fun setBrowserPersonSearch(search: String) {
         _browserPersonSearch.value = search   
     }
-
-    val selectedItem: StateFlow<Item?> = globalStateManager.selectedItem
+    
+    private val _selectedItem = MutableStateFlow<Item?>(null)
+    val selectedItem: StateFlow<Item?> = _selectedItem
 
     fun setSelectedItem(item: Item) {
-        globalStateManager.doNotTriggerChange = true
-        globalStateManager.setSelectedItem(item)
+        _selectedItem.value = item
+    }
+     
+    private val _selectedItemPicture = MutableStateFlow(PictureWrapper())
+    val selectedItemPicture: StateFlow<PictureWrapper> = _selectedItemPicture
+
+    fun resetPictureFlow() {
+        _selectedItemPicture.value = PictureWrapper(reset = true)
+    }
+
+    fun startPictureFlow() {
+        _selectedItemPicture.value = PictureWrapper()
+    }
+
+    fun updatePicture(newPicture: Any?) {
+        _selectedItemPicture.value = PictureWrapper(picture = newPicture)
     }
     
     
@@ -65,7 +78,6 @@ class SigmaViewModel @Inject constructor(
     fun openBrowser(item: Item) {
         //accessingToInternet.startListeningToClipboard(item.id)
         accessingToInternet.openBrowser(item, this)
-    
         
     }
 
@@ -96,12 +108,16 @@ class SigmaViewModel @Inject constructor(
             _folder.value = newFolder
         }   
     }
-
     
-
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
         goToFolder(initialDirectoryPath)
         //goToFolder(diskRepository.getInitialFolder())
     }
 }
+
+data class PictureWrapper(
+    val picture: Any? = null,
+    // Indique si le flux est en mode réinitialisation
+    val reset: Boolean = false 
+)
