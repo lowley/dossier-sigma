@@ -23,18 +23,29 @@ import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
+import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.PermissionsManager
+import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
+import lorry.folder.items.dossiersigma.ui.components.BrowserScreen
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var globalStateManager: GlobalStateManager
+    
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,13 +55,28 @@ class MainActivity : ComponentActivity() {
             permissionsManager.requestExternalStoragePermission(this)
 
         val viewModel: SigmaViewModel by viewModels()
-
+        
         setContent {
             DossierSigmaTheme {
                 //barre d'outils
 
                 val state = rememberScrollState()
                 val folderState = viewModel.folder.collectAsState()
+                val isBrowserVisible by viewModel.isBrowserVisible.collectAsState()
+                val browserPersonSearch by viewModel.browserPersonSearch.collectAsState()
+                val selectedItem by globalStateManager.selectedItem.collectAsState()
+
+                LaunchedEffect(selectedItem) {
+                    selectedItem?.let { item ->
+                        if (!globalStateManager.doNotTriggerChange) {
+                            viewModel.hideBrowser()
+                            viewModel.updateItemList(item)
+                            globalStateManager.setSelectedItem(null)
+                        }
+                        else
+                            globalStateManager.doNotTriggerChange = false
+                    }
+                }
                 
                 Column(modifier = Modifier.fillMaxSize()) {
                     Breadcrumb(
@@ -74,8 +100,10 @@ class MainActivity : ComponentActivity() {
                             ItemComponent(context = this@MainActivity, viewModel = viewModel, item = item)
                         }
                     }
-                }
 
+                    if (isBrowserVisible)
+                        BrowserScreen(globalStateManager, browserPersonSearch)
+                }
             }
         }
     }

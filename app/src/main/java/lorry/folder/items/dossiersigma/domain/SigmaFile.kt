@@ -6,7 +6,7 @@ import java.util.UUID
 class SigmaFile(
     path: String,
     name: String,
-    picture: Bitmap?,
+    picture: Any?,
     id: String = UUID.randomUUID().toString()
 ) : Item(path = path, name = name, picture = picture, id = id
 ) {
@@ -17,7 +17,7 @@ class SigmaFile(
     fun copy(
         path: String = this.path,
         name: String = this.name,
-        picture: Bitmap? = this.picture,
+        picture: Any? = this.picture,
         id: String = this.id
     ): SigmaFile {
         return SigmaFile(path = path, name = name, picture = picture, id = id)

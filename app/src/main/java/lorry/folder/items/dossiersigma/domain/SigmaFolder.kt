@@ -10,7 +10,7 @@ class SigmaFolder : Item {
     constructor(
         path: String,
         name: String,
-        picture: Bitmap?,
+        picture: Any?,
         items: List<Item>,
         id: String = UUID.randomUUID().toString()
     ) : super(path, name, picture, id) {
@@ -23,7 +23,7 @@ class SigmaFolder : Item {
 
     constructor(
         fullPath: String,
-        picture: Bitmap?,
+        picture: Any?,
         items: List<Item>,
         id: String = UUID.randomUUID().toString()
     ) : super(
@@ -41,7 +41,7 @@ class SigmaFolder : Item {
     fun copy(
         path: String = this.path,
         name: String = this.name,
-        picture: Bitmap? = this.picture,
+        picture: Any? = this.picture,
         items: List<Item> = this.items,
         id: String = this.id
     ): SigmaFolder {

@@ -4,8 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +46,7 @@ import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.CascadeDropdownMenu
 import me.saket.cascade.rememberCascadeState
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
@@ -57,7 +56,7 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
     val imageHeight = 120.dp
-    val imageSource = remember(item) { getBitmap(context, item, viewModel) }
+    val imageSource = remember(item) { getImage(context, item, viewModel) }
 
     Column(
         modifier = Modifier
@@ -129,7 +128,7 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
 }
 
 
-fun getBitmap(
+fun getImage(
     context: Context,
     item: Item,
     viewModel: SigmaViewModel
@@ -179,7 +178,10 @@ fun ImageSection(
     onLongPress: (Offset) -> Unit
 ) {
     val imagePainter = rememberAsyncImagePainter(
-        model = imageSource,
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(imageSource) // Cela peut être une URL ou une ressource locale
+            .crossfade(true) // Optionnel : transition fluide
+            .build()
     )
 
     Image(

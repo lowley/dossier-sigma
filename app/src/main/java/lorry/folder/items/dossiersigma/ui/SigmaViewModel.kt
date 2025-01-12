@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class SigmaViewModel @Inject constructor(
     private val diskRepository: IDiskRepository,
     val changingPictureService: ChangingPictureService,
-    val accessingToInternet: AccessingToInternetSiteForPictureService
+    val accessingToInternet: AccessingToInternetSiteForPictureService,
+    private val globalStateManager: GlobalStateManager
 ) : ViewModel() {
 
     private val _folder = MutableStateFlow<SigmaFolder>(SigmaFolder(
@@ -30,6 +32,32 @@ class SigmaViewModel @Inject constructor(
 
     val folder: StateFlow<SigmaFolder>
         get() = _folder
+
+    private val _isBrowserVisible = MutableStateFlow(false)
+    val isBrowserVisible: StateFlow<Boolean> = _isBrowserVisible
+
+    fun showBrowser() {
+        _isBrowserVisible.value = true
+    }
+
+    fun hideBrowser() {
+        _isBrowserVisible.value = false
+    }
+
+    private val _browserPersonSearch = MutableStateFlow("")
+    val browserPersonSearch: StateFlow<String> = _browserPersonSearch
+    
+    fun setBrowserPersonSearch(search: String) {
+        _browserPersonSearch.value = search   
+    }
+
+    val selectedItem: StateFlow<Item?> = globalStateManager.selectedItem
+
+    fun setSelectedItem(item: Item) {
+        globalStateManager.doNotTriggerChange = true
+        globalStateManager.setSelectedItem(item)
+    }
+    
     
     fun setPictureWithClipboard(item: Item) {
         val newItem = changingPictureService.changeItemWithClipboardPicture(item)
@@ -37,11 +65,10 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun openBrowser(item: Item) {
-        accessingToInternet.openBrowser(item)
-
-
-
-
+        //accessingToInternet.startListeningToClipboard(item.id)
+        accessingToInternet.openBrowser(item, this)
+    
+        
     }
 
     fun updateItemList(newItem: Item) {

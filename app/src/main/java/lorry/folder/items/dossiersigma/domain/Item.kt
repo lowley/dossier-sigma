@@ -6,7 +6,7 @@ import java.util.UUID
 abstract class Item(
     val path: String,
     val name: String,
-    val picture: Bitmap?,
+    val picture: Any?,
     val id: String = UUID.randomUUID().toString()
 ) {
 
@@ -27,7 +27,7 @@ abstract class Item(
     fun copy(
         path: String = this.path,
         name: String = this.name,
-        picture: Bitmap? = this.picture
+        picture: Any? = this.picture
     ): Item {
         if (this is SigmaFolder) {
             return (this as SigmaFolder).copy(

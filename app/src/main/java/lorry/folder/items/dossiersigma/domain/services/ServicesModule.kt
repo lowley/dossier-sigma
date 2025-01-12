@@ -7,13 +7,17 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.services.clipboard.AccessingToInternetSiteForPictureService
+import lorry.folder.items.dossiersigma.domain.services.clipboard.ClipboardService
 import lorry.folder.items.dossiersigma.domain.services.clipboard.PastingPictureService
 import lorry.folder.items.dossiersigma.domain.services.pictures.ChangingPictureService
+import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import javax.inject.Singleton
 
 
 @Module
@@ -38,8 +42,15 @@ class ServicesModule {
 
     @Provides
     fun provideAccessingInternetService(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        clipboardRepository: IClipboardRepository
     ): AccessingToInternetSiteForPictureService {
-        return AccessingToInternetSiteForPictureService(context)
+        return AccessingToInternetSiteForPictureService(context, clipboardRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGlobalStateManager(): GlobalStateManager {
+        return GlobalStateManager()
     }
 }

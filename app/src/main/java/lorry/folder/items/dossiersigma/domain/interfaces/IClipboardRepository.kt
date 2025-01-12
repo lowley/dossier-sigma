@@ -5,6 +5,5 @@ import android.graphics.Bitmap
 
 interface IClipboardRepository {
     fun getImageFromClipboard(context: Context): Bitmap?
-    
-    
+    fun hasImageInClipboard(context: Context): Boolean
 }
