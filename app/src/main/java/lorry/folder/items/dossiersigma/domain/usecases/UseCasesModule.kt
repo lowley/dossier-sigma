@@ -17,10 +17,10 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class ServicesModule {
+class UseCasesModule {
 
     @Provides
-    fun providePastingPictureService(
+    fun providePastingPictureUseCase(
         @ApplicationContext context: Context,
         clipboardRepository: IClipboardRepository
     ): PastingPictureUseCase {
@@ -28,15 +28,15 @@ class ServicesModule {
     }
 
     @Provides
-    fun provideChangingPictureService(
-        pastingPictureUsecase: PastingPictureUseCase,
+    fun provideChangingPictureUseCase(
+        pastingPictureUseCase: PastingPictureUseCase,
         diskRepository: IDiskRepository
     ): ChangingPictureUseCase {
-        return ChangingPictureUseCase(pastingPictureUsecase, diskRepository)
+        return ChangingPictureUseCase(pastingPictureUseCase, diskRepository)
     }
 
     @Provides
-    fun provideAccessingInternetService(
+    fun provideAccessingToInternetSiteForPictureUseCase(
         @ApplicationContext context: Context,
         clipboardRepository: IClipboardRepository
     ): AccessingToInternetSiteForPictureUseCase {
