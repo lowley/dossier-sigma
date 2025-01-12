@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -72,6 +73,7 @@ class MainActivity : ComponentActivity() {
                             viewModel.hideBrowser()
                             viewModel.updateItemList(item)
                             globalStateManager.setSelectedItem(null)
+                            Toast.makeText(this@MainActivity, "Changement effectué", Toast.LENGTH_SHORT).show()
                         }
                         else
                             globalStateManager.doNotTriggerChange = false

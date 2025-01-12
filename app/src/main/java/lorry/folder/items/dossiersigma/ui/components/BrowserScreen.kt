@@ -31,7 +31,7 @@ fun BrowserScreen(
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         val js = """
-                            document.addEventListener('contextmenu', function(event) {
+                            document.addEventListener('click', function(event) {
                                 event.preventDefault();
                                 var element = event.target;
                                 if (element.tagName === 'IMG') {

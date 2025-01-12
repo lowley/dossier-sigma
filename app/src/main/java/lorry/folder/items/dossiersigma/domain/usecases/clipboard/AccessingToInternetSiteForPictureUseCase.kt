@@ -2,6 +2,7 @@ package lorry.folder.items.dossiersigma.domain.usecases.clipboard
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
@@ -16,5 +17,6 @@ class AccessingToInternetSiteForPictureUseCase @Inject constructor(
         viewModel.setSelectedItem(item)
         viewModel.setBrowserPersonSearch(preparedKey)
         viewModel.showBrowser()
+        Toast.makeText(context, "Naviguez et appuyez sur l'image choisie", Toast.LENGTH_LONG).show()
     }
 }
