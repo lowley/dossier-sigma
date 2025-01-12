@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -63,9 +64,9 @@ class MainActivity : ComponentActivity() {
                 val browserPersonSearch by viewModel.browserPersonSearch.collectAsState()
                 val selectedItemPicture by viewModel.selectedItemPicture.collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
-
-
-                LaunchedEffect(selectedItemPicture) {
+                
+                LaunchedEffect(selectedItemPicture.id) {
+                    Log.d("toto", "LaunchedEffect triggered with: $selectedItemPicture")
                     //exécuté juste après AccessingToInternetSiteForPictureUseCase/openBrowser 
                     if (selectedItemPicture.reset) {
                         viewModel.startPictureFlow()
@@ -74,7 +75,7 @@ class MainActivity : ComponentActivity() {
 
                     selectedItem?.let { item ->
                         viewModel.hideBrowser()
-                        viewModel.updateItemList(item)
+                        viewModel.updateItemList(item.copy(picture = selectedItemPicture.picture))
                         Toast.makeText(this@MainActivity, "Changement effectué", Toast.LENGTH_SHORT)
                             .show()
                     }

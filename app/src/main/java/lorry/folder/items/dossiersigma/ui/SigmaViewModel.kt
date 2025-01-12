@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +41,7 @@ class SigmaViewModel @Inject constructor(
         _isBrowserVisible.value = false
     }
 
+    //BROWSER PERSON SEARCH
     private val _browserPersonSearch = MutableStateFlow("")
     val browserPersonSearch: StateFlow<String> = _browserPersonSearch
     
@@ -47,6 +49,7 @@ class SigmaViewModel @Inject constructor(
         _browserPersonSearch.value = search   
     }
     
+    //SELECTED ITEM
     private val _selectedItem = MutableStateFlow<Item?>(null)
     val selectedItem: StateFlow<Item?> = _selectedItem
 
@@ -54,19 +57,26 @@ class SigmaViewModel @Inject constructor(
         _selectedItem.value = item
     }
      
+    //SELECTED PICTURE
     private val _selectedItemPicture = MutableStateFlow(PictureWrapper())
     val selectedItemPicture: StateFlow<PictureWrapper> = _selectedItemPicture
 
     fun resetPictureFlow() {
-        _selectedItemPicture.value = PictureWrapper(reset = true)
+        _selectedItemPicture.value = PictureWrapper(
+            reset = true,
+            id =  _selectedItemPicture.value.id + 1)
+        Log.d("toto", "resetPictureFlow: ${_selectedItemPicture.value}")
     }
 
     fun startPictureFlow() {
-        _selectedItemPicture.value = PictureWrapper()
+        _selectedItemPicture.value = PictureWrapper(
+            id =  _selectedItemPicture.value.id)
     }
 
     fun updatePicture(newPicture: Any?) {
-        _selectedItemPicture.value = PictureWrapper(picture = newPicture)
+        _selectedItemPicture.value = PictureWrapper(picture = newPicture,
+            id =  _selectedItemPicture.value.id + 1)
+        Log.d("toto", "updatePicture: ${_selectedItemPicture.value}")
     }
     
     
@@ -119,5 +129,10 @@ class SigmaViewModel @Inject constructor(
 data class PictureWrapper(
     val picture: Any? = null,
     // Indique si le flux est en mode réinitialisation
-    val reset: Boolean = false 
-)
+    val reset: Boolean = false,
+    val id: Int = 0
+) {
+    override fun toString(): String {
+        return "id:$id,picture:${if (picture == null) "non" else "oui"}, reset:$reset, ${System.identityHashCode(this)}"
+    }
+}
