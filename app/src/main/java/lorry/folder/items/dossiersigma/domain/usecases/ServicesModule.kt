@@ -9,7 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureService
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureService
 import javax.inject.Singleton
@@ -39,8 +39,8 @@ class ServicesModule {
     fun provideAccessingInternetService(
         @ApplicationContext context: Context,
         clipboardRepository: IClipboardRepository
-    ): AccessingToInternetSiteForPictureService {
-        return AccessingToInternetSiteForPictureService(context, clipboardRepository)
+    ): AccessingToInternetSiteForPictureUseCase {
+        return AccessingToInternetSiteForPictureUseCase(context, clipboardRepository)
     }
 
     @Provides

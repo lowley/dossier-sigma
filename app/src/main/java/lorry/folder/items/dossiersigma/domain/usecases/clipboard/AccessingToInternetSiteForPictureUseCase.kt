@@ -7,7 +7,7 @@ import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import javax.inject.Inject
 
-class AccessingToInternetSiteForPictureService @Inject constructor(
+class AccessingToInternetSiteForPictureUseCase @Inject constructor(
     val context: Context,
     val clipboardRepository: IClipboardRepository){
     

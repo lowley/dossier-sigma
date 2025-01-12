@@ -10,7 +10,7 @@ import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureService
 import javax.inject.Inject
 
@@ -18,7 +18,7 @@ import javax.inject.Inject
 class SigmaViewModel @Inject constructor(
     private val diskRepository: IDiskRepository,
     val changingPictureService: ChangingPictureService,
-    val accessingToInternet: AccessingToInternetSiteForPictureService,
+    val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
     private val globalStateManager: GlobalStateManager
 ) : ViewModel() {
 
