@@ -16,20 +16,5 @@ class AccessingToInternetSiteForPictureUseCase @Inject constructor(
         viewModel.setSelectedItem(item)
         viewModel.setBrowserPersonSearch(preparedKey)
         viewModel.showBrowser()
-    
-    //        val url = SigmaApplication.INTERNET_SITE_SEARCH+preparedKey
-//
-//        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-//            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        intent.setPackage("com.android.chrome");
-//        startActivity(context, intent, null);
     }
-    
-    fun startListeningToClipboard(id: String){
-        val serviceIntent = Intent(context, ClipboardService::class.java).apply { 
-            putExtra("item_id", id)
-        }
-        context.startForegroundService(serviceIntent)
-    }
-    
 }

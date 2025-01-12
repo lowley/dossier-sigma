@@ -1,24 +1,15 @@
 package lorry.folder.items.dossiersigma.ui.components
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.webkit.JavascriptInterface
-import android.webkit.ValueCallback
-import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.ViewModel
 import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.SigmaApplication
-import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 
 @Composable
 fun BrowserScreen(
@@ -26,7 +17,6 @@ fun BrowserScreen(
     person: String
 ) {
     val context = LocalContext.current
-    
     
     AndroidView(
         factory = { ctx ->
@@ -56,8 +46,7 @@ fun BrowserScreen(
                     object {
                         @JavascriptInterface
                         fun onImageLongClick(imageUrl: String) {
-                            Toast.makeText(context, "Image URL: $imageUrl", Toast.LENGTH_SHORT).show()
-                            downloadAndCopyImage(globalStateManager, imageUrl)
+                            manageImageClick(globalStateManager, imageUrl)
                         }
                     },
                     "android"
@@ -69,13 +58,9 @@ fun BrowserScreen(
     )
 }
 
-fun downloadAndCopyImage(globalStateManager: GlobalStateManager, imageUrl: String) {
+fun manageImageClick(globalStateManager: GlobalStateManager, imageUrl: String) {
     if (globalStateManager.selectedItem.value != null)
         globalStateManager.setSelectedItem(
             globalStateManager.selectedItem.value!!.copy(picture = imageUrl)
         )
-
-//    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-//    val clip = android.content.ClipData.newPlainText("Image URL", imageUrl)
-//    clipboard.setPrimaryClip(clip)
 }
