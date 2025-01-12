@@ -137,7 +137,7 @@ fun getImage(
         item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
         item is SigmaFile -> R.drawable.file_yellow // Icône de fichier
         item is SigmaFolder -> {
-            val isPopulated = viewModel.changingPictureService.isFolderPopulated(item)
+            val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
             if (isPopulated) R.drawable.folder_full_blue else R.drawable.folder_empty_blue
         }
 

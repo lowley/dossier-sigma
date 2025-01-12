@@ -10,8 +10,8 @@ import lorry.folder.items.dossiersigma.GlobalStateManager
 import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
-import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUsecase
-import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUseCase
+import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import javax.inject.Singleton
 
 
@@ -23,16 +23,16 @@ class ServicesModule {
     fun providePastingPictureService(
         @ApplicationContext context: Context,
         clipboardRepository: IClipboardRepository
-    ): PastingPictureUsecase {
-        return PastingPictureUsecase(context, clipboardRepository)
+    ): PastingPictureUseCase {
+        return PastingPictureUseCase(context, clipboardRepository)
     }
 
     @Provides
     fun provideChangingPictureService(
-        pastingPictureUsecase: PastingPictureUsecase,
+        pastingPictureUsecase: PastingPictureUseCase,
         diskRepository: IDiskRepository
-    ): ChangingPictureService {
-        return ChangingPictureService(pastingPictureUsecase, diskRepository)
+    ): ChangingPictureUseCase {
+        return ChangingPictureUseCase(pastingPictureUsecase, diskRepository)
     }
 
     @Provides

@@ -11,13 +11,13 @@ import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
-import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureService
+import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class SigmaViewModel @Inject constructor(
     private val diskRepository: IDiskRepository,
-    val changingPictureService: ChangingPictureService,
+    val changingPictureUseCase: ChangingPictureUseCase,
     val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
     private val globalStateManager: GlobalStateManager
 ) : ViewModel() {
@@ -58,7 +58,7 @@ class SigmaViewModel @Inject constructor(
     
     
     fun setPictureWithClipboard(item: Item) {
-        val newItem = changingPictureService.changeItemWithClipboardPicture(item)
+        val newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
         updateItemList(newItem)
     }
 

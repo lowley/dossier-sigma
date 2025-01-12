@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import javax.inject.Inject
 
-class PastingPictureUsecase @Inject constructor(
+class PastingPictureUseCase @Inject constructor(
     val context: Context,
     val clipboardRepository: IClipboardRepository){
     
