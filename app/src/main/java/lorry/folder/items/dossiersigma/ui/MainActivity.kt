@@ -6,9 +6,11 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -25,12 +27,14 @@ import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
@@ -109,7 +113,19 @@ class MainActivity : ComponentActivity() {
                     }
 
                     if (isBrowserVisible)
-                        BrowserScreen(viewModel, browserPersonSearch)
+                        Box(
+                            modifier = Modifier
+                        ){
+                            BrowserScreen(viewModel, browserPersonSearch)
+                            
+                            Button(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter),
+                                onClick = { viewModel.hideBrowser() }
+                            ) {
+                                Text("Fermer le navigateur sans copier d'image")
+                            }
+                        }
                 }
             }
         }
