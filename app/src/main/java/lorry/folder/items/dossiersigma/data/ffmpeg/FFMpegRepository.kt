@@ -17,14 +17,14 @@ class FFMpegRepository @Inject constructor(
     val diskRepository: IDiskRepository) : IFFMpegRepository {
     
     @OptIn(DelicateCoroutinesApi::class)
-    override suspend fun addPictureToMP4Metadata(pictureUrl: String, videoPath: String) {
+    override suspend fun addPictureToMP4Metadata(pictureUrl: String, videoPath: String): Boolean {
         
         val inputFile = File(videoPath)
         if (pictureUrl.isEmpty() 
             || videoPath.isEmpty()
             || !videoPath.endsWith(".mp4")
             || !inputFile.exists())
-            return
+            return false
         
         var tempPicturePath: String? = null
         withContext(Dispatchers.IO){
@@ -32,7 +32,7 @@ class FFMpegRepository @Inject constructor(
         }
         
         if (tempPicturePath.isNullOrEmpty())
-            return
+            return false
 
         withContext(Dispatchers.IO) {
             ffmpegDatasource.executeAsync(
@@ -43,5 +43,7 @@ class FFMpegRepository @Inject constructor(
         
         val tempPictureFile = File(tempPicturePath)
         tempPictureFile.delete()
+        
+        return true
     }
 }

@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.data.ffmpeg.FFMpegRepository
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
@@ -19,6 +20,7 @@ class SigmaViewModel @Inject constructor(
     private val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
     val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
+    private val ffmpegRepository: FFMpegRepository
 ) : ViewModel() {
 
     private val _folder = MutableStateFlow<SigmaFolder>(SigmaFolder(
@@ -74,6 +76,9 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun updatePicture(newPicture: Any?) {
+        viewModelScope.launch{
+            ffmpegRepository.addPictureToMP4Metadata(newPicture as String, _selectedItem.value!!.fullPath)
+        }
         _selectedItemPicture.value = PictureWrapper(picture = newPicture,
             id =  _selectedItemPicture.value.id + 1)
     }
