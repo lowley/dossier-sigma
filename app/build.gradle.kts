@@ -66,6 +66,7 @@ dependencies {
     implementation("me.saket.cascade:cascade:2.3.0")
     implementation("me.saket.cascade:cascade-compose:2.3.0")
     implementation(libs.coil.compose)
+    implementation(libs.compressor)
 }
 
 // Allow references to generated code
