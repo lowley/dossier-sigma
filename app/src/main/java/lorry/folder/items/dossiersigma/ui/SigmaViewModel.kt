@@ -43,12 +43,22 @@ class SigmaViewModel @Inject constructor(
         _isBrowserVisible.value = false
     }
 
-    //BROWSER PERSON SEARCH
-    private val _browserPersonSearch = MutableStateFlow("")
-    val browserPersonSearch: StateFlow<String> = _browserPersonSearch
+    //BROWSER SEARCH
+    private val _browserSearch = MutableStateFlow("")
+    val browserSearch: StateFlow<String> = _browserSearch
+
+    //other case is for movies
+    private val _searchIsForPersonNotMovies = MutableStateFlow(true)
+    val searchIsForPersonNotMovies: StateFlow<Boolean> = _searchIsForPersonNotMovies
     
     fun setBrowserPersonSearch(search: String) {
-        _browserPersonSearch.value = search   
+        _browserSearch.value = search  
+        _searchIsForPersonNotMovies.value = true
+    }
+
+    fun setBrowserMovieSearch(search: String) {
+        _browserSearch.value = search
+        _searchIsForPersonNotMovies.value = false
     }
     
     //SELECTED ITEM

@@ -5,19 +5,17 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.ViewModel
 import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 
 @Composable
 fun BrowserScreen(
     viewModel: SigmaViewModel,
-    person: String
+    subject: String,
+    url: String
 ) {
     val context = LocalContext.current
     
@@ -54,7 +52,7 @@ fun BrowserScreen(
                     },
                     "android"
                 )
-                loadUrl("${SigmaApplication.INTERNET_SITE_SEARCH}${person}")
+                loadUrl("$url$subject")
             }
         },
         modifier = Modifier.fillMaxSize()

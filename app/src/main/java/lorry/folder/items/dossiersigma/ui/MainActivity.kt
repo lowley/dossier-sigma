@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,12 +8,8 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,18 +17,12 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -43,7 +32,6 @@ import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserScreen
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -65,8 +53,10 @@ class MainActivity : ComponentActivity() {
                 val state = rememberScrollState()
                 val folderState = viewModel.folder.collectAsState()
                 val isBrowserVisible by viewModel.isBrowserVisible.collectAsState()
-                val browserPersonSearch by viewModel.browserPersonSearch.collectAsState()
+                val browserSearch by viewModel.browserSearch.collectAsState()
                 val selectedItemPicture by viewModel.selectedItemPicture.collectAsState()
+                val searchIsForPersonNotMovies by viewModel.searchIsForPersonNotMovies
+                    .collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 
                 LaunchedEffect(selectedItemPicture.id) {
@@ -115,7 +105,9 @@ class MainActivity : ComponentActivity() {
                         Box(
                             modifier = Modifier
                         ){
-                            BrowserScreen(viewModel, browserPersonSearch)
+                            BrowserScreen(viewModel, 
+                                subject = browserSearch,
+                                url = if (searchIsForPersonNotMovies) SigmaApplication.INTERNET_PERSON_SITE_SEARCH else SigmaApplication.INTERNET_MOVIE_SITE_SEARCH)
                             
                             Button(
                                 modifier = Modifier
