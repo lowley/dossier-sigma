@@ -7,5 +7,6 @@ interface IDiskRepository {
     
     suspend fun getInitialFolder() : SigmaFolder
     suspend fun getFolderItems(folderPath: String) : List<Item>
+    suspend fun saveUrlToTempFile(fileUrl: String) : String?
     
 }
