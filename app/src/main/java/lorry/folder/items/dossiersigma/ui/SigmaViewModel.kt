@@ -76,9 +76,7 @@ class SigmaViewModel @Inject constructor(
     fun updatePicture(newPicture: Any?) {
         _selectedItemPicture.value = PictureWrapper(picture = newPicture,
             id =  _selectedItemPicture.value.id + 1)
-        Log.d("toto", "updatePicture: ${_selectedItemPicture.value}")
     }
-    
     
     fun setPictureWithClipboard(item: Item) {
         val newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)

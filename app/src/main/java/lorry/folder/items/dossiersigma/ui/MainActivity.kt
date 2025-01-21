@@ -70,7 +70,6 @@ class MainActivity : ComponentActivity() {
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 
                 LaunchedEffect(selectedItemPicture.id) {
-                    Log.d("toto", "LaunchedEffect triggered with: $selectedItemPicture")
                     //exécuté juste après AccessingToInternetSiteForPictureUseCase/openBrowser 
                     if (selectedItemPicture.reset) {
                         viewModel.startPictureFlow()
