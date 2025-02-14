@@ -57,7 +57,7 @@ class FFMpegRepository @Inject constructor(
             return false
 
         try {
-            val result = BentoJNI.AddTag_C(videoPath, "key:JPEG:abc", 1)
+            val result = BentoJNI.AddTag_C(videoPath, "key:JPEG:abc", 0)
             println("Résultat : $result")
             
         } catch (e: Exception) {
