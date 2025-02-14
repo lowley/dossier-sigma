@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.data.ffmpeg.FFMpegRepository
+import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
@@ -21,7 +21,7 @@ import javax.inject.Inject
 
 class DiskRepository @Inject constructor(
     val datasource: IDiskDataSource,
-    val ffMpegRepository: FFMpegRepository
+    val bentoRepository: BentoRepository
 ) : IDiskRepository {
 
     override suspend fun getInitialFolder(): SigmaFolder {
@@ -47,7 +47,7 @@ class DiskRepository @Inject constructor(
                     try {
                         GlobalScope.launch {
                             picture =
-                                ffMpegRepository.getBitmapFromMP4("${itemDTO.path}/${itemDTO.name}")
+                                bentoRepository.getBitmapFromMP4("${itemDTO.path}/${itemDTO.name}")
                             file.copy(picture = picture)
                         }
                     } catch (e: Exception) {

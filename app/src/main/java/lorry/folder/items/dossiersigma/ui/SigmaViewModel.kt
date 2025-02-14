@@ -4,15 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import lorry.folder.items.dossiersigma.data.ffmpeg.FFMpegRepository
+import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
@@ -27,7 +25,7 @@ class SigmaViewModel @Inject constructor(
     private val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
     val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
-    private val ffmpegRepository: FFMpegRepository
+    private val ffmpegRepository: BentoRepository
 ) : ViewModel() {
 
     private val _folder = MutableStateFlow<SigmaFolder>(SigmaFolder(

@@ -8,7 +8,7 @@ import lorry.folder.items.dossiersigma.data.clipboard.ClipboardDataSource
 import lorry.folder.items.dossiersigma.data.disk.DiskDataSource
 import lorry.folder.items.dossiersigma.data.disk.ITempFileDataSource
 import lorry.folder.items.dossiersigma.data.disk.TempFileDataSource
-import lorry.folder.items.dossiersigma.data.ffmpeg.FFMpegDataSource
+import lorry.folder.items.dossiersigma.data.bento.BentoDataSource
 
 
 @Module
@@ -27,8 +27,8 @@ abstract class DataSourcesModule {
 
     @Binds
     abstract fun bindFfmpegDataSource(
-        ffmpegDataSource: FFMpegDataSource
-    ): IFFMpegDataSource
+        ffmpegDataSource: BentoDataSource
+    ): IBentoDataSource
 
     @Binds
     abstract fun bindTempFileDataSource(

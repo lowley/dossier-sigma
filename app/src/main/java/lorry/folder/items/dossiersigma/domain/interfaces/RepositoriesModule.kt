@@ -9,7 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
-import lorry.folder.items.dossiersigma.data.ffmpeg.FFMpegRepository
+import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import javax.inject.Singleton
 
 
@@ -29,8 +29,8 @@ abstract class RepositoriesModule {
     
     @Binds
     abstract fun bindFfmpegRepository(
-        ffmpegRepository: FFMpegRepository
-    ): IFFMpegRepository
+        ffmpegRepository: BentoRepository
+    ): IBentoRepository
 }
 
 @Module
