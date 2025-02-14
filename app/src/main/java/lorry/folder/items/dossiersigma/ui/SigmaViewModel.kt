@@ -1,18 +1,26 @@
 package lorry.folder.items.dossiersigma.ui
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.Bento4Wrapper
 import lorry.folder.items.dossiersigma.data.ffmpeg.FFMpegRepository
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -133,9 +141,34 @@ class SigmaViewModel @Inject constructor(
     }
     
     init {
-        val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
+        val initialDirectoryPath = "/storage/7376-B000/SEXE 2/movies"
         goToFolder(initialDirectoryPath)
         //goToFolder(diskRepository.getInitialFolder())
+    }
+
+    fun getIconFile(context: Context, drawableResId: Int): File? {
+        val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, drawableResId)
+
+        // Créer un fichier temporaire pour stocker l'icône
+        val tempFile = File("/storage/7376-B000/SEXE 2/icon.jpg")
+
+        return try {
+            FileOutputStream(tempFile).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) // Sauvegarde en JPG
+            }
+            tempFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+    
+    fun applyIcon(iconDir: String, videoDir: String){
+        
+
+        
+        
+        
     }
 }
 

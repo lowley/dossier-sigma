@@ -6,5 +6,4 @@ interface IFFMpegDataSource {
     
     suspend fun executeAsync(arguments: String, sessionCompleteCallback: FFmpegSessionCompleteCallback?)
     
-    
 }

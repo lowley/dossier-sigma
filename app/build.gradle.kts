@@ -1,3 +1,4 @@
+import com.android.build.api.dsl.Ndk
 import org.jetbrains.kotlin.gradle.utils.IMPLEMENTATION
 
 plugins {
@@ -20,6 +21,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a") // Cible uniquement l'architecture ARM64
+        }
     }
 
     buildTypes {
@@ -40,6 +45,20 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+
+    ndkVersion = "28.0.12916984" // Mettez la version correcte de votre NDK
+    
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt") // Assurez-vous que ce fichier existe
+            version = "3.31.4" // Vérifiez la version CMake installée
+        }
+    }
+    
+
+    packagingOptions {
+        pickFirst("**/*.so")
     }
 }
 
@@ -68,6 +87,8 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.compressor)
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("org.mp4parser:isoparser:1.9.27")
+    implementation("com.github.mjeanroy:exiftool-lib:2.6.0")
 }
 
 // Allow references to generated code

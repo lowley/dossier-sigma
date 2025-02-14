@@ -1,7 +1,12 @@
 package lorry.folder.items.dossiersigma.data.disk
 
+import android.graphics.Bitmap
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.data.ffmpeg.FFMpegRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
@@ -14,33 +19,51 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import javax.inject.Inject
 
-class DiskRepository @Inject constructor(val datasource: IDiskDataSource) : IDiskRepository{
-    
-    override suspend fun getInitialFolder() : SigmaFolder {
+class DiskRepository @Inject constructor(
+    val datasource: IDiskDataSource,
+    val ffMpegRepository: FFMpegRepository
+) : IDiskRepository {
+
+    override suspend fun getInitialFolder(): SigmaFolder {
         return SigmaFolder(
             fullPath = "C:/Users/olivier/Desktop",
-            items = List<Item>(80, init = { SigmaFile("/", "fichier ${it}", null)}),
+            items = List<Item>(80, init = { SigmaFile("/", "fichier ${it}", null) }),
             picture = null
         )
     }
 
-    suspend override fun getFolderItems(folderPath: String): List<Item>{
-        return withContext(Dispatchers.IO){
+    @OptIn(DelicateCoroutinesApi::class)
+    suspend override fun getFolderItems(folderPath: String): List<Item> {
+        return withContext(Dispatchers.IO) {
             val initialItems = datasource.getFolderContent(folderPath).map { itemDTO ->
-                if (itemDTO.isFile){
-                    SigmaFile(
-                        path = itemDTO.name.substringBeforeLast("/"),
-                        name = itemDTO.name.substringAfterLast("/"),
+                if (itemDTO.isFile) {
+                    var file: SigmaFile = SigmaFile(
+                        path = itemDTO.path,
+                        name = itemDTO.name,
                         picture = null
-                    ) 
-                }
-                else SigmaFolder(
+                    )
+
+                    var picture: Bitmap? = null
+                    try {
+                        GlobalScope.launch {
+                            picture =
+                                ffMpegRepository.getBitmapFromMP4("${itemDTO.path}/${itemDTO.name}")
+                            file.copy(picture = picture)
+                        }
+                    } catch (e: Exception) {
+                        println(e.message)
+                    }
+
+                    file
+                    
+                } else SigmaFolder(
                     path = itemDTO.path,
-                    name = itemDTO.name, 
-                    picture = null, 
-                    items = listOf())
+                    name = itemDTO.name,
+                    picture = null,
+                    items = listOf()
+                )
             }
-            
+
             return@withContext initialItems.sortedBy { item -> item.isFile() }
         }
     }

@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.data.clipboard.ClipboardDataSource
 import lorry.folder.items.dossiersigma.data.disk.DiskDataSource
+import lorry.folder.items.dossiersigma.data.disk.ITempFileDataSource
+import lorry.folder.items.dossiersigma.data.disk.TempFileDataSource
 import lorry.folder.items.dossiersigma.data.ffmpeg.FFMpegDataSource
 
 
@@ -24,7 +26,12 @@ abstract class DataSourcesModule {
     ): IClipboardDataSource
 
     @Binds
-    abstract fun bindFfmpegRepository(
+    abstract fun bindFfmpegDataSource(
         ffmpegDataSource: FFMpegDataSource
     ): IFFMpegDataSource
+
+    @Binds
+    abstract fun bindTempFileDataSource(
+        tempFileDataSource: TempFileDataSource
+    ): ITempFileDataSource
 }
