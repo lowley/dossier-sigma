@@ -40,7 +40,7 @@ class BentoRepository @Inject constructor(
             return false
 
         try {
-            val result = BentoJNI.AddTag_C(videoPath, "key:JPEG:abc", 0)
+            val result = BentoJNI.AddTagCC(videoPath, "key:JPEG:data", 0)
             println("Résultat : $result")
             
         } catch (e: Exception) {

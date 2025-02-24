@@ -55,18 +55,18 @@ fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
     val state = rememberCascadeState()
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
-    val imageHeight = 120.dp
+    val imageHeight = 190.dp
     val imageSource = remember(item) { getImage(context, item, viewModel) }
 
     Column(
         modifier = Modifier
             .width(imageHeight)
-            .height(165.dp)
+            .height(imageHeight + 55.dp)
 
     ) {
         Box(
             modifier = Modifier
-                .width(imageHeight - 20.dp)
+                .width(imageHeight - 5.dp)
                 .height(imageHeight - 20.dp)
         ) {
             ImageSection(

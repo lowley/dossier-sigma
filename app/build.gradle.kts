@@ -1,4 +1,6 @@
+import com.android.build.api.dsl.JniLibsPackaging
 import com.android.build.api.dsl.Ndk
+import com.android.build.gradle.internal.api.artifact.SourceArtifactType
 import org.jetbrains.kotlin.gradle.utils.IMPLEMENTATION
 
 plugins {
@@ -34,6 +36,21 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            sourceSets {
+                getByName("release") {
+                    jniLibs.srcDirs("src/main/jniLibs")
+
+                }
+            }
+
+            debug {
+                sourceSets {
+                    getByName("debug") {
+                        jniLibs.srcDirs("src/main/jniLibs")
+                    }
+                }
+            }
+
         }
     }
     compileOptions {
@@ -48,17 +65,19 @@ android {
     }
 
     ndkVersion = "28.0.12916984" // Mettez la version correcte de votre NDK
-    
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt") // Assurez-vous que ce fichier existe
-            version = "3.31.4" // Vérifiez la version CMake installée
-        }
-    }
-    
 
+//    externalNativeBuild {
+//        cmake {
+//            path = file("src/main/cpp/CMakeLists.txt") // Assurez-vous que ce fichier existe
+//            version = "3.31.4" // Vérifiez la version CMake installée
+//        }
+//    }
+    
     packagingOptions {
-        pickFirst("**/*.so")
+        jniLibs {
+            useLegacyPackaging = true
+            pickFirst("lib/arm64-v8a/libbento4.so")
+        }
     }
 }
 
