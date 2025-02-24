@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
+import android.util.Log
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,8 +40,17 @@ class BentoRepository @Inject constructor(
         if (tempPicturePath.isNullOrEmpty())
             return false
 
+        if (!inputFile.exists()) {
+            Log.e("Bento4", "Le fichier n'existe pas : $inputFile")
+        } else if (!inputFile.canRead()) {
+            Log.e("Bento4", "Le fichier ne peut pas être lu : permissions insuffisantes")
+        } else {
+            Log.d("Bento4", "Le fichier est accessible, appel à Bento4...")
+        }
+        
         try {
-            val result = BentoJNI.AddTagCC(videoPath, "key:JPEG:data", 0)
+            val videopath2 = "/storage/emulated/0/Download/a.mp4"
+            val result = BentoJNI.AddTagCC(videopath2, "COVR:JPEG:$tempPicturePath", 0)
             println("Résultat : $result")
             
         } catch (e: Exception) {
