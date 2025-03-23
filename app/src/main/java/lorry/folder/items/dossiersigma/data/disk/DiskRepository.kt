@@ -12,6 +12,7 @@ import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
+import lorry.folder.items.dossiersigma.domain.interfaces.IFfmpegRepository
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -21,7 +22,7 @@ import javax.inject.Inject
 
 class DiskRepository @Inject constructor(
     val datasource: IDiskDataSource,
-    val bentoRepository: BentoRepository
+    val ffmpefRepo: IFfmpegRepository
 ) : IDiskRepository {
 
     override suspend fun getInitialFolder(): SigmaFolder {
@@ -37,7 +38,7 @@ class DiskRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             val initialItems = datasource.getFolderContent(folderPath).map { itemDTO ->
                 if (itemDTO.isFile) {
-                    var file: SigmaFile = SigmaFile(
+                    var file: Item = SigmaFile(
                         path = itemDTO.path,
                         name = itemDTO.name,
                         picture = null
@@ -46,9 +47,8 @@ class DiskRepository @Inject constructor(
                     var picture: Bitmap? = null
                     try {
                         GlobalScope.launch {
-                            picture =
-                                bentoRepository.getBitmapFromMP4("${itemDTO.path}/${itemDTO.name}")
-                            file.copy(picture = picture)
+                            picture = ffmpefRepo.getMp4Cover("${itemDTO.path}/${itemDTO.name}")
+                            file = file.copy(picture = picture)
                         }
                     } catch (e: Exception) {
                         println(e.message)

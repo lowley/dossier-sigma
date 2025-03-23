@@ -108,6 +108,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("org.mp4parser:isoparser:1.9.27")
     implementation("com.github.mjeanroy:exiftool-lib:2.6.0")
+    
 }
 
 // Allow references to generated code

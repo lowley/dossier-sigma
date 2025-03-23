@@ -50,9 +50,14 @@ class BentoRepository @Inject constructor(
         
         try {
             val videopath2 = "/storage/emulated/0/Download/a.mp4"
-            val result = BentoJNI.AddTagCC(videopath2, "COVR:JPEG:$tempPicturePath", 0)
+            val testPicturePath = "/storage/emulated/0/Download/clipboard_image.jpg"
+            val result = BentoJNI.AddTagCC(videopath2, "COVR:JPEG:$testPicturePath", 0)
+//            val result = BentoJNI.AddTagCC(videopath2, "COVR:JPEG:$tempPicturePath", 0)
+            
             println("Résultat : $result")
             
+            val result2 = BentoJNI.ExtractTagCC(videopath2, "COVR:/storage/emulated/0/Download/a.jpg")
+            println("Résultat2 : $result2")
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {

@@ -12,4 +12,6 @@ object BentoJNI {
     }
 
     external fun AddTagCC(file: String, arg: String, removeFirst: Int): String
+
+    external fun ExtractTagCC(file: String, image: String): String
 }
