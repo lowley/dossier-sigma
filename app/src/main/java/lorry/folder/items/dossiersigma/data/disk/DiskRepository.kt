@@ -41,7 +41,12 @@ class DiskRepository @Inject constructor(
     suspend override fun getFolderItems(folderPath: String): List<Item> {
         return withContext(Dispatchers.IO) {
             val initialItems = withContext(Dispatchers.IO) {
-                datasource.getFolderContent(folderPath).map { itemDTO ->
+                datasource.getFolderContent(folderPath)
+                    .filter { itemDTO -> 
+                        !itemDTO.name.startsWith(".") &&
+                        itemDTO.name != "System Volume Information" &&
+                        itemDTO.name != "Android"}
+                    .map { itemDTO ->
                     async {
                         if (itemDTO.isFile) {
                             var file: Item = SigmaFile(

@@ -60,25 +60,6 @@ class MainActivity : ComponentActivity() {
                     .collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 
-//                LaunchedEffect(folderState.value, folderState.value.items) {
-//                    if (viewModel.folder.value.items.isEmpty())
-//                        return@LaunchedEffect
-//
-//                    val videoPath = viewModel.folder.value.items
-//                        .firstOrNull { item -> item.name.endsWith(".mp4") }?.fullPath
-//                    if (videoPath.isNullOrEmpty())
-//                        return@LaunchedEffect;
-//                    
-//                    val iconPath = "/storage/7376-B000/SEXE 2/movies/icon.png"
-//                    
-////                    val success = Bento4Wrapper.editMp4Metadata(videoPath, iconPath)
-////                    if (success) {
-////                        Toast.makeText(this@MainActivity, "Icône MP4 ajoutée avec succès !", Toast.LENGTH_SHORT).show()
-////                    } else {
-////                        Toast.makeText(this@MainActivity, "Échec de l'ajout de l'icône.", Toast.LENGTH_SHORT).show()
-////                    }
-//                }
-                
                 LaunchedEffect(selectedItemPicture.id) {
                     //exécuté juste après AccessingToInternetSiteForPictureUseCase/openBrowser 
                     if (selectedItemPicture.reset) {
