@@ -72,7 +72,7 @@ android {
 //            version = "3.31.4" // Vérifiez la version CMake installée
 //        }
 //    }
-    
+
     packagingOptions {
         jniLibs {
             useLegacyPackaging = true
@@ -108,7 +108,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("org.mp4parser:isoparser:1.9.27")
     implementation("com.github.mjeanroy:exiftool-lib:2.6.0")
-    
+    implementation("com.robertlevonyan.compose:buttontogglegroup:1.2.0")
 }
 
 // Allow references to generated code

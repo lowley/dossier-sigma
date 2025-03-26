@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
+import android.R.attr.end
 import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
@@ -7,12 +8,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,17 +27,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.DarkGray
+import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.robertlevonyan.compose.buttontogglegroup.RowToggleButtonGroup
 import dagger.hilt.android.AndroidEntryPoint
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -88,16 +103,49 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Column(modifier = Modifier.fillMaxSize().background(Color(0xFF363E4C))) {
-                    Breadcrumb(
-                        items = folderState.value.fullPath.split("/"),
-                        onPathClick = { path -> viewModel.goToFolder(path) },
-                        modifier = Modifier,
-                        activeColor = Color.Red,
-                        inactiveColor = Color.Gray,
-                        arrowColor = Color.Magenta,
-                        transitionDuration = 7000,
-                        arrowTransitionSpeed = 7000
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Breadcrumb(
+                            items = folderState.value.fullPath.split("/"),
+                            onPathClick = { path -> viewModel.goToFolder(path) },
+                            modifier = Modifier,
+                            activeColor = Color.Red,
+                            inactiveColor = Color.Gray,
+                            arrowColor = Color.Magenta,
+                            transitionDuration = 7000,
+                            arrowTransitionSpeed = 7000
+                        )
+                        RowToggleButtonGroup(
+                            modifier = Modifier.padding(end= 20.dp).width(200.dp).height(40.dp),
+                            buttonCount = 2,
+                            selectedColor = Color(0xFF8697CB),
+                            unselectedColor = LightGray,
+                            selectedContentColor = Color.White,
+                            unselectedContentColor = DarkGray,
+                            elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+                            buttonIcons = arrayOf(
+                                painterResource(id = R.drawable.trier_decroissant),
+                                painterResource(id = R.drawable.trier_croissant),
+                            ),
+                            buttonTexts = arrayOf(
+                                "Date",
+                                "Nom",
+                            ),
+                            shape = RoundedCornerShape(20.dp),
+                            primarySelection = 0,
+                        ) { index ->
+                            when (index) {
+                                0 -> {
+                                    println("Date décroissante")
+                                }
+                                1 -> {
+                                    println("nom croissant")
+                                }
+                            }
+                        }
+                    }
 
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(120.dp),
