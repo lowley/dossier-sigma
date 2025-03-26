@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
+import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegReporitory
 import javax.inject.Singleton
 
 
@@ -26,10 +27,15 @@ abstract class RepositoriesModule {
     abstract fun bindClipboardRepository(
         clipboardRepository: ClipboardRepository
     ): IClipboardRepository
-    
+
     @Binds
     abstract fun bindFfmpegRepository(
-        ffmpegRepository: BentoRepository
+        ffmpegRepository: FfmpegReporitory
+    ): IFfmpegRepository
+    
+    @Binds
+    abstract fun bindBentoRepository(
+        bentoRepository: BentoRepository
     ): IBentoRepository
 }
 

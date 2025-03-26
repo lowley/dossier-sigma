@@ -4,8 +4,12 @@ import android.graphics.Bitmap
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.data.base64.Base64DataSource
+import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
@@ -22,7 +26,7 @@ import javax.inject.Inject
 
 class DiskRepository @Inject constructor(
     val datasource: IDiskDataSource,
-    val ffmpefRepo: IFfmpegRepository
+    val base64DataSource: IBase64DataSource
 ) : IDiskRepository {
 
     override suspend fun getInitialFolder(): SigmaFolder {
@@ -36,32 +40,38 @@ class DiskRepository @Inject constructor(
     @OptIn(DelicateCoroutinesApi::class)
     suspend override fun getFolderItems(folderPath: String): List<Item> {
         return withContext(Dispatchers.IO) {
-            val initialItems = datasource.getFolderContent(folderPath).map { itemDTO ->
-                if (itemDTO.isFile) {
-                    var file: Item = SigmaFile(
-                        path = itemDTO.path,
-                        name = itemDTO.name,
-                        picture = null
-                    )
+            val initialItems = withContext(Dispatchers.IO) {
+                datasource.getFolderContent(folderPath).map { itemDTO ->
+                    async {
+                        if (itemDTO.isFile) {
+                            var file: Item = SigmaFile(
+                                path = itemDTO.path,
+                                name = itemDTO.name,
+                                picture = null
+                            )
 
-                    var picture: Bitmap? = null
-                    try {
-                        GlobalScope.launch {
-                            picture = ffmpefRepo.getMp4Cover("${itemDTO.path}/${itemDTO.name}")
-                            file = file.copy(picture = picture)
+                            if (itemDTO.name.endsWith(".html")) {
+                                try {
+                                    val picture =
+                                        base64DataSource.extractImageFromHtml("${itemDTO.path}/${itemDTO.name}")
+                                    if (picture != null)
+                                        file = file.copy(picture = picture)
+                                } catch (e: Exception) {
+                                    println("Erreur lors de la lecture de cover : ${e.message}")
+                                }
+                            }
+                            
+                            file
+                        } else {
+                            SigmaFolder(
+                                path = itemDTO.path,
+                                name = itemDTO.name,
+                                picture = null,
+                                items = listOf()
+                            )
                         }
-                    } catch (e: Exception) {
-                        println(e.message)
                     }
-
-                    file
-                    
-                } else SigmaFolder(
-                    path = itemDTO.path,
-                    name = itemDTO.name,
-                    picture = null,
-                    items = listOf()
-                )
+                }.awaitAll()
             }
 
             return@withContext initialItems.sortedBy { item -> item.isFile() }

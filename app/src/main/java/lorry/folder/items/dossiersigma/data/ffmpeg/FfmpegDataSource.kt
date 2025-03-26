@@ -4,6 +4,8 @@ import android.content.Context
 import lorry.folder.items.dossiersigma.data.interfaces.IFfmpegDataSource
 import java.nio.file.Paths
 import javax.inject.Inject
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.ReturnCode
 
 class FfmpegDataSource @Inject constructor(
     val context: Context
@@ -17,7 +19,7 @@ class FfmpegDataSource @Inject constructor(
         val command = "-i \"${videoFullPath}\" -map 0:v:1 -c copy \"$tempImageFullDir"
         val session = FFmpegKit.execute(command)
 
-        if (session.ReturnCode.isSuccess(session.getReturnCode())) {
+        if (ReturnCode.isSuccess(session.getReturnCode())) {
             println("ffmpeg: Cover extraite avec succès !")
         } else {
             println("FFmpeg: Erreur lors de l'extraction de la cover.")
