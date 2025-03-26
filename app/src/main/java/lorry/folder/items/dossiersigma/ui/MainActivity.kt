@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
+import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -23,13 +24,18 @@ import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import lorry.folder.items.dossiersigma.PermissionsManager
+import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserScreen
@@ -46,6 +52,7 @@ class MainActivity : ComponentActivity() {
         if (!permissionsManager.hasExternalStoragePermission())
             permissionsManager.requestExternalStoragePermission(this)
         val viewModel: SigmaViewModel by viewModels()
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
         
         setContent {
             DossierSigmaTheme {
@@ -59,6 +66,11 @@ class MainActivity : ComponentActivity() {
                 val searchIsForPersonNotMovies by viewModel.searchIsForPersonNotMovies
                     .collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
+                val activity = LocalContext.current as Activity
+                
+                SideEffect {
+                    activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
+                }
                 
                 LaunchedEffect(selectedItemPicture.id) {
                     //exécuté juste après AccessingToInternetSiteForPictureUseCase/openBrowser 
