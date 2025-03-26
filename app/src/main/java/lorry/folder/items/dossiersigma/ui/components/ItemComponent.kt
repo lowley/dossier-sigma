@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -50,24 +52,25 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun ItemComponent(context: Context, viewModel: SigmaViewModel, item: Item) {
+fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewModel, item: Item) {
     var isMenuVisible by rememberSaveable { mutableStateOf(false) }
     val state = rememberCascadeState()
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
-    val imageHeight = 190.dp
+    val imageHeight = 150.dp
     val imageSource = remember(item) { getImage(context, item, viewModel) }
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(imageHeight)
-            .height(imageHeight + 55.dp)
-
+            .height(imageHeight + 35.dp),
+        verticalArrangement = Arrangement.Top
     ) {
         Box(
             modifier = Modifier
                 .width(imageHeight - 5.dp)
                 .height(imageHeight - 20.dp)
+            
         ) {
             ImageSection(
                 imageSource = imageSource,
@@ -135,13 +138,13 @@ fun getImage(
 ): Any { // Retourne une valeur compatible avec Coil
     return when {
         item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
-        item is SigmaFile -> R.drawable.file_yellow // Icône de fichier
+        item is SigmaFile -> R.drawable.file // Icône de fichier
         item is SigmaFolder -> {
             val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
-            if (isPopulated) R.drawable.folder_full_blue else R.drawable.folder_empty_blue
+            if (isPopulated) R.drawable.folder_full else R.drawable.folder_empty
         }
 
-        else -> R.drawable.file_yellow // Valeur par défaut
+        else -> R.drawable.file // Valeur par défaut
     }
 }
 
@@ -167,7 +170,7 @@ fun TextSection(name: String) {
         lineHeight = 13.sp,
         maxLines = 3,
         fontSize = 12.sp,
-        color = Color.Black,
+        color = Color(0xFFDBBC00),
     )
 }
 

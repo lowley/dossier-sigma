@@ -5,11 +5,13 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -92,7 +94,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Column(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.fillMaxSize().background(Color(0xFF363E4C))) {
                     Breadcrumb(
                         items = folderState.value.fullPath.split("/"),
                         onPathClick = { path -> viewModel.goToFolder(path) },
@@ -108,13 +110,15 @@ class MainActivity : ComponentActivity() {
                         columns = GridCells.Adaptive(120.dp),
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(horizontal = 10.dp)
                             .weight(1f) // Permet au LazyVerticalGrid de prendre tout l'espace restant
                     ) {
                         lazyGridItems(folderState.value.items, key = { it.id }) { item ->
                             ItemComponent(
                                 context = this@MainActivity,
                                 viewModel = viewModel,
-                                item = item
+                                item = item,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                             )
                         }
                     }
