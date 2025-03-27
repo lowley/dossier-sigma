@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +49,7 @@ import me.saket.cascade.rememberCascadeState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 
 @Composable
 fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewModel, item: Item) {
@@ -76,8 +76,7 @@ fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewMode
                 imageSource = imageSource,
                 onTap = {
                     if (item.isFolder()) {
-                        //iewModel.goToFolderSafely(item.fullPath)
-                        viewModel.goToFolder(item.fullPath)
+                        viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
                     }
                 },
                 onLongPress = { offset ->

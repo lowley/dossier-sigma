@@ -31,7 +31,8 @@ class SigmaViewModel @Inject constructor(
     private val _folder = MutableStateFlow<SigmaFolder>(SigmaFolder(
         fullPath = "Veuillez attendre",
         picture = null,
-        items = listOf<Item>()
+        items = listOf<Item>(),
+        modificationDate = System.currentTimeMillis()
     ))
 
     val folder: StateFlow<SigmaFolder>
@@ -119,27 +120,23 @@ class SigmaViewModel @Inject constructor(
         }
     }
 
-    fun goToFolder(folderPath: String) {
+    fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) {
         viewModelScope.launch {
-            val newFolder = SigmaFolder(folderPath, null, diskRepository.getFolderItems(folderPath))
+            val newFolder = SigmaFolder(folderPath, null, diskRepository.getFolderItems(folderPath, sorting), modificationDate = System.currentTimeMillis())
             _folder.value = newFolder
         }
     }
 
-    fun goToFolder(newFolder: SigmaFolder){
-        _folder.value = newFolder
-    }
-
     fun goToFolderSafely(folderPath: String) {
         viewModelScope.launch {
-            val newFolder = SigmaFolder(folderPath, null, emptyList())
+            val newFolder = SigmaFolder(folderPath, null, emptyList(), modificationDate = System.currentTimeMillis())
             _folder.value = newFolder
         }   
     }
     
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2/movies"
-        goToFolder(initialDirectoryPath)
+        goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
         //goToFolder(diskRepository.getInitialFolder())
     }
 
@@ -159,14 +156,6 @@ class SigmaViewModel @Inject constructor(
             null
         }
     }
-    
-    fun applyIcon(iconDir: String, videoDir: String){
-        
-
-        
-        
-        
-    }
 }
 
 data class PictureWrapper(
@@ -178,4 +167,9 @@ data class PictureWrapper(
     override fun toString(): String {
         return "id:$id,picture:${if (picture == null) "non" else "oui"}, reset:$reset, ${System.identityHashCode(this)}"
     }
+}
+
+enum class ITEMS_ORDERING_STRATEGY{
+    DATE_DESC,
+    NAME_ASC
 }

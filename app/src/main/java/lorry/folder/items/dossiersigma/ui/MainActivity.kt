@@ -1,6 +1,5 @@
 package lorry.folder.items.dossiersigma.ui
 
-import android.R.attr.end
 import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
@@ -27,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -35,10 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
 import androidx.compose.ui.graphics.Color.Companion.LightGray
@@ -109,7 +104,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Breadcrumb(
                             items = folderState.value.fullPath.split("/"),
-                            onPathClick = { path -> viewModel.goToFolder(path) },
+                            onPathClick = { path -> viewModel.goToFolder(path, ITEMS_ORDERING_STRATEGY.DATE_DESC) },
                             modifier = Modifier,
                             activeColor = Color.Red,
                             inactiveColor = Color.Gray,
@@ -138,10 +133,10 @@ class MainActivity : ComponentActivity() {
                         ) { index ->
                             when (index) {
                                 0 -> {
-                                    println("Date décroissante")
+                                    viewModel.goToFolder(folderState.value.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
                                 }
                                 1 -> {
-                                    println("nom croissant")
+                                    viewModel.goToFolder(folderState.value.fullPath, ITEMS_ORDERING_STRATEGY.NAME_ASC)
                                 }
                             }
                         }

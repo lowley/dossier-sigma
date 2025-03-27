@@ -1,22 +1,19 @@
 package lorry.folder.items.dossiersigma.data.disk
 
-import android.graphics.Bitmap
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toLowerCase
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.data.base64.Base64DataSource
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
-import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.interfaces.IFfmpegRepository
+import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -32,13 +29,16 @@ class DiskRepository @Inject constructor(
     override suspend fun getInitialFolder(): SigmaFolder {
         return SigmaFolder(
             fullPath = "C:/Users/olivier/Desktop",
-            items = List<Item>(80, init = { SigmaFile("/", "fichier ${it}", null) }),
-            picture = null
+            items = List<Item>(80, init = { SigmaFile("/", "fichier ${it}", null, modificationDate = 0) }),
+            picture = null,
+            id = "",
+            modificationDate = 0
+            
         )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    suspend override fun getFolderItems(folderPath: String): List<Item> {
+    suspend override fun getFolderItems(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY): List<Item> {
         return withContext(Dispatchers.IO) {
             val initialItems = withContext(Dispatchers.IO) {
                 datasource.getFolderContent(folderPath)
@@ -52,7 +52,8 @@ class DiskRepository @Inject constructor(
                             var file: Item = SigmaFile(
                                 path = itemDTO.path,
                                 name = itemDTO.name,
-                                picture = null
+                                picture = null,
+                                modificationDate = itemDTO.lastModified
                             )
 
                             if (itemDTO.name.endsWith(".html")) {
@@ -72,14 +73,27 @@ class DiskRepository @Inject constructor(
                                 path = itemDTO.path,
                                 name = itemDTO.name,
                                 picture = null,
-                                items = listOf()
+                                items = listOf(),
+                                modificationDate = itemDTO.lastModified
                             )
                         }
                     }
                 }.awaitAll()
             }
 
-            return@withContext initialItems.sortedBy { item -> item.isFile() }
+            val sorted = when (sorting){
+                ITEMS_ORDERING_STRATEGY.NAME_ASC ->  initialItems.sortedWith(
+                    compareBy<Item> { it.isFile() }
+                        .thenBy { it.name.toLowerCase(locale = Locale.current)})
+                    
+                    
+                ITEMS_ORDERING_STRATEGY.DATE_DESC -> initialItems.sortedWith(
+                    compareBy<Item> { it.isFile() }
+                        .thenByDescending { it.modificationDate })
+            }
+            
+            
+            return@withContext sorted
         }
     }
 

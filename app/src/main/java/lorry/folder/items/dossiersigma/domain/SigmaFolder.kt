@@ -12,25 +12,28 @@ class SigmaFolder : Item {
         name: String,
         picture: Any?,
         items: List<Item>,
-        id: String = UUID.randomUUID().toString()
-    ) : super(path, name, picture, id) {
+        id: String = UUID.randomUUID().toString(),
+        modificationDate: Long
+    ) : super(path, name, picture, id, modificationDate) {
         this.items = items
     }
 
     override fun toString(): String {
-        return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${id.take(5)}, items: ${items.size})"
+        return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${id.take(5)}, items: ${items.size}, modification: ${modificationDate.toFormattedDate()})"
     }
 
     constructor(
         fullPath: String,
         picture: Any?,
         items: List<Item>,
-        id: String = UUID.randomUUID().toString()
+        id: String = UUID.randomUUID().toString(),
+        modificationDate: Long
     ) : super(
         path = fullPath.substringBeforeLast("/"),
         name = fullPath.substringAfterLast("/"),
         picture = picture,
-        id = id
+        id = id,
+            modificationDate = modificationDate
     ) {
         this.items = items
     }
@@ -43,7 +46,8 @@ class SigmaFolder : Item {
         name: String = this.name,
         picture: Any? = this.picture,
         items: List<Item> = this.items,
-        id: String = this.id
+        id: String = this.id,
+        modificationDate: Long = this.modificationDate
     ): SigmaFolder {
         val result = SigmaFolder(
             path = path, name = name, picture = picture, items = items.map { item ->
@@ -53,7 +57,8 @@ class SigmaFolder : Item {
                     else -> throw IllegalArgumentException("Unknown item type: ${item::class}")
                 }
             },
-            id = id
+            id = id,
+            modificationDate = modificationDate
         )
         return result
     }

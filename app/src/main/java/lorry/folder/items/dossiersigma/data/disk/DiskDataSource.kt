@@ -28,7 +28,8 @@ class DiskDataSource @Inject constructor() : IDiskDataSource {
                     ItemDTO(
                         path = file.path.substringBeforeLast("/"),
                         name = file.name,
-                        isFile = file.isFile
+                        isFile = file.isFile,
+                        lastModified = file.lastModified()
                     )
                 } ?: emptyList()
             })

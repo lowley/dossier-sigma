@@ -1,13 +1,17 @@
 package lorry.folder.items.dossiersigma.domain
 
-import android.graphics.Bitmap
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 abstract class Item(
     val path: String,
     val name: String,
     val picture: Any?,
-    val id: String = UUID.randomUUID().toString()
+    val id: String = UUID.randomUUID().toString(),
+    val modificationDate: Long
 ) {
 
     fun isFile(): Boolean {
@@ -34,17 +38,26 @@ abstract class Item(
                 path = path,
                 name = name,
                 picture = picture,
-                id = id
+                id = id,
+                modificationDate = modificationDate
             )
         } else {
             return (this as SigmaFile).copy(
                 path = path,
                 name = name,
                 picture = picture,
-                id = id
+                id = id,
+                modificationDate = modificationDate
             )
         }
     }
 }
 
+fun Long.toFormattedDate(): String {
+    val instant = Instant.ofEpochMilli(this)
+    val formatter = DateTimeFormatter.ofPattern("HH:mm le dd-MM-yyyy")
+    val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+    val affichage = dateTime.format(formatter)
+    return affichage
+}
 
