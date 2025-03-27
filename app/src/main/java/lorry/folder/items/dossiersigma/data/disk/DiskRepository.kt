@@ -128,4 +128,20 @@ class DiskRepository @Inject constructor(
             null
         }
     }
+
+    override suspend fun getSigmaFolder(
+        folderPath: String,
+        sorting: ITEMS_ORDERING_STRATEGY
+    ): SigmaFolder {
+
+        val folder = File(folderPath)
+        val lastModified = withContext(Dispatchers.IO) { folder.lastModified() }
+        
+        return SigmaFolder(
+            fullPath = folderPath,
+            picture = null,
+            items = getFolderItems(folderPath, sorting),
+            modificationDate = folder.lastModified()
+        )
+    }
 }

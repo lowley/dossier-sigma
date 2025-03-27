@@ -101,7 +101,10 @@ fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewMode
                     .align(CenterHorizontally)
             ) {
                 Text(
-                    text = "Un item",
+                    text = when (item.isFile()) {
+                        true -> "Fichier ${item.name.substringAfterLast(".")}"
+                        false -> "Dossier"
+                    },
                     modifier = Modifier,
                     fontSize = 18.sp
                 )

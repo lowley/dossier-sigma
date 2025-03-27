@@ -122,22 +122,14 @@ class SigmaViewModel @Inject constructor(
 
     fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) {
         viewModelScope.launch {
-            val newFolder = SigmaFolder(folderPath, null, diskRepository.getFolderItems(folderPath, sorting), modificationDate = System.currentTimeMillis())
+            val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
             _folder.value = newFolder
         }
     }
-
-    fun goToFolderSafely(folderPath: String) {
-        viewModelScope.launch {
-            val newFolder = SigmaFolder(folderPath, null, emptyList(), modificationDate = System.currentTimeMillis())
-            _folder.value = newFolder
-        }   
-    }
     
     init {
-        val initialDirectoryPath = "/storage/7376-B000/SEXE 2/movies"
+        val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
         goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-        //goToFolder(diskRepository.getInitialFolder())
     }
 
     fun getIconFile(context: Context, drawableResId: Int): File? {
