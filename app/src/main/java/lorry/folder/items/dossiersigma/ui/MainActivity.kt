@@ -109,8 +109,7 @@ class MainActivity : ComponentActivity() {
                             activeColor = Color.Red,
                             inactiveColor = Color.Gray,
                             arrowColor = Color.Magenta,
-                            transitionDuration = 7000,
-                            arrowTransitionSpeed = 7000
+                            transitionDuration = 1000,
                         )
                         RowToggleButtonGroup(
                             modifier = Modifier.padding(end= 20.dp).width(200.dp).height(40.dp),
