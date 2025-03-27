@@ -1,33 +1,31 @@
 package lorry.folder.items.dossiersigma.ui.components
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -43,44 +41,54 @@ fun Breadcrumb(
     arrowColor: Color = Color.Gray,
     transitionDuration: Int = 600
 ) {
+    val displayedItems = remember { mutableStateListOf<String>() }
     val previousItems = remember { mutableStateListOf<String>() }
 
-    // Détecter les ajouts/suppressions
-    val transition = updateTransition(targetState = items, label = "breadcrumbTransition")
-
     LaunchedEffect(items) {
+        // Ajouter immédiatement les nouveaux items
+        items.forEach { item ->
+            if (item !in displayedItems) displayedItems.add(item)
+        }
+
+        // Identifier les items supprimés
+        val removedItems = displayedItems.filter { it !in items }
+
+        // Attendre la fin des animations avant de supprimer réellement
+        delay(transitionDuration.toLong())
+        displayedItems.removeAll(removedItems)
+
+        // Après les animations, mettre à jour previousItems
         previousItems.clear()
         previousItems.addAll(items)
     }
 
     Row(modifier = modifier) {
-        transition.AnimatedContent(
-            transitionSpec = {
-                fadeIn(animationSpec = tween(transitionDuration)) with
-                        fadeOut(animationSpec = tween(transitionDuration))
-            },
-            contentKey = { it.joinToString("/") } // Clé stable selon le chemin complet
-        ) { currentItems ->
-            Row {
-                currentItems.forEachIndexed { index, item ->
-                    BreadcrumbItem(
-                        text = item,
-                        isActive = index == currentItems.lastIndex,
-                        activeColor = activeColor,
-                        inactiveColor = inactiveColor,
-                        arrowColor = arrowColor,
-                        onClick = {
-                            val path = currentItems.take(index + 1).joinToString("/")
-                            onPathClick(path)
-                        },
-                        animateAppearance = item in currentItems,
-                        duration = transitionDuration
-                    )
-                }
+        displayedItems.forEachIndexed { index, item ->
+            key(item) {
+                BreadcrumbItem(
+                    text = item,
+                    isActive = index == items.lastIndex,
+                    activeColor = activeColor,
+                    inactiveColor = inactiveColor,
+                    arrowColor = arrowColor,
+                    onClick = {
+                        val path = items.take(index + 1).joinToString("/")
+                        onPathClick(path)
+                    },
+                    // Ici, la correction claire :
+                    animationState = when {
+                        item in items && item !in previousItems -> AnimationState.Appearing
+                        item !in items && item in previousItems -> AnimationState.Disappearing
+                        else -> AnimationState.Stable
+                    },
+                    duration = transitionDuration
+                )
             }
         }
     }
 }
+
+enum class AnimationState { Appearing, Disappearing, Stable }
 
 @Composable
 fun BreadcrumbItem(
@@ -90,27 +98,29 @@ fun BreadcrumbItem(
     inactiveColor: Color,
     arrowColor: Color,
     onClick: () -> Unit,
-    animateAppearance: Boolean, // true: apparition, false: disparition
+    animationState: AnimationState,
     duration: Int
 ) {
-    var startAnimation by remember { mutableStateOf(!animateAppearance) }
+    val startAnimation = animationState != AnimationState.Disappearing
 
-    LaunchedEffect(animateAppearance) {
-        if (animateAppearance) {
-            startAnimation = false
-            delay(50) // Petite attente (~50 ms) pour garantir le rendu du texte
-            startAnimation = true
+    var animationTriggered by remember { mutableStateOf(animationState == AnimationState.Stable) }
+
+    LaunchedEffect(animationState) {
+        if (animationState == AnimationState.Appearing) {
+            animationTriggered = false
+            delay(50)
+            animationTriggered = true
+        } else if (animationState == AnimationState.Disappearing) {
+            animationTriggered = false
         } else {
-            startAnimation = false
+            animationTriggered = true
         }
     }
 
-    val transition = updateTransition(targetState = startAnimation, label = "itemClipTransition")
+    val transition = updateTransition(animationTriggered, label = "itemClipTransition")
 
     val clipFraction by transition.animateFloat(
-        transitionSpec = {
-            tween(durationMillis = duration, easing = FastOutSlowInEasing)
-        }, label = "clipFraction"
+        transitionSpec = { tween(durationMillis = duration, easing = FastOutSlowInEasing) }
     ) { visible ->
         if (visible) 1f else 0f
     }
@@ -121,17 +131,18 @@ fun BreadcrumbItem(
             .clipToBounds()
             .drawWithContent {
                 val width = size.width
-
-                if (animateAppearance) {
-                    // Apparition progressive gauche vers droite
-                    clipRect(right = width * clipFraction) {
-                        this@drawWithContent.drawContent()
+                when (animationState) {
+                    AnimationState.Appearing -> {
+                        clipRect(right = width * clipFraction) {
+                            this@drawWithContent.drawContent()
+                        }
                     }
-                } else {
-                    // Disparition progressive droite vers gauche
-                    clipRect(left = width * (1 - clipFraction)) {
-                        this@drawWithContent.drawContent()
+                    AnimationState.Disappearing -> {
+                        clipRect(right = width * clipFraction) {
+                            this@drawWithContent.drawContent()
+                        }
                     }
+                    AnimationState.Stable -> drawContent()
                 }
             }
             .clickable(onClick = onClick)
