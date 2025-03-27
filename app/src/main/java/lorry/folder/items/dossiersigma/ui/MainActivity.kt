@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -97,19 +98,23 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                Column(modifier = Modifier.fillMaxSize().background(Color(0xFF363E4C))) {
+                Column(modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF363E4C))
+                    ) {
+                    Spacer(modifier = Modifier.height(20.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Breadcrumb(
-                            items = folderState.value.fullPath.split("/"),
+                            items = folderState.value.fullPath.split("/").filter { it != "" },
                             onPathClick = { path -> viewModel.goToFolder(path, ITEMS_ORDERING_STRATEGY.DATE_DESC) },
-                            modifier = Modifier,
-                            activeColor = Color.Red,
+                            modifier = Modifier.padding(start = 20.dp),
+                            activeColor = Color.Gray,
                             inactiveColor = Color.Gray,
                             arrowColor = Color.Magenta,
-                            transitionDuration = 1000,
+                            transitionDuration = 200,
                         )
                         RowToggleButtonGroup(
                             modifier = Modifier.padding(end= 20.dp).width(200.dp).height(40.dp),

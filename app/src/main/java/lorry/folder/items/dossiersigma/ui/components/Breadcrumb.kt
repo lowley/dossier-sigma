@@ -137,16 +137,21 @@ fun BreadcrumbItem(
                             this@drawWithContent.drawContent()
                         }
                     }
+
                     AnimationState.Disappearing -> {
                         clipRect(right = width * clipFraction) {
                             this@drawWithContent.drawContent()
                         }
                     }
+
                     AnimationState.Stable -> drawContent()
                 }
             }
             .clickable(onClick = onClick)
     ) {
+        Text(">", color = arrowColor, fontSize = 14.sp)
+        Spacer(modifier = Modifier.width(4.dp))
+        
         Text(
             text = text,
             modifier = Modifier.padding(horizontal = 4.dp),
@@ -154,8 +159,5 @@ fun BreadcrumbItem(
             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
             color = if (isActive) activeColor else inactiveColor
         )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(">", color = arrowColor, fontSize = 14.sp)
-        Spacer(modifier = Modifier.width(4.dp))
     }
 }
