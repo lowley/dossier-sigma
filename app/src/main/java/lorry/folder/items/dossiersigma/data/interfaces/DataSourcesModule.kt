@@ -12,6 +12,7 @@ import lorry.folder.items.dossiersigma.data.disk.ITempFileDataSource
 import lorry.folder.items.dossiersigma.data.disk.TempFileDataSource
 import lorry.folder.items.dossiersigma.data.bento.BentoDataSource
 import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegDataSource
+import lorry.folder.items.dossiersigma.data.playing.PlayingDataSource
 
 
 @Module
@@ -47,4 +48,9 @@ abstract class DataSourcesModule {
     abstract fun bindBase64DataSource(
         base64DataSource: Base64DataSource
     ): IBase64DataSource
+
+    @Binds
+    abstract fun bindPlaying64DataSource(
+        playing64DataSource: PlayingDataSource
+    ): IPlayingDataSource
 }

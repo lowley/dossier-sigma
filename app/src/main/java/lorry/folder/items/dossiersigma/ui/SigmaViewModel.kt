@@ -11,11 +11,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
+import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
+import okio.Path
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
@@ -25,7 +27,8 @@ class SigmaViewModel @Inject constructor(
     private val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
     val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
-    private val ffmpegRepository: BentoRepository
+    private val ffmpegRepository: BentoRepository,
+    val playingDataSource: IPlayingDataSource
 ) : ViewModel() {
 
     private val _folder = MutableStateFlow<SigmaFolder>(SigmaFolder(
@@ -146,6 +149,12 @@ class SigmaViewModel @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    fun playMP4File(mp4FullPath: String) {
+        viewModelScope.launch { 
+            playingDataSource.playMP4File(mp4FullPath)
         }
     }
 }

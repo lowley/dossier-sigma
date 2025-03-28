@@ -5,11 +5,13 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,9 +25,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -149,15 +161,103 @@ fun BreadcrumbItem(
             }
             .clickable(onClick = onClick)
     ) {
-        Text(">", color = arrowColor, fontSize = 14.sp)
-        Spacer(modifier = Modifier.width(4.dp))
-        
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 4.dp),
-            fontSize = 16.sp,
-            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-            color = if (isActive) activeColor else inactiveColor
-        )
+        Surface(
+            shape = ParallelogramShape(),
+            color = Color(0xFFF3F4E3),
+            modifier = Modifier
+                .border(2.dp, Color(0xFF8697CB), ParallelogramShape())
+        ) {
+            Text(
+                text = text,
+                modifier = Modifier.padding(horizontal = 15.dp),
+                fontSize = 16.sp,
+                //fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                color = if (isActive) activeColor else inactiveColor,
+                fontFamily = FontFamily.Monospace, // ou custom comme JetBrainsMono
+                fontWeight = FontWeight.Medium,
+                //fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+class ParallelogramShape(
+    private val skew: Dp = 10.dp,
+    private val cornerRadius: Dp = 4.dp
+) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val skewPx = with(density) { skew.toPx() }
+        val radiusPx = with(density) { cornerRadius.toPx().coerceAtMost(size.minDimension / 2) }
+
+        val path = Path().apply {
+            // Point 1 (haut gauche, après le biseau)
+            moveTo(skewPx + radiusPx, 0f)
+
+            // Ligne jusqu’au coin haut droit avec arrondi
+            lineTo(size.width - radiusPx, 0f)
+            arcTo(
+                rect = Rect(
+                    left = size.width - 2 * radiusPx,
+                    top = 0f,
+                    right = size.width,
+                    bottom = 2 * radiusPx
+                ),
+                startAngleDegrees = -90f,
+                sweepAngleDegrees = 90f,
+                forceMoveTo = false
+            )
+
+            // Ligne jusqu’au coin bas droit avec arrondi
+            lineTo(size.width - skewPx, size.height - radiusPx)
+            arcTo(
+                rect = Rect(
+                    left = size.width - skewPx - radiusPx * 2,
+                    top = size.height - 2 * radiusPx,
+                    right = size.width - skewPx,
+                    bottom = size.height
+                ),
+                startAngleDegrees = 0f,
+                sweepAngleDegrees = 90f,
+                forceMoveTo = false
+            )
+
+            // Ligne jusqu’au coin bas gauche avec arrondi
+            lineTo(radiusPx, size.height)
+            arcTo(
+                rect = Rect(
+                    left = 0f,
+                    top = size.height - 2 * radiusPx,
+                    right = 2 * radiusPx,
+                    bottom = size.height
+                ),
+                startAngleDegrees = 90f,
+                sweepAngleDegrees = 90f,
+                forceMoveTo = false
+            )
+
+            // Ligne jusqu’au coin haut gauche (début du biseau)
+            lineTo(skewPx + radiusPx, 0f)
+            arcTo(
+                rect = Rect(
+                    left = skewPx,
+                    top = 0f,
+                    right = skewPx + 2 * radiusPx,
+                    bottom = 2 * radiusPx
+                ),
+                startAngleDegrees = 180f,
+                sweepAngleDegrees = 90f,
+                forceMoveTo = false
+            )
+
+            close()
+        }
+
+        return Outline.Generic(path)
     }
 }

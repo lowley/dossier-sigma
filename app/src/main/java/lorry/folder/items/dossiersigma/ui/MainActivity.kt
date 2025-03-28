@@ -111,8 +111,8 @@ class MainActivity : ComponentActivity() {
                             items = folderState.value.fullPath.split("/").filter { it != "" },
                             onPathClick = { path -> viewModel.goToFolder(path, ITEMS_ORDERING_STRATEGY.DATE_DESC) },
                             modifier = Modifier.padding(start = 20.dp),
-                            activeColor = Color.Gray,
-                            inactiveColor = Color.Gray,
+                            activeColor = Color(0xFF8697CB),
+                            inactiveColor = Color(0xFF8697CB),
                             arrowColor = Color.Magenta,
                             transitionDuration = 200,
                         )

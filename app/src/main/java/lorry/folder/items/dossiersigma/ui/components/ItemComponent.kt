@@ -70,13 +70,16 @@ fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewMode
             modifier = Modifier
                 .width(imageHeight - 5.dp)
                 .height(imageHeight - 20.dp)
-            
+
         ) {
             ImageSection(
                 imageSource = imageSource,
                 onTap = {
                     if (item.isFolder()) {
                         viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                    }
+                    if (item.isFile() && item.name.endsWith(".mp4")) {
+                        viewModel.playMP4File(item.fullPath)
                     }
                 },
                 onLongPress = { offset ->
@@ -118,7 +121,7 @@ fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewMode
                     isMenuVisible = false
                 }
             )
-            
+
             androidx.compose.material3.DropdownMenuItem(
                 text = { Text("Clipboard -> icône") },
                 leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },
