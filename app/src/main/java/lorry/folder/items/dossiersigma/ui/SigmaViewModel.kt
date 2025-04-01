@@ -154,7 +154,13 @@ class SigmaViewModel @Inject constructor(
 
     fun playMP4File(mp4FullPath: String) {
         viewModelScope.launch { 
-            playingDataSource.playMP4File(mp4FullPath)
+            playingDataSource.playMP4File(mp4FullPath, "video/mp4")
+        }
+    }
+
+    fun playHtmlFile(htmlFullPath: String) {
+        viewModelScope.launch {
+            playingDataSource.playMP4File(htmlFullPath, "text/html")
         }
     }
 }

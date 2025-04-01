@@ -1,5 +1,8 @@
 package lorry.folder.items.dossiersigma.data.disk
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -66,6 +69,16 @@ class DiskRepository @Inject constructor(
                                     println("Erreur lors de la lecture de cover : ${e.message}")
                                 }
                             }
+
+                            if (itemDTO.name.endsWith(".mp4")) {
+                                try {
+                                    val picture = extractCoverBitmap("${itemDTO.path}/${itemDTO.name}")
+                                    if (picture != null)
+                                        file = file.copy(picture = picture)
+                                } catch (e: Exception) {
+                                    println("Erreur lors de la lecture de cover : ${e.message}")
+                                }
+                            }
                             
                             file
                         } else {
@@ -94,6 +107,21 @@ class DiskRepository @Inject constructor(
             
             
             return@withContext sorted
+        }
+    }
+
+    fun extractCoverBitmap(videoPath: String): Bitmap? {
+        return try {
+            val retriever = MediaMetadataRetriever()
+            retriever.setDataSource(videoPath)
+            val cover = retriever.embeddedPicture
+            retriever.release()
+            cover?.let { data ->
+                BitmapFactory.decodeByteArray(data, 0, data.size)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 

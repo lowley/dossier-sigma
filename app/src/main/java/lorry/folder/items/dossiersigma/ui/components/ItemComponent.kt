@@ -81,6 +81,9 @@ fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewMode
                     if (item.isFile() && item.name.endsWith(".mp4")) {
                         viewModel.playMP4File(item.fullPath)
                     }
+                    if (item.isFile() && item.name.endsWith(".html")) {
+                        viewModel.playHtmlFile(item.fullPath)
+                    }
                 },
                 onLongPress = { offset ->
                     imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
