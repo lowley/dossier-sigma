@@ -1,11 +1,17 @@
 package lorry.folder.items.dossiersigma.domain.usecases.pictures
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUseCase
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 import javax.inject.Inject
 
 class ChangingPictureUseCase @Inject constructor(
@@ -21,6 +27,13 @@ class ChangingPictureUseCase @Inject constructor(
         return result
     }
     
+    suspend fun savePictureOfFolder(item: Item){
+        diskRepository.saveFolderPictureToHtmlFile(item)
+    }
+    
+    
+    
+    
     fun isFolderPopulated(item: Item): Boolean {
         if(item.isFile())
             throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: Item is not a folder")
@@ -33,6 +46,23 @@ class ChangingPictureUseCase @Inject constructor(
         
         return folder.listFiles().isNotEmpty()
     }
-    
-    
+
+    suspend fun urlToBitmap(url: String): Bitmap? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val connection = URL(url).openConnection() as HttpURLConnection
+                connection.doInput = true
+                connection.connect()
+                val inputStream = connection.inputStream
+                BitmapFactory.decodeStream(inputStream).also {
+                    inputStream.close()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+    }
+
+
 }

@@ -2,7 +2,6 @@ package lorry.folder.items.dossiersigma.ui.components
 
 import android.content.Context
 import android.graphics.Bitmap
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -20,36 +19,41 @@ import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
 import androidx.compose.material.icons.sharp.AccountBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.unit.dp
-import lorry.folder.items.dossiersigma.domain.Item
-import lorry.folder.items.dossiersigma.R
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.viewModelScope
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.CascadeDropdownMenu
 import me.saket.cascade.rememberCascadeState
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 
 @Composable
 fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewModel, item: Item) {
@@ -148,8 +152,34 @@ fun getImage(
         item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
         item is SigmaFile -> R.drawable.file // Icône de fichier
         item is SigmaFolder -> {
-            val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
-            if (isPopulated) R.drawable.folder_full else R.drawable.folder_empty
+
+            var hasPictureFile: Boolean = false
+            viewModel.viewModelScope.launch {
+                hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
+          
+            }
+
+            if (!hasPictureFile) {
+                val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
+                if (isPopulated) R.drawable.folder_full else R.drawable.folder_empty
+            } else {
+                //une image est présente pour ce répertoire
+                try {
+                    var picture: Bitmap? = null
+                    viewModel.viewModelScope.launch {
+                        async(Dispatchers.IO) {
+                            withContext(Dispatchers.IO) {
+                                picture =
+                                    viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html}")
+                            }
+                        }.await()
+                        if (picture != null)
+                            item.copy(picture = picture)
+                    }
+                } catch (e: Exception) {
+                    println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
+                }
+            }
         }
 
         else -> R.drawable.file // Valeur par défaut

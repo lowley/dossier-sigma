@@ -10,33 +10,36 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
-import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
+import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
-import okio.Path
 import java.io.File
 import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
 class SigmaViewModel @Inject constructor(
-    private val diskRepository: IDiskRepository,
+    val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
     val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
-    private val ffmpegRepository: BentoRepository,
-    val playingDataSource: IPlayingDataSource
+    val ffmpegRepository: BentoRepository,
+    val playingDataSource: IPlayingDataSource,
+    val base64DataSource: IBase64DataSource
 ) : ViewModel() {
 
-    private val _folder = MutableStateFlow<SigmaFolder>(SigmaFolder(
-        fullPath = "Veuillez attendre",
-        picture = null,
-        items = listOf<Item>(),
-        modificationDate = System.currentTimeMillis()
-    ))
+    private val _folder = MutableStateFlow<SigmaFolder>(
+        SigmaFolder(
+            fullPath = "Veuillez attendre",
+            picture = null,
+            items = listOf<Item>(),
+            modificationDate = System.currentTimeMillis()
+        )
+    )
 
     val folder: StateFlow<SigmaFolder>
         get() = _folder
@@ -59,9 +62,9 @@ class SigmaViewModel @Inject constructor(
     //other case is for movies
     private val _searchIsForPersonNotMovies = MutableStateFlow(true)
     val searchIsForPersonNotMovies: StateFlow<Boolean> = _searchIsForPersonNotMovies
-    
+
     fun setBrowserPersonSearch(search: String) {
-        _browserSearch.value = search  
+        _browserSearch.value = search
         _searchIsForPersonNotMovies.value = true
     }
 
@@ -69,7 +72,7 @@ class SigmaViewModel @Inject constructor(
         _browserSearch.value = search
         _searchIsForPersonNotMovies.value = false
     }
-    
+
     //SELECTED ITEM
     private val _selectedItem = MutableStateFlow<Item?>(null)
     val selectedItem: StateFlow<Item?> = _selectedItem
@@ -77,7 +80,7 @@ class SigmaViewModel @Inject constructor(
     fun setSelectedItem(item: Item) {
         _selectedItem.value = item
     }
-     
+
     //SELECTED PICTURE
     private val _selectedItemPicture = MutableStateFlow(PictureWrapper())
     val selectedItemPicture: StateFlow<PictureWrapper> = _selectedItemPicture
@@ -85,32 +88,53 @@ class SigmaViewModel @Inject constructor(
     fun resetPictureFlow() {
         _selectedItemPicture.value = PictureWrapper(
             reset = true,
-            id =  _selectedItemPicture.value.id + 1)
+            id = _selectedItemPicture.value.id + 1
+        )
         Log.d("toto", "resetPictureFlow: ${_selectedItemPicture.value}")
     }
 
     fun startPictureFlow() {
         _selectedItemPicture.value = PictureWrapper(
-            id =  _selectedItemPicture.value.id)
+            id = _selectedItemPicture.value.id
+        )
     }
 
     fun updatePicture(newPicture: Any?) {
-        viewModelScope.launch{
-            ffmpegRepository.addPictureToMP4Metadata(newPicture as String, _selectedItem.value!!.fullPath)
+        viewModelScope.launch {
+            if (_selectedItem.value?.isFile() == true)
+                ffmpegRepository.addPictureToMP4Metadata(
+                    newPicture as String,
+                    _selectedItem.value!!.fullPath
+                )
+            else {
+                //url vers bitmap puis dans _selectedItem 
+                val pictureBitmap = changingPictureUseCase.urlToBitmap(newPicture as String)
+                if (pictureBitmap != null) {
+                    _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
+                    setPictureWithClipboard(_selectedItem.value!!)
+                }
+            }
+            
+            _selectedItemPicture.value = PictureWrapper(
+                picture = newPicture,
+                id = _selectedItemPicture.value.id + 1
+            )
         }
-        _selectedItemPicture.value = PictureWrapper(picture = newPicture,
-            id =  _selectedItemPicture.value.id + 1)
+
     }
-    
+
     fun setPictureWithClipboard(item: Item) {
         val newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
-        updateItemList(newItem)
+        viewModelScope.launch {
+            changingPictureUseCase.savePictureOfFolder(item)
+            updateItemList(newItem)
+        }
     }
 
     fun openBrowser(item: Item) {
         //accessingToInternet.startListeningToClipboard(item.id)
         accessingToInternet.openBrowser(item, this)
-        
+
     }
 
     fun updateItemList(newItem: Item) {
@@ -129,7 +153,7 @@ class SigmaViewModel @Inject constructor(
             _folder.value = newFolder
         }
     }
-    
+
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
         goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
@@ -153,7 +177,7 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun playMP4File(mp4FullPath: String) {
-        viewModelScope.launch { 
+        viewModelScope.launch {
             playingDataSource.playMP4File(mp4FullPath, "video/mp4")
         }
     }
@@ -172,11 +196,15 @@ data class PictureWrapper(
     val id: Int = 0
 ) {
     override fun toString(): String {
-        return "id:$id,picture:${if (picture == null) "non" else "oui"}, reset:$reset, ${System.identityHashCode(this)}"
+        return "id:$id,picture:${if (picture == null) "non" else "oui"}, reset:$reset, ${
+            System.identityHashCode(
+                this
+            )
+        }"
     }
 }
 
-enum class ITEMS_ORDERING_STRATEGY{
+enum class ITEMS_ORDERING_STRATEGY {
     DATE_DESC,
     NAME_ASC
 }

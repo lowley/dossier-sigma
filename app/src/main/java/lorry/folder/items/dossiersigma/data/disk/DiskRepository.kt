@@ -3,6 +3,7 @@ package lorry.folder.items.dossiersigma.data.disk
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
+import android.util.Base64
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -12,16 +13,18 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
-import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
+import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.security.InvalidParameterException
 import javax.inject.Inject
 
 class DiskRepository @Inject constructor(
@@ -32,80 +35,87 @@ class DiskRepository @Inject constructor(
     override suspend fun getInitialFolder(): SigmaFolder {
         return SigmaFolder(
             fullPath = "C:/Users/olivier/Desktop",
-            items = List<Item>(80, init = { SigmaFile("/", "fichier ${it}", null, modificationDate = 0) }),
+            items = List<Item>(
+                80,
+                init = { SigmaFile("/", "fichier ${it}", null, modificationDate = 0) }),
             picture = null,
             id = "",
             modificationDate = 0
-            
+
         )
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    suspend override fun getFolderItems(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY): List<Item> {
+    suspend override fun getFolderItems(
+        folderPath: String,
+        sorting: ITEMS_ORDERING_STRATEGY
+    ): List<Item> {
         return withContext(Dispatchers.IO) {
             val initialItems = withContext(Dispatchers.IO) {
                 datasource.getFolderContent(folderPath)
-                    .filter { itemDTO -> 
+                    .filter { itemDTO ->
                         !itemDTO.name.startsWith(".") &&
-                        itemDTO.name != "System Volume Information" &&
-                        itemDTO.name != "Android"}
-                    .map { itemDTO ->
-                    async {
-                        if (itemDTO.isFile) {
-                            var file: Item = SigmaFile(
-                                path = itemDTO.path,
-                                name = itemDTO.name,
-                                picture = null,
-                                modificationDate = itemDTO.lastModified
-                            )
-
-                            if (itemDTO.name.endsWith(".html")) {
-                                try {
-                                    val picture =
-                                        base64DataSource.extractImageFromHtml("${itemDTO.path}/${itemDTO.name}")
-                                    if (picture != null)
-                                        file = file.copy(picture = picture)
-                                } catch (e: Exception) {
-                                    println("Erreur lors de la lecture de cover : ${e.message}")
-                                }
-                            }
-
-                            if (itemDTO.name.endsWith(".mp4")) {
-                                try {
-                                    val picture = extractCoverBitmap("${itemDTO.path}/${itemDTO.name}")
-                                    if (picture != null)
-                                        file = file.copy(picture = picture)
-                                } catch (e: Exception) {
-                                    println("Erreur lors de la lecture de cover : ${e.message}")
-                                }
-                            }
-                            
-                            file
-                        } else {
-                            SigmaFolder(
-                                path = itemDTO.path,
-                                name = itemDTO.name,
-                                picture = null,
-                                items = listOf(),
-                                modificationDate = itemDTO.lastModified
-                            )
-                        }
+                                itemDTO.name != "System Volume Information" &&
+                                itemDTO.name != "Android"
                     }
-                }.awaitAll()
+                    .map { itemDTO ->
+                        async {
+                            if (itemDTO.isFile) {
+                                var file: Item = SigmaFile(
+                                    path = itemDTO.path,
+                                    name = itemDTO.name,
+                                    picture = null,
+                                    modificationDate = itemDTO.lastModified
+                                )
+
+                                if (itemDTO.name.endsWith(".html")) {
+                                    try {
+                                        val picture =
+                                            base64DataSource.extractImageFromHtml("${itemDTO.path}/${itemDTO.name}")
+                                        if (picture != null)
+                                            file = file.copy(picture = picture)
+                                    } catch (e: Exception) {
+                                        println("Erreur lors de la lecture de cover : ${e.message}")
+                                    }
+                                }
+
+                                if (itemDTO.name.endsWith(".mp4")) {
+                                    try {
+                                        val picture =
+                                            extractCoverBitmap("${itemDTO.path}/${itemDTO.name}")
+                                        if (picture != null)
+                                            file = file.copy(picture = picture)
+                                    } catch (e: Exception) {
+                                        println("Erreur lors de la lecture de cover : ${e.message}")
+                                    }
+                                }
+
+                                file
+                            } else {
+                                SigmaFolder(
+                                    path = itemDTO.path,
+                                    name = itemDTO.name,
+                                    picture = null,
+                                    items = listOf(),
+                                    modificationDate = itemDTO.lastModified
+                                )
+                            }
+                        }
+                    }.awaitAll()
             }
 
-            val sorted = when (sorting){
-                ITEMS_ORDERING_STRATEGY.NAME_ASC ->  initialItems.sortedWith(
+            val sorted = when (sorting) {
+                ITEMS_ORDERING_STRATEGY.NAME_ASC -> initialItems.sortedWith(
                     compareBy<Item> { it.isFile() }
-                        .thenBy { it.name.toLowerCase(locale = Locale.current)})
-                    
-                    
+                        .thenBy { it.name.toLowerCase(locale = Locale.current) })
+
+
                 ITEMS_ORDERING_STRATEGY.DATE_DESC -> initialItems.sortedWith(
                     compareBy<Item> { it.isFile() }
                         .thenByDescending { it.modificationDate })
             }
-            
-            
+
+
             return@withContext sorted
         }
     }
@@ -164,12 +174,68 @@ class DiskRepository @Inject constructor(
 
         val folder = File(folderPath)
         val lastModified = withContext(Dispatchers.IO) { folder.lastModified() }
-        
+
         return SigmaFolder(
             fullPath = folderPath,
             picture = null,
             items = getFolderItems(folderPath, sorting),
             modificationDate = folder.lastModified()
         )
+    }
+
+    override suspend fun saveFolderPictureToHtmlFile(item: Item) {
+        if (item.picture == null || item.isFile())
+            return
+
+        //picture contient un bitmap
+        val destFullPath = "${item.fullPath}/.folderPicture.html"
+        createShortcut(text(item), destFullPath)
+    }
+
+    override suspend fun createShortcut(text: String, fullPathAndName: String) {
+        withContext(Dispatchers.IO) {
+            val fichier = File(fullPathAndName)
+            fichier.writeText(text, Charsets.UTF_8)
+        }
+    }
+
+    override suspend fun hasPictureFile(item: Item): Boolean {
+        if (item.isFile())
+            return false
+
+        val folderPictureFile = File("${item.fullPath}/.folderPicture.html")
+        val result = withContext(Dispatchers.IO) {
+            folderPictureFile.exists()
+        }
+        
+        return result
+    }
+
+    fun text(item: Item): String {
+        //assert
+        val base64Cover: String? = (item.picture as Bitmap?)?.let {
+            val outputStream = ByteArrayOutputStream()
+            it.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            val imageBytes = outputStream.toByteArray()
+            Base64.encodeToString(imageBytes, Base64.NO_WRAP)
+        }
+
+        val imageSection = base64Cover?.let {
+            """<img src="data:image/jpeg;base64,$it" alt="cover" style="max-width:100%;height:auto;"/><br>"""
+        } ?: ""
+
+        val text = """<!DOCTYPE html>
+                                 <html lang="fr">
+                                 <head>
+                                     <meta charset="UTF-8">
+                                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                     <title>Image container</title>
+                                 </head>
+                                 <body>
+                                    $imageSection
+                                 </body>
+                                 </html>"""
+
+        return text
     }
 }
