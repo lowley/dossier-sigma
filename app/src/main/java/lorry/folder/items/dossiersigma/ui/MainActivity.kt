@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.app.Activity
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -64,6 +65,10 @@ class MainActivity : ComponentActivity() {
             permissionsManager.requestExternalStoragePermission(this)
         val viewModel: SigmaViewModel by viewModels()
         window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
+        
+//        viewModel.viewModelScope.launch(Dispatchers.IO) {
+//            viewModel.initCoil(this@MainActivity)
+//        }
         
         setContent {
             DossierSigmaTheme {
@@ -158,7 +163,8 @@ class MainActivity : ComponentActivity() {
                                 context = this@MainActivity,
                                 viewModel = viewModel,
                                 item = item,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                imageCache = viewModel.imageCache
                             )
                         }
                     }

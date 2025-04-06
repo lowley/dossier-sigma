@@ -3,6 +3,8 @@ package lorry.folder.items.dossiersigma.ui.components
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,11 +16,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
 import androidx.compose.material.icons.sharp.AccountBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +30,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -39,13 +44,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
@@ -56,13 +57,30 @@ import me.saket.cascade.CascadeDropdownMenu
 import me.saket.cascade.rememberCascadeState
 
 @Composable
-fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewModel, item: Item) {
+fun ItemComponent(
+    modifier: Modifier,
+    context: Context,
+    viewModel: SigmaViewModel,
+    item: Item,
+    imageCache: MutableMap<String, Any?>
+) {
     var isMenuVisible by rememberSaveable { mutableStateOf(false) }
     val state = rememberCascadeState()
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
     val imageHeight = 150.dp
-    val imageSource = remember(item) { getImage(context, item, viewModel) }
+    val imageSource = remember { mutableStateOf<Any?>(null) }
+    //val imageSource = remember(item) { getImage(context, item, viewModel) }
+
+    LaunchedEffect(item) {
+        if (imageCache.containsKey(item.fullPath)) {
+            imageSource.value =
+                imageCache.getValue(item.fullPath)
+            imageCache[item.fullPath] = imageSource.value
+        } 
+        else
+            imageSource.value = getImage(context = context, item, viewModel)
+    }
 
     Column(
         modifier = modifier
@@ -76,23 +94,25 @@ fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewMode
                 .height(imageHeight - 20.dp)
 
         ) {
-            ImageSection(
-                imageSource = imageSource,
-                onTap = {
-                    if (item.isFolder()) {
-                        viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                    }
-                    if (item.isFile() && item.name.endsWith(".mp4")) {
-                        viewModel.playMP4File(item.fullPath)
-                    }
-                    if (item.isFile() && item.name.endsWith(".html")) {
-                        viewModel.playHtmlFile(item.fullPath)
-                    }
-                },
-                onLongPress = { offset ->
-                    imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-                    isMenuVisible = true
-                })
+            imageSource.value?.let { bitmap ->
+                ImageSection(
+                    imageSource = imageSource.value!!,
+                    onTap = {
+                        if (item.isFolder()) {
+                            viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                        }
+                        if (item.isFile() && item.name.endsWith(".mp4")) {
+                            viewModel.playMP4File(item.fullPath)
+                        }
+                        if (item.isFile() && item.name.endsWith(".html")) {
+                            viewModel.playHtmlFile(item.fullPath)
+                        }
+                    },
+                    onLongPress = { offset ->
+                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
+                        isMenuVisible = true
+                    })
+            }
         }
 
 
@@ -143,21 +163,17 @@ fun ItemComponent(modifier: Modifier, context: Context, viewModel: SigmaViewMode
 }
 
 
-fun getImage(
+suspend fun getImage(
     context: Context,
     item: Item,
     viewModel: SigmaViewModel
 ): Any { // Retourne une valeur compatible avec Coil
-    return when {
+    var result: Any? = null
+    result = when {
         item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
         item is SigmaFile -> R.drawable.file // Icône de fichier
         item is SigmaFolder -> {
-
-            var hasPictureFile: Boolean = false
-            viewModel.viewModelScope.launch {
-                hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
-          
-            }
+            var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
 
             if (!hasPictureFile) {
                 val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
@@ -166,16 +182,12 @@ fun getImage(
                 //une image est présente pour ce répertoire
                 try {
                     var picture: Bitmap? = null
-                    viewModel.viewModelScope.launch {
-                        async(Dispatchers.IO) {
-                            withContext(Dispatchers.IO) {
-                                picture =
-                                    viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html}")
-                            }
-                        }.await()
-                        if (picture != null)
-                            item.copy(picture = picture)
-                    }
+                    picture =
+                        viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
+                    if (picture != null) {
+                        item.copy(picture = picture)
+                        picture
+                    } else R.drawable.file
                 } catch (e: Exception) {
                     println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
                 }
@@ -184,6 +196,8 @@ fun getImage(
 
         else -> R.drawable.file // Valeur par défaut
     }
+
+    return result
 }
 
 fun getImageBitmapFromDrawable(
@@ -225,17 +239,18 @@ fun ImageSection(
             .build()
     )
 
-    Image(
+    AsyncImage(
+        model = imageSource,
+        contentDescription = "Miniature",
         modifier = Modifier
             .fillMaxSize()
-            .aspectRatio(1f)
+            .clip(RoundedCornerShape(8.dp)) // 🔹 coins arrondis
+            .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
             .pointerInput(true) {
                 detectTapGestures(
                     onTap = { onTap() },
                     onLongPress = { onLongPress(it) }
                 )
             },
-        painter = imagePainter,
-        contentDescription = null
     )
 }

@@ -6,10 +6,13 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.ImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
@@ -32,6 +35,8 @@ class SigmaViewModel @Inject constructor(
     val base64DataSource: IBase64DataSource
 ) : ViewModel() {
 
+    val imageCache = mutableMapOf<String, Any?>()
+    
     private val _folder = MutableStateFlow<SigmaFolder>(
         SigmaFolder(
             fullPath = "Veuillez attendre",
@@ -101,17 +106,24 @@ class SigmaViewModel @Inject constructor(
 
     fun updatePicture(newPicture: Any?) {
         viewModelScope.launch {
+            if (_selectedItem.value == null)
+                return@launch
+            
             if (_selectedItem.value?.isFile() == true)
-                ffmpegRepository.addPictureToMP4Metadata(
-                    newPicture as String,
-                    _selectedItem.value!!.fullPath
-                )
+                withContext(Dispatchers.IO) {
+                    ffmpegRepository.addPictureToMP4Metadata(
+                        newPicture as String,
+                        _selectedItem.value!!.fullPath
+                    )
+                }
             else {
                 //url vers bitmap puis dans _selectedItem 
-                val pictureBitmap = changingPictureUseCase.urlToBitmap(newPicture as String)
+                val pictureBitmap = withContext(Dispatchers.IO){ 
+                    changingPictureUseCase.urlToBitmap(newPicture as String)}
                 if (pictureBitmap != null) {
                     _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
                     setPictureWithClipboard(_selectedItem.value!!)
+                    goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
                 }
             }
             
@@ -127,7 +139,9 @@ class SigmaViewModel @Inject constructor(
         val newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
         viewModelScope.launch {
             changingPictureUseCase.savePictureOfFolder(item)
-            updateItemList(newItem)
+            withContext(Dispatchers.Main) {
+                updateItemList(newItem)
+            }
         }
     }
 
@@ -148,11 +162,15 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) {
-        viewModelScope.launch {
+        imageCache.clear()
+        viewModelScope.launch(Dispatchers.IO) {
             val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
-            _folder.value = newFolder
+            withContext(Dispatchers.Main) {
+                _folder.value = newFolder
+            }
         }
     }
+    
 
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2"

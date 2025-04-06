@@ -41,7 +41,6 @@ class DiskRepository @Inject constructor(
             picture = null,
             id = "",
             modificationDate = 0
-
         )
     }
 
