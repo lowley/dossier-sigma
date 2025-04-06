@@ -138,7 +138,7 @@ class SigmaViewModel @Inject constructor(
     fun setPictureWithClipboard(item: Item) {
         val newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
         viewModelScope.launch {
-            changingPictureUseCase.savePictureOfFolder(item)
+            changingPictureUseCase.savePictureOfFolder(newItem)
             withContext(Dispatchers.Main) {
                 updateItemList(newItem)
             }
