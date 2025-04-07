@@ -11,6 +11,8 @@ import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegReporitory
+import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
+import lorry.folder.items.dossiersigma.data.playing.PlayingDataSource
 import javax.inject.Singleton
 
 
