@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
@@ -62,6 +64,7 @@ fun ItemComponent(
     val density = LocalDensity.current
     val imageHeight = 130.dp
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
+    
 
     LaunchedEffect(item.fullPath) {
         if (imageCache.containsKey(item.fullPath)) {
@@ -159,36 +162,38 @@ suspend fun getImage(
     item: Item,
     viewModel: SigmaViewModel
 ): Any { // Retourne une valeur compatible avec Coil
-    var result: Any? = null
-    result = when {
-        item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
-        item is SigmaFile -> R.drawable.file // Icône de fichier
-        item is SigmaFolder -> {
-            var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
+    return withContext(Dispatchers.Default) {
+        var result: Any? = null
+        result = when {
+            item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
+            item is SigmaFile -> R.drawable.file // Icône de fichier
+            item is SigmaFolder -> {
+                var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
 
-            if (!hasPictureFile) {
-                val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
-                if (isPopulated) R.drawable.folder_full else R.drawable.folder_empty
-            } else {
-                //une image est présente pour ce répertoire
-                try {
-                    var picture: Bitmap? = null
-                    picture =
-                        viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
-                    if (picture != null) {
-                        item.copy(picture = picture)
-                        picture
-                    } else R.drawable.file
-                } catch (e: Exception) {
-                    println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
+                if (!hasPictureFile) {
+                    val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
+                    if (isPopulated) R.drawable.folder_full else R.drawable.folder_empty
+                } else {
+                    //une image est présente pour ce répertoire
+                    try {
+                        var picture: Bitmap? = null
+                        picture =
+                            viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
+                        if (picture != null) {
+                            item.copy(picture = picture)
+                            picture
+                        } else R.drawable.file
+                    } catch (e: Exception) {
+                        println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
+                    }
                 }
             }
+
+            else -> R.drawable.file // Valeur par défaut
         }
 
-        else -> R.drawable.file // Valeur par défaut
+        return@withContext result
     }
-
-    return result
 }
 
 @Composable

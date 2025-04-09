@@ -34,17 +34,17 @@ class ChangingPictureUseCase @Inject constructor(
     
     
     
-    fun isFolderPopulated(item: Item): Boolean {
+    suspend fun isFolderPopulated(item: Item): Boolean {
         if(item.isFile())
             throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: Item is not a folder")
         
         val itemAsfolder = item as SigmaFolder
         val folder = File(itemAsfolder.fullPath)
        
-        if (!folder.exists())
+        if (!withContext(Dispatchers.IO) {  folder.exists() })
             throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: folder is empty")
         
-        return folder.listFiles().isNotEmpty()
+        return withContext(Dispatchers.IO) {  folder.listFiles()!!.isNotEmpty()}
     }
 
     suspend fun urlToBitmap(url: String): Bitmap? {
