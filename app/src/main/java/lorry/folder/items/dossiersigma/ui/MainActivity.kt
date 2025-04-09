@@ -161,7 +161,7 @@ class MainActivity : ComponentActivity() {
                             .padding(horizontal = 10.dp)
                             .weight(1f) // Permet au LazyVerticalGrid de prendre tout l'espace restant
                     ) {
-                        lazyGridItems(folderState.value.items, key = { it.id }) { item ->
+                        lazyGridItems(folderState.value.items, key = { it.fullPath }) { item ->
                             ItemComponent(
                                 viewModel = viewModel,
                                 item = item,

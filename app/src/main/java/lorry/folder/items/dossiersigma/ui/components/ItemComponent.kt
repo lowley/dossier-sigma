@@ -62,9 +62,9 @@ fun ItemComponent(
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
     val imageHeight = 150.dp
-    val imageSource = remember { mutableStateOf<Any?>(null) }
+    val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
 
-    LaunchedEffect(item) {
+    LaunchedEffect(item.fullPath) {
         if (imageCache.containsKey(item.fullPath)) {
             imageSource.value =
                 imageCache.getValue(item.fullPath)
@@ -219,7 +219,7 @@ fun ImageSection(
     val imagePainter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(LocalContext.current)
             .data(imageSource) // Cela peut être une URL ou une ressource locale
-            .crossfade(true) // Optionnel : transition fluide
+            //.crossfade(true) // Optionnel : transition fluide
             .build()
     )
 
