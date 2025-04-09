@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.ImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +35,7 @@ class SigmaViewModel @Inject constructor(
 ) : ViewModel() {
 
     val imageCache = mutableMapOf<String, Any?>()
-    
+
     private val _folder = MutableStateFlow<SigmaFolder>(
         SigmaFolder(
             fullPath = "Veuillez attendre",
@@ -104,39 +103,40 @@ class SigmaViewModel @Inject constructor(
         )
     }
 
-    fun updatePicture(newPicture: Any?) {
-        viewModelScope.launch {
-            if (_selectedItem.value == null)
-                return@launch
-            
-            if (_selectedItem.value?.isFile() == true)
-                withContext(Dispatchers.IO) {
-                    ffmpegRepository.addPictureToMP4Metadata(
-                        newPicture as String,
-                        _selectedItem.value!!.fullPath
-                    )
-                }
-            else {
-                //url vers bitmap puis dans _selectedItem 
-                val pictureBitmap = withContext(Dispatchers.IO){ 
-                    changingPictureUseCase.urlToBitmap(newPicture as String)}
-                if (pictureBitmap != null) {
-                    _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
-                    setPictureWithClipboard(_selectedItem.value!!)
-                    goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                }
+    suspend fun updatePicture(newPicture: Any?) {
+        if (_selectedItem.value == null)
+            return
+
+        if (_selectedItem.value?.isFile() == true)
+            withContext(Dispatchers.IO) {
+                ffmpegRepository.addPictureToMP4Metadata(
+                    newPicture as String,
+                    _selectedItem.value!!.fullPath
+                )
             }
-            
-            _selectedItemPicture.value = PictureWrapper(
-                picture = newPicture,
-                id = _selectedItemPicture.value.id + 1
-            )
+        else {
+            //url vers bitmap puis dans _selectedItem 
+            val pictureBitmap = withContext(Dispatchers.IO) {
+                changingPictureUseCase.urlToBitmap(newPicture as String)
+            }
+            if (pictureBitmap != null) {
+                _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
+                setPicture(_selectedItem.value!!, false)
+                goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+            }
         }
 
+        _selectedItemPicture.value = PictureWrapper(
+            picture = newPicture,
+            id = _selectedItemPicture.value.id + 1
+        )
     }
 
-    fun setPictureWithClipboard(item: Item) {
-        val newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
+    fun setPicture(item: Item, fromClipboard: Boolean = false) {
+        var newItem = item
+        if (fromClipboard)
+            newItem  = changingPictureUseCase.changeItemWithClipboardPicture(item)
+        
         viewModelScope.launch {
             changingPictureUseCase.savePictureOfFolder(newItem)
             withContext(Dispatchers.Main) {
@@ -146,7 +146,6 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun openBrowser(item: Item) {
-        //accessingToInternet.startListeningToClipboard(item.id)
         accessingToInternet.openBrowser(item, this)
 
     }
@@ -170,7 +169,7 @@ class SigmaViewModel @Inject constructor(
             }
         }
     }
-    
+
 
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2"

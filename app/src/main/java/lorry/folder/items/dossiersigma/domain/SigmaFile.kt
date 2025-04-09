@@ -11,9 +11,6 @@ class SigmaFile(
     modificationDate: Long
 ) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate
 ) {
-    override fun toString(): String {
-        return "File(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${id.take(5)})"
-    }
 
     fun copy(
         path: String = this.path,
@@ -24,5 +21,11 @@ class SigmaFile(
     ): SigmaFile {
         return SigmaFile(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate)
     }
+
+    override fun toString(): String {
+        return "SigmaFile(name='$name', path='$path', picture=${picture != null}, id='${id.toString().take(6)}', modificationDate=$modificationDate)"
+    }
+
+
 }
     

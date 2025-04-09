@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.app.Activity
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -35,6 +34,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
@@ -150,6 +151,8 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                    
+                    val itemIdWithVisibleMenu = remember { mutableStateOf("") }
 
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(120.dp),
@@ -160,11 +163,12 @@ class MainActivity : ComponentActivity() {
                     ) {
                         lazyGridItems(folderState.value.items, key = { it.id }) { item ->
                             ItemComponent(
-                                context = this@MainActivity,
                                 viewModel = viewModel,
                                 item = item,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                imageCache = viewModel.imageCache
+                                imageCache = viewModel.imageCache,
+                                itemIdWithVisibleMenu = itemIdWithVisibleMenu
+
                             )
                         }
                     }

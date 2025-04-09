@@ -51,11 +51,15 @@ abstract class Item(
             )
         }
     }
+
+    override fun toString(): String {
+        return "Item(type=${if (isFile()) "File" else "Folder"}, name='$name', picture=${picture != null}, hasUrl= ${picture is String}, path='$path', id='$id', modificationDate=$modificationDate, fullPath='$fullPath')"
+    }
 }
 
 fun Long.toFormattedDate(): String {
     val instant = Instant.ofEpochMilli(this)
-    val formatter = DateTimeFormatter.ofPattern("HH:mm le dd-MM-yyyy")
+    val formatter = DateTimeFormatter.ofPattern("HH:mm, dd-MM-yyyy")
     val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
     val affichage = dateTime.format(formatter)
     return affichage

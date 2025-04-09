@@ -24,6 +24,6 @@ class AccessingToInternetSiteForPictureUseCase @Inject constructor(
         else viewModel.setBrowserPersonSearch(preparedKey)
 
         viewModel.showBrowser()
-        Toast.makeText(context, "Naviguez et appuyez sur l'image choisie", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, "Naviguez et appuyez longuement sur l'image choisie", Toast.LENGTH_LONG).show()
     }
 }

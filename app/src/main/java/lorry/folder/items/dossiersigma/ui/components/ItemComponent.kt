@@ -1,15 +1,11 @@
 package lorry.folder.items.dossiersigma.ui.components
 
-import android.content.Context
 import android.graphics.Bitmap
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,18 +19,16 @@ import androidx.compose.material.icons.sharp.AccountBox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -42,8 +36,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
@@ -59,18 +51,16 @@ import me.saket.cascade.rememberCascadeState
 @Composable
 fun ItemComponent(
     modifier: Modifier,
-    context: Context,
     viewModel: SigmaViewModel,
     item: Item,
-    imageCache: MutableMap<String, Any?>
+    imageCache: MutableMap<String, Any?>,
+    itemIdWithVisibleMenu: MutableState<String>
 ) {
-    var isMenuVisible by rememberSaveable { mutableStateOf(false) }
     val state = rememberCascadeState()
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
     val imageHeight = 150.dp
     val imageSource = remember { mutableStateOf<Any?>(null) }
-    //val imageSource = remember(item) { getImage(context, item, viewModel) }
 
     LaunchedEffect(item) {
         if (imageCache.containsKey(item.fullPath)) {
@@ -79,7 +69,7 @@ fun ItemComponent(
             imageCache[item.fullPath] = imageSource.value
         } 
         else
-            imageSource.value = getImage(context = context, item, viewModel)
+            imageSource.value = getImage(item, viewModel)
     }
 
     Column(
@@ -110,7 +100,7 @@ fun ItemComponent(
                     },
                     onLongPress = { offset ->
                         imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-                        isMenuVisible = true
+                        itemIdWithVisibleMenu.value = item.id
                     })
             }
         }
@@ -119,8 +109,8 @@ fun ItemComponent(
         CascadeDropdownMenu(
             state = state,
             modifier = Modifier,
-            expanded = isMenuVisible,
-            onDismissRequest = { isMenuVisible = false },
+            expanded = itemIdWithVisibleMenu.value == item.id,
+            onDismissRequest = { itemIdWithVisibleMenu.value = "" },
             offset = with(density) {
                 DpOffset(imageOffset.x, (-imageHeight / 2))
             }) {
@@ -145,7 +135,7 @@ fun ItemComponent(
                 leadingIcon = { Icons.Sharp.AccountBox },
                 onClick = {
                     viewModel.openBrowser(item)
-                    isMenuVisible = false
+                    itemIdWithVisibleMenu.value = ""
                 }
             )
 
@@ -153,8 +143,8 @@ fun ItemComponent(
                 text = { Text("Clipboard -> icône") },
                 leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },
                 onClick = {
-                    viewModel.setPictureWithClipboard(item)
-                    isMenuVisible = false
+                    viewModel.setPicture(item, true)
+                    itemIdWithVisibleMenu.value = ""
                 }
             )
         }
@@ -162,9 +152,7 @@ fun ItemComponent(
     }
 }
 
-
 suspend fun getImage(
-    context: Context,
     item: Item,
     viewModel: SigmaViewModel
 ): Any { // Retourne une valeur compatible avec Coil
@@ -198,16 +186,6 @@ suspend fun getImage(
     }
 
     return result
-}
-
-fun getImageBitmapFromDrawable(
-    context: Context,
-    drawable: Int
-): ImageBitmap {
-    return (ContextCompat.getDrawable(context, drawable)?.toBitmap()?.asImageBitmap()
-        ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap())
-
-
 }
 
 @Composable

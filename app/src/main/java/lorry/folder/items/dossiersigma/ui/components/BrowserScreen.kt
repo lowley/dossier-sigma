@@ -8,6 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 
@@ -61,5 +63,7 @@ fun BrowserScreen(
 
 fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
     if (viewModel.selectedItem.value != null)
-        viewModel.updatePicture(imageUrl)
+        viewModel.viewModelScope.launch {
+            viewModel.updatePicture(imageUrl)
+        }
 }
