@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.components
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
@@ -82,10 +84,13 @@ fun ItemComponent(
             modifier = Modifier
                 .width(imageHeight - 5.dp)
                 .height(imageHeight - 20.dp)
+                .clip(RoundedCornerShape(8.dp)) // ⬅️ déplacer ici
+                .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
 
         ) {
             imageSource.value?.let { bitmap ->
                 ImageSection(
+                    modifier = modifier,
                     imageSource = imageSource.value!!,
                     onTap = {
                         if (item.isFolder()) {
@@ -206,6 +211,7 @@ fun TextSection(name: String) {
 
 @Composable
 fun ImageSection(
+    modifier: Modifier,
     imageSource: Any,
     onTap: () -> Unit,
     onLongPress: (Offset) -> Unit
@@ -220,10 +226,9 @@ fun ImageSection(
     AsyncImage(
         model = imageSource,
         contentDescription = "Miniature",
+        contentScale = if (imageSource is Int) ContentScale.Fit else ContentScale.FillBounds,
         modifier = Modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(8.dp)) // 🔹 coins arrondis
-            .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
             .pointerInput(true) {
                 detectTapGestures(
                     onTap = { onTap() },
