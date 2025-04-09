@@ -4,9 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +60,7 @@ fun ItemComponent(
     val state = rememberCascadeState()
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
-    val imageHeight = 150.dp
+    val imageHeight = 130.dp
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
 
     LaunchedEffect(item.fullPath) {
@@ -69,47 +68,41 @@ fun ItemComponent(
             imageSource.value =
                 imageCache.getValue(item.fullPath)
             imageCache[item.fullPath] = imageSource.value
-        } 
-        else
+        } else
             imageSource.value = getImage(item, viewModel)
     }
 
-    Column(
-        modifier = modifier
+    Box(
+        modifier = modifier//.background(Color.Blue)
             .width(imageHeight)
             .height(imageHeight + 35.dp),
-        verticalArrangement = Arrangement.Top
+        
     ) {
-        Box(
-            modifier = Modifier
-                .width(imageHeight - 5.dp)
-                .height(imageHeight - 20.dp)
-                .clip(RoundedCornerShape(8.dp)) // ⬅️ déplacer ici
-                .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
-
-        ) {
-            imageSource.value?.let { bitmap ->
-                ImageSection(
-                    modifier = modifier,
-                    imageSource = imageSource.value!!,
-                    onTap = {
-                        if (item.isFolder()) {
-                            viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                        }
-                        if (item.isFile() && item.name.endsWith(".mp4")) {
-                            viewModel.playMP4File(item.fullPath)
-                        }
-                        if (item.isFile() && item.name.endsWith(".html")) {
-                            viewModel.playHtmlFile(item.fullPath)
-                        }
-                    },
-                    onLongPress = { offset ->
-                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-                        itemIdWithVisibleMenu.value = item.id
-                    })
-            }
+        imageSource.value?.let { bitmap ->
+            ImageSection(
+                modifier = Modifier//.background(Color.Yellow)
+                    .align(Alignment.TopCenter)
+                    .width(imageHeight + 15.dp)
+                    .height(imageHeight)
+                    .clip(RoundedCornerShape(8.dp)) // ⬅️ déplacer ici
+                    .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
+                imageSource = imageSource.value!!,
+                onTap = {
+                    if (item.isFolder()) {
+                        viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                    }
+                    if (item.isFile() && item.name.endsWith(".mp4")) {
+                        viewModel.playMP4File(item.fullPath)
+                    }
+                    if (item.isFile() && item.name.endsWith(".html")) {
+                        viewModel.playHtmlFile(item.fullPath)
+                    }
+                },
+                onLongPress = { offset ->
+                    imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
+                    itemIdWithVisibleMenu.value = item.id
+                })
         }
-
 
         CascadeDropdownMenu(
             state = state,
@@ -153,7 +146,12 @@ fun ItemComponent(
                 }
             )
         }
-        TextSection(item.name)
+        TextSection(
+            modifier = Modifier
+                //.background(Color.Cyan),
+                .align(Alignment.BottomCenter),
+            name =  item.name)
+        
     }
 }
 
@@ -194,11 +192,12 @@ suspend fun getImage(
 }
 
 @Composable
-fun TextSection(name: String) {
+fun TextSection(name: String, modifier: Modifier) {
     Text(
         text = name,
-        modifier = Modifier
-            .fillMaxHeight()
+        modifier = modifier
+//            .fillMaxHeight()
+            .height(35.dp)
             .padding(top = 5.dp),
         softWrap = true,
         textAlign = TextAlign.Center,
@@ -226,9 +225,9 @@ fun ImageSection(
     AsyncImage(
         model = imageSource,
         contentDescription = "Miniature",
-        contentScale = if (imageSource is Int) ContentScale.Fit else ContentScale.FillBounds,
-        modifier = Modifier
-            .fillMaxSize()
+        contentScale = if (imageSource is Int) ContentScale.Fit else ContentScale.FillWidth,
+        modifier = modifier
+            .fillMaxWidth()
             .pointerInput(true) {
                 detectTapGestures(
                     onTap = { onTap() },
