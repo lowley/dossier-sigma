@@ -120,9 +120,11 @@ class SigmaViewModel @Inject constructor(
                 changingPictureUseCase.urlToBitmap(newPicture as String)
             }
             if (pictureBitmap != null) {
-                _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
-                setPicture(_selectedItem.value!!, false)
-                goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                withContext(Dispatchers.Main) {
+                    _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
+                    setPicture(_selectedItem.value!!, false)
+                    goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                }
             }
         }
 

@@ -31,9 +31,6 @@ class ChangingPictureUseCase @Inject constructor(
         diskRepository.saveFolderPictureToHtmlFile(item)
     }
     
-    
-    
-    
     suspend fun isFolderPopulated(item: Item): Boolean {
         if(item.isFile())
             throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: Item is not a folder")
