@@ -1,20 +1,20 @@
 package lorry.folder.items.dossiersigma.ui.components
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.sharp.KeyboardArrowRight
-import androidx.compose.material.icons.sharp.AccountBox
+import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -33,6 +32,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -48,7 +48,6 @@ import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
-import me.saket.cascade.CascadeDropdownMenu
 import me.saket.cascade.rememberCascadeState
 
 @Composable
@@ -64,7 +63,7 @@ fun ItemComponent(
     val density = LocalDensity.current
     val imageHeight = 130.dp
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
-    
+
 
     LaunchedEffect(item.fullPath) {
         if (imageCache.containsKey(item.fullPath)) {
@@ -79,8 +78,11 @@ fun ItemComponent(
         modifier = modifier//.background(Color.Blue)
             .width(imageHeight)
             .height(imageHeight + 35.dp),
-        
-    ) {
+
+        ) {
+        var expanded by remember { mutableStateOf(false) }
+        val scrollState = rememberScrollState()
+
         imageSource.value?.let { bitmap ->
             ImageSection(
                 modifier = Modifier//.background(Color.Yellow)
@@ -107,54 +109,122 @@ fun ItemComponent(
                 })
         }
 
-        CascadeDropdownMenu(
-            state = state,
-            modifier = Modifier,
+        DropdownMenu(
             expanded = itemIdWithVisibleMenu.value == item.id,
             onDismissRequest = { itemIdWithVisibleMenu.value = "" },
             offset = with(density) {
                 DpOffset(imageOffset.x, (-imageHeight / 2))
-            }) {
+            },
+            containerColor = Color(0xFF111A2C),
+            scrollState = scrollState
+        ) {
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = item.name.substringBeforeLast("."),
+                        color = Color(0xFFE57373),
+                        fontSize = 10.sp,
+                        lineHeight = 11.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = when (item) {
+                            is SigmaFolder -> painterResource(R.drawable.dossier)
+                            is SigmaFile -> when (item.name.substringAfterLast(".")) {
+                                "mp4" -> painterResource(R.drawable.mp4)
+                                "html" -> painterResource(R.drawable.html)
+                                else -> painterResource(R.drawable.fichier)
+                            }
 
-            DropdownMenuHeader(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(CenterHorizontally)
-            ) {
-                Text(
-                    text = when (item.isFile()) {
-                        true -> "Fichier ${item.name.substringAfterLast(".")}"
-                        false -> "Dossier"
-                    },
-                    modifier = Modifier,
-                    fontSize = 18.sp
-                )
-            }
+                            else -> painterResource(R.drawable.fichier)
+                        },
+                        tint = Color(0xFFE1AFAF),
+                        contentDescription = null
+                    )
+                },
+                onClick = {}
+            )
 
-            androidx.compose.material3.DropdownMenuItem(
-                text = { Text("Ouvrir navigateur") },
-                leadingIcon = { Icons.Sharp.AccountBox },
+            Divider(
+                modifier = Modifier.padding(vertical = 0.dp, horizontal = 5.dp),
+                thickness = 1.dp,
+                color = Color(0xFFB48E98)
+            )
+
+            DropdownMenuItem(
+                text = { Text("Ouvrir navigateur", color = Color(0xFFB0BEC5)) },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp),
+                        tint = Color(0xFF90CAF9),
+                        painter = painterResource(R.drawable.web_nb), contentDescription = null
+                    )
+                },
                 onClick = {
                     viewModel.openBrowser(item)
                     itemIdWithVisibleMenu.value = ""
                 }
             )
 
-            androidx.compose.material3.DropdownMenuItem(
-                text = { Text("Clipboard -> icône") },
-                leadingIcon = { Icons.AutoMirrored.Sharp.KeyboardArrowRight },
+            DropdownMenuItem(
+                text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp),
+                        tint = Color(0xFF90CAF9),
+                        painter = painterResource(R.drawable.presse_papiers),
+                        contentDescription = null
+                    )
+                },
                 onClick = {
                     viewModel.setPicture(item, true)
                     itemIdWithVisibleMenu.value = ""
                 }
             )
+            LaunchedEffect(expanded) {
+                if (expanded) {
+                    // Scroll to show the bottom menu items.
+                    scrollState.scrollTo(scrollState.maxValue)
+                }
+            }
         }
+
+//        CascadeDropdownMenu(
+//            state = state,
+//            modifier = Modifier,
+//            expanded = itemIdWithVisibleMenu.value == item.id,
+//            onDismissRequest = { itemIdWithVisibleMenu.value = "" },
+//            offset = with(density) {
+//                DpOffset(imageOffset.x, (-imageHeight / 2))
+//            }) {
+//
+//            DropdownMenuHeader(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .align(CenterHorizontally)
+//            ) {
+//                Text(
+//                    text = when (item.isFile()) {
+//                        true -> "Fichier ${item.name.substringAfterLast(".")}"
+//                        false -> "Dossier"
+//                    },
+//                    modifier = Modifier,
+//                    fontSize = 18.sp
+//                )
+//            }
+//        }
+
         TextSection(
             modifier = Modifier
                 //.background(Color.Cyan),
                 .align(Alignment.BottomCenter),
-            name =  item.name)
-        
+            name = item.name
+        )
+
     }
 }
 

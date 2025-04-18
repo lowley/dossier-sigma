@@ -13,7 +13,7 @@ plugins {
 
 android {
     namespace = "lorry.folder.items.dossiersigma"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "lorry.folder.items.dossiersigma"
