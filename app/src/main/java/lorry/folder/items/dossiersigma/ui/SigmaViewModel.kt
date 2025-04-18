@@ -51,6 +51,13 @@ class SigmaViewModel @Inject constructor(
     private val _isBrowserVisible = MutableStateFlow(false)
     val isBrowserVisible: StateFlow<Boolean> = _isBrowserVisible
 
+    private val _isGoogle = MutableStateFlow(false)
+    val isGoogle: StateFlow<Boolean> = _isGoogle
+
+    fun setIsGoogle(isGoogle: Boolean) {
+        _isGoogle.value = isGoogle
+    }
+    
     fun showBrowser() {
         _isBrowserVisible.value = true
     }
@@ -147,9 +154,9 @@ class SigmaViewModel @Inject constructor(
         }
     }
 
-    fun openBrowser(item: Item) {
+    fun openBrowser(item: Item, isGoogle: Boolean = false) {
+        setIsGoogle(isGoogle)
         accessingToInternet.openBrowser(item, this)
-
     }
 
     fun updateItemList(newItem: Item) {
@@ -171,8 +178,7 @@ class SigmaViewModel @Inject constructor(
             }
         }
     }
-
-
+    
     init {
         val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
         goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)

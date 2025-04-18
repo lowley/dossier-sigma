@@ -154,7 +154,7 @@ fun ItemComponent(
             )
 
             DropdownMenuItem(
-                text = { Text("Ouvrir navigateur", color = Color(0xFFB0BEC5)) },
+                text = { Text("Adult Film Database", color = Color(0xFFB0BEC5)) },
                 leadingIcon = {
                     Icon(
                         modifier = Modifier
@@ -164,7 +164,23 @@ fun ItemComponent(
                     )
                 },
                 onClick = {
-                    viewModel.openBrowser(item)
+                    viewModel.openBrowser(item, isGoogle = false)
+                    itemIdWithVisibleMenu.value = ""
+                }
+            )
+
+            DropdownMenuItem(
+                text = { Text("Google", color = Color(0xFFB0BEC5)) },
+                leadingIcon = {
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp),
+                        tint = Color(0xFF90CAF9),
+                        painter = painterResource(R.drawable.web_nb), contentDescription = null
+                    )
+                },
+                onClick = {
+                    viewModel.openBrowser(item, isGoogle = true)
                     itemIdWithVisibleMenu.value = ""
                 }
             )

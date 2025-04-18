@@ -10,14 +10,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 
 @Composable
 fun BrowserScreen(
     viewModel: SigmaViewModel,
     subject: String,
-    url: String
+    url: String,
+    isGoogle: Boolean = false
 ) {
     val context = LocalContext.current
     
@@ -54,7 +54,10 @@ fun BrowserScreen(
                     },
                     "android"
                 )
-                loadUrl("$url$subject")
+                if (isGoogle)
+                    loadUrl("https://www.google.fr")
+                else
+                    loadUrl("$url$subject")
             }
         },
         modifier = Modifier.fillMaxSize()

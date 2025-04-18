@@ -173,13 +173,16 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    val isGoogle = viewModel.isGoogle.collectAsState()
+                    
                     if (isBrowserVisible)
                         Box(
                             modifier = Modifier
                         ){
-                            BrowserScreen(viewModel, 
+                            BrowserScreen(viewModel,
                                 subject = browserSearch,
-                                url = if (searchIsForPersonNotMovies) SigmaApplication.INTERNET_PERSON_SITE_SEARCH else SigmaApplication.INTERNET_MOVIE_SITE_SEARCH)
+                                url = if (searchIsForPersonNotMovies)SigmaApplication.INTERNET_PERSON_SITE_SEARCH else SigmaApplication.INTERNET_MOVIE_SITE_SEARCH,
+                                isGoogle = isGoogle.value)
                             
                             Button(
                                 modifier = Modifier
