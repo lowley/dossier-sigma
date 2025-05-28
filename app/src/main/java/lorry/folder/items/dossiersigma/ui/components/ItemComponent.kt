@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.components
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -91,9 +92,8 @@ fun ItemComponent(
                 ImageSection(
                     modifier = Modifier//.background(Color.Yellow)
                         .align(Alignment.BottomCenter)
-                        .width(imageHeight + 15.dp)
-                        .height(imageHeight)
-                        .clip(RoundedCornerShape(8.dp)) // ⬅️ déplacer ici
+                        .size(imageHeight + 15.dp)
+                        .clip(RoundedCornerShape(8.dp))
                         .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
                     imageSource = imageSource.value ?: R.drawable.file,
                     onTap = {
@@ -121,20 +121,25 @@ fun ItemComponent(
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(end = 6.dp, bottom = 6.dp)
+                        .padding(end = 6.dp, bottom = 20.dp)
                         .graphicsLayer {
-                            rotationZ = -20f
+                            rotationZ = -15f
+                            shadowElevation = 4f
+                            shape = RoundedCornerShape(4.dp)
+                            clip = true
                         }
-//                    .background(
-//                        color = Color(0xAA000000),
-//                        shape = RoundedCornerShape(4.dp)
-//                    )
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                        .background(
+                            color = Color(0xFFD32F2F), // rouge tampons administratifs
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
                         text = "DOSSIER",
-                        fontSize = 10.sp,
+                        fontSize = 11.sp,
                         color = Color.White,
+                        letterSpacing = 1.sp,
+                        lineHeight = 12.sp
                     )
                 }
             }
@@ -348,7 +353,7 @@ fun ImageSection(
     AsyncImage(
         model = imageSource,
         contentDescription = "Miniature",
-        contentScale = if (imageSource is Int) ContentScale.FillBounds else ContentScale.FillWidth,
+        contentScale = ContentScale.Crop,
         modifier = modifier
             .fillMaxWidth()
             .pointerInput(true) {
