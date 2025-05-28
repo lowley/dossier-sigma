@@ -103,6 +103,7 @@ fun ItemComponent(
                         if (item.isFile() &&
                             (item.name.endsWith(".mp4") ||
                                     item.name.endsWith(".mkv") ||
+                                    item.name.endsWith(".mpg") ||
                                     item.name.endsWith(".avi"))
                         ) {
                             viewModel.playMP4File(item.fullPath)
@@ -274,7 +275,7 @@ fun ItemComponent(
 
         TextSection(
             modifier = Modifier
-                .height(35.dp)
+                .height(52.dp)
                 .align(Alignment.CenterHorizontally),
             name = item.name
         )
@@ -325,7 +326,7 @@ fun TextSection(name: String, modifier: Modifier) {
         text = name,
         modifier = modifier
 //            .fillMaxHeight()
-            .height(35.dp)
+            .height(52.dp)
             .padding(top = 5.dp),
         softWrap = true,
         textAlign = TextAlign.Center,
