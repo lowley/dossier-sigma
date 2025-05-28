@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,7 +24,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -49,6 +49,9 @@ import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.rememberCascadeState
+import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.graphicsLayer
 
 @Composable
 fun ItemComponent(
@@ -74,144 +77,167 @@ fun ItemComponent(
             imageSource.value = getImage(item, viewModel)
     }
 
-    Box(
-        modifier = modifier//.background(Color.Blue)
-            .width(imageHeight)
-            .height(imageHeight + 35.dp),
+    Column() {
+        Box(
+            modifier = Modifier//.background(Color.Blue)
+                .width(imageHeight)
+                .height(imageHeight),
 
-        ) {
-        var expanded by remember { mutableStateOf(false) }
-        val scrollState = rememberScrollState()
+            ) {
+            var expanded by remember { mutableStateOf(false) }
+            val scrollState = rememberScrollState()
 
-        imageSource.value?.let { bitmap ->
-            ImageSection(
-                modifier = Modifier//.background(Color.Yellow)
-                    .align(Alignment.TopCenter)
-                    .width(imageHeight + 15.dp)
-                    .height(imageHeight)
-                    .clip(RoundedCornerShape(8.dp)) // ⬅️ déplacer ici
-                    .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
-                imageSource = imageSource.value ?: R.drawable.file,
-                onTap = {
-                    if (item.isFolder()) {
-                        viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                    }
-                    if (item.isFile() &&
-                        (item.name.endsWith(".mp4") || 
-                                item.name.endsWith(".mkv") ||
-                                item.name.endsWith(".avi"))
-                    ) {
-                        viewModel.playMP4File(item.fullPath)
-                    }
-                    if (item.isFile() && item.name.endsWith(".html")) {
-                        viewModel.playHtmlFile(item.fullPath)
-                    }
-                },
-                onLongPress = { offset ->
-                    imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-                    itemIdWithVisibleMenu.value = item.id
-                })
-        }
+            imageSource.value?.let { bitmap ->
+                ImageSection(
+                    modifier = Modifier//.background(Color.Yellow)
+                        .align(Alignment.BottomCenter)
+                        .width(imageHeight + 15.dp)
+                        .height(imageHeight)
+                        .clip(RoundedCornerShape(8.dp)) // ⬅️ déplacer ici
+                        .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
+                    imageSource = imageSource.value ?: R.drawable.file,
+                    onTap = {
+                        if (item.isFolder()) {
+                            viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                        }
+                        if (item.isFile() &&
+                            (item.name.endsWith(".mp4") ||
+                                    item.name.endsWith(".mkv") ||
+                                    item.name.endsWith(".avi"))
+                        ) {
+                            viewModel.playMP4File(item.fullPath)
+                        }
+                        if (item.isFile() && item.name.endsWith(".html")) {
+                            viewModel.playHtmlFile(item.fullPath)
+                        }
+                    },
+                    onLongPress = { offset ->
+                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
+                        itemIdWithVisibleMenu.value = item.id
+                    })
+            }
 
-        DropdownMenu(
-            expanded = itemIdWithVisibleMenu.value == item.id,
-            onDismissRequest = { itemIdWithVisibleMenu.value = "" },
-            offset = with(density) {
-                DpOffset(imageOffset.x, (-imageHeight / 2))
-            },
-            containerColor = Color(0xFF111A2C),
-            scrollState = scrollState
-        ) {
-            DropdownMenuItem(
-                text = {
+            if (item is SigmaFolder) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 6.dp, bottom = 6.dp)
+                        .graphicsLayer {
+                            rotationZ = -20f
+                        }
+//                    .background(
+//                        color = Color(0xAA000000),
+//                        shape = RoundedCornerShape(4.dp)
+//                    )
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
                     Text(
-                        text = item.name.substringBeforeLast("."),
-                        color = Color(0xFFE57373),
+                        text = "DOSSIER",
                         fontSize = 10.sp,
-                        lineHeight = 11.sp
+                        color = Color.White,
                     )
-                },
-                leadingIcon = {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = when (item) {
-                            is SigmaFolder -> painterResource(R.drawable.dossier)
-                            is SigmaFile -> when (item.name.substringAfterLast(".")) {
-                                "mp4" -> painterResource(R.drawable.mp4)
-                                "html" -> painterResource(R.drawable.html)
-                                else -> painterResource(R.drawable.fichier)
-                            }
-
-                            else -> painterResource(R.drawable.fichier)
-                        },
-                        tint = Color(0xFFE1AFAF),
-                        contentDescription = null
-                    )
-                },
-                onClick = {}
-            )
-
-            Divider(
-                modifier = Modifier.padding(vertical = 0.dp, horizontal = 5.dp),
-                thickness = 1.dp,
-                color = Color(0xFFB48E98)
-            )
-
-            DropdownMenuItem(
-                text = { Text("Adult Film Database", color = Color(0xFFB0BEC5)) },
-                leadingIcon = {
-                    Icon(
-                        modifier = Modifier
-                            .size(24.dp),
-                        tint = Color(0xFF90CAF9),
-                        painter = painterResource(R.drawable.web_nb), contentDescription = null
-                    )
-                },
-                onClick = {
-                    viewModel.openBrowser(item, isGoogle = false)
-                    itemIdWithVisibleMenu.value = ""
-                }
-            )
-
-            DropdownMenuItem(
-                text = { Text("Google", color = Color(0xFFB0BEC5)) },
-                leadingIcon = {
-                    Icon(
-                        modifier = Modifier
-                            .size(24.dp),
-                        tint = Color(0xFF90CAF9),
-                        painter = painterResource(R.drawable.web_nb), contentDescription = null
-                    )
-                },
-                onClick = {
-                    viewModel.openBrowser(item, isGoogle = true)
-                    itemIdWithVisibleMenu.value = ""
-                }
-            )
-
-            DropdownMenuItem(
-                text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
-                leadingIcon = {
-                    Icon(
-                        modifier = Modifier
-                            .size(24.dp),
-                        tint = Color(0xFF90CAF9),
-                        painter = painterResource(R.drawable.presse_papiers),
-                        contentDescription = null
-                    )
-                },
-                onClick = {
-                    viewModel.setPicture(item, true)
-                    itemIdWithVisibleMenu.value = ""
-                }
-            )
-            LaunchedEffect(expanded) {
-                if (expanded) {
-                    // Scroll to show the bottom menu items.
-                    scrollState.scrollTo(scrollState.maxValue)
                 }
             }
-        }
+
+            DropdownMenu(
+                expanded = itemIdWithVisibleMenu.value == item.id,
+                onDismissRequest = { itemIdWithVisibleMenu.value = "" },
+                offset = with(density) {
+                    DpOffset(imageOffset.x, (-imageHeight / 2))
+                },
+                containerColor = Color(0xFF111A2C),
+                scrollState = scrollState
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = item.name.substringBeforeLast("."),
+                            color = Color(0xFFE57373),
+                            fontSize = 10.sp,
+                            lineHeight = 11.sp
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            painter = when (item) {
+                                is SigmaFolder -> painterResource(R.drawable.dossier)
+                                is SigmaFile -> when (item.name.substringAfterLast(".")) {
+                                    "mp4" -> painterResource(R.drawable.mp4)
+                                    "html" -> painterResource(R.drawable.html)
+                                    else -> painterResource(R.drawable.fichier)
+                                }
+
+                                else -> painterResource(R.drawable.fichier)
+                            },
+                            tint = Color(0xFFE1AFAF),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {}
+                )
+
+                Divider(
+                    modifier = Modifier.padding(vertical = 0.dp, horizontal = 5.dp),
+                    thickness = 1.dp,
+                    color = Color(0xFFB48E98)
+                )
+
+                DropdownMenuItem(
+                    text = { Text("Adult Film Database", color = Color(0xFFB0BEC5)) },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp),
+                            tint = Color(0xFF90CAF9),
+                            painter = painterResource(R.drawable.web_nb), contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        viewModel.openBrowser(item, isGoogle = false)
+                        itemIdWithVisibleMenu.value = ""
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = { Text("Google", color = Color(0xFFB0BEC5)) },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp),
+                            tint = Color(0xFF90CAF9),
+                            painter = painterResource(R.drawable.web_nb), contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        viewModel.openBrowser(item, isGoogle = true)
+                        itemIdWithVisibleMenu.value = ""
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp),
+                            tint = Color(0xFF90CAF9),
+                            painter = painterResource(R.drawable.presse_papiers),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        viewModel.setPicture(item, true)
+                        itemIdWithVisibleMenu.value = ""
+                    }
+                )
+                LaunchedEffect(expanded) {
+                    if (expanded) {
+                        // Scroll to show the bottom menu items.
+                        scrollState.scrollTo(scrollState.maxValue)
+                    }
+                }
+            }
 
 //        CascadeDropdownMenu(
 //            state = state,
@@ -238,9 +264,13 @@ fun ItemComponent(
 //            }
 //        }
 
+            
+        }
+
         TextSection(
             modifier = Modifier
-                .align(Alignment.BottomCenter),
+                .height(35.dp)
+                .align(Alignment.CenterHorizontally),
             name = item.name
         )
     }
@@ -314,11 +344,11 @@ fun ImageSection(
             //.crossfade(true) // Optionnel : transition fluide
             .build()
     )
-
+    
     AsyncImage(
         model = imageSource,
         contentDescription = "Miniature",
-        contentScale = if (imageSource is Int) ContentScale.Fit else ContentScale.FillWidth,
+        contentScale = if (imageSource is Int) ContentScale.FillBounds else ContentScale.FillWidth,
         modifier = modifier
             .fillMaxWidth()
             .pointerInput(true) {
