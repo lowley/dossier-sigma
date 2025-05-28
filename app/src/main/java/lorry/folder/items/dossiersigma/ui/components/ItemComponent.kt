@@ -61,7 +61,7 @@ fun ItemComponent(
     val state = rememberCascadeState()
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
-    val imageHeight = 130.dp
+    val imageHeight = 160.dp
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
 
 
@@ -91,12 +91,16 @@ fun ItemComponent(
                     .height(imageHeight)
                     .clip(RoundedCornerShape(8.dp)) // ⬅️ déplacer ici
                     .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
-                imageSource = imageSource.value!!,
+                imageSource = imageSource.value ?: R.drawable.file,
                 onTap = {
                     if (item.isFolder()) {
                         viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
                     }
-                    if (item.isFile() && item.name.endsWith(".mp4")) {
+                    if (item.isFile() &&
+                        (item.name.endsWith(".mp4") || 
+                                item.name.endsWith(".mkv") ||
+                                item.name.endsWith(".avi"))
+                    ) {
                         viewModel.playMP4File(item.fullPath)
                     }
                     if (item.isFile() && item.name.endsWith(".html")) {
@@ -236,11 +240,9 @@ fun ItemComponent(
 
         TextSection(
             modifier = Modifier
-                //.background(Color.Cyan),
                 .align(Alignment.BottomCenter),
             name = item.name
         )
-
     }
 }
 

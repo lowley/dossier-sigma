@@ -11,8 +11,7 @@ import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
-import javax.inject.Singleton
-
+import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -32,6 +31,13 @@ class UseCasesModule {
         diskRepository: IDiskRepository
     ): ChangingPictureUseCase {
         return ChangingPictureUseCase(pastingPictureUseCase, diskRepository)
+    }
+
+    @Provides
+    fun provideChangePathUseCase(
+        diskRepository: IDiskRepository
+    ): ChangePathUseCase {
+        return ChangePathUseCase(diskRepository)
     }
 
     @Provides

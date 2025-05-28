@@ -3,6 +3,7 @@ package lorry.folder.items.dossiersigma.ui
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,15 +20,18 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
+import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URLDecoder
 import javax.inject.Inject
 
 @HiltViewModel
 class SigmaViewModel @Inject constructor(
     val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
+    val changePathUseCase: ChangePathUseCase,
     val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
     val ffmpegRepository: BentoRepository,
     val playingDataSource: IPlayingDataSource,
@@ -51,6 +55,9 @@ class SigmaViewModel @Inject constructor(
     private val _isBrowserVisible = MutableStateFlow(false)
     val isBrowserVisible: StateFlow<Boolean> = _isBrowserVisible
 
+    private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
+    val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
+
     private val _isGoogle = MutableStateFlow(false)
     val isGoogle: StateFlow<Boolean> = _isGoogle
 
@@ -66,6 +73,10 @@ class SigmaViewModel @Inject constructor(
         _isBrowserVisible.value = false
     }
 
+    fun setSorting(sorting: ITEMS_ORDERING_STRATEGY) {
+        _sorting.value = sorting
+    }
+    
     //BROWSER SEARCH
     private val _browserSearch = MutableStateFlow("")
     val browserSearch: StateFlow<String> = _browserSearch
@@ -130,6 +141,7 @@ class SigmaViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
                     setPicture(_selectedItem.value!!, false)
+                    
                     goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
                 }
             }
@@ -159,7 +171,7 @@ class SigmaViewModel @Inject constructor(
         accessingToInternet.openBrowser(item, this)
     }
 
-    fun updateItemList(newItem: Item) {
+    suspend fun updateItemList(newItem: Item) {
         val currentFolder = _folder.value
         val index = currentFolder.items.indexOfFirst { it.id == newItem.id }
         if (index != -1) {
@@ -170,6 +182,7 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) {
+        setSorting(sorting)
         imageCache.clear()
         viewModelScope.launch(Dispatchers.IO) {
             val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
@@ -180,7 +193,7 @@ class SigmaViewModel @Inject constructor(
     }
     
     init {
-        val initialDirectoryPath = "/storage/7376-B000/SEXE 2"
+        val initialDirectoryPath = "/storage/emulated/0/Movies"
         goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
     }
 
@@ -188,7 +201,7 @@ class SigmaViewModel @Inject constructor(
         val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, drawableResId)
 
         // Créer un fichier temporaire pour stocker l'icône
-        val tempFile = File("/storage/7376-B000/SEXE 2/icon.jpg")
+        val tempFile = File("/storage/emulated/0/Download/icon.jpg")
 
         return try {
             FileOutputStream(tempFile).use { out ->
@@ -210,6 +223,22 @@ class SigmaViewModel @Inject constructor(
     fun playHtmlFile(htmlFullPath: String) {
         viewModelScope.launch(Dispatchers.IO) {
             playingDataSource.playMP4File(htmlFullPath, "text/html")
+        }
+    }
+
+    fun onFolderSelected(pathUri: Uri?) {
+        if (pathUri != null) {
+            val nouvelle = URLDecoder.decode(pathUri.toString().substringAfter("7376-B000","^^")).drop(1)
+            val ancienne = URLDecoder.decode(pathUri.toString().substringAfter(
+                "6539-3963", "^^")).drop(1)
+            
+            var valueToSave = "^^"
+            if (nouvelle != "^")
+               valueToSave = "/storage/7376-B000/" + nouvelle
+            if (ancienne != "^")
+                valueToSave = "/storage/6539-3963/" + ancienne
+            if (valueToSave != "^^")
+                goToFolder(valueToSave, ITEMS_ORDERING_STRATEGY.DATE_DESC)
         }
     }
 }

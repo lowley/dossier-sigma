@@ -12,6 +12,8 @@ import lorry.folder.items.dossiersigma.data.disk.ITempFileDataSource
 import lorry.folder.items.dossiersigma.data.disk.TempFileDataSource
 import lorry.folder.items.dossiersigma.data.bento.BentoDataSource
 import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegDataSource
+import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.data.intent.DS_IntentWrapper
 import lorry.folder.items.dossiersigma.data.playing.PlayingDataSource
 
 
@@ -53,4 +55,9 @@ abstract class DataSourcesModule {
     abstract fun bindPlaying64DataSource(
         playing64DataSource: PlayingDataSource
     ): IPlayingDataSource
+
+    @Binds
+    abstract fun bindIntentDataSource(
+        intentDataSource: DS_IntentWrapper
+    ): DSI_IntentWrapper
 }

@@ -1,11 +1,13 @@
 package lorry.folder.items.dossiersigma.domain
 
+import androidx.compose.runtime.Stable
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
+@Stable
 abstract class Item(
     val path: String,
     val name: String,

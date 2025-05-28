@@ -12,6 +12,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
+import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
@@ -29,7 +30,8 @@ import javax.inject.Inject
 
 class DiskRepository @Inject constructor(
     val datasource: IDiskDataSource,
-    val base64DataSource: IBase64DataSource
+    val base64DataSource: IBase64DataSource,
+    val intentWrapper: DSI_IntentWrapper
 ) : IDiskRepository {
 
     override suspend fun getInitialFolder(): SigmaFolder {
@@ -113,8 +115,7 @@ class DiskRepository @Inject constructor(
                     compareBy<Item> { it.isFile() }
                         .thenByDescending { it.modificationDate })
             }
-
-
+            
             return@withContext sorted
         }
     }
@@ -236,5 +237,9 @@ class DiskRepository @Inject constructor(
                                  </html>"""
 
         return text
+    }
+
+    override fun askInputFolder() {
+        intentWrapper.do_ACTION_OPEN_DOCUMENT_TREE()
     }
 }

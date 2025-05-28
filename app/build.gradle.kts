@@ -80,6 +80,11 @@ android {
         }
     }
     
+    repositories{
+        flatDir {
+            dirs("libs")
+        }
+    }
     
 }
 
@@ -106,7 +111,13 @@ dependencies {
     implementation("me.saket.cascade:cascade:2.3.0")
     implementation("me.saket.cascade:cascade-compose:2.3.0")
     implementation(libs.coil.compose)
-    implementation(libs.compressor)
+    
+//    implementation(libs.compressor)
+    implementation(mapOf("name" to "ffmpeg-kit-full-gpl-6.0-2.LTS", "ext" to "aar"))
+    implementation(files("libs/smart-exception-common-0.2.1.jar"))
+    implementation(files("libs/smart-exception-java-0.2.1.jar"))
+    
+    
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("org.mp4parser:isoparser:1.9.27")
     implementation("com.github.mjeanroy:exiftool-lib:2.6.0")

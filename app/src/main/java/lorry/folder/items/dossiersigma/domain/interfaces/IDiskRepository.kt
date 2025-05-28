@@ -17,4 +17,5 @@ interface IDiskRepository {
     suspend fun createShortcut(text: String, fullPathAndName: String)
 
     suspend fun hasPictureFile(folder: Item): Boolean
+    fun askInputFolder()
 }

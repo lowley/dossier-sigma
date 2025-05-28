@@ -2,6 +2,7 @@ package lorry.folder.items.dossiersigma.domain.usecases.pictures
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.domain.SigmaFile
@@ -44,22 +45,26 @@ class ChangingPictureUseCase @Inject constructor(
         return withContext(Dispatchers.IO) {  folder.listFiles()!!.isNotEmpty()}
     }
 
-    suspend fun urlToBitmap(url: String): Bitmap? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val connection = URL(url).openConnection() as HttpURLConnection
+    suspend fun urlToBitmap(data: String): Bitmap? = withContext(Dispatchers.IO) {
+        try {
+            return@withContext if (data.startsWith("data:image")) {
+                // 🟢 C'est une image encodée en base64
+                val base64Data = data.replace("data:image/png;base64,", "").replace("data:image/jpeg;base64,","")
+                val decodedBytes = Base64.decode(base64Data, Base64.DEFAULT)
+                BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+            } else {
+                // 🌐 C'est une URL réseau
+                val connection = URL(data).openConnection() as HttpURLConnection
                 connection.doInput = true
                 connection.connect()
                 val inputStream = connection.inputStream
                 BitmapFactory.decodeStream(inputStream).also {
                     inputStream.close()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
-
-
 }
