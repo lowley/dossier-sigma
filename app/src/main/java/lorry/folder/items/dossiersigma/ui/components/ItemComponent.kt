@@ -53,6 +53,7 @@ import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.rememberCascadeState
+import java.io.File
 
 @Composable
 fun ItemComponent(
@@ -120,11 +121,11 @@ fun ItemComponent(
 
             if (item is SigmaFolder) {
 
-                val fileCount = 15
-                val folderCount = 3
+//                val fileCount = 15
+//                val folderCount = 3
 
-//                val fileCount = viewModel.diskRepository.countFilesInFolder(item)
-//                val folderCount = viewModel.diskRepository.countFoldersInFolder(item)
+                val fileCount = viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component1()
+                val folderCount = viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
 
                 val boxWidth = 30.dp
 

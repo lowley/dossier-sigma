@@ -18,4 +18,6 @@ interface IDiskRepository {
 
     suspend fun hasPictureFile(folder: Item): Boolean
     fun askInputFolder()
+
+    fun countFilesAndFolders(folder: File): Pair<Int, Int>
 }

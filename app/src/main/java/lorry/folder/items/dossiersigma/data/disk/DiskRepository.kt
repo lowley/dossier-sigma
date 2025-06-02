@@ -242,4 +242,19 @@ class DiskRepository @Inject constructor(
     override fun askInputFolder() {
         intentWrapper.do_ACTION_OPEN_DOCUMENT_TREE()
     }
+
+    override fun countFilesAndFolders(folder: File): Pair<Int, Int> {
+        if (!folder.isDirectory) return 0 to 0
+
+        val files = folder.listFiles() ?: return 0 to 0
+        var fileCount = 0
+        var folderCount = 0
+
+        for (f in files) {
+            if (f.isFile) fileCount++
+            else if (f.isDirectory) folderCount++
+        }
+
+        return fileCount to folderCount
+    }
 }
