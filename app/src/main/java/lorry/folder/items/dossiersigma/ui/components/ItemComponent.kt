@@ -346,7 +346,26 @@ suspend fun getImage(
         var result: Any? = null
         result = when {
             item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
-            item is SigmaFile -> R.drawable.file // Icône de fichier
+            item is SigmaFile -> {
+                if (item.fullPath.endsWith("mp4") ||
+                    item.fullPath.endsWith("mkv") ||
+                    item.fullPath.endsWith("avi") ||
+                    item.fullPath.endsWith("mpg")) {
+
+                    val image64 = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath))
+                    
+                    if (image64 == null)
+                        R.drawable.file
+                    
+                    else {
+                        val picture = viewModel.base64DataSource.extractImageFromHtml(image64)
+
+                        //item.copy(picture = picture)
+                        picture ?: R.drawable.file
+                    }
+                }
+                else R.drawable.file
+            }
             item is SigmaFolder -> {
                 var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
 

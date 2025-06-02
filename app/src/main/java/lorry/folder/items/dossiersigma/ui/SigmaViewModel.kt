@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
+import lorry.folder.items.dossiersigma.data.base64.IMp4Base64Embedder
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.Item
@@ -35,7 +36,8 @@ class SigmaViewModel @Inject constructor(
     val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
     val ffmpegRepository: BentoRepository,
     val playingDataSource: IPlayingDataSource,
-    val base64DataSource: IBase64DataSource
+    val base64DataSource: IBase64DataSource,
+    val base64Embedder: IMp4Base64Embedder
 ) : ViewModel() {
 
     val imageCache = mutableMapOf<String, Any?>()

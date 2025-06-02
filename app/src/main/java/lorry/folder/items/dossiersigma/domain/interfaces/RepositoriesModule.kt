@@ -7,6 +7,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import lorry.folder.items.dossiersigma.data.base64.IMp4Base64Embedder
+import lorry.folder.items.dossiersigma.data.base64.Mp4Base64Embedder
 import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
@@ -39,6 +41,11 @@ abstract class RepositoriesModule {
     abstract fun bindBentoRepository(
         bentoRepository: BentoRepository
     ): IBentoRepository
+
+    @Binds
+    abstract fun bindMp4Base64Embedder(
+        mp4Base64Embedder: Mp4Base64Embedder
+    ): IMp4Base64Embedder
 }
 
 @Module
