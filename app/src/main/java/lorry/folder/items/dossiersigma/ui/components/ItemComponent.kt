@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
@@ -25,10 +26,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -50,9 +53,6 @@ import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.rememberCascadeState
-import androidx.compose.foundation.shape.GenericShape
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.graphicsLayer
 
 @Composable
 fun ItemComponent(
@@ -119,6 +119,61 @@ fun ItemComponent(
             }
 
             if (item is SigmaFolder) {
+
+                val fileCount = 15
+                val folderCount = 3
+
+//                val fileCount = viewModel.diskRepository.countFilesInFolder(item)
+//                val folderCount = viewModel.diskRepository.countFoldersInFolder(item)
+
+                val boxWidth = 30.dp
+
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .graphicsLayer {
+                            shape = RoundedCornerShape(
+                                topStart = 8.dp,
+                                bottomEnd = 8.dp
+                            )
+                            clip = true
+                            shadowElevation = 0f
+                        }
+                        .background(Color.Gray) // Rouge
+                        .widthIn(min = boxWidth)
+                    //.padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 0.dp, top = 0.dp)
+                            .width(boxWidth)
+                    ) {
+                        val textHeight = 20.dp
+
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(0.dp)
+                                .height(textHeight),
+                            text = "$fileCount",
+                            fontSize = 10.sp,
+                            color = Color.White
+                        )
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(
+                                    top = 0.dp, start = 0.dp, bottom = 4.dp, end = 0.dp
+                                )
+                                .height(textHeight),
+                            text = "$folderCount",
+                            fontSize = 10.sp,
+                            color = Color.White
+                        )
+                    }
+                }
+
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -270,7 +325,7 @@ fun ItemComponent(
 //            }
 //        }
 
-            
+
         }
 
         TextSection(
@@ -350,7 +405,7 @@ fun ImageSection(
             //.crossfade(true) // Optionnel : transition fluide
             .build()
     )
-    
+
     AsyncImage(
         model = imageSource,
         contentDescription = "Miniature",
