@@ -44,8 +44,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
@@ -124,8 +122,10 @@ fun ItemComponent(
 //                val fileCount = 15
 //                val folderCount = 3
 
-                val fileCount = viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component1()
-                val folderCount = viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
+                val fileCount =
+                    viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component1()
+                val folderCount =
+                    viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
 
                 val boxWidth = 30.dp
 
@@ -342,57 +342,56 @@ suspend fun getImage(
     item: Item,
     viewModel: SigmaViewModel
 ): Any { // Retourne une valeur compatible avec Coil
-    return withContext(Dispatchers.Default) {
-        var result: Any? = null
-        result = when {
-            item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
-            item is SigmaFile -> {
-                if (item.fullPath.endsWith("mp4") ||
-                    item.fullPath.endsWith("mkv") ||
-                    item.fullPath.endsWith("avi") ||
-                    item.fullPath.endsWith("mpg")) {
 
-                    val image64 = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath))
-                    
-                    if (image64 == null)
-                        R.drawable.file
-                    
-                    else {
-                        val picture = viewModel.base64DataSource.extractImageFromHtml(image64)
+    var result: Any? = null
+    result = when {
+        item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
+        item is SigmaFile -> {
+            if (item.fullPath.endsWith("mp4") ||
+                item.fullPath.endsWith("mkv") ||
+                item.fullPath.endsWith("avi") ||
+                item.fullPath.endsWith("mpg")
+            ) {
 
-                        //item.copy(picture = picture)
-                        picture ?: R.drawable.file
-                    }
+                val image64 = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath))
+
+                if (image64 == null)
+                    R.drawable.file
+                else {
+                    val picture = viewModel.base64Embedder.base64ToBitmap(image64)
+
+                    //item.copy(picture = picture)
+                    picture ?: R.drawable.file
                 }
-                else R.drawable.file
-            }
-            item is SigmaFolder -> {
-                var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
-
-                if (!hasPictureFile) {
-                    val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
-                    if (isPopulated) R.drawable.folder_full else R.drawable.folder_empty
-                } else {
-                    //une image est présente pour ce répertoire
-                    try {
-                        var picture: Bitmap? = null
-                        picture =
-                            viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
-                        if (picture != null) {
-                            item.copy(picture = picture)
-                            picture
-                        } else R.drawable.file
-                    } catch (e: Exception) {
-                        println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
-                    }
-                }
-            }
-
-            else -> R.drawable.file // Valeur par défaut
+            } else R.drawable.file
         }
 
-        return@withContext result
+        item is SigmaFolder -> {
+            var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
+
+            if (!hasPictureFile) {
+                val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
+                if (isPopulated) R.drawable.folder_full else R.drawable.folder_empty
+            } else {
+                //une image est présente pour ce répertoire
+                try {
+                    var picture: Bitmap? = null
+                    picture =
+                        viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
+                    if (picture != null) {
+                        item.copy(picture = picture)
+                        picture
+                    } else R.drawable.file
+                } catch (e: Exception) {
+                    println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
+                }
+            }
+        }
+
+        else -> R.drawable.file // Valeur par défaut
     }
+
+    return result
 }
 
 @Composable

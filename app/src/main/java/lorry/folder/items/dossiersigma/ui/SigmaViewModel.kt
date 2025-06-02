@@ -66,7 +66,7 @@ class SigmaViewModel @Inject constructor(
     fun setIsGoogle(isGoogle: Boolean) {
         _isGoogle.value = isGoogle
     }
-    
+
     fun showBrowser() {
         _isBrowserVisible.value = true
     }
@@ -78,7 +78,7 @@ class SigmaViewModel @Inject constructor(
     fun setSorting(sorting: ITEMS_ORDERING_STRATEGY) {
         _sorting.value = sorting
     }
-    
+
     //BROWSER SEARCH
     private val _browserSearch = MutableStateFlow("")
     val browserSearch: StateFlow<String> = _browserSearch
@@ -127,27 +127,30 @@ class SigmaViewModel @Inject constructor(
         if (_selectedItem.value == null)
             return
 
-        if (_selectedItem.value?.isFile() == true)
-            withContext(Dispatchers.IO) {
-                ffmpegRepository.addPictureToMP4Metadata(
-                    newPicture as String,
-                    _selectedItem.value!!.fullPath
-                )
-            }
-        else {
-            //url vers bitmap puis dans _selectedItem 
-            val pictureBitmap = withContext(Dispatchers.IO) {
-                changingPictureUseCase.urlToBitmap(newPicture as String)
-            }
-            if (pictureBitmap != null) {
-                withContext(Dispatchers.Main) {
-                    _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
-                    setPicture(_selectedItem.value!!, false)
-                    
-                    goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                }
+        val pictureBitmap = withContext(Dispatchers.IO) {
+            changingPictureUseCase.urlToBitmap(newPicture as String)
+        }
+
+        if (pictureBitmap == null)
+            return
+
+        if (_selectedItem.value?.isFile() == true) {
+            val image64 = base64Embedder.bitmapToBase64(pictureBitmap)
+            val item = _selectedItem.value
+            if (item == null)
+                return
+            base64Embedder.removeEmbeddedBase64(File(item.fullPath))
+            base64Embedder.appendBase64ToMp4(File(item.fullPath), image64)
+        } else {
+            //url vers bitmap puis dans _selectedItem
+
+            withContext(Dispatchers.Main) {
+                _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
+                setPicture(_selectedItem.value!!, false)
             }
         }
+        
+        goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
 
         _selectedItemPicture.value = PictureWrapper(
             picture = newPicture,
@@ -158,8 +161,8 @@ class SigmaViewModel @Inject constructor(
     fun setPicture(item: Item, fromClipboard: Boolean = false) {
         var newItem = item
         if (fromClipboard)
-            newItem  = changingPictureUseCase.changeItemWithClipboardPicture(item)
-        
+            newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
+
         viewModelScope.launch {
             changingPictureUseCase.savePictureOfFolder(newItem)
             withContext(Dispatchers.Main) {
@@ -193,7 +196,7 @@ class SigmaViewModel @Inject constructor(
             }
         }
     }
-    
+
     init {
         val initialDirectoryPath = "/storage/emulated/0/Movies"
         goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
@@ -230,13 +233,17 @@ class SigmaViewModel @Inject constructor(
 
     fun onFolderSelected(pathUri: Uri?) {
         if (pathUri != null) {
-            val nouvelle = URLDecoder.decode(pathUri.toString().substringAfter("7376-B000","^^")).drop(1)
-            val ancienne = URLDecoder.decode(pathUri.toString().substringAfter(
-                "6539-3963", "^^")).drop(1)
-            
+            val nouvelle =
+                URLDecoder.decode(pathUri.toString().substringAfter("7376-B000", "^^")).drop(1)
+            val ancienne = URLDecoder.decode(
+                pathUri.toString().substringAfter(
+                    "6539-3963", "^^"
+                )
+            ).drop(1)
+
             var valueToSave = "^^"
             if (nouvelle != "^")
-               valueToSave = "/storage/7376-B000/" + nouvelle
+                valueToSave = "/storage/7376-B000/" + nouvelle
             if (ancienne != "^")
                 valueToSave = "/storage/6539-3963/" + ancienne
             if (valueToSave != "^^")

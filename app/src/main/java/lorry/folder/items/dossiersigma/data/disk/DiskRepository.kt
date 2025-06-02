@@ -251,7 +251,10 @@ class DiskRepository @Inject constructor(
         var folderCount = 0
 
         for (f in files) {
-            if (f.isFile) fileCount++
+            if (
+                f.isFile &&
+                !f.name.startsWith(".")
+                ) fileCount++
             else if (f.isDirectory) folderCount++
         }
 
