@@ -28,7 +28,7 @@ class SigmaViewModel @Inject constructor(
     val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
     val changePathUseCase: ChangePathUseCase,
-    val accessingToInternet: BrowserUseCase,
+    val browserManager: BrowserUseCase,
     val ffmpegRepository: BentoRepository,
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,
@@ -45,33 +45,14 @@ class SigmaViewModel @Inject constructor(
             modificationDate = System.currentTimeMillis()
         )
     )
-
     val folder: StateFlow<SigmaFolder>
         get() = _folder
-
-    private val _isBrowserVisible = MutableStateFlow(false)
-    val isBrowserVisible: StateFlow<Boolean> = _isBrowserVisible
 
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
 
-    private val _isGoogle = MutableStateFlow(false)
-    val isGoogle: StateFlow<Boolean> = _isGoogle
-
     private val _pictureUpdateId = MutableStateFlow(0)
     val pictureUpdateId: StateFlow<Int> = _pictureUpdateId
-    
-    fun setIsGoogle(isGoogle: Boolean) {
-        _isGoogle.value = isGoogle
-    }
-
-    fun showBrowser() {
-        _isBrowserVisible.value = true
-    }
-
-    fun hideBrowser() {
-        _isBrowserVisible.value = false
-    }
 
     fun setSorting(sorting: ITEMS_ORDERING_STRATEGY) {
         _sorting.value = sorting
@@ -79,24 +60,6 @@ class SigmaViewModel @Inject constructor(
 
     fun notifyPictureUpdated() {
         _pictureUpdateId.value += 1
-    }
-
-    //BROWSER SEARCH
-    private val _browserSearch = MutableStateFlow("")
-    val browserSearch: StateFlow<String> = _browserSearch
-
-    //other case is for movies
-    private val _searchIsForPersonNotMovies = MutableStateFlow(true)
-    val searchIsForPersonNotMovies: StateFlow<Boolean> = _searchIsForPersonNotMovies
-
-    fun setBrowserPersonSearch(search: String) {
-        _browserSearch.value = search
-        _searchIsForPersonNotMovies.value = true
-    }
-
-    fun setBrowserMovieSearch(search: String) {
-        _browserSearch.value = search
-        _searchIsForPersonNotMovies.value = false
     }
 
     //SELECTED ITEM
@@ -151,8 +114,8 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun openBrowser(item: Item, isGoogle: Boolean = false) {
-        setIsGoogle(isGoogle)
-        accessingToInternet.openBrowser(item, this)
+        browserManager.setIsGoogle(isGoogle)
+        browserManager.openBrowser(item, this)
     }
 
     fun updateItemList(newItem: Item) {

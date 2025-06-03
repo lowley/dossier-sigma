@@ -92,9 +92,9 @@ class MainActivity : ComponentActivity() {
 
                 val state = rememberScrollState()
                 val folderState = viewModel.folder.collectAsState()
-                val isBrowserVisible by viewModel.isBrowserVisible.collectAsState()
-                val browserSearch by viewModel.browserSearch.collectAsState()
-                val searchIsForPersonNotMovies by viewModel.searchIsForPersonNotMovies
+                val isBrowserVisible by viewModel.browserManager.isBrowserVisible.collectAsState()
+                val browserSearch by viewModel.browserManager.browserSearch.collectAsState()
+                val searchIsForPersonNotMovies by viewModel.browserManager.searchIsForPersonNotMovies
                     .collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
@@ -112,7 +112,7 @@ class MainActivity : ComponentActivity() {
 //                    }
 
                     selectedItem?.let { item ->
-                        viewModel.hideBrowser()
+                        viewModel.browserManager.hideBrowser()
                         viewModel.goToFolder(folderState.value.fullPath, viewModel.sorting.value)
 //                        viewModel.updateItemList(item.copy(picture = selectedItemPicture.picture))
                         Toast.makeText(this@MainActivity, "Changement d'image effectué", Toast.LENGTH_SHORT)
@@ -229,7 +229,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val isGoogle = viewModel.isGoogle.collectAsState()
+                    val isGoogle = viewModel.browserManager.isGoogle.collectAsState()
 
                     if (isBrowserVisible)
                         Box(
@@ -245,7 +245,7 @@ class MainActivity : ComponentActivity() {
                             Button(
                                 modifier = Modifier
                                     .align(Alignment.TopCenter),
-                                onClick = { viewModel.hideBrowser() }
+                                onClick = { viewModel.browserManager.hideBrowser() }
                             ) {
                                 Text("Fermer le navigateur sans copier d'image")
                             }
