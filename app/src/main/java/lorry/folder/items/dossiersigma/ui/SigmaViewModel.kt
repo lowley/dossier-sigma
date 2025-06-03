@@ -144,12 +144,10 @@ class SigmaViewModel @Inject constructor(
         } else {
             //url vers bitmap puis dans _selectedItem
 
-            withContext(Dispatchers.Main) {
-                _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
-                setPicture(_selectedItem.value!!, false)
-            }
+            _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
+            setPicture(_selectedItem.value!!, false)
         }
-        
+
         goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
 
         _selectedItemPicture.value = PictureWrapper(
