@@ -43,8 +43,7 @@ class UseCasesModule {
     @Provides
     fun provideAccessingToInternetSiteForPictureUseCase(
         @ApplicationContext context: Context,
-        clipboardRepository: IClipboardRepository
     ): BrowserUseCase {
-        return BrowserUseCase(context, clipboardRepository)
+        return BrowserUseCase(context)
     }
 }

@@ -93,9 +93,6 @@ class MainActivity : ComponentActivity() {
                 val state = rememberScrollState()
                 val folderState = viewModel.folder.collectAsState()
                 val isBrowserVisible by viewModel.browserManager.isBrowserVisible.collectAsState()
-                val browserSearch by viewModel.browserManager.browserSearch.collectAsState()
-                val searchIsForPersonNotMovies by viewModel.browserManager.searchIsForPersonNotMovies
-                    .collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
                 val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()

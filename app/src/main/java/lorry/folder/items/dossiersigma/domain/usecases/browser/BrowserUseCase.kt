@@ -10,19 +10,12 @@ import javax.inject.Inject
 
 class BrowserUseCase @Inject constructor(
     val context: Context,
-    val clipboardRepository: IClipboardRepository
 ) {
     private val _isBrowserVisible = MutableStateFlow(false)
     val isBrowserVisible: StateFlow<Boolean> = _isBrowserVisible
 
-    private val _isGoogle = MutableStateFlow(false)
-    val isGoogle: StateFlow<Boolean> = _isGoogle
-
     private val _browserSearch = MutableStateFlow("")
     val browserSearch: StateFlow<String> = _browserSearch
-
-    private val _searchIsForPersonNotMovies = MutableStateFlow(true)
-    val searchIsForPersonNotMovies: StateFlow<Boolean> = _searchIsForPersonNotMovies
 
     fun showBrowser() {
         _isBrowserVisible.value = true
@@ -30,10 +23,6 @@ class BrowserUseCase @Inject constructor(
 
     fun hideBrowser() {
         _isBrowserVisible.value = false
-    }
-
-    fun setIsGoogle(isGoogle: Boolean) {
-        _isGoogle.value = isGoogle
     }
 
     fun openBrowser(item: Item, target: BrowserTarget) {
