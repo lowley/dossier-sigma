@@ -24,7 +24,7 @@ class BrowserUseCase @Inject constructor(
     
     private val _searchIsForPersonNotMovies = MutableStateFlow(true)
     val searchIsForPersonNotMovies: StateFlow<Boolean> = _searchIsForPersonNotMovies
-
+    
     fun showBrowser() {
         _isBrowserVisible.value = true
     }
@@ -49,7 +49,6 @@ class BrowserUseCase @Inject constructor(
     
     fun openBrowser(item: Item, viewModel: SigmaViewModel) {
         val preparedKey = item.name.split('.').last().split(' ').joinToString("+")
-        viewModel.setSelectedItem(item)
 
         if (item.name.endsWith(".mp4"))
             setBrowserMovieSearch(item.name.replace(".mp4", "").substringBefore("by"))
@@ -59,3 +58,10 @@ class BrowserUseCase @Inject constructor(
         Toast.makeText(context, "Naviguez et appuyez longuement sur l'image choisie", Toast.LENGTH_LONG).show()
     }
 }
+
+sealed class BrowserTarget(url: String) {
+    object GOOGLE : BrowserTarget("https://www.google.com/search?q=")
+    object IAFD_PERSON: BrowserTarget("https://www.iafd.com/results.asp?searchtype=comprehensive&searchstring=")
+    object IAFD_MOVIE: BrowserTarget("https://www.iafd.com/results.asp?searchtype=comprehensive&searchstring=")
+}
+

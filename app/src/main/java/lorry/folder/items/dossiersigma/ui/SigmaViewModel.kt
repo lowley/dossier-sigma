@@ -114,6 +114,7 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun openBrowser(item: Item, isGoogle: Boolean = false) {
+        setSelectedItem(item)
         browserManager.setIsGoogle(isGoogle)
         browserManager.openBrowser(item, this)
     }
