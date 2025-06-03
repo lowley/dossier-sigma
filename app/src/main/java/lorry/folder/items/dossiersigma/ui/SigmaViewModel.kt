@@ -1,10 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,11 +16,10 @@ import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
+import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import java.io.File
-import java.io.FileOutputStream
 import java.net.URLDecoder
 import javax.inject.Inject
 
@@ -33,7 +28,7 @@ class SigmaViewModel @Inject constructor(
     val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
     val changePathUseCase: ChangePathUseCase,
-    val accessingToInternet: AccessingToInternetSiteForPictureUseCase,
+    val accessingToInternet: BrowserUseCase,
     val ffmpegRepository: BentoRepository,
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,

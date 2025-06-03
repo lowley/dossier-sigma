@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.domain.usecases.clipboard
+package lorry.folder.items.dossiersigma.domain.usecases.browser
 
 import android.content.Context
 import android.widget.Toast
@@ -7,7 +7,7 @@ import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import javax.inject.Inject
 
-class AccessingToInternetSiteForPictureUseCase @Inject constructor(
+class BrowserUseCase @Inject constructor(
     val context: Context,
     val clipboardRepository: IClipboardRepository
 ) {

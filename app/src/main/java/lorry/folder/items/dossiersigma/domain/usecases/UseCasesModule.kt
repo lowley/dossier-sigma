@@ -8,7 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.usecases.clipboard.AccessingToInternetSiteForPictureUseCase
+import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
@@ -44,7 +44,7 @@ class UseCasesModule {
     fun provideAccessingToInternetSiteForPictureUseCase(
         @ApplicationContext context: Context,
         clipboardRepository: IClipboardRepository
-    ): AccessingToInternetSiteForPictureUseCase {
-        return AccessingToInternetSiteForPictureUseCase(context, clipboardRepository)
+    ): BrowserUseCase {
+        return BrowserUseCase(context, clipboardRepository)
     }
 }
