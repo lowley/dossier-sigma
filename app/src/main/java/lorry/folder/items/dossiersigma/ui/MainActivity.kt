@@ -85,8 +85,7 @@ class MainActivity : ComponentActivity() {
 //            viewModel.initCoil(this@MainActivity)
 //        }
         initializeFileIntentLauncher(viewModel)
-
-
+        
         setContent {
             DossierSigmaTheme {
                 //barre d'outils
@@ -95,28 +94,28 @@ class MainActivity : ComponentActivity() {
                 val folderState = viewModel.folder.collectAsState()
                 val isBrowserVisible by viewModel.isBrowserVisible.collectAsState()
                 val browserSearch by viewModel.browserSearch.collectAsState()
-                val selectedItemPicture by viewModel.selectedItemPicture.collectAsState()
                 val searchIsForPersonNotMovies by viewModel.searchIsForPersonNotMovies
                     .collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
+                val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
 
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
                 }
 
-                LaunchedEffect(selectedItemPicture.id) {
+                LaunchedEffect(pictureUpdateId) {
                     //exécuté juste après AccessingToInternetSiteForPictureUseCase/openBrowser 
-                    if (selectedItemPicture.reset) {
-                        viewModel.startPictureFlow()
-                        return@LaunchedEffect
-                    }
+//                    if (selectedItemPicture.reset) {
+//                        viewModel.startPictureFlow()
+//                        return@LaunchedEffect
+//                    }
 
                     selectedItem?.let { item ->
                         viewModel.hideBrowser()
                         viewModel.goToFolder(folderState.value.fullPath, viewModel.sorting.value)
 //                        viewModel.updateItemList(item.copy(picture = selectedItemPicture.picture))
-                        Toast.makeText(this@MainActivity, "Changement effectué", Toast.LENGTH_SHORT)
+                        Toast.makeText(this@MainActivity, "Changement d'image effectué", Toast.LENGTH_SHORT)
                             .show()
                     }
                 }

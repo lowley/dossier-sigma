@@ -13,7 +13,6 @@ class AccessingToInternetSiteForPictureUseCase @Inject constructor(
 ) {
     fun openBrowser(item: Item, viewModel: SigmaViewModel) {
         val preparedKey = item.name.split('.').last().split(' ').joinToString("+")
-        viewModel.resetPictureFlow()
         viewModel.setSelectedItem(item)
 
         if (item.name.endsWith(".mp4"))

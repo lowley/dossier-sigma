@@ -112,24 +112,6 @@ class SigmaViewModel @Inject constructor(
         _selectedItem.value = item
     }
 
-    //SELECTED PICTURE
-    private val _selectedItemPicture = MutableStateFlow(PictureWrapper())
-    val selectedItemPicture: StateFlow<PictureWrapper> = _selectedItemPicture
-
-    fun resetPictureFlow() {
-        _selectedItemPicture.value = PictureWrapper(
-            reset = true,
-            id = _selectedItemPicture.value.id + 1
-        )
-        Log.d("toto", "resetPictureFlow: ${_selectedItemPicture.value}")
-    }
-
-    fun startPictureFlow() {
-        _selectedItemPicture.value = PictureWrapper(
-            id = _selectedItemPicture.value.id
-        )
-    }
-
     suspend fun updatePicture(newPicture: Any?) {
         if (_selectedItem.value == null)
             return
@@ -157,11 +139,6 @@ class SigmaViewModel @Inject constructor(
 
         goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
 
-        _selectedItemPicture.value = PictureWrapper(
-            picture = newPicture,
-            id = _selectedItemPicture.value.id + 1
-        )
-
         notifyPictureUpdated()
     }
 
@@ -183,7 +160,7 @@ class SigmaViewModel @Inject constructor(
         accessingToInternet.openBrowser(item, this)
     }
 
-    suspend fun updateItemList(newItem: Item) {
+    fun updateItemList(newItem: Item) {
         val currentFolder = _folder.value
         val index = currentFolder.items.indexOfFirst { it.id == newItem.id }
         if (index == -1)
@@ -209,23 +186,6 @@ class SigmaViewModel @Inject constructor(
     init {
         val initialDirectoryPath = "/storage/emulated/0/Movies"
         goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-    }
-
-    fun getIconFile(context: Context, drawableResId: Int): File? {
-        val bitmap: Bitmap = BitmapFactory.decodeResource(context.resources, drawableResId)
-
-        // Créer un fichier temporaire pour stocker l'icône
-        val tempFile = File("/storage/emulated/0/Download/icon.jpg")
-
-        return try {
-            FileOutputStream(tempFile).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) // Sauvegarde en JPG
-            }
-            tempFile
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
     }
 
     fun playVideoFile(videoFullPath: String) {
@@ -261,21 +221,6 @@ class SigmaViewModel @Inject constructor(
             if (valueToSave != "^^")
                 goToFolder(valueToSave, ITEMS_ORDERING_STRATEGY.DATE_DESC)
         }
-    }
-}
-
-data class PictureWrapper(
-    val picture: Any? = null,
-    // Indique si le flux est en mode réinitialisation
-    val reset: Boolean = false,
-    val id: Int = 0
-) {
-    override fun toString(): String {
-        return "id:$id,picture:${if (picture == null) "non" else "oui"}, reset:$reset, ${
-            System.identityHashCode(
-                this
-            )
-        }"
     }
 }
 
