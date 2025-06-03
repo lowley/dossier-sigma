@@ -63,6 +63,9 @@ class SigmaViewModel @Inject constructor(
     private val _isGoogle = MutableStateFlow(false)
     val isGoogle: StateFlow<Boolean> = _isGoogle
 
+    private val _pictureUpdateId = MutableStateFlow(0)
+    val pictureUpdateId: StateFlow<Int> = _pictureUpdateId
+    
     fun setIsGoogle(isGoogle: Boolean) {
         _isGoogle.value = isGoogle
     }
@@ -77,6 +80,10 @@ class SigmaViewModel @Inject constructor(
 
     fun setSorting(sorting: ITEMS_ORDERING_STRATEGY) {
         _sorting.value = sorting
+    }
+
+    fun notifyPictureUpdated() {
+        _pictureUpdateId.value += 1
     }
 
     //BROWSER SEARCH
@@ -154,6 +161,8 @@ class SigmaViewModel @Inject constructor(
             picture = newPicture,
             id = _selectedItemPicture.value.id + 1
         )
+
+        notifyPictureUpdated()
     }
 
     fun setPicture(item: Item, fromClipboard: Boolean = false) {
@@ -177,11 +186,13 @@ class SigmaViewModel @Inject constructor(
     suspend fun updateItemList(newItem: Item) {
         val currentFolder = _folder.value
         val index = currentFolder.items.indexOfFirst { it.id == newItem.id }
-        if (index != -1) {
-            val updatedItems = currentFolder.items.toMutableList()
-            updatedItems[index] = newItem
-            _folder.value = currentFolder.copy(items = updatedItems)
-        }
+        if (index == -1)
+            return
+
+        val updatedItems = currentFolder.items.toMutableList()
+        updatedItems[index] = newItem
+        _folder.value = currentFolder.copy(items = updatedItems)
+        
     }
 
     fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) {
@@ -217,18 +228,21 @@ class SigmaViewModel @Inject constructor(
         }
     }
 
-    fun playMP4File(mp4FullPath: String) {
+    fun playVideoFile(videoFullPath: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            playingDataSource.playMP4File(mp4FullPath, "video/mp4")
+            playingDataSource.playFile(videoFullPath, "video/mp4")
         }
     }
 
     fun playHtmlFile(htmlFullPath: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            playingDataSource.playMP4File(htmlFullPath, "text/html")
+            playingDataSource.playFile(htmlFullPath, "text/html")
         }
     }
 
+    /**
+     * callback from intent
+     */
     fun onFolderSelected(pathUri: Uri?) {
         if (pathUri != null) {
             val nouvelle =

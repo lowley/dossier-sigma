@@ -12,7 +12,7 @@ class PlayingDataSource @Inject constructor(
     val context: Context
 ) : IPlayingDataSource {
     
-    override suspend fun playMP4File(fullPath: String, type: String) {
+    override suspend fun playFile(fullPath: String, type: String) {
         val file = File(fullPath)
 
         val uri: Uri = FileProvider.getUriForFile(

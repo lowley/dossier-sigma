@@ -22,7 +22,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,9 +68,9 @@ fun ItemComponent(
     val density = LocalDensity.current
     val imageHeight = 160.dp
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
+    val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
 
-
-    LaunchedEffect(item.fullPath) {
+    LaunchedEffect(item.fullPath, pictureUpdateId) {
         if (imageCache.containsKey(item.fullPath)) {
             imageSource.value =
                 imageCache.getValue(item.fullPath)
@@ -88,33 +90,39 @@ fun ItemComponent(
             val scrollState = rememberScrollState()
 
             imageSource.value?.let { bitmap ->
-                ImageSection(
-                    modifier = Modifier//.background(Color.Yellow)
-                        .align(Alignment.BottomCenter)
-                        .size(imageHeight + 15.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
-                    imageSource = imageSource.value ?: R.drawable.file,
-                    onTap = {
-                        if (item.isFolder()) {
-                            viewModel.goToFolder(item.fullPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                        }
-                        if (item.isFile() &&
-                            (item.name.endsWith(".mp4") ||
-                                    item.name.endsWith(".mkv") ||
-                                    item.name.endsWith(".mpg") ||
-                                    item.name.endsWith(".avi"))
-                        ) {
-                            viewModel.playMP4File(item.fullPath)
-                        }
-                        if (item.isFile() && item.name.endsWith(".html")) {
-                            viewModel.playHtmlFile(item.fullPath)
-                        }
-                    },
-                    onLongPress = { offset ->
-                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-                        itemIdWithVisibleMenu.value = item.id
-                    })
+                key(pictureUpdateId) {
+                    ImageSection(
+                        modifier = Modifier//.background(Color.Yellow)
+                            .align(Alignment.BottomCenter)
+                            .size(imageHeight + 15.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
+                        imageSource = imageSource.value ?: R.drawable.file,
+                        onTap = {
+                            if (item.isFolder()) {
+                                viewModel.goToFolder(
+                                    item.fullPath,
+                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                )
+                            }
+                            if (item.isFile() &&
+                                (item.name.endsWith(".mp4") ||
+                                        item.name.endsWith(".mkv") ||
+                                        item.name.endsWith(".mpg") ||
+                                        item.name.endsWith(".avi"))
+                            ) {
+                                viewModel.playVideoFile(item.fullPath)
+                            }
+                            if (item.isFile() && item.name.endsWith(".html")) {
+                                viewModel.playHtmlFile(item.fullPath)
+                            }
+                        },
+                        onLongPress = { offset ->
+                            imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
+                            itemIdWithVisibleMenu.value = item.id
+                        })
+                }
+                    
             }
 
             if (item is SigmaFolder) {
