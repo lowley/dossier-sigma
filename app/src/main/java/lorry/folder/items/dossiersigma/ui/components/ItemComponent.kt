@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.components
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -70,7 +71,8 @@ fun ItemComponent(
     val imageHeight = 160.dp
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
     val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
-
+    var contentScale by remember { mutableStateOf(ContentScale.Crop) }
+    
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         if (imageCache.containsKey(item.fullPath)) {
             imageSource.value =
@@ -99,6 +101,7 @@ fun ItemComponent(
                             .clip(RoundedCornerShape(8.dp))
                             .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
                         imageSource = imageSource.value ?: R.drawable.file,
+                        contentScale = contentScale,
                         onTap = {
                             if (item.isFolder()) {
                                 viewModel.goToFolder(
@@ -305,6 +308,30 @@ fun ItemComponent(
                     }
                 )
 
+                DropdownMenuItem(
+                    text = { Text("Adapter image", color = Color(0xFFB0BEC5)) },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp),
+                            tint = Color(0xFF90CAF9),
+                            painter = painterResource(R.drawable.la_droite), contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        contentScale = when(contentScale){
+                            ContentScale.Crop -> ContentScale.Fit
+                            ContentScale.Fit -> ContentScale.FillBounds
+                            ContentScale.FillBounds -> ContentScale.FillWidth
+                            ContentScale.FillWidth -> ContentScale.FillHeight
+                            ContentScale.FillHeight -> ContentScale.Inside
+                            ContentScale.Inside -> ContentScale.None
+                            ContentScale.None -> ContentScale.Crop
+                            else -> ContentScale.Crop
+                        }
+                    }
+                )
+
 //                DropdownMenuItem(
 //                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
 //                    leadingIcon = {
@@ -418,26 +445,48 @@ fun ImageSection(
     modifier: Modifier,
     imageSource: Any,
     onTap: () -> Unit,
-    onLongPress: (Offset) -> Unit
+    onLongPress: (Offset) -> Unit,
+    contentScale: ContentScale
 ) {
-    val imagePainter = rememberAsyncImagePainter(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(imageSource) // Cela peut être une URL ou une ressource locale
-            //.crossfade(true) // Optionnel : transition fluide
-            .build()
-    )
-
-    AsyncImage(
-        model = imageSource,
-        contentDescription = "Miniature",
-        contentScale = ContentScale.Crop,
+    Box(
         modifier = modifier
-            .fillMaxWidth()
-            .pointerInput(true) {
-                detectTapGestures(
-                    onTap = { onTap() },
-                    onLongPress = { onLongPress(it) }
+            .clip(RoundedCornerShape(8.dp))
+    ) {
+        // 🎨 Trame de fond inclinée
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val spacing = 12.dp.toPx()
+            val strokeWidth = 1.dp.toPx()
+            val color = Color(0xFF456990)
+
+            for (i in -size.height.toInt()..size.width.toInt() step spacing.toInt()) {
+                drawLine(
+                    color = color,
+                    start = Offset(i.toFloat(), 0f),
+                    end = Offset(i + size.height, size.height),
+                    strokeWidth = strokeWidth
                 )
-            },
-    )
+                drawLine(
+                    color = color,
+                    start = Offset(i.toFloat(), size.height),
+                    end = Offset(i + size.height, 0f),
+                    strokeWidth = strokeWidth
+                )
+            }
+        }
+
+        AsyncImage(
+            model = imageSource,
+            contentDescription = "Miniature",
+            contentScale = contentScale,
+            modifier = Modifier
+                .background(Color.Transparent)
+                .matchParentSize()
+                .pointerInput(true) {
+                    detectTapGestures(
+                        onTap = { onTap() },
+                        onLongPress = { onLongPress(it) }
+                    )
+                },
+        )
+    }
 }
