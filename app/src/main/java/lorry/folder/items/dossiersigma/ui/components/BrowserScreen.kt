@@ -15,12 +15,10 @@ import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 @Composable
 fun BrowserScreen(
     viewModel: SigmaViewModel,
-    subject: String,
     url: String,
-    isGoogle: Boolean = false
 ) {
     val context = LocalContext.current
-    
+
     AndroidView(
         factory = { ctx ->
             WebView(ctx).apply {
@@ -54,10 +52,8 @@ fun BrowserScreen(
                     },
                     "android"
                 )
-                if (isGoogle)
-                    loadUrl("https://www.google.fr")
-                else
-                    loadUrl("$url$subject")
+                
+                loadUrl(url)
             }
         },
         modifier = Modifier.fillMaxSize()

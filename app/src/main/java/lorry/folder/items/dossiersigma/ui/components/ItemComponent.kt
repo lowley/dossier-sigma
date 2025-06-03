@@ -50,6 +50,7 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.rememberCascadeState
@@ -122,7 +123,7 @@ fun ItemComponent(
                             itemIdWithVisibleMenu.value = item.id
                         })
                 }
-                    
+
             }
 
             if (item is SigmaFolder) {
@@ -233,7 +234,7 @@ fun ItemComponent(
                             painter = when (item) {
                                 is SigmaFolder -> painterResource(R.drawable.dossier)
                                 is SigmaFile -> when (item.name.substringAfterLast(".")) {
-                                    "mp4" -> painterResource(R.drawable.mp4)
+                                    "mp4", "mpg", "avi", "mkv" -> painterResource(R.drawable.camera)
                                     "html" -> painterResource(R.drawable.html)
                                     else -> painterResource(R.drawable.fichier)
                                 }
@@ -254,17 +255,35 @@ fun ItemComponent(
                 )
 
                 DropdownMenuItem(
-                    text = { Text("Adult Film Database", color = Color(0xFFB0BEC5)) },
+                    text = { Text("IAFD Film", color = Color(0xFFB0BEC5)) },
                     leadingIcon = {
                         Icon(
                             modifier = Modifier
                                 .size(24.dp),
                             tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.web_nb), contentDescription = null
+                            painter = painterResource(R.drawable.loupe), contentDescription = null
                         )
                     },
                     onClick = {
-                        viewModel.openBrowser(item, isGoogle = false)
+                        viewModel.setSelectedItem(item)
+                        viewModel.browserManager.openBrowser(item, BrowserTarget.IAFD_MOVIE)
+                        itemIdWithVisibleMenu.value = ""
+                    }
+                )
+
+                DropdownMenuItem(
+                    text = { Text("IAFD Personne", color = Color(0xFFB0BEC5)) },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp),
+                            tint = Color(0xFF90CAF9),
+                            painter = painterResource(R.drawable.loupe), contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        viewModel.setSelectedItem(item)
+                        viewModel.browserManager.openBrowser(item, BrowserTarget.IAFD_PERSON)
                         itemIdWithVisibleMenu.value = ""
                     }
                 )
@@ -280,27 +299,29 @@ fun ItemComponent(
                         )
                     },
                     onClick = {
-                        viewModel.openBrowser(item, isGoogle = true)
+                        viewModel.setSelectedItem(item)
+                        viewModel.browserManager.openBrowser(item, BrowserTarget.GOOGLE)
                         itemIdWithVisibleMenu.value = ""
                     }
                 )
 
-                DropdownMenuItem(
-                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .size(24.dp),
-                            tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.presse_papiers),
-                            contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        viewModel.setPicture(item, true)
-                        itemIdWithVisibleMenu.value = ""
-                    }
-                )
+//                DropdownMenuItem(
+//                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
+//                    leadingIcon = {
+//                        Icon(
+//                            modifier = Modifier
+//                                .size(24.dp),
+//                            tint = Color(0xFF90CAF9),
+//                            painter = painterResource(R.drawable.presse_papiers),
+//                            contentDescription = null
+//                        )
+//                    },
+//                    onClick = {
+//                        viewModel.setPicture(item, true)
+//                        itemIdWithVisibleMenu.value = ""
+//                    }
+//                )
+                
                 LaunchedEffect(expanded) {
                     if (expanded) {
                         // Scroll to show the bottom menu items.
@@ -308,33 +329,6 @@ fun ItemComponent(
                     }
                 }
             }
-
-//        CascadeDropdownMenu(
-//            state = state,
-//            modifier = Modifier,
-//            expanded = itemIdWithVisibleMenu.value == item.id,
-//            onDismissRequest = { itemIdWithVisibleMenu.value = "" },
-//            offset = with(density) {
-//                DpOffset(imageOffset.x, (-imageHeight / 2))
-//            }) {
-//
-//            DropdownMenuHeader(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .align(CenterHorizontally)
-//            ) {
-//                Text(
-//                    text = when (item.isFile()) {
-//                        true -> "Fichier ${item.name.substringAfterLast(".")}"
-//                        false -> "Dossier"
-//                    },
-//                    modifier = Modifier,
-//                    fontSize = 18.sp
-//                )
-//            }
-//        }
-
-
         }
 
         TextSection(

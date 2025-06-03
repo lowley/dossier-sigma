@@ -229,7 +229,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val isGoogle = viewModel.browserManager.isGoogle.collectAsState()
+                    val url by viewModel.browserManager.browserSearch.collectAsState()
 
                     if (isBrowserVisible)
                         Box(
@@ -237,9 +237,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             BrowserScreen(
                                 viewModel,
-                                subject = browserSearch,
-                                url = if (searchIsForPersonNotMovies) SigmaApplication.INTERNET_PERSON_SITE_SEARCH else SigmaApplication.INTERNET_MOVIE_SITE_SEARCH,
-                                isGoogle = isGoogle.value
+                                url = url,
                             )
 
                             Button(
@@ -274,11 +272,3 @@ fun <T> LazyGridScope.lazyGridItems(
         itemContent(item)
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    DossierSigmaTheme {
-//        
-//    }
-//}

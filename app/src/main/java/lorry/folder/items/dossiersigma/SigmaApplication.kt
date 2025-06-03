@@ -24,6 +24,5 @@ class SigmaApplication : Application() {
         val APPLICATION_NAME = "SigmaApplication"
         val INTERNET_PERSON_SITE_SEARCH = "https://www.iafd.com/results.asp?searchtype=comprehensive&searchstring="
         val INTERNET_MOVIE_SITE_SEARCH = "https://www.hotmovies.com/adult-movies/search?sort=score&q="
-        var SDRoot = "/storage/7376-B000/"
     }
 }

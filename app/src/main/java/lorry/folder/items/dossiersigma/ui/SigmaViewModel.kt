@@ -16,6 +16,7 @@ import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
+import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
@@ -111,12 +112,6 @@ class SigmaViewModel @Inject constructor(
                 updateItemList(newItem)
             }
         }
-    }
-
-    fun openBrowser(item: Item, isGoogle: Boolean = false) {
-        setSelectedItem(item)
-        browserManager.setIsGoogle(isGoogle)
-        browserManager.openBrowser(item, this)
     }
 
     fun updateItemList(newItem: Item) {
