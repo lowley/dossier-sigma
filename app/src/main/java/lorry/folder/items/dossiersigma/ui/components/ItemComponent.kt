@@ -63,6 +63,8 @@ import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.rememberCascadeState
 import java.io.File
 import androidx.core.graphics.createBitmap
+import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.alpha
 
 @Composable
 fun ItemComponent(
@@ -317,7 +319,18 @@ fun ItemComponent(
                 )
 
                 DropdownMenuItem(
-                    text = { Text("Adapter image", color = Color(0xFFB0BEC5)) },
+                    text = { Text(
+                        text = when (contentScale){
+                            ContentScale.Crop -> "Rogner"
+                            ContentScale.None -> "Aucun"
+                            ContentScale.Inside -> "Dedans"
+                            ContentScale.FillBounds -> "Remplir"
+                            ContentScale.FillHeight -> "Remplir hauteur"
+                            ContentScale.FillWidth -> "Remplir largeur"
+                            ContentScale.Fit -> "Etirer"
+                            else -> "???"
+                        },
+                        color = Color(0xFFB0BEC5)) },
                     leadingIcon = {
                         Icon(
                             modifier = Modifier
@@ -469,18 +482,15 @@ fun ImageSection(
 ) {
     val context = LocalContext.current
     val imageRequest = ImageRequest.Builder(context).data(imageSource).build()
-    val painter = rememberAsyncImagePainter(imageRequest)
-    val painterState = painter.state
-    // 👇 Dépend du painter ET de son état
     val imageBitmap: Bitmap? = imageSource
 
-    var containerSize by remember { mutableStateOf<IntSize?>(null) }
+    var containerSize = IntSize(175, 175)
 
-    val shouldShowMesh = remember(containerSize, imageBitmap, contentScale) {
-        if (containerSize != null && imageBitmap != null) {
+    val shouldShowMesh = remember(imageBitmap, contentScale) {
+        if (imageBitmap != null) {
             !doesImageFillBox(
-                containerWidth = containerSize!!.width,
-                containerHeight = containerSize!!.height,
+                containerWidth = containerSize.width,
+                containerHeight = containerSize.height,
                 imageWidth = imageBitmap.width,
                 imageHeight = imageBitmap.height,
                 contentScale = contentScale
@@ -493,30 +503,16 @@ fun ImageSection(
     Box(
         modifier = modifier
             .clip(shape)
-            .onGloballyPositioned { containerSize = it.size }
     ) {
-        if (shouldShowMesh) {
-            Canvas(modifier = Modifier.matchParentSize()) {
-                val spacing = 12.dp.toPx()
-                val strokeWidth = 1.dp.toPx()
-                val color = Color(0xFF444444)
-
-                for (i in -size.height.toInt()..size.width.toInt() step spacing.toInt()) {
-                    drawLine(
-                        color = color,
-                        start = Offset(i.toFloat(), 0f),
-                        end = Offset(i + size.height, size.height),
-                        strokeWidth = strokeWidth
-                    )
-                    drawLine(
-                        color = color,
-                        start = Offset(i.toFloat(), size.height),
-                        end = Offset(i + size.height, 0f),
-                        strokeWidth = strokeWidth
-                    )
-                }
-            }
-        }
+//        if (shouldShowMesh) {
+            Image(
+                painterResource(R.drawable.maillage1),
+                contentDescription = null,
+                modifier = Modifier.matchParentSize()
+                    .alpha(if (shouldShowMesh) 1f else 0f),
+                contentScale = ContentScale.Crop,
+            )
+//        }
 
         AsyncImage(
             model = imageRequest,
@@ -562,8 +558,8 @@ fun doesImageFillBox(
             }
         }
 
-        ContentScale.FillWidth -> imageRatio >= containerRatio
-        ContentScale.FillHeight -> imageRatio <= containerRatio
+        ContentScale.FillWidth -> imageRatio <= containerRatio
+        ContentScale.FillHeight -> imageRatio >= containerRatio
         ContentScale.None -> false
         else -> false
     }
