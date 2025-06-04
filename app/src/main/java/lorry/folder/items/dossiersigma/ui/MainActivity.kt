@@ -9,7 +9,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -53,7 +52,6 @@ import com.robertlevonyan.compose.buttontogglegroup.RowToggleButtonGroup
 import dagger.hilt.android.AndroidEntryPoint
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
@@ -220,7 +218,8 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier
                                     .padding(horizontal = 10.dp, vertical = 6.dp),
                                 imageCache = viewModel.imageCache,
-                                itemIdWithVisibleMenu = itemIdWithVisibleMenu
+                                itemIdWithVisibleMenu = itemIdWithVisibleMenu,
+                                context = this@MainActivity
 
                             )
                         }

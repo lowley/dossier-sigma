@@ -1,13 +1,15 @@
 package lorry.folder.items.dossiersigma.ui.components
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,14 +39,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import lorry.folder.items.dossiersigma.R
@@ -53,9 +58,11 @@ import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
+import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import me.saket.cascade.rememberCascadeState
 import java.io.File
+import androidx.core.graphics.createBitmap
 
 @Composable
 fun ItemComponent(
@@ -63,9 +70,9 @@ fun ItemComponent(
     viewModel: SigmaViewModel,
     item: Item,
     imageCache: MutableMap<String, Any?>,
-    itemIdWithVisibleMenu: MutableState<String>
+    itemIdWithVisibleMenu: MutableState<String>,
+    context: MainActivity
 ) {
-    val state = rememberCascadeState()
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
     val imageHeight = 160.dp
@@ -79,7 +86,7 @@ fun ItemComponent(
                 imageCache.getValue(item.fullPath)
             imageCache[item.fullPath] = imageSource.value
         } else
-            imageSource.value = getImage(item, viewModel)
+            imageSource.value = getImage(item, viewModel, context)
     }
 
     Column() {
@@ -100,7 +107,8 @@ fun ItemComponent(
                             .size(imageHeight + 15.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
-                        imageSource = imageSource.value ?: R.drawable.file,
+                        imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(context, R.drawable
+                            .file),
                         contentScale = contentScale,
                         onTap = {
                             if (item.isFolder()) {
@@ -369,12 +377,13 @@ fun ItemComponent(
 
 suspend fun getImage(
     item: Item,
-    viewModel: SigmaViewModel
-): Any { // Retourne une valeur compatible avec Coil
+    viewModel: SigmaViewModel,
+    context: MainActivity
+): Bitmap { // Retourne une valeur compatible avec Coil
 
-    var result: Any? = null
+    var result: Bitmap
     result = when {
-        item.picture != null -> item.picture // Utilise l'image en mémoire si disponible
+        item.picture != null -> item.picture as Bitmap // Utilise l'image en mémoire si disponible
         item is SigmaFile -> {
             if (item.fullPath.endsWith("mp4") ||
                 item.fullPath.endsWith("mkv") ||
@@ -385,14 +394,14 @@ suspend fun getImage(
                 val image64 = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath))
 
                 if (image64 == null)
-                    R.drawable.file
+                    vectorDrawableToBitmap(context, R.drawable.file)
                 else {
                     val picture = viewModel.base64Embedder.base64ToBitmap(image64)
 
                     //item.copy(picture = picture)
-                    picture ?: R.drawable.file
+                    picture ?: vectorDrawableToBitmap(context,R.drawable.file)
                 }
-            } else R.drawable.file
+            } else vectorDrawableToBitmap(context, R.drawable.file)
         }
 
         item is SigmaFolder -> {
@@ -400,7 +409,7 @@ suspend fun getImage(
 
             if (!hasPictureFile) {
                 val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
-                if (isPopulated) R.drawable.folder_full else R.drawable.folder_empty
+                if (isPopulated) vectorDrawableToBitmap(context, R.drawable.folder_full) else vectorDrawableToBitmap(context, R.drawable.folder_empty)
             } else {
                 //une image est présente pour ce répertoire
                 try {
@@ -409,18 +418,28 @@ suspend fun getImage(
                         viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
                     if (picture != null) {
                         item.copy(picture = picture)
-                        picture
-                    } else R.drawable.file
+                        picture as Bitmap
+                    } else vectorDrawableToBitmap(context, R.drawable.file)
                 } catch (e: Exception) {
                     println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
+                    vectorDrawableToBitmap(context, R.drawable.file)
                 }
             }
         }
 
-        else -> R.drawable.file // Valeur par défaut
+        else -> vectorDrawableToBitmap(context, R.drawable.file) // Valeur par défaut
     }
 
     return result
+}
+
+fun vectorDrawableToBitmap(context: Context, drawableId: Int): Bitmap {
+    val drawable = context.getDrawable(drawableId) ?: throw IllegalArgumentException("Drawable introuvable")
+    val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
+    val canvas = android.graphics.Canvas(bitmap)
+    drawable.setBounds(0, 0, canvas.width, canvas.height)
+    drawable.draw(canvas)
+    return bitmap
 }
 
 @Composable
@@ -443,44 +462,70 @@ fun TextSection(name: String, modifier: Modifier) {
 @Composable
 fun ImageSection(
     modifier: Modifier,
-    imageSource: Any,
+    imageSource: Bitmap,
     onTap: () -> Unit,
     onLongPress: (Offset) -> Unit,
     contentScale: ContentScale
 ) {
+    val context = LocalContext.current
+    val imageRequest = ImageRequest.Builder(context).data(imageSource).build()
+    val painter = rememberAsyncImagePainter(imageRequest)
+    val painterState = painter.state
+    // 👇 Dépend du painter ET de son état
+    val imageBitmap: Bitmap? = imageSource
+
+    var containerSize by remember { mutableStateOf<IntSize?>(null) }
+
+    val shouldShowMesh = remember(containerSize, imageBitmap, contentScale) {
+        if (containerSize != null && imageBitmap != null) {
+            !doesImageFillBox(
+                containerWidth = containerSize!!.width,
+                containerHeight = containerSize!!.height,
+                imageWidth = imageBitmap.width,
+                imageHeight = imageBitmap.height,
+                contentScale = contentScale
+            )
+        } else false
+    }
+
+    val shape = RoundedCornerShape(8.dp)
+
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(shape)
+            .onGloballyPositioned { containerSize = it.size }
     ) {
-        // 🎨 Trame de fond inclinée
-        Canvas(modifier = Modifier.matchParentSize()) {
-            val spacing = 12.dp.toPx()
-            val strokeWidth = 1.dp.toPx()
-            val color = Color(0xFF456990)
+        if (shouldShowMesh) {
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val spacing = 12.dp.toPx()
+                val strokeWidth = 1.dp.toPx()
+                val color = Color(0xFF444444)
 
-            for (i in -size.height.toInt()..size.width.toInt() step spacing.toInt()) {
-                drawLine(
-                    color = color,
-                    start = Offset(i.toFloat(), 0f),
-                    end = Offset(i + size.height, size.height),
-                    strokeWidth = strokeWidth
-                )
-                drawLine(
-                    color = color,
-                    start = Offset(i.toFloat(), size.height),
-                    end = Offset(i + size.height, 0f),
-                    strokeWidth = strokeWidth
-                )
+                for (i in -size.height.toInt()..size.width.toInt() step spacing.toInt()) {
+                    drawLine(
+                        color = color,
+                        start = Offset(i.toFloat(), 0f),
+                        end = Offset(i + size.height, size.height),
+                        strokeWidth = strokeWidth
+                    )
+                    drawLine(
+                        color = color,
+                        start = Offset(i.toFloat(), size.height),
+                        end = Offset(i + size.height, 0f),
+                        strokeWidth = strokeWidth
+                    )
+                }
             }
         }
 
         AsyncImage(
-            model = imageSource,
+            model = imageRequest,
             contentDescription = "Miniature",
             contentScale = contentScale,
             modifier = Modifier
-                .background(Color.Transparent)
                 .matchParentSize()
+                .clip(shape)
+                .background(Color.Transparent)
                 .pointerInput(true) {
                     detectTapGestures(
                         onTap = { onTap() },
@@ -488,5 +533,38 @@ fun ImageSection(
                     )
                 },
         )
+    }
+}
+
+fun doesImageFillBox(
+    containerWidth: Int,
+    containerHeight: Int,
+    imageWidth: Int,
+    imageHeight: Int,
+    contentScale: ContentScale
+): Boolean {
+    if (imageWidth <= 0 || imageHeight <= 0 || containerWidth <= 0 || containerHeight <= 0)
+        return false
+
+    val containerRatio = containerWidth.toFloat() / containerHeight
+    val imageRatio = imageWidth.toFloat() / imageHeight
+
+    return when (contentScale) {
+        ContentScale.Crop,
+        ContentScale.FillBounds -> true
+
+        ContentScale.Fit,
+        ContentScale.Inside -> {
+            if (imageRatio > containerRatio) {
+                (containerWidth / imageRatio) >= containerHeight
+            } else {
+                (containerHeight * imageRatio) >= containerWidth
+            }
+        }
+
+        ContentScale.FillWidth -> imageRatio >= containerRatio
+        ContentScale.FillHeight -> imageRatio <= containerRatio
+        ContentScale.None -> false
+        else -> false
     }
 }
