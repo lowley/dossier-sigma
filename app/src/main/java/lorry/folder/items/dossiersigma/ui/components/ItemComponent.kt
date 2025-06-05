@@ -242,7 +242,10 @@ fun ItemComponent(
                 containerColor = Color(0xFF111A2C),
                 scrollState = scrollState
             ) {
+                val modifierItem = Modifier.height(25.dp)
+                
                 DropdownMenuItem(
+                    modifier = modifierItem,
                     text = {
                         Text(
                             text = item.name.substringBeforeLast("."),
@@ -253,7 +256,7 @@ fun ItemComponent(
                     },
                     leadingIcon = {
                         Icon(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(20.dp),
                             painter = when (item) {
                                 is SigmaFolder -> painterResource(R.drawable.dossier)
                                 is SigmaFile -> when (item.name.substringAfterLast(".")) {
@@ -277,46 +280,64 @@ fun ItemComponent(
                     color = Color(0xFFB48E98)
                 )
 
+//                DropdownMenuItem(
+//                    text = {
+//                        Text(
+//                            "IAFD Film", color = Color(0xFFB0BEC5),
+//                            fontSize = 10.sp,
+//                        )
+//                    },
+//                    leadingIcon = {
+//                        Icon(
+//                            modifier = Modifier
+//                                .size(15.dp),
+//                            tint = Color(0xFF90CAF9),
+//                            painter = painterResource(R.drawable.loupe), contentDescription = null
+//                        )
+//                    },
+//                    onClick = {
+//                        viewModel.setSelectedItem(item)
+//                        viewModel.browserManager.openBrowser(item, BrowserTarget.IAFD_MOVIE)
+//                        itemIdWithVisibleMenu.value = ""
+//                    }
+//                )
+//
+//                DropdownMenuItem(
+//                    text = {
+//                        Text(
+//                            "IAFD Personne", color = Color(0xFFB0BEC5),
+//                            fontSize = 10.sp,
+//                        )
+//                    },
+//                    leadingIcon = {
+//                        Icon(
+//                            modifier = Modifier
+//                                .size(15.dp),
+//                            tint = Color(0xFF90CAF9),
+//                            painter = painterResource(R.drawable.loupe), contentDescription = null
+//                        )
+//                    },
+//                    onClick = {
+//                        viewModel.setSelectedItem(item)
+//                        viewModel.browserManager.openBrowser(item, BrowserTarget.IAFD_PERSON)
+//                        itemIdWithVisibleMenu.value = ""
+//                    }
+//                )
+
+                val itemfontSizes = 14.sp
+                
                 DropdownMenuItem(
-                    text = { Text("IAFD Film", color = Color(0xFFB0BEC5)) },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .size(24.dp),
-                            tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.loupe), contentDescription = null
+                    modifier = modifierItem,
+                    text = {
+                        Text(
+                            "Google", color = Color(0xFFB0BEC5),
+                            fontSize = itemfontSizes,
                         )
                     },
-                    onClick = {
-                        viewModel.setSelectedItem(item)
-                        viewModel.browserManager.openBrowser(item, BrowserTarget.IAFD_MOVIE)
-                        itemIdWithVisibleMenu.value = ""
-                    }
-                )
-
-                DropdownMenuItem(
-                    text = { Text("IAFD Personne", color = Color(0xFFB0BEC5)) },
                     leadingIcon = {
                         Icon(
                             modifier = Modifier
-                                .size(24.dp),
-                            tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.loupe), contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        viewModel.setSelectedItem(item)
-                        viewModel.browserManager.openBrowser(item, BrowserTarget.IAFD_PERSON)
-                        itemIdWithVisibleMenu.value = ""
-                    }
-                )
-
-                DropdownMenuItem(
-                    text = { Text("Google", color = Color(0xFFB0BEC5)) },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .size(24.dp),
+                                .size(15.dp),
                             tint = Color(0xFF90CAF9),
                             painter = painterResource(R.drawable.web_nb), contentDescription = null
                         )
@@ -329,6 +350,7 @@ fun ItemComponent(
                 )
 
                 DropdownMenuItem(
+                    modifier = modifierItem,
                     text = {
                         Text(
                             text = when (contentScale) {
@@ -341,13 +363,14 @@ fun ItemComponent(
                                 ContentScale.Fit -> "Etirer"
                                 else -> "???"
                             },
-                            color = Color(0xFFB0BEC5)
+                            color = Color(0xFFB0BEC5),
+                            fontSize = itemfontSizes,
                         )
                     },
                     leadingIcon = {
                         Icon(
                             modifier = Modifier
-                                .size(24.dp),
+                                .size(15.dp),
                             tint = Color(0xFF90CAF9),
                             painter = painterResource(R.drawable.la_droite), contentDescription = null
                         )
@@ -417,16 +440,18 @@ fun ItemComponent(
 //                )
 
                 DropdownMenuItem(
+                    modifier = modifierItem,
                     text = {
                         Text(
                             text = "Créer dossier frère",
-                            color = Color(0xFFB0BEC5)
+                            color = Color(0xFFB0BEC5),
+                            fontSize = itemfontSizes,
                         )
                     },
                     leadingIcon = {
                         Icon(
                             modifier = Modifier
-                                .size(24.dp),
+                                .size(15.dp),
                             tint = Color(0xFF90CAF9),
                             painter = painterResource(R.drawable.plus), contentDescription = null
                         )
@@ -445,16 +470,18 @@ fun ItemComponent(
 
                 if (item.isFolder()) {
                     DropdownMenuItem(
+                        modifier = modifierItem,
                         text = {
                             Text(
                                 text = "Créer dossier dedans",
-                                color = Color(0xFFB0BEC5)
+                                color = Color(0xFFB0BEC5),
+                                fontSize = itemfontSizes,
                             )
                         },
                         leadingIcon = {
                             Icon(
                                 modifier = Modifier
-                                    .size(24.dp),
+                                    .size(15.dp),
                                 tint = Color(0xFF90CAF9),
                                 painter = painterResource(R.drawable.plus), contentDescription = null
                             )
@@ -468,16 +495,18 @@ fun ItemComponent(
                 }
 
                 DropdownMenuItem(
+                    modifier = modifierItem,
                     text = {
                         Text(
                             text = "Supprimer",
-                            color = Color(0xFFB0BEC5)
+                            color = Color(0xFFB0BEC5),
+                            fontSize = itemfontSizes,
                         )
                     },
                     leadingIcon = {
                         Icon(
                             modifier = Modifier
-                                .size(24.dp),
+                                .size(15.dp),
                             tint = Color(0xFF90CAF9),
                             painter = painterResource(R.drawable.corbeille), contentDescription = null
                         )
@@ -493,7 +522,7 @@ fun ItemComponent(
                         )
                     }
                 )
-                
+
 
 //                DropdownMenuItem(
 //                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
