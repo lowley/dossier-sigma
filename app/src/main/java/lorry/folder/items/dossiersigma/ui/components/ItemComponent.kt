@@ -77,6 +77,7 @@ fun ItemComponent(
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
     val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
     var contentScale by remember { mutableStateOf(ContentScale.Crop) }
+    var expandedAddition by remember { mutableStateOf(false) }
 
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val cached = imageCache[item.fullPath]
@@ -130,6 +131,7 @@ fun ItemComponent(
                                 (item.name.endsWith(".mp4") ||
                                         item.name.endsWith(".mkv") ||
                                         item.name.endsWith(".mpg") ||
+                                        item.name.endsWith(".iso") ||
                                         item.name.endsWith(".avi"))
                             ) {
                                 viewModel.playVideoFile(item.fullPath)
@@ -141,6 +143,7 @@ fun ItemComponent(
                         onLongPress = { offset ->
                             imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
                             itemIdWithVisibleMenu.value = item.id
+                            expandedAddition = true
                         })
                 }
 
@@ -231,7 +234,7 @@ fun ItemComponent(
             }
 
             DropdownMenu(
-                expanded = itemIdWithVisibleMenu.value == item.id,
+                expanded = itemIdWithVisibleMenu.value == item.id && expandedAddition,
                 onDismissRequest = { itemIdWithVisibleMenu.value = "" },
                 offset = with(density) {
                     DpOffset(imageOffset.x, (-imageHeight / 2))
@@ -254,7 +257,7 @@ fun ItemComponent(
                             painter = when (item) {
                                 is SigmaFolder -> painterResource(R.drawable.dossier)
                                 is SigmaFile -> when (item.name.substringAfterLast(".")) {
-                                    "mp4", "mpg", "avi", "mkv" -> painterResource(R.drawable.camera)
+                                    "mp4", "mpg", "avi", "mkv", "iso" -> painterResource(R.drawable.camera)
                                     "html" -> painterResource(R.drawable.html)
                                     else -> painterResource(R.drawable.fichier)
                                 }
@@ -363,19 +366,20 @@ fun ItemComponent(
 
                         scaleCache[item.fullPath] = contentScale
 
-                        if (item.isFile() && 
+                        if (item.isFile() &&
                             item.fullPath.endsWith(".mp4") ||
                             item.fullPath.endsWith(".avi") ||
                             item.fullPath.endsWith(".mpg") ||
                             item.fullPath.endsWith(".iso") ||
-                            item.fullPath.endsWith(".mkv")) {
+                            item.fullPath.endsWith(".mkv")
+                        ) {
                             viewModel.viewModelScope.launch {
                                 val file = File(item.fullPath)
                                 viewModel.base64Embedder.removeEmbeddedContentScale(file)
                                 viewModel.base64Embedder.appendContentScaleToMp4(file, contentScale)
                             }
                         }
-                        
+
                         if (item.isFolder()) {
                             viewModel.viewModelScope.launch {
                                 val file = File(item.fullPath + "/.folderPicture.html")
@@ -386,6 +390,110 @@ fun ItemComponent(
                         }
                     }
                 )
+
+//                DropdownMenuItem(
+//                    text = {
+//                        Text(
+//                            text = "Renommer",
+//                            color = Color(0xFFB0BEC5)
+//                        )
+//                    },
+//                    leadingIcon = {
+//                        Icon(
+//                            modifier = Modifier
+//                                .size(24.dp),
+//                            tint = Color(0xFF90CAF9),
+//                            painter = painterResource(R.drawable.corbeille), contentDescription = null
+//                        )
+//                    },
+//                    onClick = {
+//                        File(item.fullPath).deleteRecursively()
+//                        expandedAddition = false
+//                        viewModel.goToFolder(
+//                            item.fullPath.substringBeforeLast("/"),
+//                            ITEMS_ORDERING_STRATEGY.DATE_DESC
+//                        )
+//                    }
+//                )
+
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "Créer dossier frère",
+                            color = Color(0xFFB0BEC5)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp),
+                            tint = Color(0xFF90CAF9),
+                            painter = painterResource(R.drawable.plus), contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        val newName = "New folder"
+                        File(item.fullPath.substringBeforeLast("/") + "/$newName").mkdir()
+
+                        expandedAddition = false
+                        viewModel.goToFolder(
+                            item.fullPath.substringBeforeLast("/"),
+                            ITEMS_ORDERING_STRATEGY.DATE_DESC
+                        )
+                    }
+                )
+
+                if (item.isFolder()) {
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = "Créer dossier dedans",
+                                color = Color(0xFFB0BEC5)
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                modifier = Modifier
+                                    .size(24.dp),
+                                tint = Color(0xFF90CAF9),
+                                painter = painterResource(R.drawable.plus), contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            val newName = "New folder"
+                            File(item.fullPath + "/$newName").mkdir()
+                            expandedAddition = false
+                        }
+                    )
+                }
+
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "Supprimer",
+                            color = Color(0xFFB0BEC5)
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp),
+                            tint = Color(0xFF90CAF9),
+                            painter = painterResource(R.drawable.corbeille), contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        if (item.isFolder())
+                            File(item.fullPath).deleteRecursively()
+                        else File(item.fullPath).delete()
+                        expandedAddition = false
+                        viewModel.goToFolder(
+                            item.fullPath.substringBeforeLast("/"),
+                            ITEMS_ORDERING_STRATEGY.DATE_DESC
+                        )
+                    }
+                )
+                
 
 //                DropdownMenuItem(
 //                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
@@ -435,6 +543,7 @@ suspend fun getImage(
             if (item.fullPath.endsWith("mp4") ||
                 item.fullPath.endsWith("mkv") ||
                 item.fullPath.endsWith("avi") ||
+                item.fullPath.endsWith("iso") ||
                 item.fullPath.endsWith("mpg")
             ) {
 
@@ -483,7 +592,6 @@ suspend fun getImage(
     return result
 }
 
-
 suspend fun getScale(
     item: Item,
     viewModel: SigmaViewModel,
@@ -493,12 +601,12 @@ suspend fun getScale(
         val scale = viewModel.base64Embedder.extractContentScaleFromMp4(File(item.fullPath))
         return scale ?: ContentScale.Crop
     }
-    
+
     if (item.isFolder()) {
         val scale = viewModel.diskRepository.extractScaleFromHtml(item.fullPath)
         return scale ?: ContentScale.Crop
     }
-        
+
     return ContentScale.Crop
 }
 
