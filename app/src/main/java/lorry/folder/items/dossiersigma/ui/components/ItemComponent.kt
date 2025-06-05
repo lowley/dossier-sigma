@@ -2,9 +2,7 @@ package lorry.folder.items.dossiersigma.ui.components
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -33,13 +31,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -48,10 +46,11 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.createBitmap
+import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
@@ -60,11 +59,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
-import me.saket.cascade.rememberCascadeState
 import java.io.File
-import androidx.core.graphics.createBitmap
-import androidx.compose.foundation.Image
-import androidx.compose.ui.draw.alpha
 
 @Composable
 fun ItemComponent(
@@ -72,6 +67,7 @@ fun ItemComponent(
     viewModel: SigmaViewModel,
     item: Item,
     imageCache: MutableMap<String, Any?>,
+    scaleCache: MutableMap<String, ContentScale>,
     itemIdWithVisibleMenu: MutableState<String>,
     context: MainActivity
 ) {
@@ -81,14 +77,23 @@ fun ItemComponent(
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
     val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
     var contentScale by remember { mutableStateOf(ContentScale.Crop) }
-    
+
     LaunchedEffect(item.fullPath, pictureUpdateId) {
-        if (imageCache.containsKey(item.fullPath)) {
-            imageSource.value =
-                imageCache.getValue(item.fullPath)
-            imageCache[item.fullPath] = imageSource.value
-        } else
-            imageSource.value = getImage(item, viewModel, context)
+        val cached = imageCache[item.fullPath]
+        if (cached != null) {
+            imageSource.value = cached
+        } else {
+            val result = getImage(item, viewModel, context)
+            imageSource.value = result
+            imageCache[item.fullPath] = result
+        }
+    }
+
+    LaunchedEffect(item.fullPath) {
+        val cached = scaleCache[item.fullPath]
+        contentScale = cached ?: getScale(item, viewModel).also {
+            scaleCache[item.fullPath] = it
+        }
     }
 
     Column() {
@@ -109,8 +114,10 @@ fun ItemComponent(
                             .size(imageHeight + 15.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
-                        imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(context, R.drawable
-                            .file),
+                        imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(
+                            context, R.drawable
+                                .file
+                        ),
                         contentScale = contentScale,
                         onTap = {
                             if (item.isFolder()) {
@@ -319,18 +326,21 @@ fun ItemComponent(
                 )
 
                 DropdownMenuItem(
-                    text = { Text(
-                        text = when (contentScale){
-                            ContentScale.Crop -> "Rogner"
-                            ContentScale.None -> "Aucun"
-                            ContentScale.Inside -> "Dedans"
-                            ContentScale.FillBounds -> "Remplir"
-                            ContentScale.FillHeight -> "Remplir hauteur"
-                            ContentScale.FillWidth -> "Remplir largeur"
-                            ContentScale.Fit -> "Etirer"
-                            else -> "???"
-                        },
-                        color = Color(0xFFB0BEC5)) },
+                    text = {
+                        Text(
+                            text = when (contentScale) {
+                                ContentScale.Crop -> "Rogner"
+                                ContentScale.None -> "Aucun"
+                                ContentScale.Inside -> "Dedans"
+                                ContentScale.FillBounds -> "Remplir"
+                                ContentScale.FillHeight -> "Remplir hauteur"
+                                ContentScale.FillWidth -> "Remplir largeur"
+                                ContentScale.Fit -> "Etirer"
+                                else -> "???"
+                            },
+                            color = Color(0xFFB0BEC5)
+                        )
+                    },
                     leadingIcon = {
                         Icon(
                             modifier = Modifier
@@ -340,7 +350,7 @@ fun ItemComponent(
                         )
                     },
                     onClick = {
-                        contentScale = when(contentScale){
+                        contentScale = when (contentScale) {
                             ContentScale.Crop -> ContentScale.Fit
                             ContentScale.Fit -> ContentScale.FillBounds
                             ContentScale.FillBounds -> ContentScale.FillWidth
@@ -350,6 +360,26 @@ fun ItemComponent(
                             ContentScale.None -> ContentScale.Crop
                             else -> ContentScale.Crop
                         }
+
+                        scaleCache[item.fullPath] = contentScale
+
+                        if (item.isFile() && 
+                            item.fullPath.endsWith(".mp4") ||
+                            item.fullPath.endsWith(".avi") ||
+                            item.fullPath.endsWith(".mpg") ||
+                            item.fullPath.endsWith(".iso") ||
+                            item.fullPath.endsWith(".mkv")) {
+                            viewModel.viewModelScope.launch {
+                                val file = File(item.fullPath)
+                                viewModel.base64Embedder.removeEmbeddedContentScale(file)
+                                viewModel.base64Embedder.appendContentScaleToMp4(file, contentScale)
+                            }
+                        }
+                        
+                        if (item.isFolder()) {
+                            
+                        }
+                            
                     }
                 )
 
@@ -369,7 +399,7 @@ fun ItemComponent(
 //                        itemIdWithVisibleMenu.value = ""
 //                    }
 //                )
-                
+
                 LaunchedEffect(expanded) {
                     if (expanded) {
                         // Scroll to show the bottom menu items.
@@ -412,7 +442,7 @@ suspend fun getImage(
                     val picture = viewModel.base64Embedder.base64ToBitmap(image64)
 
                     //item.copy(picture = picture)
-                    picture ?: vectorDrawableToBitmap(context,R.drawable.file)
+                    picture ?: vectorDrawableToBitmap(context, R.drawable.file)
                 }
             } else vectorDrawableToBitmap(context, R.drawable.file)
         }
@@ -422,7 +452,10 @@ suspend fun getImage(
 
             if (!hasPictureFile) {
                 val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
-                if (isPopulated) vectorDrawableToBitmap(context, R.drawable.folder_full) else vectorDrawableToBitmap(context, R.drawable.folder_empty)
+                if (isPopulated) vectorDrawableToBitmap(
+                    context,
+                    R.drawable.folder_full
+                ) else vectorDrawableToBitmap(context, R.drawable.folder_empty)
             } else {
                 //une image est présente pour ce répertoire
                 try {
@@ -446,8 +479,27 @@ suspend fun getImage(
     return result
 }
 
+
+suspend fun getScale(
+    item: Item,
+    viewModel: SigmaViewModel,
+): ContentScale {
+    if (item.isFile()) {
+        val scale = viewModel.base64Embedder.extractContentScaleFromMp4(File(item.fullPath))
+        return scale ?: ContentScale.Crop
+    }
+    
+    if (item.isFolder()) {
+        
+
+    }
+        
+    return ContentScale.Crop
+}
+
 fun vectorDrawableToBitmap(context: Context, drawableId: Int): Bitmap {
-    val drawable = context.getDrawable(drawableId) ?: throw IllegalArgumentException("Drawable introuvable")
+    val drawable =
+        context.getDrawable(drawableId) ?: throw IllegalArgumentException("Drawable introuvable")
     val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
     val canvas = android.graphics.Canvas(bitmap)
     drawable.setBounds(0, 0, canvas.width, canvas.height)
@@ -505,13 +557,14 @@ fun ImageSection(
             .clip(shape)
     ) {
 //        if (shouldShowMesh) {
-            Image(
-                painterResource(R.drawable.maillage1),
-                contentDescription = null,
-                modifier = Modifier.matchParentSize()
-                    .alpha(if (shouldShowMesh) 1f else 0f),
-                contentScale = ContentScale.Crop,
-            )
+        Image(
+            painterResource(R.drawable.maillage1),
+            contentDescription = null,
+            modifier = Modifier
+                .matchParentSize()
+                .alpha(if (shouldShowMesh) 1f else 0f),
+            contentScale = ContentScale.Crop,
+        )
 //        }
 
         AsyncImage(

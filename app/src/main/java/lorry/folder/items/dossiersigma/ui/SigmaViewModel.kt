@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.net.Uri
+import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,13 +11,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
-import lorry.folder.items.dossiersigma.data.base64.IMp4Base64Embedder
+import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
@@ -33,10 +33,11 @@ class SigmaViewModel @Inject constructor(
     val ffmpegRepository: BentoRepository,
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,
-    val base64Embedder: IMp4Base64Embedder
+    val base64Embedder: IVideoInfoEmbedder
 ) : ViewModel() {
 
     val imageCache = mutableMapOf<String, Any?>()
+    val scaleCache = mutableMapOf<String, ContentScale>()
 
     private val _folder = MutableStateFlow<SigmaFolder>(
         SigmaFolder(
@@ -129,6 +130,7 @@ class SigmaViewModel @Inject constructor(
     fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) {
         setSorting(sorting)
         imageCache.clear()
+        scaleCache.clear()
         viewModelScope.launch(Dispatchers.IO) {
             val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
             withContext(Dispatchers.Main) {

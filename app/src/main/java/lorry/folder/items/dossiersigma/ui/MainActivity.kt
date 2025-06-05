@@ -219,8 +219,8 @@ class MainActivity : ComponentActivity() {
                                     .padding(horizontal = 10.dp, vertical = 6.dp),
                                 imageCache = viewModel.imageCache,
                                 itemIdWithVisibleMenu = itemIdWithVisibleMenu,
-                                context = this@MainActivity
-
+                                context = this@MainActivity,
+                                scaleCache = viewModel.scaleCache
                             )
                         }
                     }

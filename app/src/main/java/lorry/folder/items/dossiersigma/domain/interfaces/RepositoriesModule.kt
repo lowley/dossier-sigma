@@ -7,14 +7,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import lorry.folder.items.dossiersigma.data.base64.IMp4Base64Embedder
-import lorry.folder.items.dossiersigma.data.base64.Mp4Base64Embedder
+import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
+import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegReporitory
-import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
-import lorry.folder.items.dossiersigma.data.playing.PlayingDataSource
 import javax.inject.Singleton
 
 
@@ -44,8 +42,8 @@ abstract class RepositoriesModule {
 
     @Binds
     abstract fun bindMp4Base64Embedder(
-        mp4Base64Embedder: Mp4Base64Embedder
-    ): IMp4Base64Embedder
+        mp4Base64Embedder: VideoInfoEmbedder
+    ): IVideoInfoEmbedder
 }
 
 @Module
