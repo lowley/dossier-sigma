@@ -377,9 +377,13 @@ fun ItemComponent(
                         }
                         
                         if (item.isFolder()) {
-                            
+                            viewModel.viewModelScope.launch {
+                                val file = File(item.fullPath + "/.folderPicture.html")
+                                if (!file.exists())
+                                    viewModel.diskRepository.createFolderHtmlFile(item)
+                                viewModel.diskRepository.insertScaleToHtmlFile(item, contentScale)
+                            }
                         }
-                            
                     }
                 )
 
@@ -484,14 +488,15 @@ suspend fun getScale(
     item: Item,
     viewModel: SigmaViewModel,
 ): ContentScale {
+    //créer html d'office
     if (item.isFile()) {
         val scale = viewModel.base64Embedder.extractContentScaleFromMp4(File(item.fullPath))
         return scale ?: ContentScale.Crop
     }
     
     if (item.isFolder()) {
-        
-
+        val scale = viewModel.diskRepository.extractScaleFromHtml(item.fullPath)
+        return scale ?: ContentScale.Crop
     }
         
     return ContentScale.Crop

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.util.Base64
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -25,7 +26,6 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.security.InvalidParameterException
 import javax.inject.Inject
 
 class DiskRepository @Inject constructor(
@@ -115,7 +115,7 @@ class DiskRepository @Inject constructor(
                     compareBy<Item> { it.isFile() }
                         .thenByDescending { it.modificationDate })
             }
-            
+
             return@withContext sorted
         }
     }
@@ -192,6 +192,113 @@ class DiskRepository @Inject constructor(
         createShortcut(text(item), destFullPath)
     }
 
+    override suspend fun createFolderHtmlFile(folderItem: Item) {
+        if (folderItem.isFile())
+            return
+
+        //picture contient un bitmap
+        val destFullPath = "${folderItem.fullPath}/.folderPicture.html"
+        createShortcut(baseText(folderItem), destFullPath)
+    }
+
+    override suspend fun insertPictureToHtmlFile(
+        item: Item,
+        picture: String
+    ) {
+        val htmlFile = File(item.fullPath + "/.folderPicture.html")
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() }) 
+            return
+
+        val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
+
+        val base64Cover: String? = (item.picture as Bitmap?)?.let {
+            val outputStream = ByteArrayOutputStream()
+            it.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            val imageBytes = outputStream.toByteArray()
+            Base64.encodeToString(imageBytes, Base64.NO_WRAP)
+        }
+
+        val imageSection = base64Cover?.let {
+            """<img src="data:image/jpeg;base64,$it" alt="cover" style="max-width:100%;height:auto;"/><br>"""
+        } ?: ""
+        
+        val newHtmlContent = replaceOrInsert(htmlContent,
+            """<img\s+[^>]*src\s*=\s*"data:image/[^;]+;base64,[^"]+"""", imageSection)
+        
+        htmlFile.delete()
+        withContext(Dispatchers.IO) {
+            val fichier = File(item.fullPath + "/.folderPicture.html")
+            fichier.writeText(newHtmlContent, Charsets.UTF_8)
+        }
+    }
+
+    fun replaceOrInsert(html: String, patternToFind: String, replacement: String): String {
+        val regex = Regex(patternToFind)
+        return if (regex.containsMatchIn(html)) {
+            regex.replace(html, replacement)
+        } else {
+            html.replace("</body>", "$replacement</body>")
+        }
+    }
+
+    override suspend fun insertScaleToHtmlFile(
+        item: Item,
+        scale: ContentScale
+    ) {
+        val htmlFile = File(item.fullPath + "/.folderPicture.html")
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() })
+            return
+
+        val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
+
+        val scaleToInsert = when(scale){
+            ContentScale.Crop -> "Crop"
+            ContentScale.Fit -> "Fit"
+            ContentScale.None -> "None"
+            ContentScale.Inside -> "Inside"
+            ContentScale.FillWidth -> "FillWidth"
+            ContentScale.FillHeight -> "FillHeight"
+            ContentScale.FillBounds -> "FillBounds"
+            else -> "Crop"
+        }
+        
+        val imageSection = """<div class="contentScale">$scaleToInsert</div>""""
+
+        val newHtmlContent = replaceOrInsert(htmlContent, """<div class="contentScale" >[^"]+</div>"""
+            .trimMargin(), imageSection)
+
+        htmlFile.delete()
+        withContext(Dispatchers.IO) {
+            val fichier = File(item.fullPath + "/.folderPicture.html")
+            fichier.writeText(newHtmlContent, Charsets.UTF_8)
+        }
+    }
+
+    override suspend fun extractScaleFromHtml(htmlFileFullPath: String): ContentScale? {
+        val htmlFile = File(htmlFileFullPath+"/.folderPicture.html")
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() }) return null
+
+        val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
+
+        // Regex pour trouver le contenu de src="data:image/...;base64,..."
+        val regex = Regex("""<div class="contentScale">([^"]+)</div>"""")
+        val match = regex.find(htmlContent) ?: return null
+
+        val scale = match.groupValues[1]
+        return contentScaleFromString(scale)
+    }
+
+    fun contentScaleFromString(value: String): ContentScale = when (value) {
+        "Crop" -> ContentScale.Crop
+        "Fit" -> ContentScale.Fit
+        "FillBounds" -> ContentScale.FillBounds
+        "FillHeight" -> ContentScale.FillHeight
+        "FillWidth" -> ContentScale.FillWidth
+        "Inside" -> ContentScale.Inside
+        "None" -> ContentScale.None
+        else -> ContentScale.Crop // ou exception
+    }
+
     override suspend fun createShortcut(text: String, fullPathAndName: String) {
         withContext(Dispatchers.IO) {
             val fichier = File(fullPathAndName)
@@ -207,7 +314,7 @@ class DiskRepository @Inject constructor(
         val result = withContext(Dispatchers.IO) {
             folderPictureFile.exists()
         }
-        
+
         return result
     }
 
@@ -239,6 +346,22 @@ class DiskRepository @Inject constructor(
         return text
     }
 
+    fun baseText(item: Item): String {
+        val text = """<!DOCTYPE html>
+                                 <html lang="fr">
+                                 <head>
+                                     <meta charset="UTF-8">
+                                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                     <title>Image container</title>
+                                 </head>
+                                 <body>
+                                   
+                                 </body>
+                                 </html>"""
+
+        return text
+    }
+
     override fun askInputFolder() {
         intentWrapper.do_ACTION_OPEN_DOCUMENT_TREE()
     }
@@ -254,7 +377,7 @@ class DiskRepository @Inject constructor(
             if (
                 f.isFile &&
                 !f.name.startsWith(".")
-                ) fileCount++
+            ) fileCount++
             else if (f.isDirectory) folderCount++
         }
 
