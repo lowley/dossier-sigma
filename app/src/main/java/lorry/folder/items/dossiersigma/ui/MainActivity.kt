@@ -4,6 +4,7 @@ import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -89,14 +90,18 @@ class MainActivity : ComponentActivity() {
                 //barre d'outils
 
                 val state = rememberScrollState()
-                val folderState = viewModel.folder.collectAsState()
+                val currentFolder by viewModel.currentFolder.collectAsState()
                 val isBrowserVisible by viewModel.browserManager.isBrowserVisible.collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
                 val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
-
+                
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
+                }
+
+                BackHandler(enabled = true) {
+                    viewModel.removeLastFolderPathHistory()
                 }
 
                 LaunchedEffect(pictureUpdateId) {
@@ -108,7 +113,7 @@ class MainActivity : ComponentActivity() {
 
                     selectedItem?.let { item ->
                         viewModel.browserManager.hideBrowser()
-                        viewModel.goToFolder(folderState.value.fullPath, viewModel.sorting.value)
+                        viewModel.goToFolder(currentFolder.fullPath, viewModel.sorting.value)
 //                        viewModel.updateItemList(item.copy(picture = selectedItemPicture.picture))
                         Toast.makeText(this@MainActivity, "Changement d'image effectué", Toast.LENGTH_SHORT)
                             .show()
@@ -140,7 +145,7 @@ class MainActivity : ComponentActivity() {
                         )
 
                         Breadcrumb(
-                            items = folderState.value.fullPath.split("/").filter { it != "" },
+                            items = currentFolder.fullPath.split("/").filter { it != "" },
                             onPathClick = { path ->
                                 viewModel.goToFolder(
                                     path,
@@ -186,14 +191,14 @@ class MainActivity : ComponentActivity() {
                             when (index) {
                                 0 -> {
                                     viewModel.goToFolder(
-                                        folderState.value.fullPath,
+                                        currentFolder.fullPath,
                                         ITEMS_ORDERING_STRATEGY.DATE_DESC
                                     )
                                 }
 
                                 1 -> {
                                     viewModel.goToFolder(
-                                        folderState.value.fullPath,
+                                        currentFolder.fullPath,
                                         ITEMS_ORDERING_STRATEGY.NAME_ASC
                                     )
                                 }
@@ -210,7 +215,7 @@ class MainActivity : ComponentActivity() {
                             .padding(horizontal = 10.dp)
                             .weight(1f) // Permet au LazyVerticalGrid de prendre tout l'espace restant
                     ) {
-                        lazyGridItems(folderState.value.items, key = { it.fullPath }) { item ->
+                        lazyGridItems(currentFolder.items, key = { it.fullPath }) { item ->
                             
                             ItemComponent(
                                 viewModel = viewModel,

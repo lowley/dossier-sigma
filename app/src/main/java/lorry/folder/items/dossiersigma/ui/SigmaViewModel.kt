@@ -7,7 +7,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
@@ -39,22 +44,56 @@ class SigmaViewModel @Inject constructor(
     val imageCache = mutableMapOf<String, Any?>()
     val scaleCache = mutableMapOf<String, ContentScale>()
 
-    private val _folder = MutableStateFlow<SigmaFolder>(
-        SigmaFolder(
-            fullPath = "Veuillez attendre",
-            picture = null,
-            items = listOf<Item>(),
-            modificationDate = System.currentTimeMillis()
-        )
-    )
-    val folder: StateFlow<SigmaFolder>
-        get() = _folder
-
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
 
     private val _pictureUpdateId = MutableStateFlow(0)
     val pictureUpdateId: StateFlow<Int> = _pictureUpdateId
+
+    private val _folderPathHistory = MutableStateFlow<List<String>>(emptyList())
+    val folderPathHistory: StateFlow<List<String>> = _folderPathHistory
+
+    val currentFolderPath: StateFlow<String> = folderPathHistory
+        .map { it.lastOrNull() ?: "/storage/emulated/0/Movies" }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = "/storage/emulated/0/Movies"
+        )
+    private val reloadTrigger = MutableStateFlow(Unit)
+
+    // combine chemin + trigger pour déclencher un nouveau getSigmaFolder
+    val currentFolder: StateFlow<SigmaFolder> = combine(
+        currentFolderPath,
+        reloadTrigger
+    ) { path, _ ->
+        path
+    }.mapLatest { path ->
+        diskRepository.getSigmaFolder(path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = SigmaFolder(
+            path = "/storage/emulated/0/Movies", 
+            name = "Veuillez attendre",
+            picture = null, 
+            items = emptyList<Item>(),
+            modificationDate = System.currentTimeMillis())
+    )
+
+    fun refreshCurrentFolder() {
+        reloadTrigger.value = Unit // redéclenchement immédiat
+    }
+
+    fun addFolderPathToHistory(folderPath: String) {
+        val currentHistory = _folderPathHistory.value
+        _folderPathHistory.value = currentHistory + folderPath
+    }
+
+    fun removeLastFolderPathHistory() {
+        val currentHistory = _folderPathHistory.value
+        _folderPathHistory.value = currentHistory.dropLast(1)
+    }
 
     fun setSorting(sorting: ITEMS_ORDERING_STRATEGY) {
         _sorting.value = sorting
@@ -97,8 +136,7 @@ class SigmaViewModel @Inject constructor(
             setPicture(_selectedItem.value!!, false)
         }
 
-        goToFolder(_selectedItem.value!!.path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-
+        refreshCurrentFolder()
         notifyPictureUpdated()
     }
 
@@ -110,22 +148,33 @@ class SigmaViewModel @Inject constructor(
         viewModelScope.launch {
             changingPictureUseCase.savePictureOfFolder(newItem)
             withContext(Dispatchers.Main) {
-                updateItemList(newItem)
+                refreshCurrentFolder()
             }
         }
     }
 
-    fun updateItemList(newItem: Item) {
-        val currentFolder = _folder.value
-        val index = currentFolder.items.indexOfFirst { it.id == newItem.id }
-        if (index == -1)
-            return
-
-        val updatedItems = currentFolder.items.toMutableList()
-        updatedItems[index] = newItem
-        _folder.value = currentFolder.copy(items = updatedItems)
-        
-    }
+//    fun updateItemList(newItem: Item) {
+//        viewModelScope.launch {
+//            val currentFolderPath = this@SigmaViewModel.currentFolder.value
+//
+//            var currentFolder: SigmaFolder? = null
+//            currentFolder = withContext(Dispatchers.IO) {
+//                diskRepository.getSigmaFolder(
+//                    currentFolderPath,
+//                    ITEMS_ORDERING_STRATEGY.DATE_DESC
+//                )
+//            }
+//            
+//            val index = currentFolder.items.indexOfFirst { it.id == newItem.id }
+//            if (index == -1)
+//                return@launch
+//
+//            val updatedItems = currentFolder.items.toMutableList()
+//            updatedItems[index] = newItem
+//            _folder.value = currentFolder.copy(items = updatedItems)
+//        }
+//
+//    }
 
     fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) {
         setSorting(sorting)
@@ -134,15 +183,18 @@ class SigmaViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
             withContext(Dispatchers.Main) {
-                _folder.value = newFolder
+                if (newFolder.fullPath == currentFolderPath.value)
+                    refreshCurrentFolder()
+                else
+                    addFolderPathToHistory(newFolder.fullPath)
             }
         }
     }
 
-    init {
-        val initialDirectoryPath = "/storage/emulated/0/Movies"
-        goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-    }
+//    init {
+//        val initialDirectoryPath = "/storage/emulated/0/Movies"
+//        goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+//    }
 
     fun playVideoFile(videoFullPath: String) {
         viewModelScope.launch(Dispatchers.IO) {
