@@ -10,7 +10,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -27,9 +26,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -37,7 +34,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.DarkGray
@@ -48,15 +44,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.robertlevonyan.compose.buttontogglegroup.RowToggleButtonGroup
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.components.BrowserScreen
+import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
@@ -66,10 +64,10 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var intentWrapper: DSI_IntentWrapper
-    
+
     @Inject
     lateinit var changePathUseCase: ChangePathUseCase
-    
+
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,18 +82,17 @@ class MainActivity : ComponentActivity() {
 //            viewModel.initCoil(this@MainActivity)
 //        }
         initializeFileIntentLauncher(viewModel)
-        
+
         setContent {
             DossierSigmaTheme {
                 //barre d'outils
 
                 val state = rememberScrollState()
                 val currentFolder by viewModel.currentFolder.collectAsState()
-                val isBrowserVisible by viewModel.browserManager.isBrowserVisible.collectAsState()
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
                 val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
-                
+
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
                 }
@@ -112,7 +109,7 @@ class MainActivity : ComponentActivity() {
 //                    }
 
                     selectedItem?.let { item ->
-                        viewModel.browserManager.hideBrowser()
+                        viewModel.browserManager.closeBrowser()
                         viewModel.goToFolder(currentFolder.fullPath, viewModel.sorting.value)
 //                        viewModel.updateItemList(item.copy(picture = selectedItemPicture.picture))
                         Toast.makeText(this@MainActivity, "Changement d'image effectué", Toast.LENGTH_SHORT)
@@ -159,13 +156,13 @@ class MainActivity : ComponentActivity() {
                             arrowColor = Color.Magenta,
                             transitionDuration = 200,
                         )
-                        
+
                         Spacer(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxWidth()
                         )
-                        
+
                         RowToggleButtonGroup(
                             modifier = Modifier
                                 .padding(end = 20.dp)
@@ -216,7 +213,7 @@ class MainActivity : ComponentActivity() {
                             .weight(1f) // Permet au LazyVerticalGrid de prendre tout l'espace restant
                     ) {
                         lazyGridItems(currentFolder.items, key = { it.fullPath }) { item ->
-                            
+
                             ItemComponent(
                                 viewModel = viewModel,
                                 item = item,
@@ -230,29 +227,31 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val url by viewModel.browserManager.browserSearch.collectAsState()
+                    val url by viewModel.browserManager.currentPage.collectAsState()
 
-                    if (isBrowserVisible)
-                        Box(
-                            modifier = Modifier
-                        ) {
-                            BrowserScreen(
-                                viewModel,
-                                url = url,
-                            )
-
-                            Button(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter),
-                                onClick = { viewModel.browserManager.hideBrowser() }
-                            ) {
-                                Text("Fermer le navigateur sans copier d'image")
-                            }
-                        }
+                    BrowserOverlay(
+                        currentPage = url,
+                        onClose = {
+                            viewModel.browserManager.closeBrowser()
+                        },
+                        onImageClicked = { url ->
+                            //println("hasImage: $url")
+                            manageImageClick(viewModel, url)
+                        },
+                        viewmodel = viewModel
+                    )
                 }
             }
         }
     }
+
+    fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
+        if (viewModel.selectedItem.value != null)
+            viewModel.viewModelScope.launch {
+                viewModel.updatePicture(imageUrl)
+            }
+    }
+
 
     private fun initializeFileIntentLauncher(viewModel: SigmaViewModel) {
         val launcher =

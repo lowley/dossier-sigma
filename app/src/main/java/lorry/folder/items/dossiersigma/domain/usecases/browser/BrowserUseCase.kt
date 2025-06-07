@@ -11,18 +11,19 @@ import javax.inject.Inject
 class BrowserUseCase @Inject constructor(
     val context: Context,
 ) {
-    private val _isBrowserVisible = MutableStateFlow(false)
-    val isBrowserVisible: StateFlow<Boolean> = _isBrowserVisible
+    private val _currentPage = MutableStateFlow<String?>(null)
+    val currentPage: StateFlow<String?> = _currentPage
 
-    private val _browserSearch = MutableStateFlow("")
-    val browserSearch: StateFlow<String> = _browserSearch
-
-    fun showBrowser() {
-        _isBrowserVisible.value = true
+    fun setCurrentPage(page: String?) {
+        _currentPage.value = page
     }
 
-    fun hideBrowser() {
-        _isBrowserVisible.value = false
+    fun openBrowserWith(html: String) {
+        _currentPage.value = html
+    }
+
+    fun closeBrowser() {
+        _currentPage.value = null
     }
 
     fun openBrowser(item: Item, target: BrowserTarget) {
@@ -53,10 +54,8 @@ class BrowserUseCase @Inject constructor(
                     .replace(")", "")
             }
 
-        _browserSearch.value = target.url + prepared3
+        setCurrentPage(target.url + prepared3)
 
-
-        showBrowser()
         Toast.makeText(context, "Naviguez et appuyez longuement sur l'image choisie", Toast.LENGTH_LONG)
             .show()
     }

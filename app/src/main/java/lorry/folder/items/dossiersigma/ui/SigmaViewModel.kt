@@ -106,7 +106,7 @@ class SigmaViewModel @Inject constructor(
     //SELECTED ITEM
     private val _selectedItem = MutableStateFlow<Item?>(null)
     val selectedItem: StateFlow<Item?> = _selectedItem
-
+    
     fun setSelectedItem(item: Item) {
         _selectedItem.value = item
     }

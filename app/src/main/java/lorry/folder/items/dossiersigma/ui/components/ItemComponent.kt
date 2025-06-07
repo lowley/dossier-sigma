@@ -78,7 +78,7 @@ fun ItemComponent(
     val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
     var contentScale by remember { mutableStateOf(ContentScale.Crop) }
     var expandedAddition by remember { mutableStateOf(false) }
-
+    
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val cached = imageCache[item.fullPath]
         if (cached != null) {
