@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -53,25 +54,33 @@ fun Breadcrumb(
     arrowColor: Color = Color.Gray,
     transitionDuration: Int = 600
 ) {
-    val displayedItems = remember { mutableStateListOf<String>() }
+    val displayedItems = run {
+        val newItems = mutableListOf<String>()
+        
+        when {
+            items.size >= 3 && items[0] == "storage" && items[1] == "emulated" && items[2] == "0" -> {
+                newItems += "Local"
+                newItems += items.drop(3)
+            }
+            items.size >= 2 && items[0] == "storage" && items[1].matches(Regex
+                ("""[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}""")) -> {
+                newItems += "Carte SD"
+                newItems += items.drop(2)
+            }
+            else -> {
+                newItems += items
+            }
+        }
+
+        newItems.toMutableStateList()
+    }
+
     val previousItems = remember { mutableStateListOf<String>() }
 
     LaunchedEffect(items) {
-        // Ajouter immédiatement les nouveaux items
-        items.forEach { item ->
-            if (item !in displayedItems) displayedItems.add(item)
-        }
-
-        // Identifier les items supprimés
-        val removedItems = displayedItems.filter { it !in items }
-
-        // Attendre la fin des animations avant de supprimer réellement
         delay(transitionDuration.toLong())
-        displayedItems.removeAll(removedItems)
-
-        // Après les animations, mettre à jour previousItems
         previousItems.clear()
-        previousItems.addAll(items)
+        previousItems.addAll(displayedItems)
     }
 
     Row(modifier = modifier) {
@@ -79,18 +88,26 @@ fun Breadcrumb(
             key(item) {
                 BreadcrumbItem(
                     text = item,
-                    isActive = index == items.lastIndex,
+                    isActive = index == displayedItems.lastIndex,
                     activeColor = activeColor,
                     inactiveColor = inactiveColor,
                     arrowColor = arrowColor,
                     onClick = {
-                        val path = items.take(index + 1).joinToString("/")
+                        val actualIndex = when {
+                            items.startsWithLocal() -> index + 3
+                            items.startsWithSDCard() -> index + 2
+                            else -> index
+                        }
+                        val path = when {
+                            item == "Local" -> "storage/emulated/0"
+                            item == "Carte SD" -> "storage/${items.getOrNull(1) ?: ""}"
+                            else -> items.take(actualIndex + 1).joinToString("/")
+                        }
                         onPathClick(path)
                     },
-                    // Ici, la correction claire :
                     animationState = when {
-                        item in items && item !in previousItems -> AnimationState.Appearing
-                        item !in items && item in previousItems -> AnimationState.Disappearing
+                        item in displayedItems && item !in previousItems -> AnimationState.Appearing
+                        item !in displayedItems && item in previousItems -> AnimationState.Disappearing
                         else -> AnimationState.Stable
                     },
                     duration = transitionDuration
@@ -181,6 +198,15 @@ fun BreadcrumbItem(
             )
         }
     }
+}
+
+private fun List<String>.startsWithLocal(): Boolean {
+    return this.size >= 3 && this[0] == "storage" && this[1] == "emulated" && this[2] == "0"
+}
+
+private fun List<String>.startsWithSDCard(): Boolean {
+    return this.size >= 2 && this[0] == "storage" && this[1].matches(Regex
+        ("""[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}"""))
 }
 
 class ParallelogramShape(
