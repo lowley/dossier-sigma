@@ -572,6 +572,7 @@ suspend fun getImage(
             if (item.fullPath.endsWith("mp4") ||
                 item.fullPath.endsWith("mkv") ||
                 item.fullPath.endsWith("avi") ||
+                item.fullPath.endsWith("html") ||
                 item.fullPath.endsWith("iso") ||
                 item.fullPath.endsWith("mpg")
             ) {

@@ -209,6 +209,10 @@ class DiskRepository @Inject constructor(
         if (!withContext(Dispatchers.IO) { htmlFile.exists() }) 
             return
 
+        insertPictureToHtmlFile(htmlFile, item)
+    }
+
+    private suspend fun insertPictureToHtmlFile(htmlFile: File, item: Item) {
         val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
 
         val base64Cover: String? = (item.picture as Bitmap?)?.let {
@@ -221,10 +225,12 @@ class DiskRepository @Inject constructor(
         val imageSection = base64Cover?.let {
             """<img src="data:image/jpeg;base64,$it" alt="cover" style="max-width:100%;height:auto;"/><br>"""
         } ?: ""
-        
-        val newHtmlContent = replaceOrInsert(htmlContent,
-            """<img\s+[^>]*src\s*=\s*"data:image/[^;]+;base64,[^"]+"""", imageSection)
-        
+
+        val newHtmlContent = replaceOrInsert(
+            htmlContent,
+            """<img\s+[^>]*src\s*=\s*"data:image/[^;]+;base64,[^"]+"""", imageSection
+        )
+
         htmlFile.delete()
         withContext(Dispatchers.IO) {
             val fichier = File(item.fullPath + "/.folderPicture.html")

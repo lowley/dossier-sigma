@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -27,6 +28,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -208,9 +210,9 @@ class MainActivity : ComponentActivity() {
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(150.dp),
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxSize()
                             .padding(horizontal = 10.dp)
-                            .weight(1f) // Permet au LazyVerticalGrid de prendre tout l'espace restant
+                            .weight(1f)
                     ) {
                         lazyGridItems(currentFolder.items, key = { it.fullPath }) { item ->
 
@@ -227,6 +229,15 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, Color.Black)
+                            .height(48.dp)
+                    ) {
+                        Text("Ceci est un grand pas pour Sigma")
+                    }
+                    
                     val url by viewModel.browserManager.currentPage.collectAsState()
 
                     BrowserOverlay(
