@@ -94,14 +94,17 @@ fun Breadcrumb(
                     arrowColor = arrowColor,
                     onClick = {
                         val actualIndex = when {
-                            items.startsWithLocal() -> index + 3
-                            items.startsWithSDCard() -> index + 2
+                            items.startsWithLocal() -> index + 2
+                            items.startsWithSDCard() -> index + 1
                             else -> index
                         }
                         val path = when {
                             item == "Local" -> "storage/emulated/0"
                             item == "Carte SD" -> "storage/${items.getOrNull(1) ?: ""}"
-                            else -> items.take(actualIndex + 1).joinToString("/")
+                            else -> items.take(
+                                actualIndex + 1 + if (items.isNotEmpty() && (items[0] == "Local" || items[0] == 
+                                    "Carte SD")) 1 else 0)
+                                .joinToString("/")
                         }
                         onPathClick(path)
                     },
