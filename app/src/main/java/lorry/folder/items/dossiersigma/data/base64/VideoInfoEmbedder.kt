@@ -140,7 +140,17 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         withContext(Dispatchers.IO) {
             RandomAccessFile(mp4File, "rw").use { raf ->
                 raf.seek(raf.length())
-                val scaleAsString = contentScale.toString()
+
+                val scaleAsString = when(contentScale){
+                    ContentScale.Crop -> "Crop"
+                    ContentScale.Fit -> "Fit"
+                    ContentScale.None -> "None"
+                    ContentScale.Inside -> "Inside"
+                    ContentScale.FillWidth -> "FillWidth"
+                    ContentScale.FillHeight -> "FillHeight"
+                    ContentScale.FillBounds -> "FillBounds"
+                    else -> "Crop"
+                }
                 val data = "\n$START_SCALE_TAG\n$scaleAsString\n$END_SCALE_TAG\n"
                 raf.write(data.toByteArray(Charset.forName(CHARSET)))
             }
@@ -164,7 +174,7 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
 
             if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
                 return contentScaleFromString(
-                    tail.substring(startIndex + START_BASE64_TAG.length, endIndex).trim()
+                    tail.substring(startIndex + START_SCALE_TAG.length, endIndex).trim()
                 )
             }
             return null
@@ -172,13 +182,13 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
     }
 
     fun contentScaleFromString(value: String): ContentScale? = when (value) {
-        "ContentScale.Crop" -> ContentScale.Crop
-        "ContentScale.Fit" -> ContentScale.Fit
-        "ContentScale.FillBounds" -> ContentScale.FillBounds
-        "ContentScale.FillHeight" -> ContentScale.FillHeight
-        "ContentScale.FillWidth" -> ContentScale.FillWidth
-        "ContentScale.Inside" -> ContentScale.Inside
-        "ContentScale.None" -> ContentScale.None
+        "Crop" -> ContentScale.Crop
+        "Fit" -> ContentScale.Fit
+        "FillBounds" -> ContentScale.FillBounds
+        "FillHeight" -> ContentScale.FillHeight
+        "FillWidth" -> ContentScale.FillWidth
+        "Inside" -> ContentScale.Inside
+        "None" -> ContentScale.None
         else -> null // ou exception
     }
 

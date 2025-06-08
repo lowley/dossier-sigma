@@ -394,6 +394,7 @@ fun ItemComponent(
                             item.fullPath.endsWith(".mp4") ||
                             item.fullPath.endsWith(".avi") ||
                             item.fullPath.endsWith(".mpg") ||
+                            item.fullPath.endsWith(".html") ||
                             item.fullPath.endsWith(".iso") ||
                             item.fullPath.endsWith(".mkv")
                         ) {

@@ -11,6 +11,8 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -35,6 +38,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -122,105 +126,121 @@ class MainActivity : ComponentActivity() {
                         .background(Color(0xFF363E4C))
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
+                    
+                    Box(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        AsyncImage(
-                            model = R.drawable.bouger,
-                            contentDescription = "Miniature",
+                        val sortingWidth = 200.dp
+                        
+                        Row(
                             modifier = Modifier
-                                .padding(horizontal = 5.dp)
-                                .size(30.dp)
-                                .pointerInput(true) {
-                                    detectTapGestures(
-                                        onTap = {
-                                            changePathUseCase.askInputFolder()
-                                        }
+                                .fillMaxWidth()
+                                .padding(end = sortingWidth),
+                        ) {
+                            AsyncImage(
+                                model = R.drawable.bouger,
+                                contentDescription = "Miniature",
+                                modifier = Modifier
+                                    .padding(horizontal = 5.dp)
+                                    .align(Alignment.CenterVertically)
+                                    .size(30.dp)
+                                    .pointerInput(true) {
+                                        detectTapGestures(
+                                            onTap = {
+                                                changePathUseCase.askInputFolder()
+                                            }
+                                        )
+                                    },
+                            )
+
+                            Breadcrumb(
+                                items = currentFolder.fullPath.split("/").filter { it != "" },
+                                onPathClick = { path ->
+                                    viewModel.goToFolder(
+                                        path,
+                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
                                     )
                                 },
-                        )
+                                modifier = Modifier
+                                    .padding(start = 20.dp)
+                                    .align(Alignment.CenterVertically),
+                                activeColor = Color(0xFF8697CB),
+                                inactiveColor = Color(0xFF8697CB),
+                                arrowColor = Color.Magenta,
+                                transitionDuration = 200,
+                            )
+                        }
 
-                        Breadcrumb(
-                            items = currentFolder.fullPath.split("/").filter { it != "" },
-                            onPathClick = { path ->
-                                viewModel.goToFolder(
-                                    path,
-                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                )
-                            },
+                        Row(
                             modifier = Modifier
-                                .padding(start = 20.dp),
-                            activeColor = Color(0xFF8697CB),
-                            inactiveColor = Color(0xFF8697CB),
-                            arrowColor = Color.Magenta,
-                            transitionDuration = 200,
-                        )
+                                .align(Alignment.CenterEnd)
+                                .width(sortingWidth),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
 
-                        Spacer(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                        )
-
-                        val sorting by viewModel.sorting.collectAsState()
+                            val sorting by viewModel.sorting.collectAsState()
 //                        val DateState = remember { mutableStateOf(true) }
 //                        val NameState = remember { mutableStateOf(false) }
 
-                        FilterChip(
-                            label = { Text("Date") },
-                            modifier = Modifier.padding(end = 5.dp),
-                            selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
-                            leadingIcon = {
-                                if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                                    Icon(
-                                        painterResource(id = R.drawable.trier_decroissant),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
-                                        tint = Color.Red
-                                    )
-                                else
-                                    Icon(
-                                        painterResource(id = R.drawable.trier_decroissant),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                            },
+                            FilterChip(
+                                label = { Text("Date") },
+                                modifier = Modifier
+                                    .padding(end = 5.dp)
+                                    .align(Alignment.CenterVertically),
+                                selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
+                                leadingIcon = {
+                                    if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                                        Icon(
+                                            painterResource(id = R.drawable.trier_decroissant),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = Color.Red
+                                        )
+                                    else
+                                        Icon(
+                                            painterResource(id = R.drawable.trier_decroissant),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                },
 //                            enabled = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
-                            onClick = {
-                                viewModel.goToFolder(
-                                    currentFolder.fullPath,
-                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                )
-                            }
-                        )
+                                onClick = {
+                                    viewModel.goToFolder(
+                                        currentFolder.fullPath,
+                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                    )
+                                }
+                            )
 
-                        FilterChip(
-                            label = { Text("Nom") },
-//                            modifier = Modifier.padding(end = 5.dp),
-                            selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
-                            leadingIcon = {
-                                if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
-                                    Icon(
-                                        painterResource(id = R.drawable.trier_croissant),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
-                                        tint = Color.Red
-                                    )
-                                else
-                                    Icon(
-                                        painterResource(id = R.drawable.trier_croissant),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                            },
+                            FilterChip(
+                                label = { Text("Nom") },
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically),
+                                selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
+                                leadingIcon = {
+                                    if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
+                                        Icon(
+                                            painterResource(id = R.drawable.trier_croissant),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                            tint = Color.Red
+                                        )
+                                    else
+                                        Icon(
+                                            painterResource(id = R.drawable.trier_croissant),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp),
+                                        )
+                                },
 //                            enabled = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
-                            onClick = {
-                                viewModel.goToFolder(
-                                    currentFolder.fullPath,
-                                    ITEMS_ORDERING_STRATEGY.NAME_ASC
-                                )
-                            }
-                        )
+                                onClick = {
+                                    viewModel.goToFolder(
+                                        currentFolder.fullPath,
+                                        ITEMS_ORDERING_STRATEGY.NAME_ASC
+                                    )
+                                }
+                            )
 
 //                        RowToggleButtonGroup(
 //                            modifier = Modifier
@@ -260,6 +280,7 @@ class MainActivity : ComponentActivity() {
 //                                }
 //                            }
 //                        }
+                        }
                     }
 
                     val itemIdWithVisibleMenu = remember { mutableStateOf("") }
