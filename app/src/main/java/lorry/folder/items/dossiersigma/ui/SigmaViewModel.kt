@@ -60,7 +60,7 @@ class SigmaViewModel @Inject constructor(
             started = SharingStarted.Eagerly,
             initialValue = "/storage/emulated/0/Movies"
         )
-    private val reloadTrigger = MutableStateFlow(Unit)
+    private val reloadTrigger = MutableStateFlow(0)
 
     // combine chemin + trigger pour déclencher un nouveau getSigmaFolder
     val currentFolder: StateFlow<SigmaFolder> = combine(
@@ -69,7 +69,7 @@ class SigmaViewModel @Inject constructor(
     ) { path, _ ->
         path
     }.mapLatest { path ->
-        diskRepository.getSigmaFolder(path, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+        diskRepository.getSigmaFolder(path, sorting.value)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
@@ -82,7 +82,7 @@ class SigmaViewModel @Inject constructor(
     )
 
     fun refreshCurrentFolder() {
-        reloadTrigger.value = Unit // redéclenchement immédiat
+        reloadTrigger.value = reloadTrigger.value + 1 // redéclenchement immédiat
     }
 
     fun addFolderPathToHistory(folderPath: String) {
@@ -181,12 +181,12 @@ class SigmaViewModel @Inject constructor(
         imageCache.clear()
         scaleCache.clear()
         viewModelScope.launch(Dispatchers.IO) {
-            val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
+            //val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
             withContext(Dispatchers.Main) {
-                if (newFolder.fullPath == currentFolderPath.value)
+                if (folderPath == currentFolderPath.value)
                     refreshCurrentFolder()
                 else
-                    addFolderPathToHistory(newFolder.fullPath)
+                    addFolderPathToHistory(folderPath)
             }
         }
     }

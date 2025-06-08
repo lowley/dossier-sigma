@@ -20,14 +20,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,8 +37,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.DarkGray
-import androidx.compose.ui.graphics.Color.Companion.LightGray
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -48,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
-import com.robertlevonyan.compose.buttontogglegroup.RowToggleButtonGroup
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
@@ -100,6 +96,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 BackHandler(enabled = true) {
+                    viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
                     viewModel.removeLastFolderPathHistory()
                 }
 
@@ -165,44 +162,104 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxWidth()
                         )
 
-                        RowToggleButtonGroup(
-                            modifier = Modifier
-                                .padding(end = 20.dp)
-                                .width(200.dp)
-                                .height(40.dp),
-                            buttonCount = 2,
-                            selectedColor = Color(0xFF8697CB),
-                            unselectedColor = LightGray,
-                            selectedContentColor = Color.White,
-                            unselectedContentColor = DarkGray,
-                            elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
-                            buttonIcons = arrayOf(
-                                painterResource(id = R.drawable.trier_decroissant),
-                                painterResource(id = R.drawable.trier_croissant),
-                            ),
-                            buttonTexts = arrayOf(
-                                "Date",
-                                "Nom",
-                            ),
-                            shape = RoundedCornerShape(20.dp),
-                            primarySelection = 0,
-                        ) { index ->
-                            when (index) {
-                                0 -> {
-                                    viewModel.goToFolder(
-                                        currentFolder.fullPath,
-                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                    )
-                                }
+                        val sorting by viewModel.sorting.collectAsState()
+//                        val DateState = remember { mutableStateOf(true) }
+//                        val NameState = remember { mutableStateOf(false) }
 
-                                1 -> {
-                                    viewModel.goToFolder(
-                                        currentFolder.fullPath,
-                                        ITEMS_ORDERING_STRATEGY.NAME_ASC
+                        FilterChip(
+                            label = { Text("Date") },
+                            modifier = Modifier.padding(end = 5.dp),
+                            selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
+                            leadingIcon = {
+                                if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                                    Icon(
+                                        painterResource(id = R.drawable.trier_decroissant),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = Color.Red
                                     )
-                                }
+                                else
+                                    Icon(
+                                        painterResource(id = R.drawable.trier_decroissant),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                            },
+//                            enabled = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
+                            onClick = {
+                                viewModel.goToFolder(
+                                    currentFolder.fullPath,
+                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                )
                             }
-                        }
+                        )
+
+                        FilterChip(
+                            label = { Text("Nom") },
+//                            modifier = Modifier.padding(end = 5.dp),
+                            selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
+                            leadingIcon = {
+                                if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
+                                    Icon(
+                                        painterResource(id = R.drawable.trier_croissant),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = Color.Red
+                                    )
+                                else
+                                    Icon(
+                                        painterResource(id = R.drawable.trier_croissant),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                            },
+//                            enabled = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
+                            onClick = {
+                                viewModel.goToFolder(
+                                    currentFolder.fullPath,
+                                    ITEMS_ORDERING_STRATEGY.NAME_ASC
+                                )
+                            }
+                        )
+
+//                        RowToggleButtonGroup(
+//                            modifier = Modifier
+//                                .padding(end = 20.dp)
+//                                .width(200.dp)
+//                                .height(40.dp),
+//                            buttonCount = 2,
+//                            selectedColor = Color(0xFF8697CB),
+//                            unselectedColor = LightGray,
+//                            selectedContentColor = Color.White,
+//                            unselectedContentColor = DarkGray,
+//                            elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
+//                            buttonIcons = arrayOf(
+//                                painterResource(id = R.drawable.trier_decroissant),
+//                                painterResource(id = R.drawable.trier_croissant),
+//                            ),
+//                            buttonTexts = arrayOf(
+//                                "Date",
+//                                "Nom",
+//                            ),
+//                            shape = RoundedCornerShape(20.dp),
+//                            primarySelection = 0
+//                        ) { index ->
+//                            when (index) {
+//                                0 -> {
+//                                    viewModel.goToFolder(
+//                                        currentFolder.fullPath,
+//                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
+//                                    )
+//                                }
+//
+//                                1 -> {
+//                                    viewModel.goToFolder(
+//                                        currentFolder.fullPath,
+//                                        ITEMS_ORDERING_STRATEGY.NAME_ASC
+//                                    )
+//                                }
+//                            }
+//                        }
                     }
 
                     val itemIdWithVisibleMenu = remember { mutableStateOf("") }
@@ -237,7 +294,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Text("Ceci est un grand pas pour Sigma")
                     }
-                    
+
                     val url by viewModel.browserManager.currentPage.collectAsState()
 
                     BrowserOverlay(
