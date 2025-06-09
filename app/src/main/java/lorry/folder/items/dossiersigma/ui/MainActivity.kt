@@ -8,6 +8,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -28,6 +29,9 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -40,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -306,10 +311,58 @@ class MainActivity : ComponentActivity() {
                     val itemIdWithVisibleMenu = remember { mutableStateOf("") }
 
                     if (homePageVisible) {
-                        Text(
-                            text = "machin",
-                            color = Color.White
-                        )
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(150.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 10.dp, vertical = 10.dp)
+                                .weight(1f)
+                        ) {
+                            val _60Color = Color(0xFF243e36)
+                            val _30Color = Color(0xFF7ca982)
+                            val _10Color = Color(0xFF8fc0a9)
+                            
+                            lazyGridItems(homeViewModel.homeItems.value, key = { it.id }) { item ->
+                                Card(
+                                    modifier = Modifier
+                                        .size(150.dp)
+                                        .clip(RoundedCornerShape(13.dp)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = _60Color,
+                                        contentColor = _30Color,
+                                    ),
+                                    elevation = CardDefaults.cardElevation(
+                                        defaultElevation = 10.dp
+                                    ),
+                                    onClick = { item.onClick(mainViewModel, homeViewModel) },
+                                    border = BorderStroke(2.dp, _10Color),
+                                ){
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(13.dp))
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = item.icon),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(100.dp)
+                                                .align(Alignment.TopCenter)
+                                                .padding(top = 15.dp),
+                                            tint = _30Color
+                                        )
+                                        
+                                        Text(
+                                            text = item.title,
+                                            color = _30Color,
+                                            modifier = Modifier
+                                                .align(Alignment.BottomCenter)
+                                                .padding(bottom = 15.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     } else
                         LazyVerticalGrid(
                             columns = GridCells.Adaptive(150.dp),
