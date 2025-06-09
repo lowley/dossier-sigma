@@ -55,6 +55,7 @@ import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
+import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
@@ -77,31 +78,34 @@ class MainActivity : ComponentActivity() {
         val permissionsManager = PermissionsManager()
         if (!permissionsManager.hasExternalStoragePermission())
             permissionsManager.requestExternalStoragePermission(this)
-        val viewModel: SigmaViewModel by viewModels()
+        val mainViewModel: SigmaViewModel by viewModels()
+        val homeViewModel: HomeViewModel by viewModels()
+
         window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
 
 //        viewModel.viewModelScope.launch(Dispatchers.IO) {
 //            viewModel.initCoil(this@MainActivity)
 //        }
-        initializeFileIntentLauncher(viewModel)
+        initializeFileIntentLauncher(mainViewModel)
 
         setContent {
             DossierSigmaTheme {
                 //barre d'outils
 
                 val state = rememberScrollState()
-                val currentFolder by viewModel.currentFolder.collectAsState()
-                val selectedItem by viewModel.selectedItem.collectAsState()
+                val currentFolder by mainViewModel.currentFolder.collectAsState()
+                val selectedItem by mainViewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
-                val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
+                val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
+                val homePageVisible by homeViewModel.homePageVisible.collectAsState()
 
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
                 }
 
                 BackHandler(enabled = true) {
-                    viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                    viewModel.removeLastFolderPathHistory()
+                    mainViewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                    mainViewModel.removeLastFolderPathHistory()
                 }
 
                 LaunchedEffect(pictureUpdateId) {
@@ -112,8 +116,8 @@ class MainActivity : ComponentActivity() {
 //                    }
 
                     selectedItem?.let { item ->
-                        viewModel.browserManager.closeBrowser()
-                        viewModel.goToFolder(currentFolder.fullPath, viewModel.sorting.value)
+                        mainViewModel.browserManager.closeBrowser()
+                        mainViewModel.goToFolder(currentFolder.fullPath, mainViewModel.sorting.value)
 //                        viewModel.updateItemList(item.copy(picture = selectedItemPicture.picture))
                         Toast.makeText(this@MainActivity, "Changement d'image effectué", Toast.LENGTH_SHORT)
                             .show()
@@ -126,12 +130,12 @@ class MainActivity : ComponentActivity() {
                         .background(Color(0xFF363E4C))
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
-                    
+
                     Box(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         val sortingWidth = 200.dp
-                        
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -147,100 +151,108 @@ class MainActivity : ComponentActivity() {
                                     .pointerInput(true) {
                                         detectTapGestures(
                                             onTap = {
-                                                changePathUseCase.askInputFolder()
+//                                                changePathUseCase.askInputFolder()
+                                                    homeViewModel.setHomePageVisible(!homePageVisible)
+
                                             }
                                         )
                                     },
                             )
 
-                            Breadcrumb(
-                                items = currentFolder.fullPath.split("/").filter { it != "" },
-                                onPathClick = { path ->
-                                    viewModel.goToFolder(
-                                        path,
-                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                    )
-                                },
-                                modifier = Modifier
-                                    .padding(start = 20.dp)
-                                    .align(Alignment.CenterVertically),
-                                activeColor = Color(0xFF8697CB),
-                                inactiveColor = Color(0xFF8697CB),
-                                arrowColor = Color.Magenta,
-                                transitionDuration = 200,
-                            )
+                            if (!homePageVisible)
+                                Breadcrumb(
+                                    items = currentFolder.fullPath.split("/").filter { it != "" },
+                                    onPathClick = { path ->
+                                        mainViewModel.goToFolder(
+                                            path,
+                                            ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .padding(start = 20.dp)
+                                        .align(Alignment.CenterVertically),
+                                    activeColor = Color(0xFF8697CB),
+                                    inactiveColor = Color(0xFF8697CB),
+                                    arrowColor = Color.Magenta,
+                                    transitionDuration = 200,
+                                )
                         }
 
-                        Row(
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .width(sortingWidth),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        if (homePageVisible) {
+                            Text(
+                                text = "truc",
+                                color = Color.White
+                            )
 
-                            val sorting by viewModel.sorting.collectAsState()
-//                        val DateState = remember { mutableStateOf(true) }
-//                        val NameState = remember { mutableStateOf(false) }
-
-                            FilterChip(
-                                label = { Text("Date") },
+                        } else
+                            Row(
                                 modifier = Modifier
-                                    .padding(end = 5.dp)
-                                    .align(Alignment.CenterVertically),
-                                selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
-                                leadingIcon = {
-                                    if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                                        Icon(
-                                            painterResource(id = R.drawable.trier_decroissant),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp),
-                                            tint = Color.Red
-                                        )
-                                    else
-                                        Icon(
-                                            painterResource(id = R.drawable.trier_decroissant),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp),
-                                        )
-                                },
+                                    .align(Alignment.CenterEnd)
+                                    .width(sortingWidth),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+
+                                val sorting by mainViewModel.sorting.collectAsState()
+
+                                FilterChip(
+                                    label = { Text("Date") },
+                                    modifier = Modifier
+                                        .padding(end = 5.dp)
+                                        .align(Alignment.CenterVertically),
+                                    selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
+                                    leadingIcon = {
+                                        if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                                            Icon(
+                                                painterResource(id = R.drawable.trier_decroissant),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                                tint = Color.Red
+                                            )
+                                        else
+                                            Icon(
+                                                painterResource(id = R.drawable.trier_decroissant),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                            )
+                                    },
 //                            enabled = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
-                                onClick = {
-                                    viewModel.goToFolder(
-                                        currentFolder.fullPath,
-                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                    )
-                                }
-                            )
+                                    onClick = {
+                                        mainViewModel.goToFolder(
+                                            currentFolder.fullPath,
+                                            ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                        )
+                                    }
+                                )
 
-                            FilterChip(
-                                label = { Text("Nom") },
-                                modifier = Modifier
-                                    .align(Alignment.CenterVertically),
-                                selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
-                                leadingIcon = {
-                                    if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
-                                        Icon(
-                                            painterResource(id = R.drawable.trier_croissant),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp),
-                                            tint = Color.Red
-                                        )
-                                    else
-                                        Icon(
-                                            painterResource(id = R.drawable.trier_croissant),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp),
-                                        )
-                                },
+                                FilterChip(
+                                    label = { Text("Nom") },
+                                    modifier = Modifier
+                                        .align(Alignment.CenterVertically),
+                                    selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
+                                    leadingIcon = {
+                                        if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
+                                            Icon(
+                                                painterResource(id = R.drawable.trier_croissant),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                                tint = Color.Red
+                                            )
+                                        else
+                                            Icon(
+                                                painterResource(id = R.drawable.trier_croissant),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                            )
+                                    },
 //                            enabled = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
-                                onClick = {
-                                    viewModel.goToFolder(
-                                        currentFolder.fullPath,
-                                        ITEMS_ORDERING_STRATEGY.NAME_ASC
-                                    )
-                                }
-                            )
+                                    onClick = {
+                                        mainViewModel.goToFolder(
+                                            currentFolder.fullPath,
+                                            ITEMS_ORDERING_STRATEGY.NAME_ASC
+                                        )
+                                    }
+                                )
 
 //                        RowToggleButtonGroup(
 //                            modifier = Modifier
@@ -280,54 +292,61 @@ class MainActivity : ComponentActivity() {
 //                                }
 //                            }
 //                        }
-                        }
+                            }
                     }
 
                     val itemIdWithVisibleMenu = remember { mutableStateOf("") }
 
-                    LazyVerticalGrid(
-                        columns = GridCells.Adaptive(150.dp),
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 10.dp)
-                            .weight(1f)
-                    ) {
-                        lazyGridItems(currentFolder.items, key = { it.fullPath }) { item ->
+                    if (homePageVisible) {
+                        Text(
+                            text = "machin",
+                            color = Color.White
+                        )
+                    } else
+                        LazyVerticalGrid(
+                            columns = GridCells.Adaptive(150.dp),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 10.dp)
+                                .weight(1f)
+                        ) {
+                            lazyGridItems(currentFolder.items, key = { it.fullPath }) { item ->
 
-                            ItemComponent(
-                                viewModel = viewModel,
-                                item = item,
-                                modifier = Modifier
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                                imageCache = viewModel.imageCache,
-                                itemIdWithVisibleMenu = itemIdWithVisibleMenu,
-                                context = this@MainActivity,
-                                scaleCache = viewModel.scaleCache
-                            )
+                                ItemComponent(
+                                    viewModel = mainViewModel,
+                                    item = item,
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                    imageCache = mainViewModel.imageCache,
+                                    itemIdWithVisibleMenu = itemIdWithVisibleMenu,
+                                    context = this@MainActivity,
+                                    scaleCache = mainViewModel.scaleCache
+                                )
+                            }
                         }
-                    }
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, Color.Black)
-                            .height(48.dp)
-                    ) {
-                        Text("Ceci est un grand pas pour Sigma")
-                    }
+                    if (!homePageVisible)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, Color.Black)
+                                .height(48.dp)
+                        ) {
+                            Text("Ceci est un grand pas pour Sigma")
+                        }
 
-                    val url by viewModel.browserManager.currentPage.collectAsState()
+                    val url by mainViewModel.browserManager.currentPage.collectAsState()
 
                     BrowserOverlay(
                         currentPage = url,
                         onClose = {
-                            viewModel.browserManager.closeBrowser()
+                            mainViewModel.browserManager.closeBrowser()
                         },
                         onImageClicked = { url ->
                             //println("hasImage: $url")
-                            manageImageClick(viewModel, url)
+                            manageImageClick(mainViewModel, url)
                         },
-                        viewmodel = viewModel
+                        viewmodel = mainViewModel
                     )
                 }
             }
