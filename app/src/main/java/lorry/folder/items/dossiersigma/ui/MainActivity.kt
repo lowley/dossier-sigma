@@ -179,10 +179,18 @@ class MainActivity : ComponentActivity() {
                         }
 
                         if (homePageVisible) {
-                            Text(
-                                text = "truc",
-                                color = Color.White
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(end = 10.dp)
                             )
+                            {
+                                Text(
+                                    text = "truc",
+                                    modifier = Modifier.align(Alignment.CenterEnd),
+                                    color = Color.White
+                                )
+                            }
 
                         } else
                             Row(
