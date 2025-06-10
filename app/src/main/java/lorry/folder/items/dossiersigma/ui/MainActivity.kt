@@ -61,6 +61,7 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
+import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
@@ -325,6 +326,7 @@ class MainActivity : ComponentActivity() {
                             lazyGridItems(homeViewModel.homeItems.value, key = { it.id }) { item ->
                                 Card(
                                     modifier = Modifier
+                                        .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
                                         .size(150.dp)
                                         .clip(RoundedCornerShape(13.dp)),
                                     colors = CardDefaults.cardColors(
@@ -349,7 +351,7 @@ class MainActivity : ComponentActivity() {
                                                 .size(100.dp)
                                                 .align(Alignment.TopCenter)
                                                 .padding(top = 15.dp),
-                                            tint = _30Color
+                                            tint = Color.Unspecified
                                         )
                                         
                                         Text(

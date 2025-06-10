@@ -13,18 +13,18 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     val homeUseCase: HomeUseCase
-): ViewModel(){
+) : ViewModel() {
 
     private val _homePageVisible = MutableStateFlow<Boolean>(false)
     val homePageVisible: StateFlow<Boolean> = _homePageVisible
-    
+
     fun setHomePageVisible(visible: Boolean) {
         _homePageVisible.value = visible
     }
 
     private val _homeItems = MutableStateFlow<List<HomeItem>>(emptyList())
     val homeItems: StateFlow<List<HomeItem>> = _homeItems
-    
+
     fun StateFlow<List<HomeItem>>.set(items: List<HomeItem>) {
         _homeItems.value = items
     }
@@ -49,14 +49,65 @@ class HomeViewModel @Inject constructor(
     fun StateFlow<List<HomeItem>>.clear() {
         _homeItems.value = emptyList<HomeItem>()
     }
-    
-    init{
-        homeItems.add(HomeItem(
+
+    init {
+        homeItems.add(
+            HomeItem(
+            title = "Stockage principal",
+            icon = R.drawable.hdd,
+            onClick = { mainVM, homeVM ->
+                homeVM.setHomePageVisible(false)
+                mainVM.addFolderPathToHistory("/storage/emulated/0")
+            }
+        ))
+
+        homeItems.add(
+            HomeItem(
             title = "Téléchargements",
-            icon = R.drawable.downloads,
+            icon = R.drawable.downloads2,
             onClick = { mainVM, homeVM ->
                 homeVM.setHomePageVisible(false)
                 mainVM.addFolderPathToHistory("/storage/emulated/0/Download")
+            }
+        ))
+
+        homeItems.add(
+            HomeItem(
+                title = "Films",
+                icon = R.drawable.film,
+                onClick = { mainVM, homeVM ->
+                    homeVM.setHomePageVisible(false)
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies")
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+            title = "Films/Sexe",
+            icon = R.drawable.sexe,
+            onClick = { mainVM, homeVM ->
+                homeVM.setHomePageVisible(false)
+                mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe")
+            }
+        ))
+        
+        homeItems.add(
+            HomeItem(
+            title = "1DM+",
+            icon = R.drawable.sexe,
+            onClick = { mainVM, homeVM ->
+                homeVM.setHomePageVisible(false)
+                mainVM.addFolderPathToHistory("/storage/emulated/0/Download/1DMP/General")
+            }
+        ))
+
+        homeItems.add(
+            HomeItem(
+            title = "Nzbs",
+            icon = R.drawable.downloads2,
+            onClick = { mainVM, homeVM ->
+                homeVM.setHomePageVisible(false)
+                mainVM.addFolderPathToHistory("/storage/emulated/0/Download/nzb")
             }
         ))
     }
@@ -67,8 +118,9 @@ data class HomeItem(
     val title: String,
     @DrawableRes val icon: Int,
     val onClick: (
-        mainVM: SigmaViewModel, 
-        homeVM : HomeViewModel) -> Unit
+        mainVM: SigmaViewModel,
+        homeVM: HomeViewModel
+    ) -> Unit
 )
 
 
