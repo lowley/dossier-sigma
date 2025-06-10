@@ -1,6 +1,11 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -52,8 +57,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
+import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
@@ -61,12 +68,14 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
-import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -77,6 +86,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var changePathUseCase: ChangePathUseCase
 
+    val mainViewModel: SigmaViewModel by viewModels()
+    val homeViewModel: HomeViewModel by viewModels()
+    
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,8 +96,7 @@ class MainActivity : ComponentActivity() {
         val permissionsManager = PermissionsManager()
         if (!permissionsManager.hasExternalStoragePermission())
             permissionsManager.requestExternalStoragePermission(this)
-        val mainViewModel: SigmaViewModel by viewModels()
-        val homeViewModel: HomeViewModel by viewModels()
+       
 
         window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
 
@@ -158,7 +169,7 @@ class MainActivity : ComponentActivity() {
                                         detectTapGestures(
                                             onTap = {
 //                                                changePathUseCase.askInputFolder()
-                                                    homeViewModel.setHomePageVisible(!homePageVisible)
+                                                homeViewModel.setHomePageVisible(!homePageVisible)
 
                                             }
                                         )
@@ -431,6 +442,28 @@ class MainActivity : ComponentActivity() {
                 viewModel.onFolderSelected(pathUri)
             }
         intentWrapper.setLauncher(launcher as Object)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (data == null)
+            return
+
+        var resultUri: Uri? = null
+        var cropError: Throwable? = null
+        if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
+            resultUri = UCrop.getOutput(data)
+        } else if (resultCode == UCrop.RESULT_ERROR) {
+            cropError = UCrop.getError(data)
+        }
+        
+        if (resultUri == null)
+            return
+
+        mainViewModel.viewModelScope.launch {
+            val croppedBitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri))
+            mainViewModel.updatePicture(Bitmap.createBitmap(croppedBitmap))
+        }
     }
 }
 

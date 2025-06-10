@@ -2,6 +2,7 @@ package lorry.folder.items.dossiersigma.ui.components
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,10 +47,12 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.Item
@@ -60,6 +63,7 @@ import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun ItemComponent(
@@ -78,7 +82,7 @@ fun ItemComponent(
     val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
     var contentScale by remember { mutableStateOf(ContentScale.Crop) }
     var expandedAddition by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val cached = imageCache[item.fullPath]
         if (cached != null) {
@@ -244,7 +248,7 @@ fun ItemComponent(
                 scrollState = scrollState
             ) {
                 val modifierItem = Modifier.height(25.dp)
-                
+
                 DropdownMenuItem(
                     modifier = modifierItem,
                     text = {
@@ -326,7 +330,7 @@ fun ItemComponent(
 //                )
 
                 val itemfontSizes = 14.sp
-                
+
                 DropdownMenuItem(
                     modifier = modifierItem,
                     text = {
@@ -413,6 +417,43 @@ fun ItemComponent(
                                 viewModel.diskRepository.insertScaleToHtmlFile(item, contentScale)
                             }
                         }
+                    }
+                )
+
+                DropdownMenuItem(
+                    modifier = modifierItem,
+                    text = {
+                        Text(
+                            text = "Couper manuellement",
+                            color = Color(0xFFB0BEC5),
+                            fontSize = itemfontSizes,
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            modifier = Modifier
+                                .size(15.dp),
+                            tint = Color(0xFF90CAF9),
+                            painter = painterResource(R.drawable.crop), contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        viewModel.setSelectedItem(item)
+                        val sourceBitmap = imageSource.value as Bitmap
+
+                        val sourceUri = bitmapToTempUri(context, sourceBitmap)
+                        val destinationUri =
+                            Uri.fromFile(
+                                File.createTempFile(
+                                    "cropped_", ".jpg",
+                                    context.cacheDir
+                                )
+                            )
+
+                        UCrop.of(sourceUri, destinationUri)
+                            .withAspectRatio(1f, 1f)
+                            .withMaxResultSize(175, 175)
+                            .start(context)
                     }
                 )
 
@@ -761,4 +802,16 @@ fun doesImageFillBox(
         ContentScale.None -> false
         else -> false
     }
+}
+
+fun bitmapToTempUri(context: Context, bitmap: Bitmap): Uri {
+    val tempFile = File.createTempFile("source_", ".jpg", context.cacheDir)
+    FileOutputStream(tempFile).use { out ->
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+    }
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.provider",  // N'oublie pas de déclarer FileProvider dans le manifest
+        tempFile
+    )
 }

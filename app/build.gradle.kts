@@ -122,6 +122,8 @@ dependencies {
     implementation("org.mp4parser:isoparser:1.9.27")
     implementation("com.github.mjeanroy:exiftool-lib:2.6.0")
     implementation("com.robertlevonyan.compose:buttontogglegroup:1.2.0")
+
+    implementation("com.github.yalantis:ucrop:2.2.9-native")
 }
 
 // Allow references to generated code

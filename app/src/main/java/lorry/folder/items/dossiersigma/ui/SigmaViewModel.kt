@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.ViewModel
@@ -74,11 +75,12 @@ class SigmaViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = SigmaFolder(
-            path = "/storage/emulated/0/Movies", 
+            path = "/storage/emulated/0/Movies",
             name = "Veuillez attendre",
-            picture = null, 
+            picture = null,
             items = emptyList<Item>(),
-            modificationDate = System.currentTimeMillis())
+            modificationDate = System.currentTimeMillis()
+        )
     )
 
     fun refreshCurrentFolder() {
@@ -106,8 +108,8 @@ class SigmaViewModel @Inject constructor(
     //SELECTED ITEM
     private val _selectedItem = MutableStateFlow<Item?>(null)
     val selectedItem: StateFlow<Item?> = _selectedItem
-    
-    fun setSelectedItem(item: Item) {
+
+    fun setSelectedItem(item: Item?) {
         _selectedItem.value = item
     }
 
@@ -115,9 +117,12 @@ class SigmaViewModel @Inject constructor(
         if (_selectedItem.value == null)
             return
 
-        val pictureBitmap = withContext(Dispatchers.IO) {
-            changingPictureUseCase.urlToBitmap(newPicture as String)
-        }
+
+        val pictureBitmap =
+            if (newPicture is String) withContext(Dispatchers.IO) {
+                changingPictureUseCase.urlToBitmap(newPicture)
+            }
+            else newPicture as Bitmap
 
         if (pictureBitmap == null)
             return
@@ -136,8 +141,13 @@ class SigmaViewModel @Inject constructor(
             setPicture(_selectedItem.value!!, false)
         }
 
+        //s'assure que les refreshs ci-dessous verront bien la nouvelle image
+        imageCache.remove(_selectedItem.value?.fullPath)
+        
         refreshCurrentFolder()
         notifyPictureUpdated()
+        setSelectedItem(null)
+
     }
 
     fun setPicture(item: Item, fromClipboard: Boolean = false) {
