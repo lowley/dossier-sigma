@@ -146,8 +146,6 @@ class SigmaViewModel @Inject constructor(
         
         refreshCurrentFolder()
         notifyPictureUpdated()
-        setSelectedItem(null)
-
     }
 
     fun setPicture(item: Item, fromClipboard: Boolean = false) {
