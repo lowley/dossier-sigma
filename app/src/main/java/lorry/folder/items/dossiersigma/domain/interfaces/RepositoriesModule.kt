@@ -13,6 +13,8 @@ import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegReporitory
+import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import javax.inject.Singleton
 
 
@@ -47,7 +49,7 @@ abstract class RepositoriesModule {
 }
 
 @Module
-@InstallIn(SingletonComponent::class) // Ce module est accessible dans tout l'application
+@InstallIn(SingletonComponent::class)
 object AppModule {
 
     @Provides

@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -15,7 +14,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,11 +55,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -70,10 +69,10 @@ import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
+import lorry.folder.items.dossiersigma.ui.components.CustomDialog
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
+import lorry.folder.items.dossiersigma.ui.components.Tools
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
-import java.io.File
-import java.io.FileOutputStream
 import javax.inject.Inject
 
 
@@ -96,7 +95,7 @@ class MainActivity : ComponentActivity() {
         val permissionsManager = PermissionsManager()
         if (!permissionsManager.hasExternalStoragePermission())
             permissionsManager.requestExternalStoragePermission(this)
-       
+
 
         window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
 
@@ -115,7 +114,11 @@ class MainActivity : ComponentActivity() {
                 val activity = LocalContext.current as Activity
                 val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
                 val homePageVisible by homeViewModel.homePageVisible.collectAsState()
-
+                val currentTool by mainViewModel.bottomTools.currentTool.collectAsState()
+                val openDialog = remember { mutableStateOf(false) }
+                val dialogMessage = mainViewModel.dialogMessage.collectAsState()
+                
+                
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
                 }
@@ -333,7 +336,7 @@ class MainActivity : ComponentActivity() {
                             val _60Color = Color(0xFF243e36)
                             val _30Color = Color(0xFF7ca982)
                             val _10Color = Color(0xFF8fc0a9)
-                            
+
                             lazyGridItems(homeViewModel.homeItems.value, key = { it.id }) { item ->
                                 Card(
                                     modifier = Modifier
@@ -349,7 +352,7 @@ class MainActivity : ComponentActivity() {
                                     ),
                                     onClick = { item.onClick(mainViewModel, homeViewModel) },
                                     border = BorderStroke(2.dp, _10Color),
-                                ){
+                                ) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
@@ -364,7 +367,7 @@ class MainActivity : ComponentActivity() {
                                                 .padding(top = 15.dp),
                                             tint = Color.Unspecified
                                         )
-                                        
+
                                         Text(
                                             text = item.title,
                                             color = _30Color,
@@ -399,15 +402,12 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                    if (!homePageVisible)
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(1.dp, Color.Black)
-                                .height(48.dp)
-                        ) {
-                            Text("Ceci est un grand pas pour Sigma")
-                        }
+                    if (!homePageVisible) {
+                        mainViewModel.bottomTools.setCurrentContent(
+                            Tools.EXPLORER_DEFAULT.content
+                        )
+                        mainViewModel.bottomTools.BottomToolBar(openDialog)
+                    }
 
                     val url by mainViewModel.browserManager.currentPage.collectAsState()
 
@@ -423,6 +423,11 @@ class MainActivity : ComponentActivity() {
                         viewmodel = mainViewModel
                     )
                 }
+
+                if (openDialog.value)
+                    CustomDialog(dialogMessage.value ?: "", openDialog) { text ->
+                        currentTool?.onClick(text, mainViewModel, this)
+                    }
             }
         }
     }
@@ -456,7 +461,7 @@ class MainActivity : ComponentActivity() {
         } else if (resultCode == UCrop.RESULT_ERROR) {
             cropError = UCrop.getError(data)
         }
-        
+
         if (resultUri == null)
             return
 

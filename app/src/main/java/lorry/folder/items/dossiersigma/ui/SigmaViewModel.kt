@@ -26,6 +26,7 @@ import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
+import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import java.io.File
 import java.net.URLDecoder
 import javax.inject.Inject
@@ -39,7 +40,8 @@ class SigmaViewModel @Inject constructor(
     val ffmpegRepository: BentoRepository,
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,
-    val base64Embedder: IVideoInfoEmbedder
+    val base64Embedder: IVideoInfoEmbedder,
+    val bottomTools: BottomTools
 ) : ViewModel() {
 
     val imageCache = mutableMapOf<String, Any?>()
@@ -82,6 +84,14 @@ class SigmaViewModel @Inject constructor(
             modificationDate = System.currentTimeMillis()
         )
     )
+
+    private val _dialogMessage = MutableStateFlow("")
+    val dialogMessage: StateFlow<String?> = _dialogMessage
+
+    fun setDialogMessage(message: String){
+        _dialogMessage.value = message
+    }
+
 
     fun refreshCurrentFolder() {
         reloadTrigger.value = reloadTrigger.value + 1 // redéclenchement immédiat
@@ -199,6 +209,10 @@ class SigmaViewModel @Inject constructor(
         }
     }
 
+    init {
+        bottomTools.viewModel = this
+    }
+    
 //    init {
 //        val initialDirectoryPath = "/storage/emulated/0/Movies"
 //        goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)

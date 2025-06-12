@@ -31,4 +31,5 @@ interface IDiskRepository {
     fun askInputFolder()
 
     fun countFilesAndFolders(folder: File): Pair<Int, Int>
+    suspend fun copyFile(source: File, destination: File)
 }

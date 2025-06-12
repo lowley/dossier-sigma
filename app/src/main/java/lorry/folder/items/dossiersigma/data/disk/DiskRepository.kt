@@ -23,10 +23,12 @@ import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import javax.inject.Inject
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 class DiskRepository @Inject constructor(
     val datasource: IDiskDataSource,
@@ -388,5 +390,15 @@ class DiskRepository @Inject constructor(
         }
 
         return fileCount to folderCount
+    }
+
+    override suspend fun copyFile(source: File, destination: File) {
+        withContext(Dispatchers.IO) {
+            Files.copy(
+                source.toPath(),
+                destination.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            )
+        }
     }
 }
