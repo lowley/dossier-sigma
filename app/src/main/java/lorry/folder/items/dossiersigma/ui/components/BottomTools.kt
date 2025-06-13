@@ -6,6 +6,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,6 +55,7 @@ class BottomTools @Inject constructor(
         _bottomToolsContent.value = content
     }
 
+    //destiné à l'affichage par remontée dans MainActivity
     private val _currentTool = MutableStateFlow<Tool?>(null)
     val currentTool: StateFlow<Tool?> = _currentTool
 
@@ -74,14 +76,15 @@ class BottomTools @Inject constructor(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(55.dp)
-                .background(Color.Blue)
+//                .background(Color.Blue)
+                .height(55.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             toolList.forEach { tool ->
                 Box(
                     modifier = Modifier
                         .width(130.dp)
-                        .background(Color.Red)
+//                        .background(Color.Red)
                         .fillMaxHeight()
                         .clickable {
                             setCurrentTool(tool)
@@ -92,7 +95,7 @@ class BottomTools @Inject constructor(
                     Icon(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .size(35.dp),
+                            .size(28.dp),
                         painter = painterResource(id = tool.icon),
                         contentDescription = null,
                         tint = Color(0xFFe9c46a)

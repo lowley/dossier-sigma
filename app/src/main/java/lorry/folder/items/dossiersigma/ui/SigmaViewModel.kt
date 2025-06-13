@@ -27,6 +27,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.components.Tools
 import java.io.File
 import java.net.URLDecoder
 import javax.inject.Inject
@@ -121,6 +122,11 @@ class SigmaViewModel @Inject constructor(
 
     fun setSelectedItem(item: Item?) {
         _selectedItem.value = item
+        
+        if (item != null)
+            bottomTools.setCurrentContent(Tools.EXPLORER_FILE.content)
+        else
+            bottomTools.setCurrentContent(Tools.EXPLORER_DEFAULT.content)
     }
 
     suspend fun updatePicture(newPicture: Any?) {

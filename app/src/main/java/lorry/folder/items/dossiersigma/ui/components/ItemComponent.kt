@@ -3,9 +3,11 @@ package lorry.folder.items.dossiersigma.ui.components
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.view.ViewConfiguration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +39,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -47,6 +50,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewModelScope
@@ -118,47 +122,47 @@ fun ItemComponent(
                             .align(Alignment.BottomCenter)
                             .size(imageHeight + 15.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
+                            .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = {
+                                        if (item.isFolder()) {
+                                            viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                                            viewModel.goToFolder(
+                                                item.fullPath,
+                                                ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                            )
+                                        }
+                                        if (item.isFile() &&
+                                            (item.name.endsWith(".mp4") ||
+                                                    item.name.endsWith(".mkv") ||
+                                                    item.name.endsWith(".mpg") ||
+                                                    item.name.endsWith(".iso") ||
+                                                    item.name.endsWith(".avi"))
+                                        ) {
+                                            viewModel.playVideoFile(item.fullPath)
+                                        }
+                                        if (item.isFile() && item.name.endsWith(".html")) {
+                                            viewModel.playHtmlFile(item.fullPath)
+                                        }
+                                    },
+                                    onLongPress = { offset ->
+                                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
+                                        itemIdWithVisibleMenu.value = item.id
+                                        expandedAddition = true
+                                        viewModel.setSelectedItem(item)
+                                    })
+                            },
                         imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(
                             context, R.drawable
                                 .file
                         ),
-                        contentScale = contentScale,
-                        onTap = {
-                            if (item.isFolder()) {
-                                viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                                viewModel.goToFolder(
-                                    item.fullPath,
-                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                )
-                            }
-                            if (item.isFile() &&
-                                (item.name.endsWith(".mp4") ||
-                                        item.name.endsWith(".mkv") ||
-                                        item.name.endsWith(".mpg") ||
-                                        item.name.endsWith(".iso") ||
-                                        item.name.endsWith(".avi"))
-                            ) {
-                                viewModel.playVideoFile(item.fullPath)
-                            }
-                            if (item.isFile() && item.name.endsWith(".html")) {
-                                viewModel.playHtmlFile(item.fullPath)
-                            }
-                        },
-                        onLongPress = { offset ->
-                            imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-                            itemIdWithVisibleMenu.value = item.id
-                            expandedAddition = true
-                        })
+                        contentScale = contentScale
+                    )
                 }
-
             }
 
             if (item is SigmaFolder) {
-
-//                val fileCount = 15
-//                val folderCount = 3
-
                 val fileCount =
                     viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component1()
                 val folderCount =
@@ -285,50 +289,6 @@ fun ItemComponent(
                     color = Color(0xFFB48E98)
                 )
 
-//                DropdownMenuItem(
-//                    text = {
-//                        Text(
-//                            "IAFD Film", color = Color(0xFFB0BEC5),
-//                            fontSize = 10.sp,
-//                        )
-//                    },
-//                    leadingIcon = {
-//                        Icon(
-//                            modifier = Modifier
-//                                .size(15.dp),
-//                            tint = Color(0xFF90CAF9),
-//                            painter = painterResource(R.drawable.loupe), contentDescription = null
-//                        )
-//                    },
-//                    onClick = {
-//                        viewModel.setSelectedItem(item)
-//                        viewModel.browserManager.openBrowser(item, BrowserTarget.IAFD_MOVIE)
-//                        itemIdWithVisibleMenu.value = ""
-//                    }
-//                )
-//
-//                DropdownMenuItem(
-//                    text = {
-//                        Text(
-//                            "IAFD Personne", color = Color(0xFFB0BEC5),
-//                            fontSize = 10.sp,
-//                        )
-//                    },
-//                    leadingIcon = {
-//                        Icon(
-//                            modifier = Modifier
-//                                .size(15.dp),
-//                            tint = Color(0xFF90CAF9),
-//                            painter = painterResource(R.drawable.loupe), contentDescription = null
-//                        )
-//                    },
-//                    onClick = {
-//                        viewModel.setSelectedItem(item)
-//                        viewModel.browserManager.openBrowser(item, BrowserTarget.IAFD_PERSON)
-//                        itemIdWithVisibleMenu.value = ""
-//                    }
-//                )
-
                 val itemfontSizes = 14.sp
 
                 DropdownMenuItem(
@@ -348,7 +308,8 @@ fun ItemComponent(
                         )
                     },
                     onClick = {
-                        viewModel.setSelectedItem(item)
+                        //le Browser est un composable dans MainActivity
+                        //le callback est un de ses paramètres d'appel
                         viewModel.browserManager.openBrowser(item, BrowserTarget.GOOGLE)
                         itemIdWithVisibleMenu.value = ""
                     }
@@ -417,6 +378,8 @@ fun ItemComponent(
                                 viewModel.diskRepository.insertScaleToHtmlFile(item, contentScale)
                             }
                         }
+
+                        viewModel.setSelectedItem(null)
                     }
                 )
 
@@ -438,7 +401,6 @@ fun ItemComponent(
                         )
                     },
                     onClick = {
-                        viewModel.setSelectedItem(item)
                         val sourceBitmap = imageSource.value as Bitmap
 
                         val sourceUri = bitmapToTempUri(context, sourceBitmap)
@@ -450,6 +412,7 @@ fun ItemComponent(
                                 )
                             )
 
+                        //le callback est dans MainActivity : onActivityResult (override)
                         UCrop.of(sourceUri, destinationUri)
                             .withAspectRatio(1f, 1f)
                             .withMaxResultSize(175, 175)
@@ -508,6 +471,9 @@ fun ItemComponent(
                             item.fullPath.substringBeforeLast("/"),
                             ITEMS_ORDERING_STRATEGY.DATE_DESC
                         )
+
+                        viewModel.setSelectedItem(null)
+
                     }
                 )
 
@@ -533,6 +499,7 @@ fun ItemComponent(
                             val newName = "New folder"
                             File(item.fullPath + "/$newName").mkdir()
                             expandedAddition = false
+                            viewModel.setSelectedItem(null)
                         }
                     )
                 }
@@ -563,6 +530,7 @@ fun ItemComponent(
                             item.fullPath.substringBeforeLast("/"),
                             ITEMS_ORDERING_STRATEGY.DATE_DESC
                         )
+                        viewModel.setSelectedItem(null)
                     }
                 )
 
@@ -714,8 +682,6 @@ fun TextSection(name: String, modifier: Modifier) {
 fun ImageSection(
     modifier: Modifier,
     imageSource: Bitmap,
-    onTap: () -> Unit,
-    onLongPress: (Offset) -> Unit,
     contentScale: ContentScale
 ) {
     val context = LocalContext.current
@@ -738,35 +704,31 @@ fun ImageSection(
 
     val shape = RoundedCornerShape(8.dp)
 
+    // on n'applique plus le `modifier` au `Box`, mais à l'image directement
     Box(
         modifier = modifier
             .clip(shape)
+            .background(Color.Transparent)
     ) {
-//        if (shouldShowMesh) {
-        Image(
-            painterResource(R.drawable.maillage1),
-            contentDescription = null,
-            modifier = Modifier
-                .matchParentSize()
-                .alpha(if (shouldShowMesh) 1f else 0f),
-            contentScale = ContentScale.Crop,
-        )
-//        }
+        if (shouldShowMesh) {
+            Image(
+                painter = painterResource(R.drawable.maillage1),
+                contentDescription = null,
+                modifier = Modifier
+                    .matchParentSize()
+                    .zIndex(0f)
+                    .pointerInput(Unit) {} // pour être transparent
+                    .alpha(1f),
+                contentScale = ContentScale.Crop
+            )
+        }
 
         AsyncImage(
             model = imageRequest,
             contentDescription = "Miniature",
             contentScale = contentScale,
-            modifier = Modifier
+            modifier = modifier
                 .matchParentSize()
-                .clip(shape)
-                .background(Color.Transparent)
-                .pointerInput(true) {
-                    detectTapGestures(
-                        onTap = { onTap() },
-                        onLongPress = { onLongPress(it) }
-                    )
-                },
         )
     }
 }
@@ -814,4 +776,54 @@ fun bitmapToTempUri(context: Context, bitmap: Bitmap): Uri {
         "${context.packageName}.provider",  // N'oublie pas de déclarer FileProvider dans le manifest
         tempFile
     )
+}
+
+fun Modifier.detectLongPressReleaseWithOffset(
+    onLongPressStart: (Offset) -> Unit = {},
+    onLongPressEnd: (Offset) -> Unit = {},
+    onCancel: () -> Unit = {}
+): Modifier = pointerInput(Unit) {
+    while (true) {
+        awaitPointerEventScope {
+            val down = awaitFirstDown()
+            println("TOUCH DÉTECTÉ")
+            val position = down.position
+            val longPressTimeout = ViewConfiguration.getLongPressTimeout().toLong()
+            val downTime = System.currentTimeMillis()
+            var longPressTriggered = false
+
+            while (true) {
+                val now = System.currentTimeMillis()
+                val elapsed = now - downTime
+
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val stillPressed = event.changes.any { it.pressed && it.id == down.id }
+                val isUp = event.changes.any { !it.pressed && it.id == down.id }
+
+                println("elapsed = $elapsed, timeout = $longPressTimeout, stillPressed = $stillPressed")
+
+                if (!longPressTriggered && stillPressed && elapsed >= longPressTimeout) {
+                    longPressTriggered = true
+                    println("LONG PRESS TRIGGERED")
+                    onLongPressStart(position)
+                }
+
+                if (isUp) {
+                    if (longPressTriggered) {
+                        val releaseOffset =
+                            event.changes.firstOrNull { it.id == down.id }?.position ?: position
+                        onLongPressEnd(releaseOffset)
+                    } else {
+                        onCancel()
+                    }
+                    break
+                }
+
+                if (!stillPressed) {
+                    onCancel()
+                    break
+                }
+            }
+        }
+    }
 }

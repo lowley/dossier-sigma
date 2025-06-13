@@ -59,8 +59,6 @@ import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -117,7 +115,7 @@ class MainActivity : ComponentActivity() {
                 val currentTool by mainViewModel.bottomTools.currentTool.collectAsState()
                 val openDialog = remember { mutableStateOf(false) }
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-                
+                val itemIdWithVisibleMenu = remember { mutableStateOf("") }
                 
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
@@ -148,6 +146,14 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color(0xFF363E4C))
+                        .pointerInput(itemIdWithVisibleMenu.value) { // interception globale des taps
+                            detectTapGestures(onTap = {
+                                if (itemIdWithVisibleMenu.value.isNotEmpty()) {
+//                                    itemIdWithVisibleMenu.value = ""
+                                    mainViewModel.setSelectedItem(null)
+                                }
+                            })
+                        }
                 ) {
                     Spacer(modifier = Modifier.height(20.dp))
 
@@ -323,8 +329,6 @@ class MainActivity : ComponentActivity() {
                             }
                     }
 
-                    val itemIdWithVisibleMenu = remember { mutableStateOf("") }
-
                     if (homePageVisible) {
                         LazyVerticalGrid(
                             columns = GridCells.Adaptive(150.dp),
@@ -419,6 +423,7 @@ class MainActivity : ComponentActivity() {
                         onImageClicked = { url ->
                             //println("hasImage: $url")
                             manageImageClick(mainViewModel, url)
+                            mainViewModel.setSelectedItem(null)
                         },
                         viewmodel = mainViewModel
                     )
@@ -449,6 +454,7 @@ class MainActivity : ComponentActivity() {
         intentWrapper.setLauncher(launcher as Object)
     }
 
+    //callback de UCrop pour rogner manuellement l'image de l'item
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (data == null)
@@ -469,6 +475,8 @@ class MainActivity : ComponentActivity() {
             val croppedBitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri))
             mainViewModel.updatePicture(Bitmap.createBitmap(croppedBitmap))
         }
+
+        mainViewModel.setSelectedItem(null)
     }
 }
 

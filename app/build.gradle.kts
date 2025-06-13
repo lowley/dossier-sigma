@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         applicationId = "lorry.folder.items.dossiersigma"
-        minSdk = 30
+        minSdk = 33
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
