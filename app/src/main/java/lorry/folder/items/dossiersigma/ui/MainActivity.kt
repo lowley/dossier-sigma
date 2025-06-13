@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
 
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
-    
+
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
                 val openDialog = remember { mutableStateOf(false) }
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
                 val itemIdWithVisibleMenu = remember { mutableStateOf("") }
-                
+
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
                 }
@@ -407,9 +407,20 @@ class MainActivity : ComponentActivity() {
                         }
 
                     if (!homePageVisible) {
-                        mainViewModel.bottomTools.setCurrentContent(
-                            Tools.EXPLORER_DEFAULT.content
-                        )
+                        val currentContent by mainViewModel.bottomTools.currentContent.collectAsState()
+
+                        var newTool: Tools? = null 
+                        
+                        if (itemIdWithVisibleMenu.value != "")
+                            newTool = Tools.EXPLORER_FILE
+                        if (currentContent?.tools == Tools.EXPLORER_COPY_FILE)
+                            newTool = Tools.EXPLORER_COPY_FILE
+                        if (currentTool == Tools.EXPLORER_MOVE_FILE)
+                            newTool = Tools.EXPLORER_MOVE_FILE
+                        if (newTool == null)
+                            newTool = Tools.EXPLORER_DEFAULT
+
+                        mainViewModel.bottomTools.setCurrentContent(newTool.content)
                         mainViewModel.bottomTools.BottomToolBar(openDialog)
                     }
 
@@ -421,9 +432,9 @@ class MainActivity : ComponentActivity() {
                             mainViewModel.browserManager.closeBrowser()
                         },
                         onImageClicked = { url ->
-                            //println("hasImage: $url")
                             manageImageClick(mainViewModel, url)
-                            mainViewModel.setSelectedItem(null)
+                            //génère des problèmes dans manageImageClick
+//                            mainViewModel.setSelectedItem(null)
                         },
                         viewmodel = mainViewModel
                     )

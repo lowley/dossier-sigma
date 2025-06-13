@@ -76,7 +76,6 @@ class BottomTools @Inject constructor(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-//                .background(Color.Blue)
                 .height(55.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -84,7 +83,6 @@ class BottomTools @Inject constructor(
                 Box(
                     modifier = Modifier
                         .width(130.dp)
-//                        .background(Color.Red)
                         .fillMaxHeight()
                         .clickable {
                             setCurrentTool(tool)
@@ -146,7 +144,6 @@ data class Tool(
 sealed class Tools(
     val content: BottomToolContent
 ) {
-
     object EXPLORER_DEFAULT : Tools(
         BottomToolContent(
             listOf(
