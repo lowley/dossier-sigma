@@ -76,7 +76,7 @@ class BottomTools @Inject constructor(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(55.dp),
+                .height(65.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             toolList.forEach { tool ->
@@ -93,6 +93,7 @@ class BottomTools @Inject constructor(
                     Icon(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
+                            .padding(top = 10.dp)
                             .size(28.dp),
                         painter = painterResource(id = tool.icon),
                         contentDescription = null,
