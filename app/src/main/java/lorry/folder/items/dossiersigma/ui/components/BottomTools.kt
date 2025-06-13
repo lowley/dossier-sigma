@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -73,12 +74,15 @@ class BottomTools @Inject constructor(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp)
+                .height(55.dp)
+                .background(Color.Blue)
         ) {
             toolList.forEach { tool ->
                 Box(
                     modifier = Modifier
                         .width(130.dp)
+                        .background(Color.Red)
+                        .fillMaxHeight()
                         .clickable {
                             setCurrentTool(tool)
                             viewModel.setDialogMessage(tool.text)
@@ -88,7 +92,7 @@ class BottomTools @Inject constructor(
                     Icon(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .size(40.dp),
+                            .size(35.dp),
                         painter = painterResource(id = tool.icon),
                         contentDescription = null,
                         tint = Color(0xFFe9c46a)
@@ -96,8 +100,10 @@ class BottomTools @Inject constructor(
 
                     Text(
                         modifier = Modifier
-                            .align(Alignment.BottomCenter),
-                        text = tool.text
+                            .align(Alignment.BottomCenter)
+                            .height(24.dp),
+                        text = tool.text,
+                        color = Color(0xFFe9c46a)
                     )
                 }
             }
