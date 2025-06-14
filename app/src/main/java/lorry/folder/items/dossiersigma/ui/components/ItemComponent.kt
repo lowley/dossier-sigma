@@ -57,6 +57,7 @@ import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.yalantis.ucrop.UCrop
+import com.yalantis.ucrop.model.CropParameters
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.Item
@@ -291,6 +292,9 @@ fun ItemComponent(
 
                 val itemfontSizes = 14.sp
 
+                ////////////
+                // Google //
+                ////////////
                 DropdownMenuItem(
                     modifier = modifierItem,
                     text = {
@@ -319,6 +323,9 @@ fun ItemComponent(
                     }
                 )
 
+                //////////
+                // crop //
+                //////////
                 DropdownMenuItem(
                     modifier = modifierItem,
                     text = {
@@ -388,6 +395,9 @@ fun ItemComponent(
                     }
                 )
 
+                /////////////////
+                // crop manuel //
+                /////////////////
                 DropdownMenuItem(
                     modifier = modifierItem,
                     text = {
@@ -450,6 +460,9 @@ fun ItemComponent(
 //                    }
 //                )
 
+                /////////////////////
+                // + dossier frère //
+                /////////////////////
                 DropdownMenuItem(
                     modifier = modifierItem,
                     text = {
@@ -468,20 +481,25 @@ fun ItemComponent(
                         )
                     },
                     onClick = {
-                        val newName = "New folder"
-                        File(item.fullPath.substringBeforeLast("/") + "/$newName").mkdir()
+                        viewModel.setDialogMessage("Ajouter un dossier frère")
+                        viewModel.dialogOnOkLambda = { name, viewModel, context ->
+                            File(item.fullPath.substringBeforeLast("/") + "/$name").mkdir()
+                            expandedAddition = false
+                            viewModel.goToFolder(
+                                item.fullPath.substringBeforeLast("/"),
+                                ITEMS_ORDERING_STRATEGY.DATE_DESC
+                            )
 
-                        expandedAddition = false
-                        viewModel.goToFolder(
-                            item.fullPath.substringBeforeLast("/"),
-                            ITEMS_ORDERING_STRATEGY.DATE_DESC
-                        )
-
-                        viewModel.setSelectedItem(null)
-
+                            viewModel.setSelectedItem(null)
+                        }
+                        
+                        context.openDialog.value = true
                     }
                 )
 
+                //////////////////////
+                // + dossier dedans //
+                //////////////////////
                 if (item.isFolder()) {
                     DropdownMenuItem(
                         modifier = modifierItem,
@@ -509,6 +527,9 @@ fun ItemComponent(
                     )
                 }
 
+                ///////////////
+                // supprimer //
+                ///////////////
                 DropdownMenuItem(
                     modifier = modifierItem,
                     text = {
@@ -579,8 +600,7 @@ suspend fun getImage(
     item: Item,
     viewModel: SigmaViewModel,
     context: MainActivity
-): Bitmap { // Retourne une valeur compatible avec Coil
-
+): Bitmap {
     var result: Bitmap
     result = when {
         item.picture != null -> item.picture as Bitmap // Utilise l'image en mémoire si disponible

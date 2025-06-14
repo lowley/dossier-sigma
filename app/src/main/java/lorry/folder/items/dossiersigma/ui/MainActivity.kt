@@ -40,6 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -85,7 +86,9 @@ class MainActivity : ComponentActivity() {
 
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
-
+    lateinit var openDialog: MutableState<Boolean>
+    
+    
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,7 +116,7 @@ class MainActivity : ComponentActivity() {
                 val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
                 val homePageVisible by homeViewModel.homePageVisible.collectAsState()
                 val currentTool by mainViewModel.bottomTools.currentTool.collectAsState()
-                val openDialog = remember { mutableStateOf(false) }
+                openDialog = remember { mutableStateOf(false) }
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
                 val itemIdWithVisibleMenu = remember { mutableStateOf("") }
 
@@ -444,7 +447,12 @@ class MainActivity : ComponentActivity() {
 
                 if (openDialog.value)
                     CustomDialog(dialogMessage.value ?: "", openDialog) { text ->
-                        currentTool?.onClick(text, mainViewModel, this)
+                        if (mainViewModel.dialogOnOkLambda != null) {
+                            mainViewModel.dialogOnOkLambda?.invoke(text, mainViewModel, this)
+                            mainViewModel.dialogOnOkLambda = null
+                        }
+                        else
+                            currentTool?.onClick(text, mainViewModel, this)
                     }
             }
         }

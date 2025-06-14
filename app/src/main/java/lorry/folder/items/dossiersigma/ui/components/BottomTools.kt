@@ -148,6 +148,9 @@ sealed class Tools(
     object DEFAULT : Tools(
         BottomToolContent(
             listOf(
+                ///////////////
+                // + dossier //
+                ///////////////
                 Tool(
                     text = "Créer dossier",
                     icon = R.drawable.plus,
@@ -169,6 +172,9 @@ sealed class Tools(
     object FILE_SELECTED : Tools(
         BottomToolContent(
             toolInit = listOf(
+                ////////////
+                // copier //
+                ////////////
                 Tool(
                     text = "Copier",
                     icon = R.drawable.copier,
@@ -179,6 +185,9 @@ sealed class Tools(
 
                     }
                 ),
+                //////////////
+                // déplacer //
+                //////////////
                 Tool(
                     text = "Déplacer",
                     icon = R.drawable.deplacer,
@@ -187,6 +196,9 @@ sealed class Tools(
 
                     }
                 ),
+                //////////////
+                // renommer //
+                //////////////
                 Tool(
                     text = "Renommer",
                     icon = R.drawable.renommer,
@@ -195,6 +207,9 @@ sealed class Tools(
 
                     }
                 ),
+                ///////////////
+                // supprimer //
+                ///////////////
                 Tool(
                     text = "Supprimer",
                     icon = R.drawable.corbeille,
@@ -209,6 +224,9 @@ sealed class Tools(
     object COPY_FILE : Tools(
         BottomToolContent(
             listOf(
+                /////////////
+                // annuler //
+                /////////////
                 Tool(
                     text = "Annuler",
                     icon = R.drawable.annuler,
@@ -217,6 +235,9 @@ sealed class Tools(
 
                     }
                 ),
+                ////////////
+                // coller //
+                ////////////
                 Tool(
                     text = "Coller",
                     icon = R.drawable.coller,
@@ -233,6 +254,9 @@ sealed class Tools(
     object MOVE_FILE : Tools(
         BottomToolContent(
             listOf(
+                /////////////
+                // annuler //
+                /////////////
                 Tool(
                     text = "Annuler",
                     icon = R.drawable.annuler,
@@ -241,6 +265,9 @@ sealed class Tools(
 
                     }
                 ),
+                ////////////
+                // coller //
+                ////////////
                 Tool(
                     text = "Coller",
                     icon = R.drawable.coller,

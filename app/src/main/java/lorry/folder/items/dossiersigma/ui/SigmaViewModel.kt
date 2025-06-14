@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.layout.ContentScale
@@ -93,6 +94,7 @@ class SigmaViewModel @Inject constructor(
         _dialogMessage.value = message
     }
 
+    var dialogOnOkLambda: ((String, SigmaViewModel, Context) -> Unit)? = null
 
     fun refreshCurrentFolder() {
         reloadTrigger.value = reloadTrigger.value + 1 // redéclenchement immédiat
