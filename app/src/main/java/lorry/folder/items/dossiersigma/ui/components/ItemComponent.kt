@@ -482,6 +482,8 @@ fun ItemComponent(
                         )
                     },
                     onClick = {
+                        viewModel.setSelectedItem(null)
+                        itemIdWithVisibleMenu.value = ""
                         viewModel.setDialogMessage("Ajouter un dossier frère")
                         viewModel.dialogOnOkLambda = { name, viewModel, context ->
                             File(item.fullPath.substringBeforeLast("/") + "/$name").mkdir()
@@ -490,25 +492,21 @@ fun ItemComponent(
                                 item.fullPath.substringBeforeLast("/"),
                                 ITEMS_ORDERING_STRATEGY.DATE_DESC
                             )
-
-                            viewModel.setSelectedItem(null)
-                            itemIdWithVisibleMenu.value = ""
-                            
                         }
                         
                         context.openDialog.value = true
                     }
                 )
 
-                //////////////////////
-                // + dossier dedans //
-                //////////////////////
+                ////////////////////
+                // + dossier fils //
+                ////////////////////
                 if (item.isFolder()) {
                     DropdownMenuItem(
                         modifier = modifierItem,
                         text = {
                             Text(
-                                text = "Créer dossier dedans",
+                                text = "Créer dossier fils",
                                 color = Color(0xFFB0BEC5),
                                 fontSize = itemfontSizes,
                             )
@@ -522,6 +520,8 @@ fun ItemComponent(
                             )
                         },
                         onClick = {
+                            itemIdWithVisibleMenu.value = ""
+                            viewModel.setSelectedItem(null)
                             viewModel.setDialogMessage("Ajouter un dossier dedans")
                             viewModel.dialogOnOkLambda = { name, viewModel, context ->
                                 File(item.fullPath + "/$name").mkdir()
@@ -530,9 +530,6 @@ fun ItemComponent(
                                     item.fullPath.substringBeforeLast("/"),
                                     ITEMS_ORDERING_STRATEGY.DATE_DESC
                                 )
-
-                                viewModel.setSelectedItem(null)
-                                itemIdWithVisibleMenu.value = ""
                             }
 
                             context.openDialog.value = true
