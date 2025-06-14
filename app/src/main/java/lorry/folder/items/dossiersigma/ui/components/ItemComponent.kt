@@ -519,10 +519,19 @@ fun ItemComponent(
                             )
                         },
                         onClick = {
-                            val newName = "New folder"
-                            File(item.fullPath + "/$newName").mkdir()
-                            expandedAddition = false
-                            viewModel.setSelectedItem(null)
+                            viewModel.setDialogMessage("Ajouter un dossier dedans")
+                            viewModel.dialogOnOkLambda = { name, viewModel, context ->
+                                File(item.fullPath + "/$name").mkdir()
+                                expandedAddition = false
+                                viewModel.goToFolder(
+                                    item.fullPath.substringBeforeLast("/"),
+                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                )
+
+                                viewModel.setSelectedItem(null)
+                            }
+
+                            context.openDialog.value = true
                         }
                     )
                 }
