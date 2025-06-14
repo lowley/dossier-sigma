@@ -296,6 +296,24 @@ class DiskRepository @Inject constructor(
         return contentScaleFromString(scale)
     }
 
+    override suspend fun removeScaleFromHtml(htmlFileFullPath: String) {
+        val htmlFile = File(htmlFileFullPath+"/.folderPicture.html")
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() }) 
+            return
+
+        val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
+
+        // Regex pour trouver le contenu de src="data:image/...;base64,..."
+        val regex = Regex("""<div class="contentScale">([^"]+)</div>"""")
+        val correctedText = htmlContent.replace(regex, "")
+
+        htmlFile.delete()
+        withContext(Dispatchers.IO) {
+            val fichier = File(htmlFileFullPath + "/.folderPicture.html")
+            fichier.writeText(correctedText, Charsets.UTF_8)
+        }
+    }
+
     fun contentScaleFromString(value: String): ContentScale = when (value) {
         "Crop" -> ContentScale.Crop
         "Fit" -> ContentScale.Fit

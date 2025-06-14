@@ -124,9 +124,9 @@ class SigmaViewModel @Inject constructor(
         _selectedItem.value = item
         
         if (item != null)
-            bottomTools.setCurrentContent(Tools.EXPLORER_FILE.content)
+            bottomTools.setCurrentContent(Tools.FILE_SELECTED.content)
         else
-            bottomTools.setCurrentContent(Tools.EXPLORER_DEFAULT.content)
+            bottomTools.setCurrentContent(Tools.DEFAULT.content)
     }
 
     suspend fun updatePicture(newPicture: Any?) {

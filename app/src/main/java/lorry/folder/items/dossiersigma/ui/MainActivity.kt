@@ -412,13 +412,13 @@ class MainActivity : ComponentActivity() {
                         var newTool: Tools? = null 
                         
                         if (itemIdWithVisibleMenu.value != "")
-                            newTool = Tools.EXPLORER_FILE
-                        if (currentContent?.tools == Tools.EXPLORER_COPY_FILE)
-                            newTool = Tools.EXPLORER_COPY_FILE
-                        if (currentTool == Tools.EXPLORER_MOVE_FILE)
-                            newTool = Tools.EXPLORER_MOVE_FILE
+                            newTool = Tools.FILE_SELECTED
+                        if (currentContent?.tools == Tools.COPY_FILE)
+                            newTool = Tools.COPY_FILE
+                        if (currentTool == Tools.MOVE_FILE)
+                            newTool = Tools.MOVE_FILE
                         if (newTool == null)
-                            newTool = Tools.EXPLORER_DEFAULT
+                            newTool = Tools.DEFAULT
 
                         mainViewModel.bottomTools.setCurrentContent(newTool.content)
                         mainViewModel.bottomTools.BottomToolBar(openDialog)
@@ -435,6 +435,8 @@ class MainActivity : ComponentActivity() {
                             manageImageClick(mainViewModel, url)
                             //génère des problèmes dans manageImageClick
 //                            mainViewModel.setSelectedItem(null)
+                            //à tester si besoin
+//                            itemIdWithVisibleMenu.value = ""
                         },
                         viewmodel = mainViewModel
                     )

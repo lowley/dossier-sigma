@@ -308,8 +308,12 @@ fun ItemComponent(
                         )
                     },
                     onClick = {
-                        //le Browser est un composable dans MainActivity
-                        //le callback est un de ses paramètres d'appel
+                        /**
+                         * @see BrowserOverlay
+                         * le Browser est un composable dans MainActivity
+                         * voir BrowserOverlay et son appel par MainActivity
+                         * le callback est un de ses paramètres d'appel
+                         */
                         viewModel.browserManager.openBrowser(item, BrowserTarget.GOOGLE)
                         itemIdWithVisibleMenu.value = ""
                     }
@@ -375,6 +379,7 @@ fun ItemComponent(
                                 val file = File(item.fullPath + "/.folderPicture.html")
                                 if (!file.exists())
                                     viewModel.diskRepository.createFolderHtmlFile(item)
+                                viewModel.diskRepository.removeScaleFromHtml(item.fullPath)
                                 viewModel.diskRepository.insertScaleToHtmlFile(item, contentScale)
                             }
                         }

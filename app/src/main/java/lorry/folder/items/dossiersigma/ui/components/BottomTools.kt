@@ -145,7 +145,7 @@ data class Tool(
 sealed class Tools(
     val content: BottomToolContent
 ) {
-    object EXPLORER_DEFAULT : Tools(
+    object DEFAULT : Tools(
         BottomToolContent(
             listOf(
                 Tool(
@@ -166,7 +166,7 @@ sealed class Tools(
                 )
             )))
 
-    object EXPLORER_FILE : Tools(
+    object FILE_SELECTED : Tools(
         BottomToolContent(
             toolInit = listOf(
                 Tool(
@@ -206,7 +206,7 @@ sealed class Tools(
             )
         ))
 
-    object EXPLORER_COPY_FILE : Tools(
+    object COPY_FILE : Tools(
         BottomToolContent(
             listOf(
                 Tool(
@@ -230,7 +230,7 @@ sealed class Tools(
             )
         ))
 
-    object EXPLORER_MOVE_FILE : Tools(
+    object MOVE_FILE : Tools(
         BottomToolContent(
             listOf(
                 Tool(
