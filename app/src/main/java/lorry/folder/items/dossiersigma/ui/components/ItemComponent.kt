@@ -392,6 +392,7 @@ fun ItemComponent(
                         }
 
                         viewModel.setSelectedItem(null)
+                        itemIdWithVisibleMenu.value = ""
                     }
                 )
 
@@ -491,6 +492,8 @@ fun ItemComponent(
                             )
 
                             viewModel.setSelectedItem(null)
+                            itemIdWithVisibleMenu.value = ""
+                            
                         }
                         
                         context.openDialog.value = true
@@ -529,6 +532,7 @@ fun ItemComponent(
                                 )
 
                                 viewModel.setSelectedItem(null)
+                                itemIdWithVisibleMenu.value = ""
                             }
 
                             context.openDialog.value = true
@@ -561,11 +565,12 @@ fun ItemComponent(
                             File(item.fullPath).deleteRecursively()
                         else File(item.fullPath).delete()
                         expandedAddition = false
+                        viewModel.setSelectedItem(null)
+                        itemIdWithVisibleMenu.value = ""
                         viewModel.goToFolder(
                             item.fullPath.substringBeforeLast("/"),
                             ITEMS_ORDERING_STRATEGY.DATE_DESC
                         )
-                        viewModel.setSelectedItem(null)
                     }
                 )
 

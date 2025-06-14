@@ -87,7 +87,7 @@ class MainActivity : ComponentActivity() {
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
     lateinit var openDialog: MutableState<Boolean>
-    
+    lateinit var itemIdWithVisibleMenu: MutableState<String>
     
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,7 +118,7 @@ class MainActivity : ComponentActivity() {
                 val currentTool by mainViewModel.bottomTools.currentTool.collectAsState()
                 openDialog = remember { mutableStateOf(false) }
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-                val itemIdWithVisibleMenu = remember { mutableStateOf("") }
+                itemIdWithVisibleMenu = remember { mutableStateOf("") }
 
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
@@ -394,8 +394,7 @@ class MainActivity : ComponentActivity() {
                                 .padding(horizontal = 10.dp)
                                 .weight(1f)
                         ) {
-                            lazyGridItems(currentFolder.items, key = { it.fullPath }) { item ->
-
+                            lazyGridItems(currentFolder.items, key = { it.id }) { item ->
                                 ItemComponent(
                                     viewModel = mainViewModel,
                                     item = item,
@@ -498,6 +497,7 @@ class MainActivity : ComponentActivity() {
         }
 
         mainViewModel.setSelectedItem(null)
+        itemIdWithVisibleMenu.value = ""
     }
 }
 
