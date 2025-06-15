@@ -57,7 +57,6 @@ import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.yalantis.ucrop.UCrop
-import com.yalantis.ucrop.model.CropParameters
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.Item
@@ -245,7 +244,9 @@ fun ItemComponent(
 
             DropdownMenu(
                 expanded = itemIdWithVisibleMenu.value == item.id && expandedAddition,
-                onDismissRequest = { itemIdWithVisibleMenu.value = "" },
+                onDismissRequest = {
+                    itemIdWithVisibleMenu.value = ""
+                },
                 offset = with(density) {
                     DpOffset(imageOffset.x, (-imageHeight / 2))
                 },
@@ -488,12 +489,9 @@ fun ItemComponent(
                         viewModel.dialogOnOkLambda = { name, viewModel, context ->
                             File(item.fullPath.substringBeforeLast("/") + "/$name").mkdir()
                             expandedAddition = false
-                            viewModel.goToFolder(
-                                item.fullPath.substringBeforeLast("/"),
-                                ITEMS_ORDERING_STRATEGY.DATE_DESC
-                            )
+                            viewModel.refreshCurrentFolder()
                         }
-                        
+
                         context.openDialog.value = true
                     }
                 )
@@ -522,14 +520,11 @@ fun ItemComponent(
                         onClick = {
                             itemIdWithVisibleMenu.value = ""
                             viewModel.setSelectedItem(null)
-                            viewModel.setDialogMessage("Ajouter un dossier dedans")
+                            viewModel.setDialogMessage("Ajouter un dossier fils")
                             viewModel.dialogOnOkLambda = { name, viewModel, context ->
                                 File(item.fullPath + "/$name").mkdir()
                                 expandedAddition = false
-                                viewModel.goToFolder(
-                                    item.fullPath.substringBeforeLast("/"),
-                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                )
+                                viewModel.refreshCurrentFolder()
                             }
 
                             context.openDialog.value = true
@@ -564,13 +559,9 @@ fun ItemComponent(
                         expandedAddition = false
                         viewModel.setSelectedItem(null)
                         itemIdWithVisibleMenu.value = ""
-                        viewModel.goToFolder(
-                            item.fullPath.substringBeforeLast("/"),
-                            ITEMS_ORDERING_STRATEGY.DATE_DESC
-                        )
+                        viewModel.refreshCurrentFolder()
                     }
                 )
-
 
 //                DropdownMenuItem(
 //                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },

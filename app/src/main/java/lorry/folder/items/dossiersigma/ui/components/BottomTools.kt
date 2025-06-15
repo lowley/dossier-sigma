@@ -9,6 +9,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import java.io.File
 import javax.inject.Inject
@@ -65,7 +67,8 @@ class BottomTools @Inject constructor(
 
     @Composable
     fun BottomToolBar(
-        openDialog: MutableState<Boolean>
+        openDialog: MutableState<Boolean>,
+        activity: MainActivity
     ) {
         if (currentContent == null)
             return
@@ -86,8 +89,8 @@ class BottomTools @Inject constructor(
                         .fillMaxHeight()
                         .clickable {
                             setCurrentTool(tool)
-                            viewModel.setDialogMessage(tool.text)
-                            openDialog.value = true
+                            tool.onClick(viewModel, activity)
+
                         }
                 ) {
                     Icon(
@@ -139,14 +142,14 @@ class BottomToolContent(
 data class Tool(
     val text: String,
     @DrawableRes val icon: Int,
-    val onClick: (String, SigmaViewModel, Context) -> Unit
+    val onClick: (SigmaViewModel, MainActivity) -> Any?
 )
 
 sealed class Tools(
     val content: BottomToolContent
 ) {
     object DEFAULT : Tools(
-        BottomToolContent(
+        content = BottomToolContent(
             listOf(
                 ///////////////
                 // + dossier //
@@ -154,17 +157,26 @@ sealed class Tools(
                 Tool(
                     text = "Créer dossier",
                     icon = R.drawable.plus,
-                    onClick = { newName, viewModel, context ->
-                        val currentFolderPath = viewModel.currentFolderPath.value
-                        val newFullName = "$currentFolderPath/$newName"
-                        if (!File(newFullName).exists()) {
-                            if (File(newFullName).mkdir()) {
-                                Toast.makeText(context, "Répertoire créé", Toast.LENGTH_SHORT).show()
-                                viewModel.refreshCurrentFolder()
-                            } else
-                                Toast.makeText(context, "Un problème est survenu", Toast.LENGTH_SHORT)
-                                    .show()
+                    onClick = { viewModel, mainActivity ->
+                        viewModel.setDialogMessage("Nom du dossier à créer")
+                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
+                            val currentFolderPath = viewModel.currentFolderPath.value
+                            val newFullName = "$currentFolderPath/$newName"
+                            if (!File(newFullName).exists()) {
+                                if (File(newFullName).mkdir()) {
+                                    Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
+                                    viewModel.refreshCurrentFolder()
+                                } else
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Un problème est survenu",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
+                            }
                         }
+
+                        mainActivity.openDialog.value = true
                     }
                 )
             )))
@@ -178,7 +190,7 @@ sealed class Tools(
                 Tool(
                     text = "Copier",
                     icon = R.drawable.copier,
-                    onClick = { newName, viewModel, context ->
+                    onClick = { viewModel, mainActivity ->
 
 
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)
@@ -191,7 +203,7 @@ sealed class Tools(
                 Tool(
                     text = "Déplacer",
                     icon = R.drawable.deplacer,
-                    onClick = { newName, viewModel, context ->
+                    onClick = { viewModel, mainActivity ->
 
 
                     }
@@ -202,9 +214,37 @@ sealed class Tools(
                 Tool(
                     text = "Renommer",
                     icon = R.drawable.renommer,
-                    onClick = { newName, viewModel, context ->
+                    onClick = { viewModel, mainActivity ->
+                        //mainActivity.itemIdWithVisibleMenu.value = ""
+                        val currentFolderPath = viewModel.selectedItem.value?.fullPath
+                        //viewModel.setSelectedItem(null)
+                        viewModel.setDialogMessage("Nouveau nom du dossier")
+                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
+                            run {
+                                if (currentFolderPath == null || newName == currentFolderPath.substringAfterLast("/")
+                                )
+                                    return@run
 
+                                val newFullName = "${
+                                    currentFolderPath
+                                        .substringBeforeLast("/")}/$newName"
+                                if (!File(newFullName).exists()) {
+                                    if (File(newFullName).mkdir()) {
+                                        Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT)
+                                            .show()
+                                        viewModel.refreshCurrentFolder()
+                                    } else
+                                        Toast.makeText(
+                                            mainActivity,
+                                            "Un problème est survenu",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                            .show()
+                                }
+                            }
+                        }
 
+                        mainActivity.openDialog.value = true
                     }
                 ),
                 ///////////////
@@ -213,7 +253,7 @@ sealed class Tools(
                 Tool(
                     text = "Supprimer",
                     icon = R.drawable.corbeille,
-                    onClick = { newName, viewModel, context ->
+                    onClick = { viewModel, mainActivity ->
 
 
                     }
@@ -230,7 +270,7 @@ sealed class Tools(
                 Tool(
                     text = "Annuler",
                     icon = R.drawable.annuler,
-                    onClick = { newName, viewModel, context ->
+                    onClick = { viewModel, mainActivity ->
 
 
                     }
@@ -241,7 +281,7 @@ sealed class Tools(
                 Tool(
                     text = "Coller",
                     icon = R.drawable.coller,
-                    onClick = { newName, viewModel, context ->
+                    onClick = { viewModel, mainActivity ->
 
 
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)
@@ -260,7 +300,7 @@ sealed class Tools(
                 Tool(
                     text = "Annuler",
                     icon = R.drawable.annuler,
-                    onClick = { newName, viewModel, context ->
+                    onClick = { viewModel, mainActivity ->
 
 
                     }
@@ -271,7 +311,7 @@ sealed class Tools(
                 Tool(
                     text = "Coller",
                     icon = R.drawable.coller,
-                    onClick = { newName, viewModel, context ->
+                    onClick = { viewModel, mainActivity ->
 
 
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)

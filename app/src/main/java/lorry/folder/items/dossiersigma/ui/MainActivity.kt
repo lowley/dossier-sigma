@@ -138,7 +138,7 @@ class MainActivity : ComponentActivity() {
 
                     selectedItem?.let { item ->
                         mainViewModel.browserManager.closeBrowser()
-                        mainViewModel.goToFolder(currentFolder.fullPath, mainViewModel.sorting.value)
+                        mainViewModel.refreshCurrentFolder()
 //                        viewModel.updateItemList(item.copy(picture = selectedItemPicture.picture))
                         Toast.makeText(this@MainActivity, "Changement d'image effectué", Toast.LENGTH_SHORT)
                             .show()
@@ -189,6 +189,8 @@ class MainActivity : ComponentActivity() {
                             )
 
                             if (!homePageVisible)
+//                                Text(text = itemIdWithVisibleMenu.value.toString(),
+//                                    color = Color.White)
                                 Breadcrumb(
                                     items = currentFolder.fullPath.split("/").filter { it != "" },
                                     onPathClick = { path ->
@@ -423,7 +425,7 @@ class MainActivity : ComponentActivity() {
                             newTool = Tools.DEFAULT
 
                         mainViewModel.bottomTools.setCurrentContent(newTool.content)
-                        mainViewModel.bottomTools.BottomToolBar(openDialog)
+                        mainViewModel.bottomTools.BottomToolBar(openDialog, activity = this@MainActivity)
                     }
 
                     val url by mainViewModel.browserManager.currentPage.collectAsState()
@@ -451,7 +453,7 @@ class MainActivity : ComponentActivity() {
                             mainViewModel.dialogOnOkLambda = null
                         }
                         else
-                            currentTool?.onClick(text, mainViewModel, this)
+                            currentTool?.onClick(mainViewModel, this)
                     }
             }
         }
