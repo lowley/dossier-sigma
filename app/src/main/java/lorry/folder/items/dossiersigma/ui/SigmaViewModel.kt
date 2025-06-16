@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -139,6 +140,15 @@ class SigmaViewModel @Inject constructor(
             bottomTools.setCurrentContent(Tools.DEFAULT)
     }
 
+    val selectedItemId = selectedItem
+        .map { item -> item?.id }
+        .stateIn(
+            scope = viewModelScope,
+            started = Eagerly,
+            initialValue = null
+        )
+    
+    
     suspend fun updatePicture(newPicture: Any?) {
         if (_selectedItem.value == null)
             return

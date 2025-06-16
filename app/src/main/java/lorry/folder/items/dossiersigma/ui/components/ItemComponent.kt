@@ -3,11 +3,9 @@ package lorry.folder.items.dossiersigma.ui.components
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.view.ViewConfiguration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,16 +33,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -108,9 +113,11 @@ fun ItemComponent(
             modifier = Modifier//.background(Color.Blue)
                 .width(imageHeight)
                 .height(imageHeight),
-            ) {
+        ) {
             var expanded by remember { mutableStateOf(false) }
             val scrollState = rememberScrollState()
+
+            val selectedItemId by viewModel.selectedItemId.collectAsState()
 
             imageSource.value?.let { bitmap ->
                 key(pictureUpdateId) {
@@ -123,6 +130,13 @@ fun ItemComponent(
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = {
+                                        if (selectedItemId != null &&
+                                            selectedItemId != item.id) {
+                                            viewModel.setSelectedItem(null)
+                                            viewModel.bottomTools.setCurrentContent(Tools.DEFAULT)
+                                            return@detectTapGestures
+                                        }
+                                        
                                         if (item.isFolder()) {
                                             viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
                                             viewModel.goToFolder(
@@ -154,7 +168,9 @@ fun ItemComponent(
                             context, R.drawable
                                 .file
                         ),
-                        contentScale = contentScale
+                        contentScale = contentScale,
+                        item = item,
+                        selectedItemId = selectedItemId
                     )
                 }
             }
@@ -241,7 +257,7 @@ fun ItemComponent(
 
             val selectedItem by viewModel.selectedItem.collectAsState()
             val isContextMenuVisible = context.isContextMenuVisible
-            
+
             DropdownMenu(
                 expanded = selectedItem?.id == item.id && context.isContextMenuVisible.value,
                 onDismissRequest = {
@@ -710,12 +726,13 @@ fun TextSection(name: String, modifier: Modifier) {
 fun ImageSection(
     modifier: Modifier,
     imageSource: Bitmap,
-    contentScale: ContentScale
+    contentScale: ContentScale,
+    item: Item,
+    selectedItemId: String?,
 ) {
     val context = LocalContext.current
     val imageRequest = ImageRequest.Builder(context).data(imageSource).build()
     val imageBitmap: Bitmap? = imageSource
-
     var containerSize = IntSize(175, 175)
 
     val shouldShowMesh = remember(imageBitmap, contentScale) {
@@ -732,11 +749,24 @@ fun ImageSection(
 
     val shape = RoundedCornerShape(8.dp)
 
-    // on n'applique plus le `modifier` au `Box`, mais à l'image directement
+    val modifierWithBorder = Modifier
+        .clip(shape)
+        .background(Color.Transparent)
+        .then(
+            if (item.id == selectedItemId)
+                Modifier.dashedBorder(
+                    color = Color(0xFFDBBC00),
+                    strokeWidth = 2.dp,
+                    cornerRadius = 8.dp,
+                    dashLength = 10.dp,
+                    gapLength = 10.dp
+                )
+            else Modifier
+        )
+        .then(modifier)
+
     Box(
-        modifier = modifier
-            .clip(shape)
-            .background(Color.Transparent)
+        modifier = modifierWithBorder
     ) {
         if (shouldShowMesh) {
             Image(
@@ -745,9 +775,7 @@ fun ImageSection(
                 modifier = Modifier
                     .matchParentSize()
                     .zIndex(0f)
-                    .pointerInput(Unit) {} // pour être transparent
-                    .alpha(1f),
-                contentScale = ContentScale.Crop
+//                    .alpha(1f)
             )
         }
 
@@ -755,8 +783,9 @@ fun ImageSection(
             model = imageRequest,
             contentDescription = "Miniature",
             contentScale = contentScale,
-            modifier = modifier
+            modifier = Modifier
                 .matchParentSize()
+                .zIndex(0f)
         )
     }
 }
@@ -806,52 +835,38 @@ fun bitmapToTempUri(context: Context, bitmap: Bitmap): Uri {
     )
 }
 
-fun Modifier.detectLongPressReleaseWithOffset(
-    onLongPressStart: (Offset) -> Unit = {},
-    onLongPressEnd: (Offset) -> Unit = {},
-    onCancel: () -> Unit = {}
-): Modifier = pointerInput(Unit) {
-    while (true) {
-        awaitPointerEventScope {
-            val down = awaitFirstDown()
-            println("TOUCH DÉTECTÉ")
-            val position = down.position
-            val longPressTimeout = ViewConfiguration.getLongPressTimeout().toLong()
-            val downTime = System.currentTimeMillis()
-            var longPressTriggered = false
+fun Modifier.dashedBorder(
+    color: Color,
+    strokeWidth: Dp = 2.dp,
+    cornerRadius: Dp = 0.dp,
+    dashLength: Dp = 10.dp,
+    gapLength: Dp = 10.dp
+): Modifier = drawWithContent {
+    drawContent() // dessine l’image ou autre contenu en premier
 
-            while (true) {
-                val now = System.currentTimeMillis()
-                val elapsed = now - downTime
+    val stroke = strokeWidth.toPx()
+    val radius = cornerRadius.toPx()
+    val dash = dashLength.toPx()
+    val gap = gapLength.toPx()
 
-                val event = awaitPointerEvent(PointerEventPass.Initial)
-                val stillPressed = event.changes.any { it.pressed && it.id == down.id }
-                val isUp = event.changes.any { !it.pressed && it.id == down.id }
+    val inset = stroke / 2f
+    val rect = Rect(
+        left = inset,
+        top = inset,
+        right = size.width - inset,
+        bottom = size.height - inset
+    )
 
-                println("elapsed = $elapsed, timeout = $longPressTimeout, stillPressed = $stillPressed")
-
-                if (!longPressTriggered && stillPressed && elapsed >= longPressTimeout) {
-                    longPressTriggered = true
-                    println("LONG PRESS TRIGGERED")
-                    onLongPressStart(position)
-                }
-
-                if (isUp) {
-                    if (longPressTriggered) {
-                        val releaseOffset =
-                            event.changes.firstOrNull { it.id == down.id }?.position ?: position
-                        onLongPressEnd(releaseOffset)
-                    } else {
-                        onCancel()
-                    }
-                    break
-                }
-
-                if (!stillPressed) {
-                    onCancel()
-                    break
-                }
-            }
-        }
+    val path = Path().apply {
+        addRoundRect(RoundRect(rect, CornerRadius(radius)))
     }
+
+    drawPath(
+        path = path,
+        color = color,
+        style = Stroke(
+            width = stroke,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, gap), 0f)
+        )
+    )
 }
