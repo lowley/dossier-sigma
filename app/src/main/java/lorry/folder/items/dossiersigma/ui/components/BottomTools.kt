@@ -36,9 +36,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import java.io.File
@@ -88,8 +91,9 @@ class BottomTools @Inject constructor(
                         .fillMaxHeight()
                         .clickable {
                             setCurrentTool(tool)
-                            tool.onClick(viewModel, activity)
-
+                            viewModel.viewModelScope.launch {
+                                tool.onClick(viewModel, activity)
+                            }
                         }
                 ) {
                     Icon(
@@ -141,7 +145,7 @@ class BottomToolContent(
 data class Tool(
     val text: String,
     @DrawableRes val icon: Int,
-    val onClick: (SigmaViewModel, MainActivity) -> Any?
+    val onClick: suspend (SigmaViewModel, MainActivity) -> Any?
 )
 
 sealed class Tools(
@@ -250,7 +254,9 @@ sealed class Tools(
                         viewModel.setDialogMessage("Nouveau nom du dossier")
                         viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
                             run {
-                                if (currentFolderPath == null || newName == currentFolderPath.substringAfterLast("/")
+                                if (currentFolderPath == null || newName == currentFolderPath.substringAfterLast(
+                                        "/"
+                                    )
                                 ) {
                                     Toast.makeText(
                                         mainActivity,
@@ -263,7 +269,8 @@ sealed class Tools(
 
                                 val newFullName = "${
                                     currentFolderPath
-                                        .substringBeforeLast("/")}/$newName"
+                                        .substringBeforeLast("/")
+                                }/$newName"
                                 println("NOM: $newFullName")
                                 if (File(currentFolderPath).exists()) {
                                     if (File(currentFolderPath).renameTo(File(newFullName))) {
@@ -282,7 +289,7 @@ sealed class Tools(
                                             .show()
                                 }
                             }
-                            
+
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
                             viewModel.setSelectedItem(null)
                         }
@@ -297,8 +304,48 @@ sealed class Tools(
                     text = "+ frère",
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
+                        val parent = viewModel.currentFolder.value
+                        //viewModel.setSelectedItem(null)
+                        viewModel.setDialogMessage("Nouveau nom du dossier")
+                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
+                            run {
+                                val parentPath = parent.fullPath
+                                val children = parent.items
+                                    .map { item -> item.fullPath }
+                                if (children.any { child -> child.substringAfterLast("/") == newName }
+                                ) {
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Un élément du dossier actuel porte le même nom",
+                                        Toast.LENGTH_LONG
+                                    ).show()
 
+                                    return@run
+                                }
 
+                                val newFullPath = "$parentPath/$newName"
+
+                                if (File(newFullPath).mkdir()) {
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Dossier créé",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    viewModel.refreshCurrentFolder()
+                                } else
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Un problème lors de la création  du dossier frère est survenu",
+                                        Toast.LENGTH_LONG
+                                    )
+                                        .show()
+                            }
+
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            viewModel.setSelectedItem(null)
+                        }
+
+                        mainActivity.openTextDialog.value = true
                     }
                 ),
                 ////////////////////
@@ -308,7 +355,61 @@ sealed class Tools(
                     text = "+ fils",
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
+                        val parent = viewModel.currentFolder.value
+                        viewModel.setDialogMessage("Nouveau nom du dossier")
+                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
+                            run {
+                                val selectedItemPath = viewModel.selectedItem.value?.fullPath
+                                if (selectedItemPath == null)
+                                    return@run
 
+                                val parentPath = parent.fullPath
+                                var children: List<String> = emptyList()
+
+                                children = viewModel.diskRepository
+                                    .getFolderItems(
+                                        selectedItemPath,
+                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                    )
+                                    .map { item -> item.fullPath }
+
+                                if (children.any { child -> child.substringAfterLast("/") == newName }
+                                ) {
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Un élément du dossier sélectionné porte le même nom",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+
+                                    return@run
+                                }
+
+                                val newFullPath = "$selectedItemPath/$newName"
+
+                                if (File(newFullPath).mkdir() &&
+                                    File(newFullPath).exists()
+                                ) {
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Dossier créé",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    viewModel.refreshCurrentFolder()
+                                } else
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Un problème lors de la création  du dossier enfant est survenu",
+                                        Toast.LENGTH_LONG
+                                    )
+                                        .show()
+                            }
+
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            viewModel.setSelectedItem(null)
+
+                        }
+
+                        mainActivity.openTextDialog.value = true
 
                     }
                 ),
@@ -321,25 +422,29 @@ sealed class Tools(
                     onClick = { viewModel, mainActivity ->
                         val currentFolderPath = viewModel.selectedItem.value?.fullPath
                         //viewModel.setSelectedItem(null)
-                        viewModel.setDialogMessage("Voulez-vous vraiment supprimer ce ${if (viewModel
-                                .selectedItem.value?.isFile() != false
-                        ) "fichier" else "dossier"} ?")
+                        viewModel.setDialogMessage(
+                            "Voulez-vous vraiment supprimer ce ${
+                                if (viewModel
+                                        .selectedItem.value?.isFile() != false
+                                ) "fichier" else "dossier"
+                            } ?"
+                        )
                         viewModel.dialogYesNoLambda = { yesNo, viewModel, mainActivity ->
                             run {
                                 if (!yesNo)
                                     return@run
-                                
+
                                 val item = viewModel.selectedItem.value
                                 val itemFullPath = item?.fullPath ?: ""
                                 if (item == null)
                                     return@run
-                                
+
                                 if (item.isFolder())
                                     File(item.fullPath).deleteRecursively()
                                 else File(item.fullPath).delete()
                                 viewModel.setSelectedItem(null)
                                 viewModel.refreshCurrentFolder()
-                                
+
                                 if (File(itemFullPath).exists())
                                     Toast.makeText(
                                         mainActivity,
@@ -354,14 +459,14 @@ sealed class Tools(
                                 )
                                     .show()
                             }
-                            
+
 
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
                         }
 
                         mainActivity.openYesNoDialog.value = true
                     }
-                    
+
                 ),
             )
         ))

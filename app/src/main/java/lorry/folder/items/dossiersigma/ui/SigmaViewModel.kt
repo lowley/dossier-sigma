@@ -101,8 +101,8 @@ class SigmaViewModel @Inject constructor(
         _dialogMessage.value = message
     }
 
-    var dialogOnOkLambda: ((String, SigmaViewModel, Context) -> Unit)? = null
-    var dialogYesNoLambda: ((Boolean, SigmaViewModel, Context) -> Unit)? = null
+    var dialogOnOkLambda: (suspend (String, SigmaViewModel, Context) -> Unit)? = null
+    var dialogYesNoLambda: (suspend (Boolean, SigmaViewModel, Context) -> Unit)? = null
 
     fun refreshCurrentFolder() {
         reloadTrigger.value = reloadTrigger.value + 1 // redéclenchement immédiat

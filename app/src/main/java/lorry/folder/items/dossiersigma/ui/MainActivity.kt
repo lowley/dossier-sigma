@@ -442,19 +442,27 @@ class MainActivity : ComponentActivity() {
                 if (openTextDialog.value)
                     CustomTextDialog(dialogMessage.value ?: "", openTextDialog) { text ->
                         if (mainViewModel.dialogOnOkLambda != null) {
-                            mainViewModel.dialogOnOkLambda?.invoke(text, mainViewModel, this)
+                            mainViewModel.viewModelScope.launch {
+                                mainViewModel.dialogOnOkLambda?.invoke(text, mainViewModel, this@MainActivity)
+                            }
                             mainViewModel.dialogOnOkLambda = null
                         } else
-                            currentTool?.onClick(mainViewModel, this)
+                            mainViewModel.viewModelScope.launch {
+                                currentTool?.onClick(mainViewModel, this@MainActivity)
+                            }
                     }
                 
                 if (openYesNoDialog.value) {
                     CustomYesNoDialog(dialogMessage.value ?: "", openYesNoDialog) { yesNo ->
                         if (mainViewModel.dialogYesNoLambda != null){
-                            mainViewModel.dialogYesNoLambda?.invoke(yesNo, mainViewModel, this)
+                            mainViewModel.viewModelScope.launch {
+                                mainViewModel.dialogYesNoLambda?.invoke(yesNo, mainViewModel, this@MainActivity)
+                            }
                             mainViewModel.dialogYesNoLambda = null
                         } else
-                            currentTool?.onClick(mainViewModel, this)
+                            mainViewModel.viewModelScope.launch {
+                                currentTool?.onClick(mainViewModel, this@MainActivity)
+                            }
                     }
                 }
             }
