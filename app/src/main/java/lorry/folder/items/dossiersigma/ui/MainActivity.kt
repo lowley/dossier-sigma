@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
                 openTextDialog = remember { mutableStateOf(false) }
                 openYesNoDialog = remember { mutableStateOf(false) }
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-                
+
                 isContextMenuVisible = mainViewModel.isContextMenuVisible.collectAsState()
 
                 SideEffect {
@@ -430,10 +430,13 @@ class MainActivity : ComponentActivity() {
                             mainViewModel.browserManager.closeBrowser()
                         },
                         onImageClicked = { url ->
-                            manageImageClick(mainViewModel, url)
-                            //génère des problèmes dans manageImageClick
+                            mainViewModel.viewModelScope.launch {
+                                manageImageClick(mainViewModel, url)
+                                //génère des problèmes dans manageImageClick
 //                            mainViewModel.setSelectedItem(null)
-                            mainViewModel.bottomTools.setCurrentContent(DEFAULT)
+                                mainViewModel.bottomTools.setCurrentContent(DEFAULT)
+                                mainViewModel.setSelectedItem(null)
+                            }
                         },
                         viewmodel = mainViewModel
                     )
@@ -451,12 +454,16 @@ class MainActivity : ComponentActivity() {
                                 currentTool?.onClick(mainViewModel, this@MainActivity)
                             }
                     }
-                
+
                 if (openYesNoDialog.value) {
                     CustomYesNoDialog(dialogMessage.value ?: "", openYesNoDialog) { yesNo ->
-                        if (mainViewModel.dialogYesNoLambda != null){
+                        if (mainViewModel.dialogYesNoLambda != null) {
                             mainViewModel.viewModelScope.launch {
-                                mainViewModel.dialogYesNoLambda?.invoke(yesNo, mainViewModel, this@MainActivity)
+                                mainViewModel.dialogYesNoLambda?.invoke(
+                                    yesNo,
+                                    mainViewModel,
+                                    this@MainActivity
+                                )
                             }
                             mainViewModel.dialogYesNoLambda = null
                         } else
@@ -469,13 +476,10 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
+    suspend fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
         if (viewModel.selectedItem.value != null)
-            viewModel.viewModelScope.launch {
-                viewModel.updatePicture(imageUrl)
-            }
+            viewModel.updatePicture(imageUrl)
     }
-
 
     private fun initializeFileIntentLauncher(viewModel: SigmaViewModel) {
         val launcher =

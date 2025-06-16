@@ -41,6 +41,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
@@ -202,10 +203,23 @@ sealed class Tools(
                 //////////////////
                 Tool(
                     text = "Google",
-                    icon = R.drawable.image,
+                    icon = R.drawable.image_nb,
                     onClick = { viewModel, mainActivity ->
+                        run {
+                            val selectedItem = viewModel.selectedItem.value
+                            if (selectedItem == null)
+                                return@run
 
-
+                            /**
+                             * @see BrowserOverlay
+                             * le Browser est un composable dans MainActivity
+                             * voir BrowserOverlay et son appel par MainActivity
+                             * le callback est un de ses paramètres d'appel
+                             */
+                                viewModel.browserManager.openBrowser(
+                                    selectedItem, BrowserTarget.GOOGLE
+                                )
+                        }
                     }
                 ),
                 //////////
@@ -213,7 +227,7 @@ sealed class Tools(
                 //////////
                 Tool(
                     text = "Placement",
-                    icon = R.drawable.image,
+                    icon = R.drawable.image_nb,
                     onClick = { viewModel, mainActivity ->
 
 

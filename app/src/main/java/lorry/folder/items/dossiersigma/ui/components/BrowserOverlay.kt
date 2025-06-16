@@ -87,8 +87,12 @@ fun BrowserOverlay(
                             }
                             addJavascriptInterface(
                                 object {
+                                    var hasClicked = false
+                                    
                                     @JavascriptInterface
                                     fun onImageLongClick(imageUrl: String) {
+                                        if (hasClicked) return
+                                        hasClicked = true
                                         onImageClicked(imageUrl)
                                         onClose()
                                     }
