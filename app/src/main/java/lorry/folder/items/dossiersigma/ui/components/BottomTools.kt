@@ -41,7 +41,6 @@ import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
-import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import java.io.File
 import javax.inject.Inject
 
@@ -176,7 +175,7 @@ sealed class Tools(
                             }
                         }
 
-                        mainActivity.openDialog.value = true
+                        mainActivity.openTextDialog.value = true
                     }
                 ),
                 ////////////////////////
@@ -285,9 +284,10 @@ sealed class Tools(
                             }
                             
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            viewModel.setSelectedItem(null)
                         }
 
-                        mainActivity.openDialog.value = true
+                        mainActivity.openTextDialog.value = true
                     }
                 ),
                 /////////////////////
@@ -319,11 +319,49 @@ sealed class Tools(
                     text = "Supprimer",
                     icon = R.drawable.corbeille,
                     onClick = { viewModel, mainActivity ->
+                        val currentFolderPath = viewModel.selectedItem.value?.fullPath
+                        //viewModel.setSelectedItem(null)
+                        viewModel.setDialogMessage("Voulez-vous vraiment supprimer ce ${if (viewModel
+                                .selectedItem.value?.isFile() != false
+                        ) "fichier" else "dossier"} ?")
+                        viewModel.dialogYesNoLambda = { yesNo, viewModel, mainActivity ->
+                            run {
+                                if (!yesNo)
+                                    return@run
+                                
+                                val item = viewModel.selectedItem.value
+                                val itemFullPath = item?.fullPath ?: ""
+                                if (item == null)
+                                    return@run
+                                
+                                if (item.isFolder())
+                                    File(item.fullPath).deleteRecursively()
+                                else File(item.fullPath).delete()
+                                viewModel.setSelectedItem(null)
+                                viewModel.refreshCurrentFolder()
+                                
+                                if (File(itemFullPath).exists())
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Un problème lors de la suppression est survenu",
+                                        Toast.LENGTH_LONG
+                                    )
+                                        .show()
+                                else Toast.makeText(
+                                    mainActivity,
+                                    "Suppression effectuée",
+                                    Toast.LENGTH_LONG
+                                )
+                                    .show()
+                            }
+                            
 
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        }
 
-
-                        viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        mainActivity.openYesNoDialog.value = true
                     }
+                    
                 ),
             )
         ))
@@ -397,7 +435,7 @@ sealed class Tools(
 }
 
 @Composable
-fun CustomDialog(
+fun CustomTextDialog(
     text: String,
     openDialog: MutableState<Boolean>,
     onOk: (String) -> Unit
@@ -463,6 +501,72 @@ fun CustomDialog(
                     }
                 ) {
                     Text("OK")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomYesNoDialog(
+    text: String,
+    openDialog: MutableState<Boolean>,
+    onOk: (Boolean) -> Unit
+) {
+    val editMessage = remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                color = contentColorFor(Color.White)
+                    .copy(alpha = 0.6f)
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    openDialog.value = false
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.White)
+                .padding(8.dp),
+        ) {
+
+            Text(
+                modifier = Modifier,
+                text = text,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Button(
+                    onClick = {
+                        openDialog.value = false
+                        onOk(false)
+                    }
+                ) {
+                    Text("Non")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        openDialog.value = false
+                        onOk(true)
+                    }
+                ) {
+                    Text("Oui")
                 }
             }
         }

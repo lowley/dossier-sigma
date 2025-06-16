@@ -61,7 +61,6 @@ import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -70,7 +69,8 @@ import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
-import lorry.folder.items.dossiersigma.ui.components.CustomDialog
+import lorry.folder.items.dossiersigma.ui.components.CustomTextDialog
+import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.components.Tools
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
@@ -89,9 +89,10 @@ class MainActivity : ComponentActivity() {
 
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
-    lateinit var openDialog: MutableState<Boolean>
+    lateinit var openTextDialog: MutableState<Boolean>
+    lateinit var openYesNoDialog: MutableState<Boolean>
     lateinit var isContextMenuVisible: State<Boolean>
-    
+
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,10 +120,12 @@ class MainActivity : ComponentActivity() {
                 val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
                 val homePageVisible by homeViewModel.homePageVisible.collectAsState()
                 val currentTool by mainViewModel.bottomTools.currentTool.collectAsState()
-                openDialog = remember { mutableStateOf(false) }
+                openTextDialog = remember { mutableStateOf(false) }
+                openYesNoDialog = remember { mutableStateOf(false) }
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-                isContextMenuVisible = mainViewModel.isContextMenuVisible.collectAsState()
                 
+                isContextMenuVisible = mainViewModel.isContextMenuVisible.collectAsState()
+
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
                 }
@@ -131,7 +134,7 @@ class MainActivity : ComponentActivity() {
                     mainViewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
                     mainViewModel.removeLastFolderPathHistory()
                 }
-                
+
                 LaunchedEffect(Unit) {
                     mainViewModel.bottomTools.setCurrentContent(Tools.DEFAULT)
                 }
@@ -416,7 +419,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                     if (!homePageVisible) {
-                        mainViewModel.bottomTools.BottomToolBar(openDialog, activity = this@MainActivity)
+                        mainViewModel.bottomTools.BottomToolBar(openTextDialog, activity = this@MainActivity)
                     }
 
                     val url by mainViewModel.browserManager.currentPage.collectAsState()
@@ -436,14 +439,24 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                if (openDialog.value)
-                    CustomDialog(dialogMessage.value ?: "", openDialog) { text ->
+                if (openTextDialog.value)
+                    CustomTextDialog(dialogMessage.value ?: "", openTextDialog) { text ->
                         if (mainViewModel.dialogOnOkLambda != null) {
                             mainViewModel.dialogOnOkLambda?.invoke(text, mainViewModel, this)
                             mainViewModel.dialogOnOkLambda = null
                         } else
                             currentTool?.onClick(mainViewModel, this)
                     }
+                
+                if (openYesNoDialog.value) {
+                    CustomYesNoDialog(dialogMessage.value ?: "", openYesNoDialog) { yesNo ->
+                        if (mainViewModel.dialogYesNoLambda != null){
+                            mainViewModel.dialogYesNoLambda?.invoke(yesNo, mainViewModel, this)
+                            mainViewModel.dialogYesNoLambda = null
+                        } else
+                            currentTool?.onClick(mainViewModel, this)
+                    }
+                }
             }
         }
     }

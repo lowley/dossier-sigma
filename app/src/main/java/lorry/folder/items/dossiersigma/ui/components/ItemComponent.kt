@@ -493,7 +493,7 @@ fun ItemComponent(
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
                         }
 
-                        context.openDialog.value = true
+                        context.openTextDialog.value = true
                     }
                 )
 
@@ -528,7 +528,7 @@ fun ItemComponent(
                                 viewModel.bottomTools.setCurrentContent(DEFAULT)
                             }
 
-                            context.openDialog.value = true
+                            context.openTextDialog.value = true
                         }
                     )
                 }
