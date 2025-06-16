@@ -9,7 +9,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -42,6 +41,7 @@ import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import java.io.File
 import javax.inject.Inject
 
@@ -53,8 +53,8 @@ class BottomTools @Inject constructor(
     private val _bottomToolsContent = MutableStateFlow<BottomToolContent?>(null)
     val currentContent: StateFlow<BottomToolContent?> = _bottomToolsContent
 
-    fun setCurrentContent(content: BottomToolContent) {
-        _bottomToolsContent.value = content
+    fun setCurrentContent(tools: Tools) {
+        _bottomToolsContent.value = tools.content
     }
 
     //destiné à l'affichage par remontée dans MainActivity
@@ -80,12 +80,12 @@ class BottomTools @Inject constructor(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(65.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             toolList.forEach { tool ->
                 Box(
                     modifier = Modifier
-                        .width(130.dp)
+                        .width(85.dp)
                         .fillMaxHeight()
                         .clickable {
                             setCurrentTool(tool)
@@ -155,7 +155,7 @@ sealed class Tools(
                 // + dossier //
                 ///////////////
                 Tool(
-                    text = "Créer dossier",
+                    text = "dossier",
                     icon = R.drawable.plus,
                     onClick = { viewModel, mainActivity ->
                         viewModel.setDialogMessage("Nom du dossier à créer")
@@ -178,12 +178,44 @@ sealed class Tools(
 
                         mainActivity.openDialog.value = true
                     }
-                )
+                ),
+                ////////////////////////
+                // supprimer totalité //
+                ////////////////////////
+//                Tool(
+//                    text = "tout",
+//                    icon = R.drawable.corbeille,
+//                    onClick = { viewModel, mainActivity ->
+//                        
+//                    }
+//                )
             )))
 
-    object FILE_SELECTED : Tools(
+    object FILE : Tools(
         BottomToolContent(
             toolInit = listOf(
+                //////////////////
+                // image google //
+                //////////////////
+                Tool(
+                    text = "Google",
+                    icon = R.drawable.image,
+                    onClick = { viewModel, mainActivity ->
+
+
+                    }
+                ),
+                //////////
+                // crop //
+                //////////
+                Tool(
+                    text = "Placement",
+                    icon = R.drawable.image,
+                    onClick = { viewModel, mainActivity ->
+
+
+                    }
+                ),
                 ////////////
                 // copier //
                 ////////////
@@ -194,7 +226,6 @@ sealed class Tools(
 
 
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)
-
                     }
                 ),
                 //////////////
@@ -215,36 +246,70 @@ sealed class Tools(
                     text = "Renommer",
                     icon = R.drawable.renommer,
                     onClick = { viewModel, mainActivity ->
-                        //mainActivity.itemIdWithVisibleMenu.value = ""
                         val currentFolderPath = viewModel.selectedItem.value?.fullPath
                         //viewModel.setSelectedItem(null)
                         viewModel.setDialogMessage("Nouveau nom du dossier")
                         viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
                             run {
                                 if (currentFolderPath == null || newName == currentFolderPath.substringAfterLast("/")
-                                )
+                                ) {
+                                    Toast.makeText(
+                                        mainActivity,
+                                        "Le nouveau nom doît être différent de l'ancien",
+                                        Toast.LENGTH_SHORT
+                                    )
+                                        .show()
                                     return@run
+                                }
 
                                 val newFullName = "${
                                     currentFolderPath
                                         .substringBeforeLast("/")}/$newName"
-                                if (!File(newFullName).exists()) {
-                                    if (File(newFullName).mkdir()) {
-                                        Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT)
-                                            .show()
+                                println("NOM: $newFullName")
+                                if (File(currentFolderPath).exists()) {
+                                    if (File(currentFolderPath).renameTo(File(newFullName))) {
+                                        Toast.makeText(
+                                            mainActivity,
+                                            "Renommage effectué",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                         viewModel.refreshCurrentFolder()
                                     } else
                                         Toast.makeText(
                                             mainActivity,
-                                            "Un problème est survenu",
-                                            Toast.LENGTH_SHORT
+                                            "Un problème lors du renommage est survenu",
+                                            Toast.LENGTH_LONG
                                         )
                                             .show()
                                 }
                             }
+                            
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
                         }
 
                         mainActivity.openDialog.value = true
+                    }
+                ),
+                /////////////////////
+                // + dossier frère //
+                /////////////////////
+                Tool(
+                    text = "+ frère",
+                    icon = R.drawable.dossier,
+                    onClick = { viewModel, mainActivity ->
+
+
+                    }
+                ),
+                ////////////////////
+                // + dossier fils //
+                ////////////////////
+                Tool(
+                    text = "+ fils",
+                    icon = R.drawable.dossier,
+                    onClick = { viewModel, mainActivity ->
+
+
                     }
                 ),
                 ///////////////
@@ -256,8 +321,10 @@ sealed class Tools(
                     onClick = { viewModel, mainActivity ->
 
 
+
+                        viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
-                )
+                ),
             )
         ))
 
@@ -273,6 +340,7 @@ sealed class Tools(
                     onClick = { viewModel, mainActivity ->
 
 
+                        viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
                 ),
                 ////////////
@@ -285,7 +353,7 @@ sealed class Tools(
 
 
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)
-
+                        viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
                 )
             )
@@ -303,6 +371,7 @@ sealed class Tools(
                     onClick = { viewModel, mainActivity ->
 
 
+                        viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
                 ),
                 ////////////
@@ -315,7 +384,7 @@ sealed class Tools(
 
 
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)
-
+                        viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
                 )
             )

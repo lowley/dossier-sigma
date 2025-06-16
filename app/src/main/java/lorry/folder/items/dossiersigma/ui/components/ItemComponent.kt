@@ -25,7 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -66,6 +65,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import java.io.File
 import java.io.FileOutputStream
 
@@ -76,7 +76,6 @@ fun ItemComponent(
     item: Item,
     imageCache: MutableMap<String, Any?>,
     scaleCache: MutableMap<String, ContentScale>,
-    itemIdWithVisibleMenu: MutableState<String>,
     context: MainActivity
 ) {
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
@@ -85,7 +84,6 @@ fun ItemComponent(
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
     val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
     var contentScale by remember { mutableStateOf(ContentScale.Crop) }
-    var expandedAddition by remember { mutableStateOf(false) }
 
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val cached = imageCache[item.fullPath]
@@ -110,7 +108,6 @@ fun ItemComponent(
             modifier = Modifier//.background(Color.Blue)
                 .width(imageHeight)
                 .height(imageHeight),
-
             ) {
             var expanded by remember { mutableStateOf(false) }
             val scrollState = rememberScrollState()
@@ -147,10 +144,10 @@ fun ItemComponent(
                                         }
                                     },
                                     onLongPress = { offset ->
-                                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-                                        itemIdWithVisibleMenu.value = item.id
-                                        expandedAddition = true
+//                                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
+//                                        viewModel.setIsContextMenuVisible(true)
                                         viewModel.setSelectedItem(item)
+                                        viewModel.bottomTools.setCurrentContent(Tools.FILE)
                                     })
                             },
                         imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(
@@ -242,10 +239,13 @@ fun ItemComponent(
                 }
             }
 
+            val selectedItem by viewModel.selectedItem.collectAsState()
+            val isContextMenuVisible = context.isContextMenuVisible
+            
             DropdownMenu(
-                expanded = itemIdWithVisibleMenu.value == item.id && expandedAddition,
+                expanded = selectedItem?.id == item.id && context.isContextMenuVisible.value,
                 onDismissRequest = {
-                    itemIdWithVisibleMenu.value = ""
+                    viewModel.setIsContextMenuVisible(false)
                 },
                 offset = with(density) {
                     DpOffset(imageOffset.x, (-imageHeight / 2))
@@ -320,7 +320,7 @@ fun ItemComponent(
                          * le callback est un de ses paramètres d'appel
                          */
                         viewModel.browserManager.openBrowser(item, BrowserTarget.GOOGLE)
-                        itemIdWithVisibleMenu.value = ""
+                        viewModel.setIsContextMenuVisible(false)
                     }
                 )
 
@@ -393,7 +393,8 @@ fun ItemComponent(
                         }
 
                         viewModel.setSelectedItem(null)
-                        itemIdWithVisibleMenu.value = ""
+                        viewModel.setIsContextMenuVisible(false)
+                        viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
                 )
 
@@ -484,12 +485,12 @@ fun ItemComponent(
                     },
                     onClick = {
                         viewModel.setSelectedItem(null)
-                        itemIdWithVisibleMenu.value = ""
+                        viewModel.setIsContextMenuVisible(false)
                         viewModel.setDialogMessage("Ajouter un dossier frère")
                         viewModel.dialogOnOkLambda = { name, viewModel, context ->
                             File(item.fullPath.substringBeforeLast("/") + "/$name").mkdir()
-                            expandedAddition = false
                             viewModel.refreshCurrentFolder()
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
                         }
 
                         context.openDialog.value = true
@@ -518,13 +519,13 @@ fun ItemComponent(
                             )
                         },
                         onClick = {
-                            itemIdWithVisibleMenu.value = ""
+                            viewModel.setIsContextMenuVisible(false)
                             viewModel.setSelectedItem(null)
                             viewModel.setDialogMessage("Ajouter un dossier fils")
                             viewModel.dialogOnOkLambda = { name, viewModel, context ->
                                 File(item.fullPath + "/$name").mkdir()
-                                expandedAddition = false
                                 viewModel.refreshCurrentFolder()
+                                viewModel.bottomTools.setCurrentContent(DEFAULT)
                             }
 
                             context.openDialog.value = true
@@ -556,10 +557,10 @@ fun ItemComponent(
                         if (item.isFolder())
                             File(item.fullPath).deleteRecursively()
                         else File(item.fullPath).delete()
-                        expandedAddition = false
                         viewModel.setSelectedItem(null)
-                        itemIdWithVisibleMenu.value = ""
+                        viewModel.setIsContextMenuVisible(false)
                         viewModel.refreshCurrentFolder()
+                        viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
                 )
 

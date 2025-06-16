@@ -42,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,7 @@ import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -71,6 +73,7 @@ import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.CustomDialog
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.components.Tools
+import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
 
@@ -87,7 +90,7 @@ class MainActivity : ComponentActivity() {
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
     lateinit var openDialog: MutableState<Boolean>
-    lateinit var itemIdWithVisibleMenu: MutableState<String>
+    lateinit var isContextMenuVisible: State<Boolean>
     
     @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,8 +121,8 @@ class MainActivity : ComponentActivity() {
                 val currentTool by mainViewModel.bottomTools.currentTool.collectAsState()
                 openDialog = remember { mutableStateOf(false) }
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-                itemIdWithVisibleMenu = remember { mutableStateOf("") }
-
+                isContextMenuVisible = mainViewModel.isContextMenuVisible.collectAsState()
+                
                 SideEffect {
                     activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
                 }
@@ -127,6 +130,10 @@ class MainActivity : ComponentActivity() {
                 BackHandler(enabled = true) {
                     mainViewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
                     mainViewModel.removeLastFolderPathHistory()
+                }
+                
+                LaunchedEffect(Unit) {
+                    mainViewModel.bottomTools.setCurrentContent(Tools.DEFAULT)
                 }
 
                 LaunchedEffect(pictureUpdateId) {
@@ -149,10 +156,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color(0xFF363E4C))
-                        .pointerInput(itemIdWithVisibleMenu.value) { // interception globale des taps
+                        .pointerInput(selectedItem?.id) {
                             detectTapGestures(onTap = {
-                                if (itemIdWithVisibleMenu.value.isNotEmpty()) {
-//                                    itemIdWithVisibleMenu.value = ""
+                                if (selectedItem?.id != null) {
                                     mainViewModel.setSelectedItem(null)
                                 }
                             })
@@ -403,7 +409,6 @@ class MainActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .padding(horizontal = 10.dp, vertical = 6.dp),
                                     imageCache = mainViewModel.imageCache,
-                                    itemIdWithVisibleMenu = itemIdWithVisibleMenu,
                                     context = this@MainActivity,
                                     scaleCache = mainViewModel.scaleCache
                                 )
@@ -411,20 +416,6 @@ class MainActivity : ComponentActivity() {
                         }
 
                     if (!homePageVisible) {
-                        val currentContent by mainViewModel.bottomTools.currentContent.collectAsState()
-
-                        var newTool: Tools? = null 
-                        
-                        if (itemIdWithVisibleMenu.value != "")
-                            newTool = Tools.FILE_SELECTED
-                        if (currentContent?.tools == Tools.COPY_FILE)
-                            newTool = Tools.COPY_FILE
-                        if (currentTool == Tools.MOVE_FILE)
-                            newTool = Tools.MOVE_FILE
-                        if (newTool == null)
-                            newTool = Tools.DEFAULT
-
-                        mainViewModel.bottomTools.setCurrentContent(newTool.content)
                         mainViewModel.bottomTools.BottomToolBar(openDialog, activity = this@MainActivity)
                     }
 
@@ -439,8 +430,7 @@ class MainActivity : ComponentActivity() {
                             manageImageClick(mainViewModel, url)
                             //génère des problèmes dans manageImageClick
 //                            mainViewModel.setSelectedItem(null)
-                            //à tester si besoin
-//                            itemIdWithVisibleMenu.value = ""
+                            mainViewModel.bottomTools.setCurrentContent(DEFAULT)
                         },
                         viewmodel = mainViewModel
                     )
@@ -451,8 +441,7 @@ class MainActivity : ComponentActivity() {
                         if (mainViewModel.dialogOnOkLambda != null) {
                             mainViewModel.dialogOnOkLambda?.invoke(text, mainViewModel, this)
                             mainViewModel.dialogOnOkLambda = null
-                        }
-                        else
+                        } else
                             currentTool?.onClick(mainViewModel, this)
                     }
             }
@@ -499,7 +488,8 @@ class MainActivity : ComponentActivity() {
         }
 
         mainViewModel.setSelectedItem(null)
-        itemIdWithVisibleMenu.value = ""
+        mainViewModel.setIsContextMenuVisible(false)
+        mainViewModel.bottomTools.setCurrentContent(DEFAULT)
     }
 }
 

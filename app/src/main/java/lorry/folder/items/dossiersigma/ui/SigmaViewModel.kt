@@ -55,6 +55,13 @@ class SigmaViewModel @Inject constructor(
     private val _pictureUpdateId = MutableStateFlow(0)
     val pictureUpdateId: StateFlow<Int> = _pictureUpdateId
 
+    private val _isContextMenuVisible = MutableStateFlow(false)
+    val isContextMenuVisible: StateFlow<Boolean> = _isContextMenuVisible
+
+    fun setIsContextMenuVisible(isVisible: Boolean) {
+        _isContextMenuVisible.value = isVisible
+    }
+    
     private val _folderPathHistory = MutableStateFlow<List<String>>(emptyList())
     val folderPathHistory: StateFlow<List<String>> = _folderPathHistory
 
@@ -126,9 +133,9 @@ class SigmaViewModel @Inject constructor(
         _selectedItem.value = item
         
         if (item != null)
-            bottomTools.setCurrentContent(Tools.FILE_SELECTED.content)
+            bottomTools.setCurrentContent(Tools.FILE)
         else
-            bottomTools.setCurrentContent(Tools.DEFAULT.content)
+            bottomTools.setCurrentContent(Tools.DEFAULT)
     }
 
     suspend fun updatePicture(newPicture: Any?) {
