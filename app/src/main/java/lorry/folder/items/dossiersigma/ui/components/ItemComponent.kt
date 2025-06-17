@@ -128,12 +128,44 @@ fun ItemComponent(
                     )
                 else Modifier
             )
-            .then(modifier)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        if (selectedItemId != null &&
+                            selectedItemId != item.id) {
+                            viewModel.setSelectedItem(null)
+                            viewModel.bottomTools.setCurrentContent(Tools.DEFAULT)
+                            return@detectTapGestures
+                        }
 
-        val testModifier = Modifier
-            .width(imageHeight)
-            .height(imageHeight)
-            .background(Color.Red)
+                        if (item.isFolder()) {
+                            viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                            viewModel.goToFolder(
+                                item.fullPath,
+                                ITEMS_ORDERING_STRATEGY.DATE_DESC
+                            )
+                        }
+                        if (item.isFile() &&
+                            (item.name.endsWith(".mp4") ||
+                                    item.name.endsWith(".mkv") ||
+                                    item.name.endsWith(".mpg") ||
+                                    item.name.endsWith(".iso") ||
+                                    item.name.endsWith(".avi"))
+                        ) {
+                            viewModel.playVideoFile(item.fullPath)
+                        }
+                        if (item.isFile() && item.name.endsWith(".html")) {
+                            viewModel.playHtmlFile(item.fullPath)
+                        }
+                    },
+                    onLongPress = { offset ->
+//                                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
+//                                        viewModel.setIsContextMenuVisible(true)
+                        viewModel.setSelectedItem(item)
+                        viewModel.bottomTools.setCurrentContent(Tools.FILE)
+                    })
+            }
+        
         
         Box(
             modifier = modifierWithBorder//.background(Color.Blue)
@@ -150,44 +182,7 @@ fun ItemComponent(
                             .align(Alignment.BottomCenter)
                             .fillMaxSize()
                             .clip(RoundedCornerShape(8.dp))
-                            .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = {
-                                        if (selectedItemId != null &&
-                                            selectedItemId != item.id) {
-                                            viewModel.setSelectedItem(null)
-                                            viewModel.bottomTools.setCurrentContent(Tools.DEFAULT)
-                                            return@detectTapGestures
-                                        }
-
-                                        if (item.isFolder()) {
-                                            viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                                            viewModel.goToFolder(
-                                                item.fullPath,
-                                                ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                            )
-                                        }
-                                        if (item.isFile() &&
-                                            (item.name.endsWith(".mp4") ||
-                                                    item.name.endsWith(".mkv") ||
-                                                    item.name.endsWith(".mpg") ||
-                                                    item.name.endsWith(".iso") ||
-                                                    item.name.endsWith(".avi"))
-                                        ) {
-                                            viewModel.playVideoFile(item.fullPath)
-                                        }
-                                        if (item.isFile() && item.name.endsWith(".html")) {
-                                            viewModel.playHtmlFile(item.fullPath)
-                                        }
-                                    },
-                                    onLongPress = { offset ->
-//                                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-//                                        viewModel.setIsContextMenuVisible(true)
-                                        viewModel.setSelectedItem(item)
-                                        viewModel.bottomTools.setCurrentContent(Tools.FILE)
-                                    })
-                            },
+                            .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
                         imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(
                             context, R.drawable
                                 .file
