@@ -140,8 +140,8 @@ class SigmaViewModel @Inject constructor(
             bottomTools.setCurrentContent(Tools.DEFAULT)
     }
 
-    val selectedItemId = selectedItem
-        .map { item -> item?.id }
+    val selectedItemFullPath = selectedItem
+        .map { item -> item?.fullPath }
         .stateIn(
             scope = viewModelScope,
             started = Eagerly,

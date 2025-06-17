@@ -32,9 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
@@ -110,15 +108,14 @@ fun ItemComponent(
     }
 
     Column() {
-
         val shape1 = RoundedCornerShape(8.dp)
-        val selectedItemId by viewModel.selectedItemId.collectAsState()
+        val selectedItemFullPath by viewModel.selectedItemFullPath.collectAsState()
 
         val modifierWithBorder = Modifier
             .clip(shape1)
             .background(Color.Transparent)
             .then(
-                if (item.id == selectedItemId)
+                if (item.fullPath == selectedItemFullPath)
                     Modifier.dashedBorder(
                         color = Color(0xFFDBBC00),
                         strokeWidth = 2.dp,
@@ -131,7 +128,7 @@ fun ItemComponent(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        if (selectedItemId != null) {
+                        if (selectedItemFullPath != null) {
                             viewModel.setSelectedItem(null)
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
                             return@detectTapGestures
@@ -165,7 +162,6 @@ fun ItemComponent(
                     })
             }
         
-        
         Box(
             modifier = modifierWithBorder//.background(Color.Blue)
                 .width(imageHeight)
@@ -188,7 +184,7 @@ fun ItemComponent(
                         ),
                         contentScale = contentScale,
                         item = item,
-                        selectedItemId = selectedItemId
+                        selectedItemFullPath = selectedItemFullPath
                     )
                 }
             }
@@ -746,7 +742,7 @@ fun ImageSection(
     imageSource: Bitmap,
     contentScale: ContentScale,
     item: Item,
-    selectedItemId: String?,
+    selectedItemFullPath: String?,
 ) {
     val context = LocalContext.current
     val imageRequest = ImageRequest.Builder(context).data(imageSource).build()

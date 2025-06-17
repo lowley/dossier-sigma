@@ -1,6 +1,8 @@
 package lorry.folder.items.dossiersigma.ui.components
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -39,6 +41,7 @@ import androidx.compose.ui.layout.FixedScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
+import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -604,7 +607,23 @@ sealed class Tools(
                     icon = R.drawable.image,
                     onClick = { viewModel, mainActivity ->
                         run {
+                            val sourceBitmap = viewModel.imageCache[viewModel.selectedItem.value?.fullPath 
+                                ?: ""] as Bitmap
 
+                            val sourceUri = bitmapToTempUri(mainActivity, sourceBitmap)
+                            val destinationUri =
+                                Uri.fromFile(
+                                    File.createTempFile(
+                                        "cropped_", ".jpg",
+                                        mainActivity.cacheDir
+                                    )
+                                )
+
+                            //le callback est dans MainActivity : onActivityResult (override)
+                            UCrop.of(sourceUri, destinationUri)
+                                .withAspectRatio(1f, 1f)
+                                .withMaxResultSize(175, 175)
+                                .start(mainActivity)
                         }
                     }
                 ),

@@ -515,11 +515,11 @@ class MainActivity : ComponentActivity() {
         mainViewModel.viewModelScope.launch {
             val croppedBitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri))
             mainViewModel.updatePicture(Bitmap.createBitmap(croppedBitmap))
+            mainViewModel.refreshCurrentFolder()
         }
 
-        mainViewModel.setSelectedItem(null)
-        mainViewModel.setIsContextMenuVisible(false)
-        mainViewModel.bottomTools.setCurrentContent(DEFAULT)
+//        mainViewModel.setSelectedItem(null)
+//        mainViewModel.bottomTools.setCurrentContent(DEFAULT)
     }
 }
 
