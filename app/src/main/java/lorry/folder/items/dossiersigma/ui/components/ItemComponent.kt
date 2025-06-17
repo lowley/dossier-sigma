@@ -131,10 +131,9 @@ fun ItemComponent(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        if (selectedItemId != null &&
-                            selectedItemId != item.id) {
+                        if (selectedItemId != null) {
                             viewModel.setSelectedItem(null)
-                            viewModel.bottomTools.setCurrentContent(Tools.DEFAULT)
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
                             return@detectTapGestures
                         }
 
@@ -142,9 +141,9 @@ fun ItemComponent(
                             viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
                             viewModel.goToFolder(
                                 item.fullPath,
-                                ITEMS_ORDERING_STRATEGY.DATE_DESC
-                            )
+                                ITEMS_ORDERING_STRATEGY.DATE_DESC)
                         }
+                        
                         if (item.isFile() &&
                             (item.name.endsWith(".mp4") ||
                                     item.name.endsWith(".mkv") ||
