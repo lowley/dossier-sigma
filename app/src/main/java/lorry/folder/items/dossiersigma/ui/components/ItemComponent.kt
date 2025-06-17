@@ -9,6 +9,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -109,22 +110,45 @@ fun ItemComponent(
     }
 
     Column() {
+
+        val shape1 = RoundedCornerShape(8.dp)
+        val selectedItemId by viewModel.selectedItemId.collectAsState()
+
+        val modifierWithBorder = Modifier
+            .clip(shape1)
+            .background(Color.Transparent)
+            .then(
+                if (item.id == selectedItemId)
+                    Modifier.dashedBorder(
+                        color = Color(0xFFDBBC00),
+                        strokeWidth = 2.dp,
+                        cornerRadius = 8.dp,
+                        dashLength = 10.dp,
+                        gapLength = 10.dp
+                    )
+                else Modifier
+            )
+            .then(modifier)
+
+        val testModifier = Modifier
+            .width(imageHeight)
+            .height(imageHeight)
+            .background(Color.Red)
+        
         Box(
-            modifier = Modifier//.background(Color.Blue)
+            modifier = modifierWithBorder//.background(Color.Blue)
                 .width(imageHeight)
                 .height(imageHeight),
         ) {
             var expanded by remember { mutableStateOf(false) }
             val scrollState = rememberScrollState()
-
-            val selectedItemId by viewModel.selectedItemId.collectAsState()
-
+            
             imageSource.value?.let { bitmap ->
                 key(pictureUpdateId) {
                     ImageSection(
                         modifier = Modifier//.background(Color.Yellow)
                             .align(Alignment.BottomCenter)
-                            .size(imageHeight + 15.dp)
+                            .fillMaxSize()
                             .clip(RoundedCornerShape(8.dp))
                             .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
                             .pointerInput(Unit) {
@@ -136,7 +160,7 @@ fun ItemComponent(
                                             viewModel.bottomTools.setCurrentContent(Tools.DEFAULT)
                                             return@detectTapGestures
                                         }
-                                        
+
                                         if (item.isFolder()) {
                                             viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
                                             viewModel.goToFolder(
@@ -747,26 +771,26 @@ fun ImageSection(
         } else false
     }
 
-    val shape = RoundedCornerShape(8.dp)
-
-    val modifierWithBorder = Modifier
-        .clip(shape)
-        .background(Color.Transparent)
-        .then(
-            if (item.id == selectedItemId)
-                Modifier.dashedBorder(
-                    color = Color(0xFFDBBC00),
-                    strokeWidth = 2.dp,
-                    cornerRadius = 8.dp,
-                    dashLength = 10.dp,
-                    gapLength = 10.dp
-                )
-            else Modifier
-        )
-        .then(modifier)
+//    val shape = RoundedCornerShape(8.dp)
+//
+//    val modifierWithBorder = Modifier
+//        .clip(shape)
+//        .background(Color.Transparent)
+//        .then(
+//            if (item.id == selectedItemId)
+//                Modifier.dashedBorder(
+//                    color = Color(0xFFDBBC00),
+//                    strokeWidth = 2.dp,
+//                    cornerRadius = 8.dp,
+//                    dashLength = 10.dp,
+//                    gapLength = 10.dp
+//                )
+//            else Modifier
+//        )
+//        .then(modifier)
 
     Box(
-        modifier = modifierWithBorder
+        modifier = Modifier
     ) {
         if (shouldShowMesh) {
             Image(
@@ -784,7 +808,8 @@ fun ImageSection(
             contentDescription = "Miniature",
             contentScale = contentScale,
             modifier = Modifier
-                .matchParentSize()
+//                .matchParentSize()
+                .fillMaxSize()
                 .zIndex(0f)
         )
     }
