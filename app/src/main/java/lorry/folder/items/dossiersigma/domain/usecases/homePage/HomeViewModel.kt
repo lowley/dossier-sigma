@@ -15,7 +15,7 @@ class HomeViewModel @Inject constructor(
     val homeUseCase: HomeUseCase
 ) : ViewModel() {
 
-    private val _homePageVisible = MutableStateFlow<Boolean>(false)
+    private val _homePageVisible = MutableStateFlow<Boolean>(true)
     val homePageVisible: StateFlow<Boolean> = _homePageVisible
 
     fun setHomePageVisible(visible: Boolean) {
@@ -51,6 +51,67 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
+
+        homeItems.add(
+            HomeItem(
+                title = "Filles",
+                icon = R.drawable.sexe,
+                onClick = { mainVM, homeVM ->
+                    homeVM.setHomePageVisible(false)
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe/filles")
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "Fantasmes",
+                icon = R.drawable.sexe,
+                onClick = { mainVM, homeVM ->
+                    homeVM.setHomePageVisible(false)
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe/fantasmes")
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "Films",
+                icon = R.drawable.film,
+                onClick = { mainVM, homeVM ->
+                    homeVM.setHomePageVisible(false)
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies")
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "1DM+",
+                icon = R.drawable.sexe,
+                onClick = { mainVM, homeVM ->
+                    homeVM.setHomePageVisible(false)
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Download/1DMP/General")
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "Nzbs",
+                icon = R.drawable.downloads2,
+                onClick = { mainVM, homeVM ->
+                    homeVM.setHomePageVisible(false)
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Download/nzb")
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "Films/Sexe",
+                icon = R.drawable.sexe,
+                onClick = { mainVM, homeVM ->
+                    homeVM.setHomePageVisible(false)
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe")
+                }
+            ))
+        
         homeItems.add(
             HomeItem(
             title = "Stockage principal",
@@ -68,46 +129,6 @@ class HomeViewModel @Inject constructor(
             onClick = { mainVM, homeVM ->
                 homeVM.setHomePageVisible(false)
                 mainVM.addFolderPathToHistory("/storage/emulated/0/Download")
-            }
-        ))
-
-        homeItems.add(
-            HomeItem(
-                title = "Films",
-                icon = R.drawable.film,
-                onClick = { mainVM, homeVM ->
-                    homeVM.setHomePageVisible(false)
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies")
-                }
-            ))
-
-        homeItems.add(
-            HomeItem(
-            title = "Films/Sexe",
-            icon = R.drawable.sexe,
-            onClick = { mainVM, homeVM ->
-                homeVM.setHomePageVisible(false)
-                mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe")
-            }
-        ))
-        
-        homeItems.add(
-            HomeItem(
-            title = "1DM+",
-            icon = R.drawable.sexe,
-            onClick = { mainVM, homeVM ->
-                homeVM.setHomePageVisible(false)
-                mainVM.addFolderPathToHistory("/storage/emulated/0/Download/1DMP/General")
-            }
-        ))
-
-        homeItems.add(
-            HomeItem(
-            title = "Nzbs",
-            icon = R.drawable.downloads2,
-            onClick = { mainVM, homeVM ->
-                homeVM.setHomePageVisible(false)
-                mainVM.addFolderPathToHistory("/storage/emulated/0/Download/nzb")
             }
         ))
     }

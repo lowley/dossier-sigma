@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ColorFilter
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -13,6 +14,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +67,8 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.domain.SigmaFile
+import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
@@ -179,13 +183,13 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxWidth()
                                 .padding(end = sortingWidth),
                         ) {
-                            AsyncImage(
-                                model = R.drawable.bouger,
-                                contentDescription = "Miniature",
-                                modifier = Modifier
-                                    .padding(horizontal = 5.dp)
+                            Icon(
+                                modifier = Modifier.size(50.dp)
+                                        .padding(
+                                            start = 10.dp,
+                                            end = 5.dp)
                                     .align(Alignment.CenterVertically)
-                                    .size(30.dp)
+                                    .size(50.dp)
                                     .pointerInput(true) {
                                         detectTapGestures(
                                             onTap = {
@@ -195,11 +199,12 @@ class MainActivity : ComponentActivity() {
                                             }
                                         )
                                     },
+                                painter = painterResource(R.drawable.mouvement),
+                                tint = Color(0xFFe9c46a),
+                                contentDescription = null
                             )
 
                             if (!homePageVisible)
-//                                Text(text = itemIdWithVisibleMenu.value.toString(),
-//                                    color = Color.White)
                                 Breadcrumb(
                                     items = currentFolder.fullPath.split("/").filter { it != "" },
                                     onPathClick = { path ->
@@ -209,7 +214,7 @@ class MainActivity : ComponentActivity() {
                                         )
                                     },
                                     modifier = Modifier
-                                        .padding(start = 20.dp)
+                                        .padding(start = 10.dp)
                                         .align(Alignment.CenterVertically),
                                     activeColor = Color(0xFF8697CB),
                                     inactiveColor = Color(0xFF8697CB),
