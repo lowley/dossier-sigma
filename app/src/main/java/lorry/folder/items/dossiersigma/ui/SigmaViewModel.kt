@@ -75,6 +75,13 @@ class SigmaViewModel @Inject constructor(
         )
     private val reloadTrigger = MutableStateFlow(0)
 
+    private val _isFolderVisible = MutableStateFlow(false)
+    val isFolderVisible: StateFlow<Boolean> = _isFolderVisible
+    
+    fun setIsFolderVisible(isVisible: Boolean) {
+        _isFolderVisible.value = isVisible
+    }
+    
     // combine chemin + trigger pour déclencher un nouveau getSigmaFolder
     val currentFolder: StateFlow<SigmaFolder> = combine(
         currentFolderPath,

@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.ColorFilter
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -14,7 +13,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -60,15 +58,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
-import coil.compose.AsyncImage
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
-import lorry.folder.items.dossiersigma.domain.SigmaFile
-import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
@@ -184,10 +179,12 @@ class MainActivity : ComponentActivity() {
                                 .padding(end = sortingWidth),
                         ) {
                             Icon(
-                                modifier = Modifier.size(50.dp)
-                                        .padding(
-                                            start = 15.dp,
-                                            end = 5.dp)
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .padding(
+                                        start = 15.dp,
+                                        end = 5.dp
+                                    )
                                     .align(Alignment.CenterVertically)
                                     .size(50.dp)
                                     .pointerInput(true) {
@@ -306,45 +303,6 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 )
-
-//                        RowToggleButtonGroup(
-//                            modifier = Modifier
-//                                .padding(end = 20.dp)
-//                                .width(200.dp)
-//                                .height(40.dp),
-//                            buttonCount = 2,
-//                            selectedColor = Color(0xFF8697CB),
-//                            unselectedColor = LightGray,
-//                            selectedContentColor = Color.White,
-//                            unselectedContentColor = DarkGray,
-//                            elevation = ButtonDefaults.elevatedButtonElevation(0.dp),
-//                            buttonIcons = arrayOf(
-//                                painterResource(id = R.drawable.trier_decroissant),
-//                                painterResource(id = R.drawable.trier_croissant),
-//                            ),
-//                            buttonTexts = arrayOf(
-//                                "Date",
-//                                "Nom",
-//                            ),
-//                            shape = RoundedCornerShape(20.dp),
-//                            primarySelection = 0
-//                        ) { index ->
-//                            when (index) {
-//                                0 -> {
-//                                    viewModel.goToFolder(
-//                                        currentFolder.fullPath,
-//                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
-//                                    )
-//                                }
-//
-//                                1 -> {
-//                                    viewModel.goToFolder(
-//                                        currentFolder.fullPath,
-//                                        ITEMS_ORDERING_STRATEGY.NAME_ASC
-//                                    )
-//                                }
-//                            }
-//                        }
                             }
                     }
 
@@ -373,7 +331,11 @@ class MainActivity : ComponentActivity() {
                                     elevation = CardDefaults.cardElevation(
                                         defaultElevation = 10.dp
                                     ),
-                                    onClick = { item.onClick(mainViewModel, homeViewModel) },
+                                    onClick = {
+                                        mainViewModel.viewModelScope.launch {
+                                            item.onClick(mainViewModel, homeViewModel)
+                                        }
+                                    },
                                     border = BorderStroke(2.dp, _10Color),
                                 ) {
                                     Box(
@@ -424,7 +386,10 @@ class MainActivity : ComponentActivity() {
                         }
 
                     if (!homePageVisible) {
-                        mainViewModel.bottomTools.BottomToolBar(openTextDialog, activity = this@MainActivity)
+                        mainViewModel.bottomTools.BottomToolBar(
+                            openTextDialog,
+                            activity = this@MainActivity
+                        )
                     }
 
                     val url by mainViewModel.browserManager.currentPage.collectAsState()
@@ -451,7 +416,11 @@ class MainActivity : ComponentActivity() {
                     CustomTextDialog(dialogMessage.value ?: "", openTextDialog) { text ->
                         if (mainViewModel.dialogOnOkLambda != null) {
                             mainViewModel.viewModelScope.launch {
-                                mainViewModel.dialogOnOkLambda?.invoke(text, mainViewModel, this@MainActivity)
+                                mainViewModel.dialogOnOkLambda?.invoke(
+                                    text,
+                                    mainViewModel,
+                                    this@MainActivity
+                                )
                             }
                             mainViewModel.dialogOnOkLambda = null
                         } else

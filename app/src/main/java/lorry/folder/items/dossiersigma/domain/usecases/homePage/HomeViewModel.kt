@@ -2,9 +2,12 @@ package lorry.folder.items.dossiersigma.domain.usecases.homePage
 
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import java.util.UUID
@@ -57,8 +60,8 @@ class HomeViewModel @Inject constructor(
                 title = "Filles",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
-                    homeVM.setHomePageVisible(false)
                     mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe/filles")
+                    homeVM.setHomePageVisible(false)
                 }
             ))
 
@@ -67,8 +70,8 @@ class HomeViewModel @Inject constructor(
                 title = "Fantasmes",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
-                    homeVM.setHomePageVisible(false)
                     mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe/fantasmes")
+                    homeVM.setHomePageVisible(false)
                 }
             ))
 
@@ -77,8 +80,8 @@ class HomeViewModel @Inject constructor(
                 title = "Films",
                 icon = R.drawable.film,
                 onClick = { mainVM, homeVM ->
-                    homeVM.setHomePageVisible(false)
                     mainVM.addFolderPathToHistory("/storage/emulated/0/Movies")
+                    homeVM.setHomePageVisible(false)
                 }
             ))
 
@@ -87,8 +90,8 @@ class HomeViewModel @Inject constructor(
                 title = "1DM+",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
-                    homeVM.setHomePageVisible(false)
                     mainVM.addFolderPathToHistory("/storage/emulated/0/Download/1DMP/General")
+                    homeVM.setHomePageVisible(false)
                 }
             ))
 
@@ -97,8 +100,8 @@ class HomeViewModel @Inject constructor(
                 title = "Nzbs",
                 icon = R.drawable.downloads2,
                 onClick = { mainVM, homeVM ->
-                    homeVM.setHomePageVisible(false)
                     mainVM.addFolderPathToHistory("/storage/emulated/0/Download/nzb")
+                    homeVM.setHomePageVisible(false)
                 }
             ))
 
@@ -107,8 +110,8 @@ class HomeViewModel @Inject constructor(
                 title = "Films/Sexe",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
-                    homeVM.setHomePageVisible(false)
                     mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe")
+                    homeVM.setHomePageVisible(false)
                 }
             ))
         
@@ -117,8 +120,8 @@ class HomeViewModel @Inject constructor(
             title = "Stockage principal",
             icon = R.drawable.hdd,
             onClick = { mainVM, homeVM ->
-                homeVM.setHomePageVisible(false)
                 mainVM.addFolderPathToHistory("/storage/emulated/0")
+                homeVM.setHomePageVisible(false)
             }
         ))
 
@@ -127,8 +130,8 @@ class HomeViewModel @Inject constructor(
             title = "Téléchargements",
             icon = R.drawable.downloads2,
             onClick = { mainVM, homeVM ->
-                homeVM.setHomePageVisible(false)
                 mainVM.addFolderPathToHistory("/storage/emulated/0/Download")
+                homeVM.setHomePageVisible(false)
             }
         ))
     }
@@ -138,7 +141,7 @@ data class HomeItem(
     val id: UUID = UUID.randomUUID(),
     val title: String,
     @DrawableRes val icon: Int,
-    val onClick: (
+    val onClick: suspend (
         mainVM: SigmaViewModel,
         homeVM: HomeViewModel
     ) -> Unit
