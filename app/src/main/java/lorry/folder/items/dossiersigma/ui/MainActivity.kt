@@ -186,7 +186,7 @@ class MainActivity : ComponentActivity() {
                             Icon(
                                 modifier = Modifier.size(50.dp)
                                         .padding(
-                                            start = 10.dp,
+                                            start = 15.dp,
                                             end = 5.dp)
                                     .align(Alignment.CenterVertically)
                                     .size(50.dp)

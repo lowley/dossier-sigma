@@ -34,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.FixedScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
@@ -47,6 +49,7 @@ import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import java.io.File
 import javax.inject.Inject
+import kotlin.collections.set
 
 class BottomTools @Inject constructor(
     val context: Context,
@@ -229,8 +232,7 @@ sealed class Tools(
                     text = "Placement",
                     icon = R.drawable.image_nb,
                     onClick = { viewModel, mainActivity ->
-
-
+                        viewModel.bottomTools.setCurrentContent(Tools.CROP)
                     }
                 ),
                 ////////////
@@ -546,11 +548,109 @@ sealed class Tools(
                 )
             )
         ))
+    object CROP : Tools(
+        BottomToolContent(
+            toolInit = listOf(
+                Tool(
+                    text = "Aucun",
+                    icon = R.drawable.crop,
+                    onClick = { viewModel, mainActivity ->
+                        changeCrop(viewModel, mainActivity, ContentScale.None)
+                    }
+                ),
+                
+                Tool(
+                    text = "Rogner",
+                    icon = R.drawable.crop,
+                    onClick = { viewModel, mainActivity ->
+                        changeCrop(viewModel, mainActivity, ContentScale.Crop)
+                    }
+                ),
+
+                Tool(
+                    text = "Remplir ⇅",
+                    icon = R.drawable.crop,
+                    onClick = { viewModel, mainActivity ->
+                        changeCrop(viewModel, mainActivity, ContentScale.FillHeight)
+                    }
+                ),
+
+                Tool(
+                    text = "Remplir ⇿",
+                    icon = R.drawable.crop,
+                    onClick = { viewModel, mainActivity ->
+                        changeCrop(viewModel, mainActivity, ContentScale.FillWidth)
+                    }
+                ),
+
+                Tool(
+                    text = "Etirer",
+                    icon = R.drawable.crop,
+                    onClick = { viewModel, mainActivity ->
+                        changeCrop(viewModel, mainActivity, ContentScale.Fit)
+                    }
+                ),
+
+                Tool(
+                    text = "Dedans",
+                    icon = R.drawable.crop,
+                    onClick = { viewModel, mainActivity ->
+                        changeCrop(viewModel, mainActivity, ContentScale.Inside)
+                    }
+                ),
+
+                Tool(
+                    text = "Manuel",
+                    icon = R.drawable.image,
+                    onClick = { viewModel, mainActivity ->
+                        run {
+
+                        }
+                    }
+                ),
+            )
+        )
+    )
 
 //    object SHORTCUTS: Tools(BottomToolContent(
 //
 //    ))
 
+}
+
+fun changeCrop(viewModel: SigmaViewModel, activity: MainActivity, scale:
+ContentScale) {
+    val item = viewModel.selectedItem.value ?: return
+    viewModel.scaleCache[item.fullPath] = scale
+
+    if (item.isFile() &&
+        item.fullPath.endsWith(".mp4") ||
+        item.fullPath.endsWith(".avi") ||
+        item.fullPath.endsWith(".mpg") ||
+        item.fullPath.endsWith(".html") ||
+        item.fullPath.endsWith(".iso") ||
+        item.fullPath.endsWith(".mkv")
+    ) {
+        viewModel.viewModelScope.launch {
+            val file = File(item.fullPath)
+            viewModel.base64Embedder.removeEmbeddedContentScale(file)
+            viewModel.base64Embedder.appendContentScaleToMp4(file, scale)
+        }
+    }
+
+    if (item.isFolder()) {
+        viewModel.viewModelScope.launch {
+            val file = File(item.fullPath + "/.folderPicture.html")
+            if (!file.exists())
+                viewModel.diskRepository.createFolderHtmlFile(item)
+            viewModel.diskRepository.removeScaleFromHtml(item.fullPath)
+            viewModel.diskRepository.insertScaleToHtmlFile(item, scale)
+            viewModel.refreshCurrentFolder()
+        }
+    }
+
+    //viewModel.setSelectedItem(null)
+    //viewModel.bottomTools.setCurrentContent(DEFAULT)
 }
 
 @Composable
