@@ -156,7 +156,8 @@ class SigmaViewModel @Inject constructor(
         )
 
 
-    suspend fun updatePicture(newPicture: Any?) {
+    suspend fun updatePicture(newPicture: Any?,
+                              onlyCropped: Boolean = false) {
         if (_selectedItem.value == null)
             return
 
@@ -178,21 +179,38 @@ class SigmaViewModel @Inject constructor(
             val item = _selectedItem.value
             if (item == null)
                 return
-            base64Embedder.removeEmbeddedBase64(File(item.fullPath))
-            base64Embedder.appendBase64ToMp4(File(item.fullPath), image64)
+            
+            
+            val base64_tag = if (onlyCropped) {
+                base64Embedder.extractBase64FromMp4(File(item.fullPath),
+                    tagSuffix = "BASE64_TAG")
+            }
+            else null
+            
+            base64Embedder.removeBothEmbeddedBase64(File(item.fullPath))
+            
+            if (onlyCropped)
+                base64Embedder.appendBase64ToMp4(File(item.fullPath), base64_tag!!, tagSuffix = "BASE64_TAG")
+            else
+                base64Embedder.appendBase64ToMp4(File(item.fullPath), image64, tagSuffix = "BASE64_TAG")
+            
+            base64Embedder.appendBase64ToMp4(File(item.fullPath), image64, tagSuffix = "BASE64_CROPPED_TAG")
         } else {
             _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
-            setPictureInFolder(_selectedItem.value!!, false)
+            setPictureInFolder(_selectedItem.value!!, 
+                fromClipboard = false,
+                onlyCropped = onlyCropped)
         }
     }
 
-    fun setPictureInFolder(item: Item, fromClipboard: Boolean = false) {
+    fun setPictureInFolder(item: Item, fromClipboard: Boolean = false, onlyCropped: Boolean) {
         var newItem = item
         if (fromClipboard)
             newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
 
         viewModelScope.launch {
-            changingPictureUseCase.savePictureOfFolder(newItem)
+            changingPictureUseCase.savePictureOfFolder(newItem,
+                onlyCropped = onlyCropped)
             withContext(Dispatchers.Main) {
                 refreshCurrentFolder()
             }

@@ -33,4 +33,19 @@ class Base64DataSource @Inject constructor() : IBase64DataSource {
             null
         }
     }
+
+    override suspend fun extractBase64FromHtml(html: String): String? {
+
+        val htmlFile = File(html)
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() }) return null
+
+        val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
+
+        // Regex pour trouver le contenu de src="data:image/...;base64,..."
+        val regex = Regex("""<img\s+[^>]*src\s*=\s*"data:image/[^;]+;base64,([^"]+)"""")
+        val match = regex.find(htmlContent) ?: return null
+
+        val base64Image = match.groupValues[1]
+        return base64Image
+    }
 }

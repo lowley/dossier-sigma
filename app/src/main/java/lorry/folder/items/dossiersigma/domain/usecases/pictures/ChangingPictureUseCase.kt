@@ -28,8 +28,8 @@ class ChangingPictureUseCase @Inject constructor(
         return result
     }
     
-    suspend fun savePictureOfFolder(item: Item){
-        diskRepository.saveFolderPictureToHtmlFile(item)
+    suspend fun savePictureOfFolder(item: Item, onlyCropped: Boolean){
+        diskRepository.saveFolderPictureToHtmlFile(item, onlyCropped = onlyCropped)
     }
     
     suspend fun isFolderPopulated(item: Item): Boolean {

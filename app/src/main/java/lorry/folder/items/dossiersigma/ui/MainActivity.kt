@@ -483,7 +483,8 @@ class MainActivity : ComponentActivity() {
 
         mainViewModel.viewModelScope.launch {
             val croppedBitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri))
-            mainViewModel.updatePicture(Bitmap.createBitmap(croppedBitmap))
+            mainViewModel.updatePicture(Bitmap.createBitmap(croppedBitmap),
+                onlyCropped = true)
             mainViewModel.refreshCurrentFolder()
         }
 

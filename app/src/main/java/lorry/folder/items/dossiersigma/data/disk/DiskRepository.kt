@@ -185,13 +185,18 @@ class DiskRepository @Inject constructor(
         )
     }
 
-    override suspend fun saveFolderPictureToHtmlFile(item: Item) {
+    override suspend fun saveFolderPictureToHtmlFile(item: Item, onlyCropped: Boolean) {
         if (item.picture == null || item.isFile())
             return
 
-        //picture contient un bitmap
-        val destFullPath = "${item.fullPath}/.folderPicture.html"
-        createShortcut(text(item), destFullPath)
+        if (!onlyCropped) {
+            //picture contient un bitmap
+            val destFullPath = "${item.fullPath}/.folderPicture.html"
+            createShortcut(text(item), destFullPath)
+        }
+
+        val destCroppedFullPath = "${item.fullPath}/.folderPictureCropped.html"
+        createShortcut(text(item), destCroppedFullPath)
     }
 
     override suspend fun createFolderHtmlFile(folderItem: Item) {
@@ -337,8 +342,10 @@ class DiskRepository @Inject constructor(
             return false
 
         val folderPictureFile = File("${item.fullPath}/.folderPicture.html")
+        val folderPictureCroppedFile = File("${item.fullPath}/.folderPictureCropped.html")
+        
         val result = withContext(Dispatchers.IO) {
-            folderPictureFile.exists()
+            folderPictureFile.exists() || folderPictureCroppedFile.exists()
         }
 
         return result

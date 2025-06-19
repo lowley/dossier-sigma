@@ -58,7 +58,6 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewModelScope
-import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
@@ -139,9 +138,10 @@ fun ItemComponent(
                             viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
                             viewModel.goToFolder(
                                 item.fullPath,
-                                ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                                ITEMS_ORDERING_STRATEGY.DATE_DESC
+                            )
                         }
-                        
+
                         if (item.isFile() &&
                             (item.name.endsWith(".mp4") ||
                                     item.name.endsWith(".mkv") ||
@@ -647,7 +647,8 @@ suspend fun getImage(
                 item.fullPath.endsWith("mpg")
             ) {
 
-                val image64 = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath))
+                val image64 = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath), 
+                    tagSuffix = "BASE64_CROPPED_TAG")
 
                 if (image64 == null)
                     vectorDrawableToBitmap(context, R.drawable.file)
@@ -673,10 +674,26 @@ suspend fun getImage(
                 //une image est présente pour ce répertoire
                 try {
                     var picture: Bitmap? = null
-                    picture =
-                        viewModel.base64DataSource.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
+                    val folderPicturePath = "${item.fullPath}/" +
+                            ".folderPicture.html"
+                    val folderPictureCroppedPath = "${item.fullPath}/" +
+                            ".folderPictureCropped.html"
+
+                    if (File(folderPictureCroppedPath).exists())
+                        picture = viewModel.base64DataSource.extractImageFromHtml(folderPictureCroppedPath)
+                    else {
+                        picture = viewModel.base64DataSource.extractImageFromHtml(folderPicturePath)
+                    }
+                    
+                    
+                    
                     if (picture != null) {
                         item.copy(picture = picture)
+                        
+                        //maintenance
+                        if (!File(folderPictureCroppedPath).exists())
+                            viewModel.diskRepository.saveFolderPictureToHtmlFile(item, true)
+                        
                         picture as Bitmap
                     } else vectorDrawableToBitmap(context, R.drawable.file)
                 } catch (e: Exception) {

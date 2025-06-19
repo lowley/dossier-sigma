@@ -607,8 +607,26 @@ sealed class Tools(
                     icon = R.drawable.image,
                     onClick = { viewModel, mainActivity ->
                         run {
-                            val sourceBitmap = viewModel.imageCache[viewModel.selectedItem.value?.fullPath 
-                                ?: ""] as Bitmap
+                            val item = viewModel.selectedItem.value
+                            var sourceBitmap: Bitmap? = null
+                            if (item?.isFile() == true) {
+                                val test = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath),
+                                    tagSuffix = "BASE64_TAG")
+                                if (test == null)
+                                    return@run
+                                
+                                sourceBitmap = viewModel.base64Embedder.base64ToBitmap(test)
+                            }
+                            
+                            if (item?.isFolder() == true) {
+                                sourceBitmap = viewModel.base64DataSource.extractImageFromHtml(item
+                                    .fullPath+"/.folderPicture.html")
+                            }
+                            
+                            if (item == null || sourceBitmap == null)
+                                return@run
+                            
+//                            val sourceBitmap = viewModel.imageCache[viewModel.selectedItem.value?.fullPath ?: ""] as Bitmap
 
                             val sourceUri = bitmapToTempUri(mainActivity, sourceBitmap)
                             val destinationUri =
