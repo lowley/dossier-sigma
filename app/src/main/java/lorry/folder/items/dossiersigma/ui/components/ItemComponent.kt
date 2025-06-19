@@ -2,6 +2,7 @@ package lorry.folder.items.dossiersigma.ui.components
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -70,6 +71,7 @@ import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
+import org.mp4parser.tools.Mp4Math
 import java.io.File
 import java.io.FileOutputStream
 
@@ -162,7 +164,7 @@ fun ItemComponent(
                         viewModel.bottomTools.setCurrentContent(Tools.FILE)
                     })
             }
-        
+
         Box(
             modifier = modifierWithBorder//.background(Color.Blue)
                 .width(imageHeight)
@@ -170,7 +172,7 @@ fun ItemComponent(
         ) {
             var expanded by remember { mutableStateOf(false) }
             val scrollState = rememberScrollState()
-            
+
             imageSource.value?.let { bitmap ->
                 key(pictureUpdateId) {
                     ImageSection(
@@ -647,17 +649,32 @@ suspend fun getImage(
                 item.fullPath.endsWith("mpg")
             ) {
 
-                val image64 = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath), 
-                    tagSuffix = "BASE64_CROPPED_TAG")
+                var image64 = viewModel.base64Embedder.extractBase64FromMp4(
+                    File(item.fullPath),
+                    tagSuffix = "BASE64_CROPPED_TAG"
+                )
 
-                if (image64 == null)
-                    vectorDrawableToBitmap(context, R.drawable.file)
-                else {
-                    val picture = viewModel.base64Embedder.base64ToBitmap(image64)
-
-                    //item.copy(picture = picture)
-                    picture ?: vectorDrawableToBitmap(context, R.drawable.file)
+                if (image64 == null) {
+                    image64 = viewModel.base64Embedder.extractBase64FromMp4(
+                        File(item.fullPath),
+                        tagSuffix = "BASE64_TAG"
+                    )
+                    
+                    if (image64 != null) {
+                        viewModel.base64Embedder.appendBase64ToMp4(
+                            mp4File = File(item.fullPath),
+                            base64Image = image64,
+                            tagSuffix = "BASE64_TAG"
+                        )
+                    }
                 }
+                
+                val picture = if (image64 != null) viewModel.base64Embedder.base64ToBitmap(image64!!) else 
+                    vectorDrawableToBitmap(context, R.drawable.file)
+
+                //item.copy(picture = picture)
+                picture ?: vectorDrawableToBitmap(context, R.drawable.file)
+                
             } else vectorDrawableToBitmap(context, R.drawable.file)
         }
 
@@ -684,16 +701,16 @@ suspend fun getImage(
                     else {
                         picture = viewModel.base64DataSource.extractImageFromHtml(folderPicturePath)
                     }
-                    
-                    
-                    
+
+
+
                     if (picture != null) {
                         item.copy(picture = picture)
-                        
+
                         //maintenance
                         if (!File(folderPictureCroppedPath).exists())
                             viewModel.diskRepository.saveFolderPictureToHtmlFile(item, true)
-                        
+
                         picture as Bitmap
                     } else vectorDrawableToBitmap(context, R.drawable.file)
                 } catch (e: Exception) {
@@ -731,7 +748,7 @@ fun vectorDrawableToBitmap(context: Context, drawableId: Int): Bitmap {
     val drawable =
         context.getDrawable(drawableId) ?: throw IllegalArgumentException("Drawable introuvable")
     val bitmap = createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight)
-    val canvas = android.graphics.Canvas(bitmap)
+    val canvas = Canvas(bitmap)
     drawable.setBounds(0, 0, canvas.width, canvas.height)
     drawable.draw(canvas)
     return bitmap
@@ -818,7 +835,7 @@ fun ImageSection(
             modifier = modifier
                 .matchParentSize()
         )
-        
+
 //        AsyncImage(
 //            model = imageRequest,
 //            contentDescription = "Miniature",
