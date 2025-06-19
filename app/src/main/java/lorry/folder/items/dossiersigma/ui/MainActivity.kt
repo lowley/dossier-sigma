@@ -372,7 +372,7 @@ class MainActivity : ComponentActivity() {
                                 .padding(horizontal = 10.dp)
                                 .weight(1f)
                         ) {
-                            lazyGridItems(currentFolder.items, key = { it.id }) { item ->
+                            lazyGridItems(currentFolder.items, key = { it.fullPath + "-" + pictureUpdateId+ it.id.toString()}) { item ->
                                 ItemComponent(
                                     viewModel = mainViewModel,
                                     item = item,

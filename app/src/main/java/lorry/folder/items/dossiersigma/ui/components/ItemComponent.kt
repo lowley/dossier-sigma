@@ -40,6 +40,7 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -793,15 +794,22 @@ fun ImageSection(
             )
         }
 
-        AsyncImage(
-            model = imageRequest,
+        Image(
+            bitmap = imageSource.asImageBitmap(),
             contentDescription = "Miniature",
             contentScale = contentScale,
-            modifier = Modifier
-//                .matchParentSize()
-                .fillMaxSize()
-                .zIndex(0f)
+            modifier = modifier
+                .matchParentSize()
         )
+        
+//        AsyncImage(
+//            model = imageRequest,
+//            contentDescription = "Miniature",
+//            contentScale = contentScale,
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .zIndex(0f)
+//        )
     }
 }
 

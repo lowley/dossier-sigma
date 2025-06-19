@@ -62,7 +62,7 @@ class SigmaViewModel @Inject constructor(
     fun setIsContextMenuVisible(isVisible: Boolean) {
         _isContextMenuVisible.value = isVisible
     }
-    
+
     private val _folderPathHistory = MutableStateFlow<List<String>>(emptyList())
     val folderPathHistory: StateFlow<List<String>> = _folderPathHistory
 
@@ -77,11 +77,11 @@ class SigmaViewModel @Inject constructor(
 
     private val _isFolderVisible = MutableStateFlow(false)
     val isFolderVisible: StateFlow<Boolean> = _isFolderVisible
-    
+
     fun setIsFolderVisible(isVisible: Boolean) {
         _isFolderVisible.value = isVisible
     }
-    
+
     // combine chemin + trigger pour déclencher un nouveau getSigmaFolder
     val currentFolder: StateFlow<SigmaFolder> = combine(
         currentFolderPath,
@@ -105,7 +105,7 @@ class SigmaViewModel @Inject constructor(
     private val _dialogMessage = MutableStateFlow("")
     val dialogMessage: StateFlow<String?> = _dialogMessage
 
-    fun setDialogMessage(message: String){
+    fun setDialogMessage(message: String) {
         _dialogMessage.value = message
     }
 
@@ -140,7 +140,7 @@ class SigmaViewModel @Inject constructor(
 
     fun setSelectedItem(item: Item?) {
         _selectedItem.value = item
-        
+
         if (item != null)
             bottomTools.setCurrentContent(Tools.FILE)
         else
@@ -154,8 +154,8 @@ class SigmaViewModel @Inject constructor(
             started = Eagerly,
             initialValue = null
         )
-    
-    
+
+
     suspend fun updatePicture(newPicture: Any?) {
         if (_selectedItem.value == null)
             return
@@ -170,6 +170,9 @@ class SigmaViewModel @Inject constructor(
         if (pictureBitmap == null)
             return
 
+        //s'assure que les refreshs ci-dessous verront bien la nouvelle image
+        imageCache.remove(_selectedItem.value?.fullPath)
+        
         if (_selectedItem.value?.isFile() == true) {
             val image64 = base64Embedder.bitmapToBase64(pictureBitmap)
             val item = _selectedItem.value
@@ -178,20 +181,12 @@ class SigmaViewModel @Inject constructor(
             base64Embedder.removeEmbeddedBase64(File(item.fullPath))
             base64Embedder.appendBase64ToMp4(File(item.fullPath), image64)
         } else {
-            //url vers bitmap puis dans _selectedItem
-
             _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
-            setPicture(_selectedItem.value!!, false)
+            setPictureInFolder(_selectedItem.value!!, false)
         }
-
-        //s'assure que les refreshs ci-dessous verront bien la nouvelle image
-        imageCache.remove(_selectedItem.value?.fullPath)
-        
-        refreshCurrentFolder()
-        notifyPictureUpdated()
     }
 
-    fun setPicture(item: Item, fromClipboard: Boolean = false) {
+    fun setPictureInFolder(item: Item, fromClipboard: Boolean = false) {
         var newItem = item
         if (fromClipboard)
             newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
@@ -245,7 +240,7 @@ class SigmaViewModel @Inject constructor(
     init {
         bottomTools.viewModel = this
     }
-    
+
 //    init {
 //        val initialDirectoryPath = "/storage/emulated/0/Movies"
 //        goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
