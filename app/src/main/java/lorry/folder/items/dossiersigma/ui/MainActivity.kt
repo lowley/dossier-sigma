@@ -161,7 +161,7 @@ class MainActivity : ComponentActivity() {
                         .pointerInput(selectedItem?.id) {
                             detectTapGestures(onTap = {
                                 if (selectedItem?.id != null) {
-                                    mainViewModel.setSelectedItem(null)
+                                    mainViewModel.setSelectedItem(null, true)
                                 }
                             })
                         }
@@ -405,7 +405,7 @@ class MainActivity : ComponentActivity() {
                                 //génère des problèmes dans manageImageClick
 //                            mainViewModel.setSelectedItem(null)
                                 mainViewModel.bottomTools.setCurrentContent(DEFAULT)
-                                mainViewModel.setSelectedItem(null)
+                                mainViewModel.setSelectedItem(null, true)
                                 mainViewModel.refreshCurrentFolder()
                             }
                         },

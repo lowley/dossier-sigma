@@ -141,13 +141,15 @@ class SigmaViewModel @Inject constructor(
     private val _selectedItem = MutableStateFlow<Item?>(null)
     val selectedItem: StateFlow<Item?> = _selectedItem
 
-    fun setSelectedItem(item: Item?) {
+    fun setSelectedItem(item: Item?, keepBottomToolsAsIs: Boolean = false) {
         _selectedItem.value = item
 
-        if (item != null)
-            bottomTools.setCurrentContent(Tools.FILE)
-        else
-            bottomTools.setCurrentContent(Tools.DEFAULT)
+        if (!keepBottomToolsAsIs) {
+            if (item != null)
+                bottomTools.setCurrentContent(Tools.FILE)
+            else
+                bottomTools.setCurrentContent(Tools.DEFAULT)
+        }
     }
 
     val selectedItemFullPath = selectedItem

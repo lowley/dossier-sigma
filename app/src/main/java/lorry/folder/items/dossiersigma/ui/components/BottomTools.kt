@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.FixedScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
@@ -47,10 +46,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
+import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.MovingItem
 import java.io.File
 import javax.inject.Inject
 import kotlin.collections.set
@@ -75,6 +76,13 @@ class BottomTools @Inject constructor(
         _currentTool.value = tool
     }
 
+    companion object{
+        var MovingItem: Item? = null
+        var CopyingItem: Item? = null
+    }
+    
+    
+    
     @Composable
     fun BottomToolBar(
         openDialog: MutableState<Boolean>,
@@ -258,8 +266,8 @@ sealed class Tools(
                     text = "Déplacer",
                     icon = R.drawable.deplacer,
                     onClick = { viewModel, mainActivity ->
-
-
+                        MovingItem = viewModel.selectedItem.value
+                        viewModel.bottomTools.setCurrentContent(MOVE_FILE)
                     }
                 ),
                 //////////////
@@ -311,7 +319,7 @@ sealed class Tools(
                             }
 
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
-                            viewModel.setSelectedItem(null)
+                            viewModel.setSelectedItem(null, true)
                         }
 
                         mainActivity.openTextDialog.value = true
@@ -362,7 +370,7 @@ sealed class Tools(
                             }
 
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
-                            viewModel.setSelectedItem(null)
+                            viewModel.setSelectedItem(null, true)
                         }
 
                         mainActivity.openTextDialog.value = true
@@ -425,7 +433,7 @@ sealed class Tools(
                             }
 
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
-                            viewModel.setSelectedItem(null)
+                            viewModel.setSelectedItem(null, true)
 
                         }
 
@@ -462,7 +470,7 @@ sealed class Tools(
                                 if (item.isFolder())
                                     File(item.fullPath).deleteRecursively()
                                 else File(item.fullPath).delete()
-                                viewModel.setSelectedItem(null)
+                                viewModel.setSelectedItem(null, true)
                                 viewModel.refreshCurrentFolder()
 
                                 if (File(itemFullPath).exists())
@@ -532,9 +540,9 @@ sealed class Tools(
                     text = "Annuler",
                     icon = R.drawable.annuler,
                     onClick = { viewModel, mainActivity ->
-
-
                         viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        MovingItem = null
+                        viewModel.setSelectedItem(null, true)
                     }
                 ),
                 ////////////
@@ -544,10 +552,24 @@ sealed class Tools(
                     text = "Coller",
                     icon = R.drawable.coller,
                     onClick = { viewModel, mainActivity ->
+                        viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
+                        
+                        println("MovingItem: choisir fichier destination")
+                        //1.copie
+                        val sourceFile = File(MovingItem?.fullPath ?: "")
+                        
+                        
+                        //2.vérif copie bien réalisée: 
+                        //dest existe
+                        //tailles égales
+                        
+                        //3.si ok: suppression source
 
-
+                        
+                        
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)
-                        viewModel.bottomTools.setCurrentContent(DEFAULT)
+//                        viewModel.bottomTools.setCurrentContent(DEFAULT)
+//                        MovingItem = null
                     }
                 )
             )

@@ -72,7 +72,6 @@ import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
-import org.mp4parser.tools.Mp4Math
 import java.io.File
 import java.io.FileOutputStream
 
@@ -133,7 +132,7 @@ fun ItemComponent(
                 detectTapGestures(
                     onTap = {
                         if (selectedItemFullPath != null) {
-                            viewModel.setSelectedItem(null)
+                            viewModel.setSelectedItem(null, true)
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
                             return@detectTapGestures
                         }
@@ -162,7 +161,7 @@ fun ItemComponent(
                     onLongPress = { offset ->
 //                                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
 //                                        viewModel.setIsContextMenuVisible(true)
-                        viewModel.setSelectedItem(item)
+                        viewModel.setSelectedItem(item, true)
                         viewModel.bottomTools.setCurrentContent(Tools.FILE)
                     })
             }
@@ -427,7 +426,7 @@ fun ItemComponent(
                             }
                         }
 
-                        viewModel.setSelectedItem(null)
+                        viewModel.setSelectedItem(null, true)
                         viewModel.setIsContextMenuVisible(false)
                         viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
@@ -519,7 +518,7 @@ fun ItemComponent(
                         )
                     },
                     onClick = {
-                        viewModel.setSelectedItem(null)
+                        viewModel.setSelectedItem(null, true)
                         viewModel.setIsContextMenuVisible(false)
                         viewModel.setDialogMessage("Ajouter un dossier frère")
                         viewModel.dialogOnOkLambda = { name, viewModel, context ->
@@ -555,7 +554,7 @@ fun ItemComponent(
                         },
                         onClick = {
                             viewModel.setIsContextMenuVisible(false)
-                            viewModel.setSelectedItem(null)
+                            viewModel.setSelectedItem(null, true)
                             viewModel.setDialogMessage("Ajouter un dossier fils")
                             viewModel.dialogOnOkLambda = { name, viewModel, context ->
                                 File(item.fullPath + "/$name").mkdir()
@@ -592,7 +591,7 @@ fun ItemComponent(
                         if (item.isFolder())
                             File(item.fullPath).deleteRecursively()
                         else File(item.fullPath).delete()
-                        viewModel.setSelectedItem(null)
+                        viewModel.setSelectedItem(null, true)
                         viewModel.setIsContextMenuVisible(false)
                         viewModel.refreshCurrentFolder()
                         viewModel.bottomTools.setCurrentContent(DEFAULT)
