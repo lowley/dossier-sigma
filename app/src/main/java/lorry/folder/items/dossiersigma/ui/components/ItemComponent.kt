@@ -713,7 +713,9 @@ suspend fun getImage(
                             viewModel.diskRepository.saveFolderPictureToHtmlFile(item, true)
 
                         picture as Bitmap
-                    } else vectorDrawableToBitmap(context, R.drawable.file)
+                    } else vectorDrawableToBitmap(context, 
+                        if (viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)) == Pair(0,0)) R.drawable.folder_empty 
+                        else R.drawable.folder_full)
                 } catch (e: Exception) {
                     println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
                     vectorDrawableToBitmap(context, R.drawable.file)
