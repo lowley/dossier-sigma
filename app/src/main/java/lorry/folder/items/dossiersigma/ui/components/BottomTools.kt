@@ -46,6 +46,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
@@ -611,7 +612,7 @@ sealed class Tools(
                             var sourceBitmap: Bitmap? = null
                             if (item?.isFile() == true) {
                                 val test = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath),
-                                    tagSuffix = "BASE64_TAG")
+                                    tagSuffix = Tags.COVER)
                                 if (test == null)
                                     return@run
                                 

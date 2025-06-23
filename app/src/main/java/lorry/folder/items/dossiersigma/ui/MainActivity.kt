@@ -406,6 +406,7 @@ class MainActivity : ComponentActivity() {
 //                            mainViewModel.setSelectedItem(null)
                                 mainViewModel.bottomTools.setCurrentContent(DEFAULT)
                                 mainViewModel.setSelectedItem(null)
+                                mainViewModel.refreshCurrentFolder()
                             }
                         },
                         viewmodel = mainViewModel

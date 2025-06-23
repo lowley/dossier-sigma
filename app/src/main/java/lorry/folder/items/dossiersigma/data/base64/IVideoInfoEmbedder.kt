@@ -6,12 +6,12 @@ import java.io.File
 
 interface IVideoInfoEmbedder {
     //base64
-    suspend fun appendBase64ToMp4(mp4File: File, base64Image: String, tagSuffix: String)
+    suspend fun appendBase64ToMp4(mp4File: File, base64Image: String, tagSuffix: Tags)
     suspend fun extractBase64FromMp4(
         mp4File: File,
         initialLookbackBytes: Int = 65536,
         maxAttempts: Int = 5,
-        tagSuffix: String = "BASE64_CROPPED_TAG"
+        tagSuffix: Tags = Tags.COVER_CROPPED
     ): String?
     suspend fun removeBothEmbeddedBase64(mp4File: File): Boolean
     suspend fun base64ToBitmap(base64Str: String): Bitmap?

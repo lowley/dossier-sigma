@@ -63,6 +63,7 @@ import coil.request.ImageRequest
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
@@ -651,20 +652,20 @@ suspend fun getImage(
 
                 var image64 = viewModel.base64Embedder.extractBase64FromMp4(
                     File(item.fullPath),
-                    tagSuffix = "BASE64_CROPPED_TAG"
+                    tagSuffix = Tags.COVER_CROPPED
                 )
 
                 if (image64 == null) {
                     image64 = viewModel.base64Embedder.extractBase64FromMp4(
                         File(item.fullPath),
-                        tagSuffix = "BASE64_TAG"
+                        tagSuffix = Tags.COVER
                     )
                     
                     if (image64 != null) {
                         viewModel.base64Embedder.appendBase64ToMp4(
                             mp4File = File(item.fullPath),
                             base64Image = image64,
-                            tagSuffix = "BASE64_TAG"
+                            tagSuffix = Tags.COVER
                         )
                     }
                 }

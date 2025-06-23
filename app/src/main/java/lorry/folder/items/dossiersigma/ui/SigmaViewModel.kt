@@ -2,6 +2,7 @@ package lorry.folder.items.dossiersigma.ui
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.ViewModel
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
+import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.Item
@@ -30,6 +32,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.Tools
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URLDecoder
 import javax.inject.Inject
@@ -161,8 +164,7 @@ class SigmaViewModel @Inject constructor(
         if (_selectedItem.value == null)
             return
 
-
-        val pictureBitmap =
+        var pictureBitmap =
             if (newPicture is String) withContext(Dispatchers.IO) {
                 changingPictureUseCase.urlToBitmap(newPicture)
             }
@@ -174,6 +176,9 @@ class SigmaViewModel @Inject constructor(
         //s'assure que les refreshs ci-dessous verront bien la nouvelle image
         imageCache.remove(_selectedItem.value?.fullPath)
         
+        //expérimental
+        pictureBitmap = compressBitmapToMaxSizeAsBitmap(pictureBitmap)
+        
         if (_selectedItem.value?.isFile() == true) {
             val image64 = base64Embedder.bitmapToBase64(pictureBitmap)
             val item = _selectedItem.value
@@ -183,24 +188,42 @@ class SigmaViewModel @Inject constructor(
             
             val base64_tag = if (onlyCropped) {
                 base64Embedder.extractBase64FromMp4(File(item.fullPath),
-                    tagSuffix = "BASE64_TAG")
+                    tagSuffix = Tags.COVER)
             }
             else null
             
             base64Embedder.removeBothEmbeddedBase64(File(item.fullPath))
             
             if (onlyCropped)
-                base64Embedder.appendBase64ToMp4(File(item.fullPath), base64_tag!!, tagSuffix = "BASE64_TAG")
+                base64Embedder.appendBase64ToMp4(File(item.fullPath), base64_tag!!, tagSuffix = Tags.COVER)
             else
-                base64Embedder.appendBase64ToMp4(File(item.fullPath), image64, tagSuffix = "BASE64_TAG")
+                base64Embedder.appendBase64ToMp4(File(item.fullPath), image64, tagSuffix = Tags.COVER)
             
-            base64Embedder.appendBase64ToMp4(File(item.fullPath), image64, tagSuffix = "BASE64_CROPPED_TAG")
+            base64Embedder.appendBase64ToMp4(File(item.fullPath), image64, tagSuffix = Tags.COVER_CROPPED)
         } else {
             _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
             setPictureInFolder(_selectedItem.value!!, 
                 fromClipboard = false,
                 onlyCropped = onlyCropped)
         }
+    }
+
+    fun compressBitmapToMaxSizeAsBitmap(
+        original: Bitmap,
+        maxBytes: Int = 65535,
+        format: Bitmap.CompressFormat = Bitmap.CompressFormat.JPEG
+    ): Bitmap {
+        var quality = 100
+        var compressedBytes: ByteArray
+
+        do {
+            val stream = ByteArrayOutputStream()
+            original.compress(format, quality, stream)
+            compressedBytes = stream.toByteArray()
+            quality -= 5
+        } while (compressedBytes.size > maxBytes && quality > 5)
+
+        return BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.size)
     }
 
     fun setPictureInFolder(item: Item, fromClipboard: Boolean = false, onlyCropped: Boolean) {

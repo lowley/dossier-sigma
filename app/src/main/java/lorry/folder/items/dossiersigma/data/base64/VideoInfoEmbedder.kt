@@ -13,47 +13,44 @@ import java.nio.charset.Charset
 import javax.inject.Inject
 
 class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
-    private val START_SCALE_TAG = "##SIGMA-SCALE-START##"
-    private val END_SCALE_TAG = "##SIGMA-SCALE-END##"
-
     private val CHARSET = "UTF-8"
 
     /**
      * Ajoute une image encodée en base64 à la fin du fichier MP4 sans altérer sa lisibilité.
      */
-    override suspend fun appendBase64ToMp4(mp4File: File, base64Image: String, tagSuffix: String) {
+    override suspend fun appendBase64ToMp4(mp4File: File, base64Image: String, tag: Tags) {
         withContext(Dispatchers.IO) {
             val savedScale = extractContentScaleFromMp4(mp4File)
             removeEmbeddedContentScale(mp4File)
 
-            if (tagSuffix == "BASE64_TAG") {
-                val base64Cropped = extractBase64FromMp4(mp4File, 65536, 5, "BASE64_CROPPED_TAG")
+            if (tag == Tags.COVER) {
+                val base64Cropped = extractBase64FromMp4(mp4File, 65536, 5, Tags.COVER_CROPPED)
                 removeBothEmbeddedBase64(mp4File)
 
                 RandomAccessFile(mp4File, "rw").use { raf ->
                     raf.seek(raf.length())
-                    val data = "\nSTART_BASE64_TAG\n$base64Image\nEND_BASE64_TAG\n"
+                    val data = "\n${tag.start}\n$base64Image\n${tag.end}\n"
                     raf.write(data.toByteArray(Charset.forName(CHARSET)))
                 }
 
                 if (base64Cropped != null)
                     RandomAccessFile(mp4File, "rw").use { raf ->
                         raf.seek(raf.length())
-                        val data = "\nSTART_BASE64_CROPPED_TAG\n$base64Cropped\nEND_BASE64_CROPPED_TAG\n"
+                        val data = "\n${Tags.COVER_CROPPED.start}\n$base64Cropped\n${Tags.COVER_CROPPED.end}\n"
                         raf.write(data.toByteArray(Charset.forName(CHARSET)))
                     }
                 else
                     RandomAccessFile(mp4File, "rw").use { raf ->
                         raf.seek(raf.length())
-                        val data = "\nSTART_BASE64_CROPPED_TAG\n$base64Image\nEND_BASE64_CROPPED_TAG\n"
+                        val data = "\n${Tags.COVER_CROPPED.start}\n$base64Image\n{Tags.COVER_CROPPED.end}\n"
                         raf.write(data.toByteArray(Charset.forName(CHARSET)))
                     }
             }
 
-            if (tagSuffix == "BASE64_CROPPED_TAG") {
+            if (tag == Tags.COVER_CROPPED) {
                 RandomAccessFile(mp4File, "rw").use { raf ->
                     raf.seek(raf.length())
-                    val data = "\nSTART_$tagSuffix\n$base64Image\nEND_$tagSuffix\n"
+                    val data = "\n${Tags.COVER_CROPPED.start}\n$base64Image\n${Tags.COVER_CROPPED.end}\n"
                     raf.write(data.toByteArray(Charset.forName(CHARSET)))
                 }
             }
@@ -72,7 +69,7 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         mp4File: File,
         initialLookbackBytes: Int,
         maxAttempts: Int,
-        tagSuffix: String
+        tag: Tags
     ): String? {
         val charset = Charset.forName(CHARSET)
         RandomAccessFile(mp4File, "r").use { raf ->
@@ -86,19 +83,19 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
                 raf.readFully(bytes)
 
                 val tail = String(bytes, charset)
-                val startIndex = tail.lastIndexOf("START_$tagSuffix")
-                val endIndex = tail.lastIndexOf("END_$tagSuffix")
+                val startIndex = tail.lastIndexOf(tag.start)
+                val endIndex = tail.lastIndexOf(tag.end)
 
                 if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-                    return tail.substring(startIndex + "START_$tagSuffix".length, endIndex).trim()
+                    return tail.substring(startIndex + tag.start.length, endIndex).trim()
                 }
             }
 
-            if (tagSuffix == "BASE64_CROPPED_TAG") {
+            if (tag == Tags.COVER_CROPPED) {
                 val result =
-                    extractBase64FromMp4(mp4File, initialLookbackBytes, maxAttempts, "BASE64_TAG")
+                    extractBase64FromMp4(mp4File, initialLookbackBytes, maxAttempts, Tags.COVER)
                 if (result != null) {
-                    appendBase64ToMp4(mp4File, result, "BASE64_CROPPED_TAG")
+                    appendBase64ToMp4(mp4File, result, Tags.COVER_CROPPED)
                 }
 
                 return result
@@ -129,7 +126,7 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
 
                 val tail = String(bytes, Charset.forName(CHARSET))
                 //START_BASE64_TAG étant la première des 2 images, ont enlève les 2 d'un coup
-                val startIndex = tail.indexOf("START_BASE64_TAG")
+                val startIndex = tail.indexOf(Tags.COVER.start)
 
                 if (startIndex != -1) {
                     val absoluteStart = length - seekBack + startIndex
@@ -186,7 +183,7 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
                     ContentScale.FillBounds -> "FillBounds"
                     else -> "Crop"
                 }
-                val data = "\n$START_SCALE_TAG\n$scaleAsString\n$END_SCALE_TAG\n"
+                val data = "\n${Tags.SCALE.start}\n$scaleAsString\n${Tags.SCALE.end}\n"
                 raf.write(data.toByteArray(Charset.forName(CHARSET)))
             }
         }
@@ -204,12 +201,12 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
             raf.readFully(bytes)
 
             val tail = String(bytes, charset)
-            val startIndex = tail.lastIndexOf(START_SCALE_TAG)
-            val endIndex = tail.lastIndexOf(END_SCALE_TAG)
+            val startIndex = tail.lastIndexOf(Tags.SCALE.start)
+            val endIndex = tail.lastIndexOf(Tags.SCALE.end)
 
             if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
                 return contentScaleFromString(
-                    tail.substring(startIndex + START_SCALE_TAG.length, endIndex).trim()
+                    tail.substring(startIndex + Tags.SCALE.start.length, endIndex).trim()
                 )
             }
             return null
@@ -239,7 +236,7 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
                 raf.readFully(bytes)
 
                 val tail = String(bytes, Charset.forName(CHARSET))
-                val startIndex = tail.indexOf(START_SCALE_TAG)
+                val startIndex = tail.indexOf(Tags.SCALE.start)
 
                 if (startIndex != -1) {
                     val absoluteStart = length - seekBack + startIndex
@@ -252,3 +249,23 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         }
     }
 } 
+
+sealed class Tags(
+    val start: String,
+    val end: String
+){
+    object SCALE: Tags(
+        start = "##SIGMA-SCALE-START##",
+        end = "##SIGMA-SCALE-END##"
+    )
+
+    object COVER: Tags(
+        start = "##SIGMA-COVER-START##",
+        end = "##SIGMA-COVER-END##"
+    )
+
+    object COVER_CROPPED: Tags(
+        start = "##SIGMA-COVER_CROPPED-START##",
+        end = "##SIGMA-COVER_CROPPED-END##"
+    )
+}

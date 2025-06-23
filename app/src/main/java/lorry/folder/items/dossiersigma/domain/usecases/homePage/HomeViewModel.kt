@@ -87,6 +87,56 @@ class HomeViewModel @Inject constructor(
 
         homeItems.add(
             HomeItem(
+                title = "sensations fortes",
+                icon = R.drawable.film,
+                onClick = { mainVM, homeVM ->
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sensations fortes.fort")
+                    homeVM.setHomePageVisible(false)
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "humour",
+                icon = R.drawable.film,
+                onClick = { mainVM, homeVM ->
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/humour")
+                    homeVM.setHomePageVisible(false)
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "fantastique",
+                icon = R.drawable.film,
+                onClick = { mainVM, homeVM ->
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/fantastique")
+                    homeVM.setHomePageVisible(false)
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "intériorité",
+                icon = R.drawable.film,
+                onClick = { mainVM, homeVM ->
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/faiblesse & intériorité")
+                    homeVM.setHomePageVisible(false)
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
+                title = "acteurs",
+                icon = R.drawable.acteur,
+                onClick = { mainVM, homeVM ->
+                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/acteurs")
+                    homeVM.setHomePageVisible(false)
+                }
+            ))
+
+        homeItems.add(
+            HomeItem(
                 title = "1DM+",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
