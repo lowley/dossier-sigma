@@ -98,8 +98,9 @@ fun ItemComponent(
             imageSource.value = cached
         } else {
             val result = getImage(item, viewModel, context)
-            imageSource.value = result
+            imageCache[item.fullPath] = null
             imageCache[item.fullPath] = result
+            imageSource.value = result
         }
     }
 
