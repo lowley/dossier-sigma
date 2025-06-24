@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.components
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
@@ -47,6 +48,7 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.domain.Item
+import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
@@ -55,6 +57,7 @@ import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.Movin
 import java.io.File
 import javax.inject.Inject
 import kotlin.collections.set
+import kotlin.jvm.java
 
 class BottomTools @Inject constructor(
     val context: Context,
@@ -268,6 +271,7 @@ sealed class Tools(
                     onClick = { viewModel, mainActivity ->
                         MovingItem = viewModel.selectedItem.value
                         viewModel.bottomTools.setCurrentContent(MOVE_FILE)
+                        viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
                     }
                 ),
                 //////////////
@@ -541,8 +545,14 @@ sealed class Tools(
                     icon = R.drawable.annuler,
                     onClick = { viewModel, mainActivity ->
                         viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        val item = MovingItem
+                        val movingParent = item?.fullPath?.substringBeforeLast("/")
+                        
+                        if (movingParent != null)
+                            viewModel.goToFolder(movingParent, ITEMS_ORDERING_STRATEGY.DATE_DESC)
                         MovingItem = null
                         viewModel.setSelectedItem(null, true)
+                        viewModel.refreshCurrentFolder()
                     }
                 ),
                 ////////////
@@ -552,14 +562,31 @@ sealed class Tools(
                     text = "Coller",
                     icon = R.drawable.coller,
                     onClick = { viewModel, mainActivity ->
-                        viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
+                        var destinationItem = viewModel.selectedItem.value
                         
+                        if (destinationItem == null) {
+                           destinationItem = viewModel.currentFolder.value
+                        }
+                        
+                        //toast
                         println("MovingItem: choisir fichier destination")
                         //1.copie
                         val sourceFile = File(MovingItem?.fullPath ?: "")
+                        //créer service avec notification(avec avancement)
+                        //dans le service: copie
+                        //passer au service une lambda pour l'action de retour(2.+3.)
                         
+                        //Toast pour informer de déplacement:
+                        //début copie, fin déplacement/échec
+
+                        val intent = Intent(mainActivity,MoveFileService::class.java).apply {
+                            putExtra("source", MovingItem?.fullPath ?: "")
+                            putExtra("destination", destinationItem?.fullPath ?: "")
+                        }
+                        mainActivity.startService(intent)
                         
-                        //2.vérif copie bien réalisée: 
+                        viewModel.refreshCurrentFolder()
+                        //2.vérif copie bien réalisée:
                         //dest existe
                         //tailles égales
                         
