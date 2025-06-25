@@ -64,10 +64,15 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
+import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.destinationItem
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.movingItem
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
+import lorry.folder.items.dossiersigma.ui.components.CustomMoveFileExistingDestinationDialog
 import lorry.folder.items.dossiersigma.ui.components.CustomTextDialog
 import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
@@ -90,6 +95,7 @@ class MainActivity : ComponentActivity() {
     val homeViewModel: HomeViewModel by viewModels()
     lateinit var openTextDialog: MutableState<Boolean>
     lateinit var openYesNoDialog: MutableState<Boolean>
+    lateinit var openMoveFileDialog: MutableState<Boolean>
     lateinit var isContextMenuVisible: State<Boolean>
 
     @OptIn(ExperimentalLayoutApi::class)
@@ -121,6 +127,7 @@ class MainActivity : ComponentActivity() {
                 val currentTool by mainViewModel.bottomTools.currentTool.collectAsState()
                 openTextDialog = remember { mutableStateOf(false) }
                 openYesNoDialog = remember { mutableStateOf(false) }
+                openMoveFileDialog = remember { mutableStateOf(false) }
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
 
                 isContextMenuVisible = mainViewModel.isContextMenuVisible.collectAsState()
@@ -135,7 +142,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    mainViewModel.bottomTools.setCurrentContent(Tools.DEFAULT)
+                    mainViewModel.bottomTools.setCurrentContent(DEFAULT)
                 }
 
                 LaunchedEffect(pictureUpdateId) {
@@ -446,6 +453,40 @@ class MainActivity : ComponentActivity() {
                                 currentTool?.onClick(mainViewModel, this@MainActivity)
                             }
                     }
+                }
+
+                if (openMoveFileDialog.value) {
+                    CustomMoveFileExistingDestinationDialog(
+                        openDialog = openMoveFileDialog,
+                        onOverwrite = {
+                            
+                            
+                            
+                        },
+                        onCancel = {
+                            mainViewModel.bottomTools.setCurrentContent(DEFAULT)
+                            val item = movingItem
+                            val movingParent = item?.fullPath?.substringBeforeLast("/")
+
+                            if (movingParent != null)
+                                mainViewModel.goToFolder(movingParent, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                            movingItem = null
+                            mainViewModel.setSelectedItem(null, true)
+                            mainViewModel.refreshCurrentFolder()
+                            
+                            
+                        },
+                        onCreateCopy = {
+                            // si dest est un fichier qui existe traiter le cas
+                            val intent = Intent(this, MoveFileService::class.java).apply {
+                                putExtra("source", movingItem?.fullPath ?: "")
+                                putExtra("destination", destinationItem?.fullPath)
+                                putExtra("addSuffix", " - copie")
+                            }
+                            startService(intent)
+                            mainViewModel.refreshCurrentFolder()
+                        }
+                    )
                 }
             }
         }

@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import java.io.File
@@ -20,8 +19,10 @@ class MoveFileService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val source = intent?.getStringExtra("source") ?: return START_NOT_STICKY
-        val destination = intent.getStringExtra("destination") ?: return START_NOT_STICKY
-
+        var destination = intent.getStringExtra("destination") ?: return START_NOT_STICKY
+        
+        val addSuffix = intent.getStringExtra("addSuffix")
+        
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification("Copie de fichiers en cours"))
 
@@ -29,13 +30,14 @@ class MoveFileService : Service() {
 
         Thread {
             try {
-                copy(source, destination)
+                copy(source, destination, suffix = addSuffix)
             } catch (e: Exception) {
                 e.printStackTrace()
                 stopSelf()
             }
 
-            if (verify(source, destination)) {
+            if (verify(source, destination) &&
+                (source.substringAfterLast("/") == destination.substringAfterLast("/"))) {
                 delete(source)
             }
 
@@ -45,7 +47,7 @@ class MoveFileService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun copy(source: String, destination: String) {
+    private fun copy(source: String, destination: String, suffix: String?) {
         if (source == null || destination == null)
             return
         
@@ -53,7 +55,8 @@ class MoveFileService : Service() {
         val destinationItem = File(destination)
         
         if (destinationItem.isDirectory) {
-            val destinationFile = File("$destination/${source.substringAfterLast("/")}")
+            val sourceExtension = sourceFile.extension
+            val destinationFile = File("$destination/${source.substringAfterLast("/").substringBeforeLast(".")}$suffix.$sourceExtension")
             
             println("début de la copie")
             val duration = measureTimeMillis {
@@ -66,19 +69,19 @@ class MoveFileService : Service() {
                     sourceFile.copyRecursively(destinationFile, overwrite = true)
             }
             println("fin de la copie en ${millisToHMS(duration)}")
-            
-            
         }
         
         if (destinationItem.isFile) {
             println("début de la copie")
             val duration = measureTimeMillis {
+                val sourceExtension = sourceFile.extension
+                val destinationFile = File("$destination/${source.substringAfterLast("/").substringBeforeLast(".")}$suffix.$sourceExtension")
                 if (sourceFile.isFile)
-                    copyFileWithProgress(sourceFile, destinationItem){p ->
+                    copyFileWithProgress(sourceFile, destinationFile){p ->
                         println("progression: $p%")
                     }
                 else
-                    sourceFile.copyRecursively(destinationItem, overwrite = true)
+                    sourceFile.copyRecursively(destinationFile, overwrite = true)
             }
             println("fin de la copie en ${millisToHMS(duration)}")
 

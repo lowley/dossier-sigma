@@ -28,4 +28,6 @@ interface IDiskRepository {
     fun countFilesAndFolders(folder: File): Pair<Int, Int>
     suspend fun copyFile(source: File, destination: File)
     suspend fun removeScaleFromHtml(htmlFileFullPath: String)
+
+    suspend fun isFileOrFolderExists(parentPath: String, item: Item): Boolean
 }

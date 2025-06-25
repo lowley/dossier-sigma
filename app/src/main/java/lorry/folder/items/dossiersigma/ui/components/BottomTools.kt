@@ -53,11 +53,10 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.MovingItem
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.destinationItem
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.movingItem
 import java.io.File
 import javax.inject.Inject
-import kotlin.collections.set
-import kotlin.jvm.java
 
 class BottomTools @Inject constructor(
     val context: Context,
@@ -79,13 +78,13 @@ class BottomTools @Inject constructor(
         _currentTool.value = tool
     }
 
-    companion object{
-        var MovingItem: Item? = null
-        var CopyingItem: Item? = null
+    companion object {
+        var movingItem: Item? = null
+        var copyingItem: Item? = null
+        var destinationItem: Item? = null
     }
-    
-    
-    
+
+
     @Composable
     fun BottomToolBar(
         openDialog: MutableState<Boolean>,
@@ -234,9 +233,9 @@ sealed class Tools(
                              * voir BrowserOverlay et son appel par MainActivity
                              * le callback est un de ses paramètres d'appel
                              */
-                                viewModel.browserManager.openBrowser(
-                                    selectedItem, BrowserTarget.GOOGLE
-                                )
+                            viewModel.browserManager.openBrowser(
+                                selectedItem, BrowserTarget.GOOGLE
+                            )
                         }
                     }
                 ),
@@ -269,7 +268,7 @@ sealed class Tools(
                     text = "Déplacer",
                     icon = R.drawable.deplacer,
                     onClick = { viewModel, mainActivity ->
-                        MovingItem = viewModel.selectedItem.value
+                        movingItem = viewModel.selectedItem.value
                         viewModel.bottomTools.setCurrentContent(MOVE_FILE)
                         viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
                     }
@@ -545,12 +544,12 @@ sealed class Tools(
                     icon = R.drawable.annuler,
                     onClick = { viewModel, mainActivity ->
                         viewModel.bottomTools.setCurrentContent(DEFAULT)
-                        val item = MovingItem
+                        val item = movingItem
                         val movingParent = item?.fullPath?.substringBeforeLast("/")
-                        
+
                         if (movingParent != null)
                             viewModel.goToFolder(movingParent, ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                        MovingItem = null
+                        movingItem = null
                         viewModel.setSelectedItem(null, true)
                         viewModel.refreshCurrentFolder()
                     }
@@ -562,45 +561,76 @@ sealed class Tools(
                     text = "Coller",
                     icon = R.drawable.coller,
                     onClick = { viewModel, mainActivity ->
-                        var destinationItem = viewModel.selectedItem.value
-                        
-                        if (destinationItem == null) {
-                           destinationItem = viewModel.currentFolder.value
-                        }
-                        
-                        //toast
-                        println("MovingItem: choisir fichier destination")
-                        //1.copie
-                        val sourceFile = File(MovingItem?.fullPath ?: "")
-                        //créer service avec notification(avec avancement)
-                        //dans le service: copie
-                        //passer au service une lambda pour l'action de retour(2.+3.)
-                        
-                        //Toast pour informer de déplacement:
-                        //début copie, fin déplacement/échec
+                        run {
+                            destinationItem = viewModel.selectedItem.value
+                            var dest = destinationItem
 
-                        val intent = Intent(mainActivity,MoveFileService::class.java).apply {
-                            putExtra("source", MovingItem?.fullPath ?: "")
-                            putExtra("destination", destinationItem?.fullPath ?: "")
-                        }
-                        mainActivity.startService(intent)
-                        
-                        viewModel.refreshCurrentFolder()
-                        //2.vérif copie bien réalisée:
-                        //dest existe
-                        //tailles égales
-                        
-                        //3.si ok: suppression source
+                            if (dest == null) {
+                                destinationItem = viewModel.currentFolder.value
+                                dest = destinationItem
+                            }
 
-                        
-                        
-                        //vm.diskRepository.copyFile(sourceFile, destinationFile)
+                            //toast
+                            println("MovingItem: choisir fichier destination")
+                            //1.copie
+                            val sourceFile = File(movingItem?.fullPath ?: "")
+                            //créer service avec notification(avec avancement)
+                            //dans le service: copie
+                            //passer au service une lambda pour l'action de retour(2.+3.)
+
+                            //Toast pour informer de déplacement:
+                            //début copie, fin déplacement/échec
+
+                            if (dest!!.isFile()) {
+                                if (sourceFile.path.substringAfterLast("/")
+                                    == dest.fullPath.substringAfterLast("/")
+                                ) {
+                                    mainActivity.openMoveFileDialog.value = true
+                                    return@run
+                                }
+                            }
+
+                            if (dest.isFolder()) {
+                                if (movingItem == null)
+                                    return@run
+                                val isItemExists = viewModel.diskRepository.isFileOrFolderExists(
+                                    dest.fullPath,
+                                    movingItem!!
+                                )
+                                if (isItemExists) {
+                                    mainActivity.openMoveFileDialog.value = true
+                                    return@run
+                                }
+                            }
+
+                            /**
+                             * le fichier n'existe pas, on lance la copie,
+                             * le reste est effectué dans
+                             * @see MoveFileService.onStartCommand
+                             */
+                            val intent = Intent(mainActivity, MoveFileService::class.java).apply {
+                                putExtra("source", movingItem?.fullPath ?: "")
+                                putExtra("destination", dest.fullPath)
+                                putExtra("addSuffix", "")
+                            }
+                            mainActivity.startService(intent)
+                            viewModel.refreshCurrentFolder()
+                            //2.vérif copie bien réalisée:
+                            //dest existe
+                            //tailles égales
+
+                            //3.si ok: suppression source
+
+
+                            //vm.diskRepository.copyFile(sourceFile, destinationFile)
 //                        viewModel.bottomTools.setCurrentContent(DEFAULT)
 //                        MovingItem = null
+                        }
                     }
                 )
             )
         ))
+
     object CROP : Tools(
         BottomToolContent(
             toolInit = listOf(
@@ -611,7 +641,7 @@ sealed class Tools(
                         changeCrop(viewModel, mainActivity, ContentScale.None)
                     }
                 ),
-                
+
                 Tool(
                     text = "Rogner",
                     icon = R.drawable.crop,
@@ -660,22 +690,26 @@ sealed class Tools(
                             val item = viewModel.selectedItem.value
                             var sourceBitmap: Bitmap? = null
                             if (item?.isFile() == true) {
-                                val test = viewModel.base64Embedder.extractBase64FromMp4(File(item.fullPath),
-                                    tagSuffix = Tags.COVER)
+                                val test = viewModel.base64Embedder.extractBase64FromMp4(
+                                    File(item.fullPath),
+                                    tagSuffix = Tags.COVER
+                                )
                                 if (test == null)
                                     return@run
-                                
+
                                 sourceBitmap = viewModel.base64Embedder.base64ToBitmap(test)
                             }
-                            
+
                             if (item?.isFolder() == true) {
-                                sourceBitmap = viewModel.base64DataSource.extractImageFromHtml(item
-                                    .fullPath+"/.folderPicture.html")
+                                sourceBitmap = viewModel.base64DataSource.extractImageFromHtml(
+                                    item
+                                        .fullPath + "/.folderPicture.html"
+                                )
                             }
-                            
+
                             if (item == null || sourceBitmap == null)
                                 return@run
-                            
+
 //                            val sourceBitmap = viewModel.imageCache[viewModel.selectedItem.value?.fullPath ?: ""] as Bitmap
 
                             val sourceUri = bitmapToTempUri(mainActivity, sourceBitmap)
@@ -705,8 +739,10 @@ sealed class Tools(
 
 }
 
-fun changeCrop(viewModel: SigmaViewModel, activity: MainActivity, scale:
-ContentScale) {
+fun changeCrop(
+    viewModel: SigmaViewModel, activity: MainActivity, scale:
+    ContentScale
+) {
     val item = viewModel.selectedItem.value ?: return
     viewModel.scaleCache[item.fullPath] = scale
 
@@ -879,6 +915,84 @@ fun CustomYesNoDialog(
     }
 }
 
+@Composable
+fun CustomMoveFileExistingDestinationDialog(
+    text: String = "Le fichier existe déjà. Que voulez-vous faire?",
+    openDialog: MutableState<Boolean>,
+    onOverwrite: () -> Unit,
+    onCancel: () -> Unit,
+    onCreateCopy: () -> Unit,
+) {
+    val editMessage = remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                color = contentColorFor(Color.White)
+                    .copy(alpha = 0.6f)
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    openDialog.value = false
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.White)
+                .padding(8.dp),
+        ) {
+
+            Text(
+                modifier = Modifier,
+                text = text,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Button(
+                    onClick = {
+                        openDialog.value = false
+                        onCancel()
+                    }
+                ) {
+                    Text("Abandonner")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        openDialog.value = false
+                        onCreateCopy()
+                    }
+                ) {
+                    Text("Créer une copie")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        openDialog.value = false
+                        onOverwrite()
+                    }
+                ) {
+                    Text("Ecraser")
+                }
+            }
+        }
+    }
+}
 
 
 

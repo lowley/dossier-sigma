@@ -426,4 +426,15 @@ class DiskRepository @Inject constructor(
             )
         }
     }
+    
+    override suspend fun isFileOrFolderExists(parentPath: String, item: Item): 
+    Boolean{
+        
+        val correspondingItem = datasource.getFolderContent(parentPath)
+            .firstOrNull { it.isFile == item.isFile()
+                    && it.name == item.fullPath.substringAfterLast("/")
+            }
+        
+        return correspondingItem != null
+    }
 }
