@@ -42,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import com.yalantis.ucrop.UCrop
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -82,7 +83,26 @@ class BottomTools @Inject constructor(
         var movingItem: Item? = null
         var copyingItem: Item? = null
         var destinationItem: Item? = null
+
+        private val _progress = MutableStateFlow(0)
+        val progress: StateFlow<Int> = _progress
+        
+        /**
+         * utilisé par
+         * @see MoveFileService.copy
+         */
+        fun updateProgress(value: Int) {
+            _progress.value = value
+        }
+
+        private val _movePasteText = MutableStateFlow("Coller")
+        val movePasteText: StateFlow<String> = _movePasteText
+        
+        fun updateMovePasteText(value: String) {
+            _movePasteText.value = value
+        }
     }
+    
 
 
     @Composable
@@ -128,7 +148,7 @@ class BottomTools @Inject constructor(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
                             .height(24.dp),
-                        text = tool.text,
+                        text = tool.text(viewModel),
                         color = Color(0xFFe9c46a)
                     )
                 }
@@ -161,7 +181,7 @@ class BottomToolContent(
 
 // Outil unique avec icône, texte, et un comportement.
 data class Tool(
-    val text: String,
+    val text: @Composable (vm: SigmaViewModel) -> String,
     @DrawableRes val icon: Int,
     val onClick: suspend (SigmaViewModel, MainActivity) -> Any?
 )
@@ -176,7 +196,7 @@ sealed class Tools(
                 // + dossier //
                 ///////////////
                 Tool(
-                    text = "dossier",
+                    text = {"dossier"},
                     icon = R.drawable.plus,
                     onClick = { viewModel, mainActivity ->
                         viewModel.setDialogMessage("Nom du dossier à créer")
@@ -219,7 +239,7 @@ sealed class Tools(
                 // image google //
                 //////////////////
                 Tool(
-                    text = "Google",
+                    text = { "Google" },
                     icon = R.drawable.image_nb,
                     onClick = { viewModel, mainActivity ->
                         run {
@@ -243,7 +263,7 @@ sealed class Tools(
                 // crop //
                 //////////
                 Tool(
-                    text = "Placement",
+                    text = { "Placement" },
                     icon = R.drawable.image_nb,
                     onClick = { viewModel, mainActivity ->
                         viewModel.bottomTools.setCurrentContent(Tools.CROP)
@@ -253,7 +273,7 @@ sealed class Tools(
                 // copier //
                 ////////////
                 Tool(
-                    text = "Copier",
+                    text = { "Copier" },
                     icon = R.drawable.copier,
                     onClick = { viewModel, mainActivity ->
 
@@ -265,7 +285,7 @@ sealed class Tools(
                 // déplacer //
                 //////////////
                 Tool(
-                    text = "Déplacer",
+                    text = { "Déplacer" },
                     icon = R.drawable.deplacer,
                     onClick = { viewModel, mainActivity ->
                         movingItem = viewModel.selectedItem.value
@@ -277,7 +297,7 @@ sealed class Tools(
                 // renommer //
                 //////////////
                 Tool(
-                    text = "Renommer",
+                    text = { "Renommer" },
                     icon = R.drawable.renommer,
                     onClick = { viewModel, mainActivity ->
                         val currentFolderPath = viewModel.selectedItem.value?.fullPath
@@ -332,7 +352,7 @@ sealed class Tools(
                 // + dossier frère //
                 /////////////////////
                 Tool(
-                    text = "+ frère",
+                    text = {"+ frère"},
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
                         val parent = viewModel.currentFolder.value
@@ -383,7 +403,7 @@ sealed class Tools(
                 // + dossier fils //
                 ////////////////////
                 Tool(
-                    text = "+ fils",
+                    text = { "+ fils" },
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
                         val parent = viewModel.currentFolder.value
@@ -448,7 +468,7 @@ sealed class Tools(
                 // supprimer //
                 ///////////////
                 Tool(
-                    text = "Supprimer",
+                    text = { "Supprimer" },
                     icon = R.drawable.corbeille,
                     onClick = { viewModel, mainActivity ->
                         val currentFolderPath = viewModel.selectedItem.value?.fullPath
@@ -509,7 +529,7 @@ sealed class Tools(
                 // annuler //
                 /////////////
                 Tool(
-                    text = "Annuler",
+                    text = { "Annuler" },
                     icon = R.drawable.annuler,
                     onClick = { viewModel, mainActivity ->
 
@@ -521,7 +541,7 @@ sealed class Tools(
                 // coller //
                 ////////////
                 Tool(
-                    text = "Coller",
+                    text = { "Coller" },
                     icon = R.drawable.coller,
                     onClick = { viewModel, mainActivity ->
 
@@ -540,7 +560,7 @@ sealed class Tools(
                 // annuler //
                 /////////////
                 Tool(
-                    text = "Annuler",
+                    text = { "Annuler" },
                     icon = R.drawable.annuler,
                     onClick = { viewModel, mainActivity ->
                         viewModel.bottomTools.setCurrentContent(DEFAULT)
@@ -558,7 +578,11 @@ sealed class Tools(
                 // coller //
                 ////////////
                 Tool(
-                    text = "Coller",
+                    text = { vm ->
+                        val movePasteText by BottomTools.movePasteText.collectAsState()
+                        
+                        movePasteText
+                    },
                     icon = R.drawable.coller,
                     onClick = { viewModel, mainActivity ->
                         run {
@@ -635,7 +659,7 @@ sealed class Tools(
         BottomToolContent(
             toolInit = listOf(
                 Tool(
-                    text = "Aucun",
+                    text = { "Aucun" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
                         changeCrop(viewModel, mainActivity, ContentScale.None)
@@ -643,7 +667,7 @@ sealed class Tools(
                 ),
 
                 Tool(
-                    text = "Rogner",
+                    text = { "Rogner" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
                         changeCrop(viewModel, mainActivity, ContentScale.Crop)
@@ -651,7 +675,7 @@ sealed class Tools(
                 ),
 
                 Tool(
-                    text = "Remplir ⇅",
+                    text = { "Remplir ⇅" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
                         changeCrop(viewModel, mainActivity, ContentScale.FillHeight)
@@ -659,7 +683,7 @@ sealed class Tools(
                 ),
 
                 Tool(
-                    text = "Remplir ⇿",
+                    text = { "Remplir ⇿" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
                         changeCrop(viewModel, mainActivity, ContentScale.FillWidth)
@@ -667,7 +691,7 @@ sealed class Tools(
                 ),
 
                 Tool(
-                    text = "Etirer",
+                    text = { "Etirer" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
                         changeCrop(viewModel, mainActivity, ContentScale.Fit)
@@ -675,7 +699,7 @@ sealed class Tools(
                 ),
 
                 Tool(
-                    text = "Dedans",
+                    text = { "Dedans" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
                         changeCrop(viewModel, mainActivity, ContentScale.Inside)
@@ -683,7 +707,7 @@ sealed class Tools(
                 ),
 
                 Tool(
-                    text = "Manuel",
+                    text = { "Manuel" },
                     icon = R.drawable.image,
                     onClick = { viewModel, mainActivity ->
                         run {

@@ -7,11 +7,16 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import kotlin.system.measureTimeMillis
 
+/**
+ * Appelé par @see[lorry.folder.items.dossiersigma.ui.MainActivity.onCreate]
+ * , déclaration de CustomMoveFileExistingDestinationDialog
+ */
 class MoveFileService : Service() {
 
     private val NOTIFICATION_ID = 1
@@ -63,6 +68,7 @@ class MoveFileService : Service() {
                 if (sourceFile.isFile)
                     copyFileWithProgress(sourceFile, destinationFile){p ->
                         println("progression: $p%")
+                        BottomTools.updateProgress(p)
                     }
 //                    sourceFile.copyTo(destinationFile, overwrite = true)
                 else
