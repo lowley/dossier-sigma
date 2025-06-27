@@ -141,7 +141,7 @@ class BottomTools @Inject constructor(
                             .size(28.dp),
                         painter = painterResource(id = tool.icon),
                         contentDescription = null,
-                        tint = Color(0xFFe9c46a)
+                        tint = if (tool.isColoredIcon) Color.Unspecified else Color(0xFFe9c46a)
                     )
 
                     Text(
@@ -183,6 +183,7 @@ class BottomToolContent(
 data class Tool(
     val text: @Composable (vm: SigmaViewModel) -> String,
     @DrawableRes val icon: Int,
+    val isColoredIcon: Boolean = false,
     val onClick: suspend (SigmaViewModel, MainActivity) -> Any?
 )
 
@@ -709,6 +710,7 @@ sealed class Tools(
                 Tool(
                     text = { "Manuel" },
                     icon = R.drawable.image,
+                    isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
                         run {
                             val item = viewModel.selectedItem.value
