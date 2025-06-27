@@ -241,7 +241,7 @@ sealed class Tools(
                 //////////////////
                 Tool(
                     text = { "Google" },
-                    icon = R.drawable.image_nb,
+                    icon = R.drawable.browser,
                     onClick = { viewModel, mainActivity ->
                         run {
                             val selectedItem = viewModel.selectedItem.value
