@@ -138,11 +138,8 @@ fun ItemComponent(
                         }
 
                         if (item.isFolder()) {
-                            viewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
                             viewModel.goToFolder(
-                                item.fullPath,
-                                ITEMS_ORDERING_STRATEGY.DATE_DESC
-                            )
+                                item.fullPath)
                         }
 
                         if (item.isFile() &&

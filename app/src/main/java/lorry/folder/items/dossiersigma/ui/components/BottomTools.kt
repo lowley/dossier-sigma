@@ -569,7 +569,7 @@ sealed class Tools(
                         val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                         if (movingParent != null)
-                            viewModel.goToFolder(movingParent, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                            viewModel.goToFolder(movingParent)
                         movingItem = null
                         viewModel.setSelectedItem(null, true)
                         viewModel.refreshCurrentFolder()

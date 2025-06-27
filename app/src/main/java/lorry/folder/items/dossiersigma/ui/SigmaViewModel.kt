@@ -57,6 +57,7 @@ class SigmaViewModel @Inject constructor(
 
     val imageCache = mutableMapOf<String, Any?>()
     val scaleCache = mutableMapOf<String, ContentScale>()
+    val sortingCache = mutableMapOf<String, ITEMS_ORDERING_STRATEGY>()
 
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
@@ -291,8 +292,14 @@ class SigmaViewModel @Inject constructor(
 //
 //    }
 
-    fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) {
-        setSorting(sorting)
+    fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY? = null) {
+        sortingCache[currentFolderPath.value] = this.sorting.value
+        
+        if (sorting != null)
+            setSorting(sorting)
+        else
+            setSorting(sortingCache[folderPath] ?: ITEMS_ORDERING_STRATEGY.DATE_DESC)
+            
         imageCache.clear()
         scaleCache.clear()
         viewModelScope.launch(Dispatchers.IO) {
@@ -354,7 +361,7 @@ class SigmaViewModel @Inject constructor(
             if (ancienne != "^")
                 valueToSave = "/storage/6539-3963/" + ancienne
             if (valueToSave != "^^")
-                goToFolder(valueToSave, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                goToFolder(valueToSave)
         }
     }
 }

@@ -60,7 +60,7 @@ class HomeViewModel @Inject constructor(
                 title = "Filles",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe/filles")
+                    mainVM.goToFolder("/storage/emulated/0/Movies/sexe/filles")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -70,7 +70,7 @@ class HomeViewModel @Inject constructor(
                 title = "Fantasmes",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe/fantasmes")
+                    mainVM.goToFolder("/storage/emulated/0/Movies/sexe/fantasmes")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -80,7 +80,7 @@ class HomeViewModel @Inject constructor(
                 title = "Films",
                 icon = R.drawable.film,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies")
+                    mainVM.goToFolder("/storage/emulated/0/Movies")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -90,7 +90,7 @@ class HomeViewModel @Inject constructor(
                 title = "sensations fortes",
                 icon = R.drawable.film,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sensations fortes.fort")
+                    mainVM.goToFolder("/storage/emulated/0/Movies/sensations fortes.fort")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -100,7 +100,7 @@ class HomeViewModel @Inject constructor(
                 title = "humour",
                 icon = R.drawable.film,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/humour")
+                    mainVM.goToFolder("/storage/emulated/0/Movies/humour")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -110,7 +110,7 @@ class HomeViewModel @Inject constructor(
                 title = "fantastique",
                 icon = R.drawable.film,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/fantastique")
+                    mainVM.goToFolder("/storage/emulated/0/Movies/fantastique")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -120,7 +120,7 @@ class HomeViewModel @Inject constructor(
                 title = "intériorité",
                 icon = R.drawable.film,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/faiblesse & intériorité")
+                    mainVM.goToFolder("/storage/emulated/0/Movies/faiblesse & intériorité")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -130,7 +130,7 @@ class HomeViewModel @Inject constructor(
                 title = "acteurs",
                 icon = R.drawable.acteur,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/acteurs")
+                    mainVM.goToFolder("/storage/emulated/0/Movies/acteurs")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -140,7 +140,7 @@ class HomeViewModel @Inject constructor(
                 title = "1DM+",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Download/1DMP/General")
+                    mainVM.goToFolder("/storage/emulated/0/Download/1DMP/General")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -150,7 +150,7 @@ class HomeViewModel @Inject constructor(
                 title = "Nzbs",
                 icon = R.drawable.downloads2,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Download/nzb")
+                    mainVM.goToFolder("/storage/emulated/0/Download/nzb")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -160,7 +160,7 @@ class HomeViewModel @Inject constructor(
                 title = "Films/Sexe",
                 icon = R.drawable.sexe,
                 onClick = { mainVM, homeVM ->
-                    mainVM.addFolderPathToHistory("/storage/emulated/0/Movies/sexe")
+                    mainVM.goToFolder("/storage/emulated/0/Movies/sexe")
                     homeVM.setHomePageVisible(false)
                 }
             ))
@@ -170,7 +170,7 @@ class HomeViewModel @Inject constructor(
             title = "Stockage principal",
             icon = R.drawable.hdd,
             onClick = { mainVM, homeVM ->
-                mainVM.addFolderPathToHistory("/storage/emulated/0")
+                mainVM.goToFolder("/storage/emulated/0")
                 homeVM.setHomePageVisible(false)
             }
         ))
@@ -180,7 +180,7 @@ class HomeViewModel @Inject constructor(
             title = "Téléchargements",
             icon = R.drawable.downloads2,
             onClick = { mainVM, homeVM ->
-                mainVM.addFolderPathToHistory("/storage/emulated/0/Download")
+                mainVM.goToFolder("/storage/emulated/0/Download")
                 homeVM.setHomePageVisible(false)
             }
         ))

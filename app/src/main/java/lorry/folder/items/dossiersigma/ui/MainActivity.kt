@@ -137,8 +137,12 @@ class MainActivity : ComponentActivity() {
                 }
 
                 BackHandler(enabled = true) {
-                    mainViewModel.setSorting(ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                    mainViewModel.sortingCache[mainViewModel.currentFolderPath.value] = mainViewModel.sorting.value
                     mainViewModel.removeLastFolderPathHistory()
+                    val newSorting = mainViewModel.sortingCache[mainViewModel.folderPathHistory.value.last()] ?: 
+                    ITEMS_ORDERING_STRATEGY.DATE_DESC
+                    mainViewModel.setSorting(newSorting)
+                    mainViewModel.refreshCurrentFolder()
                 }
 
                 LaunchedEffect(Unit) {
@@ -213,10 +217,7 @@ class MainActivity : ComponentActivity() {
                                 Breadcrumb(
                                     items = currentFolder.fullPath.split("/").filter { it != "" },
                                     onPathClick = { path ->
-                                        mainViewModel.goToFolder(
-                                            path,
-                                            ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                        )
+                                        mainViewModel.goToFolder(path)
                                     },
                                     modifier = Modifier
                                         .padding(start = 10.dp)
@@ -460,9 +461,13 @@ class MainActivity : ComponentActivity() {
                     CustomMoveFileExistingDestinationDialog(
                         openDialog = openMoveFileDialog,
                         onOverwrite = {
-                            
-                            
-                            
+                            val intent = Intent(this, MoveFileService::class.java).apply {
+                                putExtra("source", movingItem?.fullPath ?: "")
+                                putExtra("destination", movingItem?.fullPath ?: "")
+                                putExtra("addSuffix", "")
+                            }
+                            startService(intent)
+                            mainViewModel.refreshCurrentFolder()
                         },
                         onCancel = {
                             mainViewModel.bottomTools.setCurrentContent(DEFAULT)
@@ -470,7 +475,7 @@ class MainActivity : ComponentActivity() {
                             val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                             if (movingParent != null)
-                                mainViewModel.goToFolder(movingParent, ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                                mainViewModel.goToFolder(movingParent)
                             movingItem = null
                             mainViewModel.setSelectedItem(null, true)
                             mainViewModel.refreshCurrentFolder()
@@ -478,7 +483,6 @@ class MainActivity : ComponentActivity() {
                             
                         },
                         onCreateCopy = {
-                            // si dest est un fichier qui existe traiter le cas
                             val intent = Intent(this, MoveFileService::class.java).apply {
                                 putExtra("source", movingItem?.fullPath ?: "")
                                 putExtra("destination", destinationItem?.fullPath)
