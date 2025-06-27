@@ -29,9 +29,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -118,7 +119,6 @@ class MainActivity : ComponentActivity() {
             DossierSigmaTheme {
                 //barre d'outils
 
-                val state = rememberScrollState()
                 val currentFolder by mainViewModel.currentFolder.collectAsState()
                 val selectedItem by mainViewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
@@ -139,8 +139,11 @@ class MainActivity : ComponentActivity() {
                 BackHandler(enabled = true) {
                     mainViewModel.sortingCache[mainViewModel.currentFolderPath.value] = mainViewModel.sorting.value
                     mainViewModel.removeLastFolderPathHistory()
-                    val newSorting = mainViewModel.sortingCache[mainViewModel.folderPathHistory.value.last()] ?: 
-                    ITEMS_ORDERING_STRATEGY.DATE_DESC
+                    
+                    val newSorting = if (mainViewModel.folderPathHistory.value.isEmpty())
+                        ITEMS_ORDERING_STRATEGY.DATE_DESC
+                    else 
+                        mainViewModel.sortingCache[mainViewModel.folderPathHistory.value.last()]?: ITEMS_ORDERING_STRATEGY.DATE_DESC
                     mainViewModel.setSorting(newSorting)
                     mainViewModel.refreshCurrentFolder()
                 }
@@ -373,15 +376,24 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                    } else
+                    } else {
+                        val scrollStates = remember { mutableMapOf<String, LazyGridState>() }
+                        val currentScrollState = scrollStates.getOrPut(currentFolder.fullPath) {
+                            LazyGridState()
+                        }
+                        
                         LazyVerticalGrid(
                             columns = GridCells.Adaptive(150.dp),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(horizontal = 10.dp)
-                                .weight(1f)
+                                .weight(1f),
+                            state = currentScrollState
                         ) {
-                            lazyGridItems(currentFolder.items, key = { it.fullPath + "-" + pictureUpdateId+ it.id.toString()}) { item ->
+                            lazyGridItems(currentFolder.items, key = {
+                                it.fullPath + "-" +
+                                        pictureUpdateId + it.id.toString()
+                            }) { item ->
                                 ItemComponent(
                                     viewModel = mainViewModel,
                                     item = item,
@@ -389,10 +401,11 @@ class MainActivity : ComponentActivity() {
                                         .padding(horizontal = 10.dp, vertical = 6.dp),
                                     imageCache = mainViewModel.imageCache,
                                     context = this@MainActivity,
-                                    scaleCache = mainViewModel.scaleCache
+                                    scaleCache = mainViewModel.scaleCache,
                                 )
                             }
                         }
+                    }
 
                     if (!homePageVisible) {
                         mainViewModel.bottomTools.BottomToolBar(
