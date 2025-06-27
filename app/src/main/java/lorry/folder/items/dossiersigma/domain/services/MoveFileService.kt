@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import java.io.File
 import java.io.FileInputStream
@@ -25,9 +26,9 @@ class MoveFileService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val source = intent?.getStringExtra("source") ?: return START_NOT_STICKY
         var destination = intent.getStringExtra("destination") ?: return START_NOT_STICKY
-        
+
         val addSuffix = intent.getStringExtra("addSuffix")
-        
+
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification("Copie de fichiers en cours"))
 
@@ -41,11 +42,14 @@ class MoveFileService : Service() {
                 stopSelf()
             }
 
-            if (verify(source, destination) &&
-                (source.substringAfterLast("/") == destination.substringAfterLast("/"))) {
+            if ((verify(source, destination) &&
+                        (source.substringAfterLast("/") == destination.substringAfterLast("/")))
+                || File(source).isDirectory
+            ) {
                 delete(source)
             }
 
+            SigmaViewModel.requestRefresh()
             stopSelf()
         }.start()
 
@@ -55,18 +59,19 @@ class MoveFileService : Service() {
     private fun copy(source: String, destination: String, suffix: String?) {
         if (source == null || destination == null)
             return
-        
+
         val sourceFile = File(source)
         val destinationItem = File(destination)
-        
+
         if (destinationItem.isDirectory) {
-            val sourceExtension = sourceFile.extension
-            val destinationFile = File("$destination/${source.substringAfterLast("/").substringBeforeLast(".")}$suffix.$sourceExtension")
-            
+//            val sourceExtension = sourceFile.extension
+            val destinationFile =
+                File("$destination/${source.substringAfterLast("/").substringBeforeLast(".")}$suffix")
+
             println("début de la copie")
             val duration = measureTimeMillis {
                 if (sourceFile.isFile)
-                    copyFileWithProgress(sourceFile, destinationFile){p ->
+                    copyFileWithProgress(sourceFile, destinationFile) { p ->
                         println("progression: $p%")
                         BottomTools.updateProgress(p)
                     }
@@ -76,14 +81,18 @@ class MoveFileService : Service() {
             }
             println("fin de la copie en ${millisToHMS(duration)}")
         }
-        
+
         if (destinationItem.isFile) {
             println("début de la copie")
             val duration = measureTimeMillis {
                 val sourceExtension = sourceFile.extension
-                val destinationFile = File("$destination/${source.substringAfterLast("/").substringBeforeLast(".")}$suffix.$sourceExtension")
+                val destinationFile = File(
+                    "$destination/${
+                        source.substringAfterLast("/").substringBeforeLast(".")
+                    }$suffix.$sourceExtension"
+                )
                 if (sourceFile.isFile)
-                    copyFileWithProgress(sourceFile, destinationFile){p ->
+                    copyFileWithProgress(sourceFile, destinationFile) { p ->
                         println("progression: $p%")
                     }
                 else
@@ -92,7 +101,7 @@ class MoveFileService : Service() {
             println("fin de la copie en ${millisToHMS(duration)}")
 
         }
-        
+
     }
 
     fun millisToHMS(millis: Long): String {
@@ -156,7 +165,10 @@ class MoveFileService : Service() {
     private fun delete(source: String) {
         val source = File(source)
         if (source.exists()) {
-            source.delete()
+            if (source.isFile)
+                source.delete()
+            else 
+                source.deleteRecursively()
         }
     }
 
@@ -190,6 +202,21 @@ class MoveFileService : Service() {
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    fun deleteRecursively(file: File): Boolean {
+        if (file.isDirectory) {
+            val children = file.listFiles()
+            if (children != null) {
+                for (child in children) {
+                    val success = deleteRecursively(child)
+                    if (!success) {
+                        return false
+                    }
+                }
+            }
+        }
+        return file.delete()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

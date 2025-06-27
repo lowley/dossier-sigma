@@ -8,11 +8,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -106,6 +110,27 @@ class SigmaViewModel @Inject constructor(
         )
     )
 
+    companion object {
+        private val _refreshRequested = MutableSharedFlow<Unit>(replay = 0)
+        val refreshRequested = _refreshRequested.asSharedFlow()
+
+        private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        
+        fun requestRefresh() {
+            scope.launch {
+                _refreshRequested.emit(Unit)
+            }
+        }
+    }
+    
+    init{
+        viewModelScope.launch { 
+            refreshRequested.collect { 
+                refreshCurrentFolder()
+            }
+        }
+    }
+    
     private val _dialogMessage = MutableStateFlow("")
     val dialogMessage: StateFlow<String?> = _dialogMessage
 
