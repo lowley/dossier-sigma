@@ -169,6 +169,7 @@ class MainActivity : ComponentActivity() {
                             detectTapGestures(onTap = {
                                 if (selectedItem?.id != null) {
                                     mainViewModel.setSelectedItem(null, true)
+                                    mainViewModel.bottomTools.setCurrentContent(DEFAULT)
                                 }
                             })
                         }
