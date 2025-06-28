@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -81,6 +82,7 @@ import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
+import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -124,7 +126,25 @@ class MainActivity : ComponentActivity() {
                     if (!homePageVisible)
                         Button(
                             onClick = {
+                                mainViewModel.setDialogMessage("Nom du dossier à créer")
+                                mainViewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
+                                    val currentFolderPath = viewModel.currentFolderPath.value
+                                    val newFullName = "$currentFolderPath/$newName"
+                                    if (!File(newFullName).exists()) {
+                                        if (File(newFullName).mkdir()) {
+                                            Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
+                                            viewModel.refreshCurrentFolder()
+                                        } else
+                                            Toast.makeText(
+                                                mainActivity,
+                                                "Un problème est survenu",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                                .show()
+                                    }
+                                }
 
+                                openTextDialog.value = true
                             },
                             shapes = ButtonShapes(
                                 shape = RoundedCornerShape(30.dp),
@@ -133,6 +153,11 @@ class MainActivity : ComponentActivity() {
                             modifier = Modifier
                                 .padding(bottom = 55.dp, end = 20.dp)
                                 .size(60.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF006d77),
+                                contentColor = Color(0xFF83c5be)
+                                
+                            )
                         ) {
                             Icon(
                                 painterResource(R.drawable.plus),
