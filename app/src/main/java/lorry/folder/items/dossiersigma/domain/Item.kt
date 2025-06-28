@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.domain
 
 import androidx.compose.runtime.Stable
+import androidx.compose.ui.graphics.Color
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -13,9 +14,9 @@ abstract class Item(
     val name: String,
     val picture: Any?,
     val id: String = UUID.randomUUID().toString(),
-    val modificationDate: Long
+    val modificationDate: Long,
+    val tag: ColoredTag? = null
 ) {
-
     fun isFile(): Boolean {
         return this is SigmaFile
     }
@@ -66,4 +67,9 @@ fun Long.toFormattedDate(): String {
     val affichage = dateTime.format(formatter)
     return affichage
 }
+
+data class ColoredTag(
+    val color: Color,
+    val text: String
+)
 
