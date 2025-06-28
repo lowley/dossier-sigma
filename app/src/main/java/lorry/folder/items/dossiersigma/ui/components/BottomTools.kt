@@ -205,7 +205,8 @@ data class Tool(
     @DrawableRes val icon: Int,
     val isColoredIcon: Boolean = false,
     val onClick: suspend (SigmaViewModel, MainActivity) -> Any?,
-    val visible: suspend (SigmaViewModel, MainActivity) -> Boolean = { _, _ -> true }
+    val visible: suspend (SigmaViewModel, MainActivity) -> Boolean = { _, _ -> true },
+    val tint: Color? = null
 )
 
 sealed class Tools(
@@ -254,7 +255,7 @@ sealed class Tools(
 //                )
             )))
 
-    object TAGS : Tools(
+    object TAGS_MENU : Tools(
         content = BottomToolContent(
             listOf(
                 /////////////
@@ -264,8 +265,7 @@ sealed class Tools(
                     text = { "Ajouter" },
                     icon = R.drawable.plus,
                     visible = { viewModel, mainActivity ->
-                        true
-
+                        viewModel.selectedItem.value?.tag == null
                     },
                     onClick = { viewModel, mainActivity ->
 //                        viewModel.setDialogMessage("Nom du dossier à créer")
@@ -296,8 +296,7 @@ sealed class Tools(
                     text = { "Modifier" },
                     icon = R.drawable.modifier,
                     visible = { viewModel, mainActivity ->
-                        true
-
+                        viewModel.selectedItem.value?.tag != null
                     },
                     onClick = { viewModel, mainActivity ->
 //                        viewModel.setDialogMessage("Nom du dossier à créer")
@@ -328,8 +327,7 @@ sealed class Tools(
                     text = { "Supprimer" },
                     icon = R.drawable.moins,
                     visible = { viewModel, mainActivity ->
-                        true
-
+                        viewModel.selectedItem.value?.tag != null
                     },
                     onClick = { viewModel, mainActivity ->
 //                        viewModel.setDialogMessage("Nom du dossier à créer")
@@ -354,6 +352,12 @@ sealed class Tools(
                     }
                 )
             )
+        )
+    )
+
+    object TAGS : Tools(
+        content = BottomToolContent(
+            listOf()
         )
     )
     
@@ -389,17 +393,30 @@ sealed class Tools(
                 ///////////
                 Tool(
                     text = { "Déplacements" },
-                    icon = R.drawable.deplacer,
+                    icon = R.drawable.move,
+                    isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
                         viewModel.bottomTools.setCurrentContent(Tools.MOVES)
                     }
                 ),
-                //////////
-                // crop //
-                //////////
+                ///////////////
+                // tags menu //
+                ///////////////
+                Tool(
+                    text = { "Etiquettes" },
+                    icon = R.drawable.etiquette2,
+                    isColoredIcon = true,
+                    onClick = { viewModel, mainActivity ->
+                        viewModel.bottomTools.setCurrentContent(Tools.TAGS)
+                    }
+                ),
+                //////////////
+                // recadrer //
+                //////////////
                 Tool(
                     text = { "Placement" },
-                    icon = R.drawable.image_nb,
+                    icon = R.drawable.recadrer2,
+                    isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
                         viewModel.bottomTools.setCurrentContent(Tools.CROP)
                     }
@@ -899,7 +916,7 @@ sealed class Tools(
                 Tool(
                     text = { "Manuel" },
                     icon = R.drawable.image,
-                    isColoredIcon = true,
+                    isColoredIcon = false,
                     onClick = { viewModel, mainActivity ->
                         run {
                             val item = viewModel.selectedItem.value
