@@ -204,7 +204,8 @@ data class Tool(
     val text: @Composable (vm: SigmaViewModel) -> String,
     @DrawableRes val icon: Int,
     val isColoredIcon: Boolean = false,
-    val onClick: suspend (SigmaViewModel, MainActivity) -> Any?
+    val onClick: suspend (SigmaViewModel, MainActivity) -> Any?,
+    val visible: suspend (SigmaViewModel, MainActivity) -> Boolean = { _, _ -> true }
 )
 
 sealed class Tools(
@@ -253,6 +254,109 @@ sealed class Tools(
 //                )
             )))
 
+    object TAGS : Tools(
+        content = BottomToolContent(
+            listOf(
+                /////////////
+                // ajouter //
+                /////////////
+                Tool(
+                    text = { "Ajouter" },
+                    icon = R.drawable.plus,
+                    visible = { viewModel, mainActivity ->
+                        true
+
+                    },
+                    onClick = { viewModel, mainActivity ->
+//                        viewModel.setDialogMessage("Nom du dossier à créer")
+//                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
+//                            val currentFolderPath = viewModel.currentFolderPath.value
+//                            val newFullName = "$currentFolderPath/$newName"
+//                            if (!File(newFullName).exists()) {
+//                                if (File(newFullName).mkdir()) {
+//                                    Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
+//                                    viewModel.refreshCurrentFolder()
+//                                } else
+//                                    Toast.makeText(
+//                                        mainActivity,
+//                                        "Un problème est survenu",
+//                                        Toast.LENGTH_SHORT
+//                                    )
+//                                        .show()
+//                            }
+//                        }
+//
+//                        mainActivity.openTextDialog.value = true
+                    }
+                ),
+                //////////////
+                // modifier //
+                //////////////
+                Tool(
+                    text = { "Modifier" },
+                    icon = R.drawable.modifier,
+                    visible = { viewModel, mainActivity ->
+                        true
+
+                    },
+                    onClick = { viewModel, mainActivity ->
+//                        viewModel.setDialogMessage("Nom du dossier à créer")
+//                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
+//                            val currentFolderPath = viewModel.currentFolderPath.value
+//                            val newFullName = "$currentFolderPath/$newName"
+//                            if (!File(newFullName).exists()) {
+//                                if (File(newFullName).mkdir()) {
+//                                    Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
+//                                    viewModel.refreshCurrentFolder()
+//                                } else
+//                                    Toast.makeText(
+//                                        mainActivity,
+//                                        "Un problème est survenu",
+//                                        Toast.LENGTH_SHORT
+//                                    )
+//                                        .show()
+//                            }
+//                        }
+//
+//                        mainActivity.openTextDialog.value = true
+                    }
+                ),
+                ///////////////
+                // supprimer //
+                ///////////////
+                Tool(
+                    text = { "Supprimer" },
+                    icon = R.drawable.moins,
+                    visible = { viewModel, mainActivity ->
+                        true
+
+                    },
+                    onClick = { viewModel, mainActivity ->
+//                        viewModel.setDialogMessage("Nom du dossier à créer")
+//                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
+//                            val currentFolderPath = viewModel.currentFolderPath.value
+//                            val newFullName = "$currentFolderPath/$newName"
+//                            if (!File(newFullName).exists()) {
+//                                if (File(newFullName).mkdir()) {
+//                                    Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
+//                                    viewModel.refreshCurrentFolder()
+//                                } else
+//                                    Toast.makeText(
+//                                        mainActivity,
+//                                        "Un problème est survenu",
+//                                        Toast.LENGTH_SHORT
+//                                    )
+//                                        .show()
+//                            }
+//                        }
+//
+//                        mainActivity.openTextDialog.value = true
+                    }
+                )
+            )
+        )
+    )
+    
     object FILE : Tools(
         BottomToolContent(
             toolInit = listOf(
