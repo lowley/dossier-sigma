@@ -42,9 +42,7 @@ class MoveFileService : Service() {
                 stopSelf()
             }
 
-            if ((verify(source, destination) &&
-                        (source.substringAfterLast("/") == destination.substringAfterLast("/")))
-                || File(source).isDirectory
+            if (verify(source, destination) || File(source).isDirectory
             ) {
                 delete(source)
             }
@@ -64,9 +62,9 @@ class MoveFileService : Service() {
         val destinationItem = File(destination)
 
         if (destinationItem.isDirectory) {
-//            val sourceExtension = sourceFile.extension
+            val sourceExtension = sourceFile.extension
             val destinationFile =
-                File("$destination/${source.substringAfterLast("/").substringBeforeLast(".")}$suffix")
+                File("$destination/${source.substringAfterLast("/").substringBeforeLast(".")}$suffix.$sourceExtension")
 
             println("début de la copie")
             val duration = measureTimeMillis {
@@ -85,12 +83,14 @@ class MoveFileService : Service() {
         if (destinationItem.isFile) {
             println("début de la copie")
             val duration = measureTimeMillis {
-                val sourceExtension = sourceFile.extension
+                val sourceExtension = source.substringAfterLast(".")
                 val destinationFile = File(
                     "$destination/${
                         source.substringAfterLast("/").substringBeforeLast(".")
                     }$suffix.$sourceExtension"
                 )
+                
+                println("déplacement: fichier destination: ${destinationFile.path}")
                 if (sourceFile.isFile)
                     copyFileWithProgress(sourceFile, destinationFile) { p ->
                         println("progression: $p%")
@@ -139,7 +139,13 @@ class MoveFileService : Service() {
         output.close()
     }
 
-    private fun verify(source: String, destination: String): Boolean {
+    private fun verify(source: String, destinationItemPath: String): Boolean {
+        
+        val destination = if (File(destinationItemPath).isDirectory)
+            "$destinationItemPath/${source.substringAfterLast("/")}"
+        else 
+            destinationItemPath
+        
         val sourceFile = File(source)
         val destinationFile = File(destination)
 
