@@ -52,6 +52,10 @@
             android:name=".domain.services.MoveFileService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+        <service
+            android:name=".domain.services.MoveToNASService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>

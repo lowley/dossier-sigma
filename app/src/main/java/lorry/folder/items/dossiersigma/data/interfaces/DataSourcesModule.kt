@@ -4,6 +4,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import lorry.folder.items.copieurtho2.__data.NAS.DS_FTP
 import lorry.folder.items.dossiersigma.data.base64.Base64DataSource
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.clipboard.ClipboardDataSource
@@ -14,8 +15,8 @@ import lorry.folder.items.dossiersigma.data.bento.BentoDataSource
 import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegDataSource
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.data.intent.DS_IntentWrapper
+import lorry.folder.items.dossiersigma.data.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.data.playing.PlayingDataSource
-
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -60,4 +61,9 @@ abstract class DataSourcesModule {
     abstract fun bindIntentDataSource(
         intentDataSource: DS_IntentWrapper
     ): DSI_IntentWrapper
+
+    @Binds
+    abstract fun bindNASDataSource(
+        nasDataSource: DS_FTP
+    ): DSI_FTP
 }

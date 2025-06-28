@@ -35,6 +35,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.nasProgress
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.progress
 import lorry.folder.items.dossiersigma.ui.components.Tools
 import java.io.ByteArrayOutputStream
@@ -321,6 +322,15 @@ class SigmaViewModel @Inject constructor(
                     BottomTools.updateMovePasteText("Coller")
                 else
                     BottomTools.updateMovePasteText("$p %")
+            }
+        }
+
+        viewModelScope.launch() {
+            nasProgress.collect { p ->
+                if (p == 0 || p == 100)
+                    BottomTools.updateMoveNASText("1 -> NAS")
+                else
+                    BottomTools.updateMoveNASText("$p %")
             }
         }
     }

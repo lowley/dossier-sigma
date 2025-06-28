@@ -40,9 +40,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.yalantis.ucrop.UCrop
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -50,11 +51,12 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
+import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.destinationItem
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.itemToMove
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.movingItem
 import java.io.File
 import javax.inject.Inject
@@ -82,11 +84,11 @@ class BottomTools @Inject constructor(
     companion object {
         var movingItem: Item? = null
         var copyingItem: Item? = null
-        var destinationItem: Item? = null
+        var itemToMove: Item? = null
 
         private val _progress = MutableStateFlow(0)
         val progress: StateFlow<Int> = _progress
-        
+
         /**
          * utilisé par
          * @see MoveFileService.copy
@@ -97,12 +99,29 @@ class BottomTools @Inject constructor(
 
         private val _movePasteText = MutableStateFlow("Coller")
         val movePasteText: StateFlow<String> = _movePasteText
-        
+
         fun updateMovePasteText(value: String) {
             _movePasteText.value = value
         }
+
+        private val _NASprogress = MutableStateFlow(0)
+        val nasProgress: StateFlow<Int> = _NASprogress
+
+        /**
+         * utilisé par
+         * @see lorry.folder.items.dossiersigma.domain.services.MoveToNASService.copy
+         */
+        fun updateNASProgress(value: Int) {
+            _NASprogress.value = value
+        }
+
+        private val _copyNASText = MutableStateFlow("1 -> NAS")
+        val copyNASText: StateFlow<String> = _copyNASText
+
+        fun updateMoveNASText(value: String) {
+            _copyNASText.value = value
+        }
     }
-    
 
 
     @Composable
@@ -149,7 +168,8 @@ class BottomTools @Inject constructor(
                             .align(Alignment.BottomCenter)
                             .height(24.dp),
                         text = tool.text(viewModel),
-                        color = Color(0xFFe9c46a)
+                        color = Color(0xFFe9c46a),
+                        fontSize = 12.sp
                     )
                 }
             }
@@ -197,7 +217,7 @@ sealed class Tools(
                 // + dossier //
                 ///////////////
                 Tool(
-                    text = {"dossier"},
+                    text = { "dossier" },
                     icon = R.drawable.plus,
                     onClick = { viewModel, mainActivity ->
                         viewModel.setDialogMessage("Nom du dossier à créer")
@@ -260,6 +280,16 @@ sealed class Tools(
                         }
                     }
                 ),
+                ///////////
+                // moves //
+                ///////////
+                Tool(
+                    text = { "Déplacements" },
+                    icon = R.drawable.deplacer,
+                    onClick = { viewModel, mainActivity ->
+                        viewModel.bottomTools.setCurrentContent(Tools.MOVES)
+                    }
+                ),
                 //////////
                 // crop //
                 //////////
@@ -268,30 +298,6 @@ sealed class Tools(
                     icon = R.drawable.image_nb,
                     onClick = { viewModel, mainActivity ->
                         viewModel.bottomTools.setCurrentContent(Tools.CROP)
-                    }
-                ),
-                ////////////
-                // copier //
-                ////////////
-                Tool(
-                    text = { "Copier" },
-                    icon = R.drawable.copier,
-                    onClick = { viewModel, mainActivity ->
-
-
-                        //vm.diskRepository.copyFile(sourceFile, destinationFile)
-                    }
-                ),
-                //////////////
-                // déplacer //
-                //////////////
-                Tool(
-                    text = { "Déplacer" },
-                    icon = R.drawable.deplacer,
-                    onClick = { viewModel, mainActivity ->
-                        movingItem = viewModel.selectedItem.value
-                        viewModel.bottomTools.setCurrentContent(MOVE_FILE)
-                        viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
                     }
                 ),
                 //////////////
@@ -353,7 +359,7 @@ sealed class Tools(
                 // + dossier frère //
                 /////////////////////
                 Tool(
-                    text = {"+ frère"},
+                    text = { "+ frère" },
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
                         val parent = viewModel.currentFolder.value
@@ -512,7 +518,6 @@ sealed class Tools(
                                     .show()
                             }
 
-
                             viewModel.bottomTools.setCurrentContent(DEFAULT)
                         }
 
@@ -520,6 +525,86 @@ sealed class Tools(
                     }
 
                 ),
+            )
+        ))
+
+    object MOVES : Tools(
+        content = BottomToolContent(
+            listOf(
+                ////////////
+                // copier //
+                ////////////
+                Tool(
+                    text = { "Copier" },
+                    icon = R.drawable.copier,
+                    onClick = { viewModel, mainActivity ->
+
+
+                        //vm.diskRepository.copyFile(sourceFile, destinationFile)
+                    }
+                ),
+                //////////////
+                // déplacer //
+                //////////////
+                Tool(
+                    text = { "Déplacer" },
+                    icon = R.drawable.deplacer,
+                    onClick = { viewModel, mainActivity ->
+                        movingItem = viewModel.selectedItem.value
+                        viewModel.bottomTools.setCurrentContent(MOVE_FILE)
+                        viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
+                    }
+                ),
+                /////////////////////
+                // déplacement NAS //
+                /////////////////////
+                Tool(
+                    text = {
+                        val nasText by BottomTools.copyNASText.collectAsState()
+
+                        nasText
+                    },
+                    icon = R.drawable.deplacer,
+                    onClick = { viewModel, mainActivity ->
+                        run {
+                            itemToMove = viewModel.selectedItem.value
+
+                            if (itemToMove == null)
+                                return@run 
+
+                            //toast
+                            println("MovingItem: choisir fichier destination")
+                            //1.copie
+//                            val sourceFile = File(movingItem?.fullPath ?: "")
+
+//                            if (dest?.isFolder() == true) {
+//                                if (movingItem == null)
+//                                    return@run
+//                                val isItemExists = viewModel.diskRepository.isFileOrFolderExists(
+//                                    dest.fullPath,
+//                                    movingItem!!
+//                                )
+//                                if (isItemExists) {
+//                                    mainActivity.openMoveFileDialog.value = true
+//                                    return@run
+//                                }
+//                            }
+
+                            /**
+                             * le fichier n'existe pas, on lance la copie,
+                             * le reste est effectué dans
+                             * @see MoveFileService.onStartCommand
+                             */
+                            
+                            //encode/decode en json
+                            val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
+                                putExtra("filesToTransfer", Gson().toJson( listOf<String>(itemToMove?.fullPath
+                                    ?: "")))
+                            }
+                            mainActivity.startService(intent)
+                        }
+                    }
+                )
             )
         ))
 
@@ -581,18 +666,18 @@ sealed class Tools(
                 Tool(
                     text = { vm ->
                         val movePasteText by BottomTools.movePasteText.collectAsState()
-                        
+
                         movePasteText
                     },
                     icon = R.drawable.coller,
                     onClick = { viewModel, mainActivity ->
                         run {
-                            destinationItem = viewModel.selectedItem.value
-                            var dest = destinationItem
+                            itemToMove = viewModel.selectedItem.value
+                            var dest = itemToMove
 
                             if (dest == null) {
-                                destinationItem = viewModel.currentFolder.value
-                                dest = destinationItem
+                                itemToMove = viewModel.currentFolder.value
+                                dest = itemToMove
                             }
 
                             //toast

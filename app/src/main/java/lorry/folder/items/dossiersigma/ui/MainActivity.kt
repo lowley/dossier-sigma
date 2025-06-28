@@ -32,7 +32,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -68,8 +67,7 @@ import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
-import lorry.folder.items.dossiersigma.ui.components.BottomTools
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.destinationItem
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.itemToMove
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.movingItem
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
@@ -77,7 +75,6 @@ import lorry.folder.items.dossiersigma.ui.components.CustomMoveFileExistingDesti
 import lorry.folder.items.dossiersigma.ui.components.CustomTextDialog
 import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
-import lorry.folder.items.dossiersigma.ui.components.Tools
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
@@ -498,7 +495,7 @@ class MainActivity : ComponentActivity() {
                         onCreateCopy = {
                             val intent = Intent(this, MoveFileService::class.java).apply {
                                 putExtra("source", movingItem?.fullPath ?: "")
-                                putExtra("destination", destinationItem?.fullPath)
+                                putExtra("destination", itemToMove?.fullPath)
                                 putExtra("addSuffix", " - copie")
                             }
                             startService(intent)

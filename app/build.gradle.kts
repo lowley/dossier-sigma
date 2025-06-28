@@ -124,6 +124,8 @@ dependencies {
     implementation("com.robertlevonyan.compose:buttontogglegroup:1.2.0")
 
     implementation("com.github.yalantis:ucrop:2.2.9-native")
+    implementation("commons-net:commons-net:3.11.1")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 // Allow references to generated code
