@@ -215,9 +215,9 @@ sealed class Tools(
     object DEFAULT : Tools(
         content = BottomToolContent(
             listOf(
-                ///////////////
-                // + dossier //
-                ///////////////
+                /////////////////////////////////////
+                // liste des TAGS de ce répertoire //
+                /////////////////////////////////////
                 Tool(
                     text = { "dossier" },
                     icon = R.drawable.plus,

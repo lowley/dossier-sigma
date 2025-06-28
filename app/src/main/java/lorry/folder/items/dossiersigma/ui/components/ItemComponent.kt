@@ -126,7 +126,9 @@ fun ItemComponent(
                         dashLength = 10.dp,
                         gapLength = 10.dp
                     )
-                else Modifier
+                else (if (item.tag != null)
+                    Modifier.border(1.dp, item.tag.color, shape1)
+                else Modifier)
             )
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -163,6 +165,7 @@ fun ItemComponent(
                     })
             }
 
+        
         Box(
             modifier = modifierWithBorder//.background(Color.Blue)
                 .width(imageHeight)
@@ -209,7 +212,7 @@ fun ItemComponent(
                             clip = true
                             shadowElevation = 0f
                         }
-                        .background(Color.Gray) // Rouge
+                        .background(item.tag?.color ?: Color.Gray) // Rouge
                         .widthIn(min = boxWidth)
                     //.padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {

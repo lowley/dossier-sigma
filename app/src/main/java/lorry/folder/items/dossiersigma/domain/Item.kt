@@ -70,6 +70,6 @@ fun Long.toFormattedDate(): String {
 
 data class ColoredTag(
     val color: Color,
-    val text: String
+    val title: String
 )
 
