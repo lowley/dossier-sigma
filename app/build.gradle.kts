@@ -126,6 +126,9 @@ dependencies {
     implementation("com.github.yalantis:ucrop:2.2.9-native")
     implementation("commons-net:commons-net:3.11.1")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.github.skydoves:colorpicker-compose:1.1.2")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
 
 // Allow references to generated code

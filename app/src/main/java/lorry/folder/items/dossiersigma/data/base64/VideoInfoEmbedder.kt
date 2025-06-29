@@ -4,13 +4,21 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.ui.layout.ContentScale
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.domain.ColoredTag
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.charset.Charset
 import javax.inject.Inject
+
+//ordre:
+//Base64
+//Scale
+//Tag
+
 
 class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
     private val CHARSET = "UTF-8"
@@ -18,29 +26,32 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
     /**
      * Ajoute une image encodée en base64 à la fin du fichier MP4 sans altérer sa lisibilité.
      */
-    override suspend fun appendBase64ToMp4(mp4File: File, base64Image: String, tag: Tags) {
+    override suspend fun appendBase64ToFile(file: File, base64Image: String, tag: Tags) {
         withContext(Dispatchers.IO) {
-            val savedScale = extractContentScaleFromMp4(mp4File)
-            removeEmbeddedContentScale(mp4File)
+            val savedScale = extractScaleFromFile(file)
+            removeScale(file)
+            val savedTag = extractFlagFromFile(file)
+            removeFlagFromFile(file)
 
             if (tag == Tags.COVER) {
-                val base64Cropped = extractBase64FromMp4(mp4File, 65536, 5, Tags.COVER_CROPPED)
-                removeBothEmbeddedBase64(mp4File)
+                val base64Cropped = extractBase64FromFile(file, 65536, 5, Tags.COVER_CROPPED)
+                removeBothBase64(file)
 
-                RandomAccessFile(mp4File, "rw").use { raf ->
+                RandomAccessFile(file, "rw").use { raf ->
                     raf.seek(raf.length())
                     val data = "\n${tag.start}\n$base64Image\n${tag.end}\n"
                     raf.write(data.toByteArray(Charset.forName(CHARSET)))
                 }
 
                 if (base64Cropped != null)
-                    RandomAccessFile(mp4File, "rw").use { raf ->
+                    RandomAccessFile(file, "rw").use { raf ->
                         raf.seek(raf.length())
-                        val data = "\n${Tags.COVER_CROPPED.start}\n$base64Cropped\n${Tags.COVER_CROPPED.end}\n"
+                        val data =
+                            "\n${Tags.COVER_CROPPED.start}\n$base64Cropped\n${Tags.COVER_CROPPED.end}\n"
                         raf.write(data.toByteArray(Charset.forName(CHARSET)))
                     }
                 else
-                    RandomAccessFile(mp4File, "rw").use { raf ->
+                    RandomAccessFile(file, "rw").use { raf ->
                         raf.seek(raf.length())
                         val data = "\n${Tags.COVER_CROPPED.start}\n$base64Image\n{Tags.COVER_CROPPED.end}\n"
                         raf.write(data.toByteArray(Charset.forName(CHARSET)))
@@ -48,24 +59,26 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
             }
 
             if (tag == Tags.COVER_CROPPED) {
-                RandomAccessFile(mp4File, "rw").use { raf ->
+                RandomAccessFile(file, "rw").use { raf ->
                     raf.seek(raf.length())
                     val data = "\n${Tags.COVER_CROPPED.start}\n$base64Image\n${Tags.COVER_CROPPED.end}\n"
                     raf.write(data.toByteArray(Charset.forName(CHARSET)))
                 }
             }
 
-            if (savedScale != null) {
-                appendContentScaleToMp4(mp4File, savedScale)
-            }
+            if (savedScale != null)
+                appendScaleToFile(file, savedScale)
+            
+            if (savedTag != null)
+                appendFlagToFile(file, savedTag)
         }
     }
 
     /**
-     * Extrait l'image encodée en base64 si elle a été ajoutée via [appendBase64ToMp4].
+     * Extrait l'image encodée en base64 si elle a été ajoutée via [appendBase64ToFile].
      * Recherche progressivement dans des blocs de taille croissante si besoin.
      */
-    override suspend fun extractBase64FromMp4(
+    override suspend fun extractBase64FromFile(
         mp4File: File,
         initialLookbackBytes: Int,
         maxAttempts: Int,
@@ -93,9 +106,9 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
 
             if (tag == Tags.COVER_CROPPED) {
                 val result =
-                    extractBase64FromMp4(mp4File, initialLookbackBytes, maxAttempts, Tags.COVER)
+                    extractBase64FromFile(mp4File, initialLookbackBytes, maxAttempts, Tags.COVER)
                 if (result != null) {
-                    appendBase64ToMp4(mp4File, result, Tags.COVER_CROPPED)
+                    appendBase64ToFile(mp4File, result, Tags.COVER_CROPPED)
                 }
 
                 return result
@@ -108,14 +121,15 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
     /**
      * Supprime les données base64 insérées (si présentes).
      */
-    override suspend fun removeBothEmbeddedBase64(mp4File: File): Boolean {
+    override suspend fun removeBothBase64(file: File): Boolean {
         return withContext(Dispatchers.IO) {
-            val savedScale = extractContentScaleFromMp4(mp4File)
+            val savedScale = extractScaleFromFile(file)
+            val savedTag = extractFlagFromFile(file)
             //inutile car plus bas le scale est aussi supprimé de facto
             //removeEmbeddedContentScale(mp4File)
 
             var result = false
-            RandomAccessFile(mp4File, "rw").use { raf ->
+            RandomAccessFile(file, "rw").use { raf ->
                 val length = raf.length()
                 val lookbackBytes = 65536L * 2
                 val seekBack = minOf(lookbackBytes, length)
@@ -139,7 +153,11 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
 
             if (result) {
                 if (savedScale != null) {
-                    appendContentScaleToMp4(mp4File, savedScale)
+                    appendScaleToFile(file, savedScale)
+                }
+                
+                if (savedTag != null) {
+                    appendFlagToFile(file, savedTag)    
                 }
             }
 
@@ -168,9 +186,12 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         return Base64.encodeToString(byteArray, Base64.NO_WRAP)
     }
 
-    override suspend fun appendContentScaleToMp4(mp4File: File, contentScale: ContentScale) {
+    override suspend fun appendScaleToFile(file: File, contentScale: ContentScale) {
         withContext(Dispatchers.IO) {
-            RandomAccessFile(mp4File, "rw").use { raf ->
+            val savedTag = extractFlagFromFile(file)
+            removeFlagFromFile(file)
+            
+            RandomAccessFile(file, "rw").use { raf ->
                 raf.seek(raf.length())
 
                 val scaleAsString = when (contentScale) {
@@ -186,12 +207,15 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
                 val data = "\n${Tags.SCALE.start}\n$scaleAsString\n${Tags.SCALE.end}\n"
                 raf.write(data.toByteArray(Charset.forName(CHARSET)))
             }
+
+            if (savedTag != null)
+                appendFlagToFile(file, savedTag)
         }
     }
 
-    override suspend fun extractContentScaleFromMp4(mp4File: File): ContentScale? {
+    override suspend fun extractScaleFromFile(file: File): ContentScale? {
         val charset = Charset.forName(CHARSET)
-        RandomAccessFile(mp4File, "r").use { raf ->
+        RandomAccessFile(file, "r").use { raf ->
             val length = raf.length()
             val lookbackBytes = 500L
             val seekBack = minOf(lookbackBytes, length)
@@ -205,7 +229,7 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
             val endIndex = tail.lastIndexOf(Tags.SCALE.end)
 
             if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-                return contentScaleFromString(
+                return scaleFromString(
                     tail.substring(startIndex + Tags.SCALE.start.length, endIndex).trim()
                 )
             }
@@ -213,7 +237,7 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         }
     }
 
-    fun contentScaleFromString(value: String): ContentScale? = when (value) {
+    fun scaleFromString(value: String): ContentScale? = when (value) {
         "Crop" -> ContentScale.Crop
         "Fit" -> ContentScale.Fit
         "FillBounds" -> ContentScale.FillBounds
@@ -224,9 +248,11 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         else -> null // ou exception
     }
 
-    override suspend fun removeEmbeddedContentScale(mp4File: File): Boolean {
+    override suspend fun removeScale(file: File): Boolean {
         return withContext(Dispatchers.IO) {
-            RandomAccessFile(mp4File, "rw").use { raf ->
+            val savedTag = extractFlagFromFile(file)
+            
+            RandomAccessFile(file, "rw").use { raf ->
                 val length = raf.length()
                 val lookbackBytes = 500L
                 val seekBack = minOf(lookbackBytes, length)
@@ -238,6 +264,79 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
                 val tail = String(bytes, Charset.forName(CHARSET))
                 val startIndex = tail.indexOf(Tags.SCALE.start)
 
+                val result = if (startIndex != -1) {
+                    val absoluteStart = length - seekBack + startIndex
+                    raf.setLength(absoluteStart)
+                    true
+                } else {
+                    false
+                }
+
+                if (result) {
+                    if (savedTag != null) {
+                        appendFlagToFile(file, savedTag)
+                    }
+                }
+
+                return@withContext result
+            }
+        }
+    }
+
+    override suspend fun appendFlagToFile(
+        file: File,
+        flag: ColoredTag
+    ) {
+        withContext(Dispatchers.IO) {
+            RandomAccessFile(file, "rw").use { raf ->
+                raf.seek(raf.length())
+
+                val text = Gson().toJson(flag)
+
+                val data = "\n${Tags.COLORED_TAG.start}\n$text\n${Tags.COLORED_TAG.end}\n"
+                raf.write(data.toByteArray(Charset.forName(CHARSET)))
+            }
+        }
+    }
+
+    override suspend fun extractFlagFromFile(file: File): ColoredTag? {
+        val charset = Charset.forName(CHARSET)
+        RandomAccessFile(file, "r").use { raf ->
+            val length = raf.length()
+            val lookbackBytes = 500L
+            val seekBack = minOf(lookbackBytes, length)
+            raf.seek(length - seekBack)
+
+            val bytes = ByteArray(seekBack.toInt())
+            raf.readFully(bytes)
+
+            val tail = String(bytes, charset)
+            val startIndex = tail.lastIndexOf(Tags.COLORED_TAG.start)
+            val endIndex = tail.lastIndexOf(Tags.COLORED_TAG.end)
+
+            if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+                val json =
+                    tail.substring(startIndex + Tags.COLORED_TAG.start.length, endIndex).trim()
+                return Gson().fromJson(json, ColoredTag::class.java)
+            }
+            return null
+        }
+    }
+
+    override suspend fun removeFlagFromFile(file: File): Boolean {
+        return withContext(Dispatchers.IO) {
+            RandomAccessFile(file, "rw").use { raf ->
+                val length = raf.length()
+                val lookbackBytes = 500L
+                val seekBack = minOf(lookbackBytes, length)
+                raf.seek(length - seekBack)
+
+                val bytes = ByteArray(seekBack.toInt())
+                raf.readFully(bytes)
+
+                val tail = String(bytes, Charset.forName(CHARSET))
+                val startIndex = tail.indexOf(Tags.COLORED_TAG.start)
+
                 if (startIndex != -1) {
                     val absoluteStart = length - seekBack + startIndex
                     raf.setLength(absoluteStart)
@@ -247,25 +346,33 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
                 }
             }
         }
+        
+        
+        
     }
-} 
+}
 
 sealed class Tags(
     val start: String,
     val end: String
-){
-    object SCALE: Tags(
+) {
+    object SCALE : Tags(
         start = "##SIGMA-SCALE-START##",
         end = "##SIGMA-SCALE-END##"
     )
 
-    object COVER: Tags(
+    object COVER : Tags(
         start = "##SIGMA-COVER-START##",
         end = "##SIGMA-COVER-END##"
     )
 
-    object COVER_CROPPED: Tags(
+    object COVER_CROPPED : Tags(
         start = "##SIGMA-COVER_CROPPED-START##",
         end = "##SIGMA-COVER_CROPPED-END##"
+    )
+
+    object COLORED_TAG : Tags(
+        start = "##SIGMA-TAG-START##",
+        end = "##SIGMA-TAG-END##"
     )
 }

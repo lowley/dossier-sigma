@@ -28,6 +28,7 @@ import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
+import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
@@ -37,6 +38,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureU
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.nasProgress
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.progress
+import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.Tools
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -58,6 +60,7 @@ class SigmaViewModel @Inject constructor(
 
     val imageCache = mutableMapOf<String, Any?>()
     val scaleCache = mutableMapOf<String, ContentScale>()
+    val flagCache = mutableMapOf<String, ColoredTag>()
     val sortingCache = mutableMapOf<String, ITEMS_ORDERING_STRATEGY>()
 
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
@@ -80,7 +83,7 @@ class SigmaViewModel @Inject constructor(
         .map { it.lastOrNull() ?: "/storage/emulated/0/Movies" }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.Eagerly,
+            started = Eagerly,
             initialValue = "/storage/emulated/0/Movies"
         )
     private val reloadTrigger = MutableStateFlow(0)
@@ -142,6 +145,7 @@ class SigmaViewModel @Inject constructor(
 
     var dialogOnOkLambda: (suspend (String, SigmaViewModel, Context) -> Unit)? = null
     var dialogYesNoLambda: (suspend (Boolean, SigmaViewModel, Context) -> Unit)? = null
+    var dialogTagLambda: (suspend (tagInfos: TagInfos?, vm: SigmaViewModel, context: Context) -> Unit)? = null
     
     fun refreshCurrentFolder() {
         reloadTrigger.value = reloadTrigger.value + 1 // redéclenchement immédiat
@@ -217,19 +221,19 @@ class SigmaViewModel @Inject constructor(
             
             
             val base64_tag = if (onlyCropped) {
-                base64Embedder.extractBase64FromMp4(File(item.fullPath),
+                base64Embedder.extractBase64FromFile(File(item.fullPath),
                     tagSuffix = Tags.COVER)
             }
             else null
             
-            base64Embedder.removeBothEmbeddedBase64(File(item.fullPath))
+            base64Embedder.removeBothBase64(File(item.fullPath))
             
             if (onlyCropped)
-                base64Embedder.appendBase64ToMp4(File(item.fullPath), base64_tag!!, tagSuffix = Tags.COVER)
+                base64Embedder.appendBase64ToFile(File(item.fullPath), base64_tag!!, tagSuffix = Tags.COVER)
             else
-                base64Embedder.appendBase64ToMp4(File(item.fullPath), image64, tagSuffix = Tags.COVER)
+                base64Embedder.appendBase64ToFile(File(item.fullPath), image64, tagSuffix = Tags.COVER)
             
-            base64Embedder.appendBase64ToMp4(File(item.fullPath), image64, tagSuffix = Tags.COVER_CROPPED)
+            base64Embedder.appendBase64ToFile(File(item.fullPath), image64, tagSuffix = Tags.COVER_CROPPED)
         } else {
             _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
             setPictureInFolder(_selectedItem.value!!, 

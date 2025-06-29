@@ -33,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,7 +42,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewModelScope
+import com.github.skydoves.colorpicker.compose.ColorEnvelope
+import com.github.skydoves.colorpicker.compose.HsvColorPicker
+import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import com.google.gson.Gson
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,6 +54,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
+import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
@@ -109,7 +115,7 @@ class BottomTools @Inject constructor(
 
         /**
          * utilisé par
-         * @see lorry.folder.items.dossiersigma.domain.services.MoveToNASService.copy
+         * @see MoveToNASService.copy
          */
         fun updateNASProgress(value: Int) {
             _NASprogress.value = value
@@ -218,42 +224,9 @@ sealed class Tools(
                 /////////////////////////////////////
                 // liste des TAGS de ce répertoire //
                 /////////////////////////////////////
-                Tool(
-                    text = { "dossier" },
-                    icon = R.drawable.plus,
-                    onClick = { viewModel, mainActivity ->
-                        viewModel.setDialogMessage("Nom du dossier à créer")
-                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
-                            val currentFolderPath = viewModel.currentFolderPath.value
-                            val newFullName = "$currentFolderPath/$newName"
-                            if (!File(newFullName).exists()) {
-                                if (File(newFullName).mkdir()) {
-                                    Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
-                                    viewModel.refreshCurrentFolder()
-                                } else
-                                    Toast.makeText(
-                                        mainActivity,
-                                        "Un problème est survenu",
-                                        Toast.LENGTH_SHORT
-                                    )
-                                        .show()
-                            }
-                        }
-
-                        mainActivity.openTextDialog.value = true
-                    }
-                ),
-                ////////////////////////
-                // supprimer totalité //
-                ////////////////////////
-//                Tool(
-//                    text = "tout",
-//                    icon = R.drawable.corbeille,
-//                    onClick = { viewModel, mainActivity ->
-//                        
-//                    }
-//                )
-            )))
+            )
+        )
+    )
 
     object TAGS_MENU : Tools(
         content = BottomToolContent(
@@ -268,25 +241,67 @@ sealed class Tools(
                         viewModel.selectedItem.value?.tag == null
                     },
                     onClick = { viewModel, mainActivity ->
-//                        viewModel.setDialogMessage("Nom du dossier à créer")
-//                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
-//                            val currentFolderPath = viewModel.currentFolderPath.value
-//                            val newFullName = "$currentFolderPath/$newName"
-//                            if (!File(newFullName).exists()) {
-//                                if (File(newFullName).mkdir()) {
-//                                    Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
-//                                    viewModel.refreshCurrentFolder()
-//                                } else
-//                                    Toast.makeText(
-//                                        mainActivity,
-//                                        "Un problème est survenu",
-//                                        Toast.LENGTH_SHORT
-//                                    )
-//                                        .show()
-//                            }
-//                        }
-//
-//                        mainActivity.openTextDialog.value = true
+                        run {
+                            val currentItem = viewModel.selectedItem.value
+                            if (currentItem == null)
+                                return@run
+
+                            //viewModel.setSelectedItem(null)
+                            viewModel.setDialogMessage("Entrez les informations du drapeau")
+                            viewModel.dialogTagLambda = { tagInfos, viewModel, mainActivity ->
+                                run {
+                                    DEFAULT.content.addTool(
+                                        Tool(
+                                            text = { tagInfos?.title ?: "" },
+                                            icon = R.drawable.etiquette,
+                                            isColoredIcon = false,
+                                            onClick = { viewModel, mainActivity ->
+                                                //filtre des items
+
+
+                                            },
+                                            visible = { viewModel, mainActivity ->
+                                                true
+                                            },
+                                            tint = tagInfos?.color ?: Color.Unspecified
+                                        ), 0
+                                    )
+
+                                    if (tagInfos == null)
+                                        return@run
+
+                                    if (currentItem.isFile())
+                                        viewModel.base64Embedder.appendFlagToFile(
+                                            File(currentItem.fullPath), ColoredTag(
+                                                title = tagInfos.title,
+                                                color = tagInfos.color
+                                            )
+                                        )
+
+                                    if (currentItem.isFolder())
+                                        viewModel.diskRepository.insertTagToHtmlFile(
+                                            currentItem, ColoredTag(
+                                                title = tagInfos.title,
+                                                color = tagInfos.color
+                                            )
+                                        )
+                                    
+//                                    if (currentItem != null && tagInfos != null) {
+//                                        currentItem.tag = ColoredTag(
+//                                            title = tagInfos.title,
+//                                            color = tagInfos.color
+//                                        )
+//                                    }
+
+                                    viewModel.refreshCurrentFolder()
+                                }
+
+                                viewModel.bottomTools.setCurrentContent(DEFAULT)
+                                viewModel.setSelectedItem(null, true)
+                            }
+
+                            mainActivity.openTagInfosDialog.value = true
+                        }
                     }
                 ),
                 //////////////
@@ -360,7 +375,7 @@ sealed class Tools(
             listOf()
         )
     )
-    
+
     object FILE : Tools(
         BottomToolContent(
             toolInit = listOf(
@@ -396,7 +411,7 @@ sealed class Tools(
                     icon = R.drawable.move,
                     isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
-                        viewModel.bottomTools.setCurrentContent(Tools.MOVES)
+                        viewModel.bottomTools.setCurrentContent(MOVES)
                     }
                 ),
                 ///////////////
@@ -407,7 +422,7 @@ sealed class Tools(
                     icon = R.drawable.etiquette2,
                     isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
-                        viewModel.bottomTools.setCurrentContent(Tools.TAGS)
+                        viewModel.bottomTools.setCurrentContent(TAGS_MENU)
                     }
                 ),
                 //////////////
@@ -418,7 +433,7 @@ sealed class Tools(
                     icon = R.drawable.recadrer2,
                     isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
-                        viewModel.bottomTools.setCurrentContent(Tools.CROP)
+                        viewModel.bottomTools.setCurrentContent(CROP)
                     }
                 ),
                 //////////////
@@ -691,7 +706,7 @@ sealed class Tools(
                             itemToMove = viewModel.selectedItem.value
 
                             if (itemToMove == null)
-                                return@run 
+                                return@run
 
                             //toast
                             println("MovingItem: choisir fichier destination")
@@ -716,11 +731,17 @@ sealed class Tools(
                              * le reste est effectué dans
                              * @see MoveFileService.onStartCommand
                              */
-                            
+
                             //encode/decode en json
                             val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
-                                putExtra("filesToTransfer", Gson().toJson( listOf<String>(itemToMove?.fullPath
-                                    ?: "")))
+                                putExtra(
+                                    "filesToTransfer", Gson().toJson(
+                                        listOf<String>(
+                                            itemToMove?.fullPath
+                                                ?: ""
+                                        )
+                                    )
+                                )
                             }
                             mainActivity.startService(intent)
                         }
@@ -922,7 +943,7 @@ sealed class Tools(
                             val item = viewModel.selectedItem.value
                             var sourceBitmap: Bitmap? = null
                             if (item?.isFile() == true) {
-                                val test = viewModel.base64Embedder.extractBase64FromMp4(
+                                val test = viewModel.base64Embedder.extractBase64FromFile(
                                     File(item.fullPath),
                                     tagSuffix = Tags.COVER
                                 )
@@ -988,8 +1009,8 @@ fun changeCrop(
     ) {
         viewModel.viewModelScope.launch {
             val file = File(item.fullPath)
-            viewModel.base64Embedder.removeEmbeddedContentScale(file)
-            viewModel.base64Embedder.appendContentScaleToMp4(file, scale)
+            viewModel.base64Embedder.removeScale(file)
+            viewModel.base64Embedder.appendScaleToFile(file, scale)
         }
     }
 
@@ -1225,6 +1246,129 @@ fun CustomMoveFileExistingDestinationDialog(
         }
     }
 }
+
+@Composable
+fun TagInfosDialog(
+    text: String,
+    openDialog: MutableState<Boolean>,
+    onDatasCompleted:
+    suspend (tagInfos: TagInfos?, viewModel: SigmaViewModel, activity: MainActivity) -> Unit,
+    viewModel: SigmaViewModel,
+    mainActivity: MainActivity
+) {
+    val editMessage = remember { mutableStateOf("") }
+    var hexColor by remember { mutableStateOf<String?>(null) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                color = contentColorFor(Color.White)
+                    .copy(alpha = 0.6f)
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    openDialog.value = false
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.White)
+                .padding(8.dp),
+        ) {
+
+            Text(
+                modifier = Modifier,
+                text = text,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            //couleur + titre
+            Box(
+                modifier = Modifier
+                    .size(200.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                val controller = rememberColorPickerController()
+
+                HsvColorPicker(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    controller = controller,
+                    onColorChanged = { colorEnvelope: ColorEnvelope ->
+                        val hexCode: String = colorEnvelope.hexCode
+                        hexColor = hexCode
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                value = editMessage.value,
+                onValueChange = { value: String -> editMessage.value = value },
+                singleLine = true,
+                label = { Text("Titre du drapeau") }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier
+            ) {
+                Spacer(
+                    modifier = Modifier
+                        .weight(1f)
+                )
+
+                Button(
+                    modifier = Modifier,
+                    onClick = {
+                        openDialog.value = false
+                        viewModel.viewModelScope.launch {
+                            onDatasCompleted(null, viewModel, mainActivity)
+                        }
+                    }
+                ) {
+                    Text("Annuler")
+                }
+
+                Button(
+                    modifier = Modifier,
+                    onClick = {
+                        if (hexColor != null && editMessage.value != "")
+                            viewModel.viewModelScope.launch {
+                                onDatasCompleted(
+                                    TagInfos(
+                                        title = editMessage.value,
+                                        Color("#$hexColor".toColorInt()),
+                                    ), viewModel, mainActivity
+                                )
+                            }
+
+                        openDialog.value = false
+                    }
+                ) {
+                    Text("Valider")
+                }
+            }
+        }
+    }
+}
+
+data class TagInfos(
+    val title: String,
+    val color: Color
+)
 
 
 

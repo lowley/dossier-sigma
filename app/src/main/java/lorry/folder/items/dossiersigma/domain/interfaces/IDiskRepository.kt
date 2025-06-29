@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.domain.interfaces
 
 import androidx.compose.ui.layout.ContentScale
+import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
@@ -30,4 +31,10 @@ interface IDiskRepository {
     suspend fun removeScaleFromHtml(htmlFileFullPath: String)
 
     suspend fun isFileOrFolderExists(parentPath: String, item: Item): Boolean
+    
+    suspend fun extractFlagFromHtml(htmlFile: String): ColoredTag?
+    suspend fun insertTagToHtmlFile(
+        item: Item,
+        tag: ColoredTag,
+    )
 }

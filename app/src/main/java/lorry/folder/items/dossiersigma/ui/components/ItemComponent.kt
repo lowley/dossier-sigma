@@ -64,11 +64,11 @@ import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
+import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
-import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
@@ -82,6 +82,7 @@ fun ItemComponent(
     item: Item,
     imageCache: MutableMap<String, Any?>,
     scaleCache: MutableMap<String, ContentScale>,
+    flagCache: MutableMap<String, ColoredTag>,
     context: MainActivity
 ) {
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
@@ -110,6 +111,14 @@ fun ItemComponent(
         }
     }
 
+    LaunchedEffect(item.fullPath) {
+        val cached = flagCache[item.fullPath]
+        item.tag = cached ?: getFlag(item, viewModel).also {
+            if (it != null)
+                flagCache[item.fullPath] = it
+        }
+    }
+
     Column() {
         val shape1 = RoundedCornerShape(8.dp)
         val selectedItemFullPath by viewModel.selectedItemFullPath.collectAsState()
@@ -126,9 +135,10 @@ fun ItemComponent(
                         dashLength = 10.dp,
                         gapLength = 10.dp
                     )
-                else (if (item.tag != null)
-                    Modifier.border(1.dp, item.tag.color, shape1)
-                else Modifier)
+                else (if (item.tag != null) {
+                    val tag = item.tag
+                    Modifier.border(2.dp, tag!!.color, shape1)
+                } else Modifier)
             )
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -141,7 +151,8 @@ fun ItemComponent(
 
                         if (item.isFolder()) {
                             viewModel.goToFolder(
-                                item.fullPath)
+                                item.fullPath
+                            )
                         }
 
                         if (item.isFile() &&
@@ -164,7 +175,6 @@ fun ItemComponent(
                         viewModel.bottomTools.setCurrentContent(Tools.FILE)
                     })
             }
-
         
         Box(
             modifier = modifierWithBorder//.background(Color.Blue)
@@ -411,8 +421,8 @@ fun ItemComponent(
                         ) {
                             viewModel.viewModelScope.launch {
                                 val file = File(item.fullPath)
-                                viewModel.base64Embedder.removeEmbeddedContentScale(file)
-                                viewModel.base64Embedder.appendContentScaleToMp4(file, contentScale)
+                                viewModel.base64Embedder.removeScale(file)
+                                viewModel.base64Embedder.appendScaleToFile(file, contentScale)
                             }
                         }
 
@@ -650,27 +660,27 @@ suspend fun getImage(
                 item.fullPath.endsWith("mpg")
             ) {
 
-                var image64 = viewModel.base64Embedder.extractBase64FromMp4(
+                var image64 = viewModel.base64Embedder.extractBase64FromFile(
                     File(item.fullPath),
                     tagSuffix = Tags.COVER_CROPPED
                 )
 
                 if (image64 == null) {
-                    image64 = viewModel.base64Embedder.extractBase64FromMp4(
+                    image64 = viewModel.base64Embedder.extractBase64FromFile(
                         File(item.fullPath),
                         tagSuffix = Tags.COVER
                     )
                     
                     if (image64 != null) {
-                        viewModel.base64Embedder.appendBase64ToMp4(
-                            mp4File = File(item.fullPath),
+                        viewModel.base64Embedder.appendBase64ToFile(
+                            file = File(item.fullPath),
                             base64Image = image64,
                             tagSuffix = Tags.COVER
                         )
                     }
                 }
                 
-                val picture = if (image64 != null) viewModel.base64Embedder.base64ToBitmap(image64!!) else 
+                val picture = if (image64 != null) viewModel.base64Embedder.base64ToBitmap(image64) else 
                     vectorDrawableToBitmap(context, R.drawable.file)
 
                 //item.copy(picture = picture)
@@ -735,7 +745,7 @@ suspend fun getScale(
 ): ContentScale {
     //créer html d'office
     if (item.isFile()) {
-        val scale = viewModel.base64Embedder.extractContentScaleFromMp4(File(item.fullPath))
+        val scale = viewModel.base64Embedder.extractScaleFromFile(File(item.fullPath))
         return scale ?: ContentScale.Crop
     }
 
@@ -745,6 +755,24 @@ suspend fun getScale(
     }
 
     return ContentScale.Crop
+}
+
+suspend fun getFlag(
+    item: Item,
+    viewModel: SigmaViewModel,
+): ColoredTag? {
+    //créer html d'office
+    if (item.isFile()) {
+        val flag = viewModel.base64Embedder.extractFlagFromFile(File(item.fullPath))
+        return flag
+    }
+
+    if (item.isFolder()) {
+        val flag = viewModel.diskRepository.extractFlagFromHtml(item.fullPath)
+        return flag 
+    }
+
+    return null
 }
 
 fun vectorDrawableToBitmap(context: Context, drawableId: Int): Bitmap {

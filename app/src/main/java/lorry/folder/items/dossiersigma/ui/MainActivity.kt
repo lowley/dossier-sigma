@@ -80,6 +80,8 @@ import lorry.folder.items.dossiersigma.ui.components.CustomMoveFileExistingDesti
 import lorry.folder.items.dossiersigma.ui.components.CustomTextDialog
 import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
+import lorry.folder.items.dossiersigma.ui.components.TagInfos
+import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import java.io.File
@@ -99,6 +101,7 @@ class MainActivity : ComponentActivity() {
     lateinit var openTextDialog: MutableState<Boolean>
     lateinit var openYesNoDialog: MutableState<Boolean>
     lateinit var openMoveFileDialog: MutableState<Boolean>
+    lateinit var openTagInfosDialog: MutableState<Boolean>
     lateinit var isContextMenuVisible: State<Boolean>
     lateinit var homePageVisible: State<Boolean>
 
@@ -181,6 +184,7 @@ class MainActivity : ComponentActivity() {
                     openTextDialog = remember { mutableStateOf(false) }
                     openYesNoDialog = remember { mutableStateOf(false) }
                     openMoveFileDialog = remember { mutableStateOf(false) }
+                    openTagInfosDialog = remember { mutableStateOf(false) }
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
 
                     isContextMenuVisible = mainViewModel.isContextMenuVisible.collectAsState()
@@ -462,6 +466,7 @@ class MainActivity : ComponentActivity() {
                                         imageCache = mainViewModel.imageCache,
                                         context = this@MainActivity,
                                         scaleCache = mainViewModel.scaleCache,
+                                        flagCache = mainViewModel.flagCache
                                     )
                                 }
                             }
@@ -564,6 +569,22 @@ class MainActivity : ComponentActivity() {
                                 startService(intent)
                                 mainViewModel.refreshCurrentFolder()
                             }
+                        )
+                    }
+
+                    if (openTagInfosDialog.value) {
+                        TagInfosDialog(
+                            text = dialogMessage.value ?: "",
+                            openDialog = openTagInfosDialog,
+                            onDatasCompleted = { infos: TagInfos?, model: SigmaViewModel, activity: MainActivity ->
+                                mainViewModel.dialogTagLambda?.invoke(
+                                    infos!!,
+                                    mainViewModel,
+                                    this@MainActivity
+                                )
+                            },
+                            viewModel = mainViewModel,
+                            mainActivity = this@MainActivity
                         )
                     }
                 }

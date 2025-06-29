@@ -7,6 +7,7 @@ import android.util.Base64
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
+import com.google.gson.Gson
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -15,6 +16,7 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
+import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
@@ -287,8 +289,8 @@ class DiskRepository @Inject constructor(
         }
     }
 
-    override suspend fun extractScaleFromHtml(htmlFileFullPath: String): ContentScale? {
-        val htmlFile = File(htmlFileFullPath+"/.folderPicture.html")
+    override suspend fun extractScaleFromHtml(folderPath: String): ContentScale? {
+        val htmlFile = File("$folderPath/.folderPicture.html")
         if (!withContext(Dispatchers.IO) { htmlFile.exists() }) return null
 
         val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
@@ -436,5 +438,59 @@ class DiskRepository @Inject constructor(
             }
         
         return correspondingItem != null
+    }
+
+    override suspend fun extractFlagFromHtml(folderPath: String): ColoredTag? {
+        val htmlFile = File("$folderPath/.folderPicture.html")
+
+        val exists = try {
+             withContext(Dispatchers.IO) { htmlFile.exists() }
+        }
+        catch(e: Exception){
+            println(e.message)
+            false
+        }
+        if (!exists) return null
+
+        val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
+
+        // Regex pour trouver le contenu de src="data:image/...;base64,..."
+        val regex = Regex("""<div class="coloredTag">(.*?)</div>"""")
+        val match = regex.find(htmlContent)
+        
+        if (match != null)
+            println("match")
+        
+        if (match == null)
+            return null
+
+        val tag = match.groupValues[1]
+        return Gson().fromJson(tag, ColoredTag::class.java)
+    }
+
+    override suspend fun insertTagToHtmlFile(
+        item: Item,
+        tag: ColoredTag,
+    ) {
+        if (item.isFile())
+            return
+        
+        val htmlFile = File(item.fullPath + "/.folderPicture.html")
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() })
+            return
+
+        val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
+
+        val tagToInsert = Gson().toJson(tag)
+        val tagSection = """<div class="coloredTag">$tagToInsert</div>""""
+
+        val newHtmlContent = replaceOrInsert(htmlContent, """<div class="coloredTag" >[^"]+</div>"""
+            .trimMargin(), tagSection)
+
+        htmlFile.delete()
+        withContext(Dispatchers.IO) {
+            val fichier = File(item.fullPath + "/.folderPicture.html")
+            fichier.writeText(newHtmlContent, Charsets.UTF_8)
+        }
     }
 }
