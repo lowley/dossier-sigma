@@ -75,6 +75,12 @@ class SigmaViewModel @Inject constructor(
         println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
         
     }
+
+    fun clearFlagCache() {
+        _flagCache.value = mutableMapOf()
+        println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
+
+    }
     
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
@@ -320,7 +326,7 @@ class SigmaViewModel @Inject constructor(
             
         imageCache.clear()
         scaleCache.clear()
-        flagCache.value.clear()
+        clearFlagCache()
         
         viewModelScope.launch(Dispatchers.IO) {
             //val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
