@@ -4,6 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -60,9 +63,19 @@ class SigmaViewModel @Inject constructor(
 
     val imageCache = mutableMapOf<String, Any?>()
     val scaleCache = mutableMapOf<String, ContentScale>()
-    val flagCache = mutableMapOf<String, ColoredTag>()
-    val sortingCache = mutableMapOf<String, ITEMS_ORDERING_STRATEGY>()
 
+    private val _flagCache = MutableStateFlow(mutableMapOf<String, ColoredTag>())
+    val sortingCache = mutableMapOf<String, ITEMS_ORDERING_STRATEGY>()
+    val flagCache: StateFlow<MutableMap<String, ColoredTag>> = _flagCache
+
+    fun setFlagCacheValue(key: String, tag: ColoredTag) {
+        _flagCache.value = _flagCache.value.toMutableMap().apply {
+            put(key, tag)
+        }
+        println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
+        
+    }
+    
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
 
@@ -307,6 +320,8 @@ class SigmaViewModel @Inject constructor(
             
         imageCache.clear()
         scaleCache.clear()
+        flagCache.value.clear()
+        
         viewModelScope.launch(Dispatchers.IO) {
             //val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
             withContext(Dispatchers.Main) {
@@ -337,6 +352,10 @@ class SigmaViewModel @Inject constructor(
                     BottomTools.updateMoveNASText("$p %")
             }
         }
+
+        bottomTools.viewModel = this
+        bottomTools.observeDefaultContent(this)
+        bottomTools.setCurrentContent(Tools.DEFAULT)
     }
 
 //    init {

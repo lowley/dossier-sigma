@@ -61,6 +61,7 @@ import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewModelScope
 import coil.request.ImageRequest
 import com.yalantis.ucrop.UCrop
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
@@ -82,7 +83,7 @@ fun ItemComponent(
     item: Item,
     imageCache: MutableMap<String, Any?>,
     scaleCache: MutableMap<String, ContentScale>,
-    flagCache: MutableMap<String, ColoredTag>,
+    flagCache: StateFlow<MutableMap<String, ColoredTag>>,
     context: MainActivity
 ) {
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
@@ -112,10 +113,11 @@ fun ItemComponent(
     }
 
     LaunchedEffect(item.fullPath) {
-        val cached = flagCache[item.fullPath]
+        val cached = flagCache.value[item.fullPath]
         item.tag = cached ?: getFlag(item, viewModel).also {
-            if (it != null)
-                flagCache[item.fullPath] = it
+            if (it != null) {
+                viewModel.setFlagCacheValue(item.fullPath, it)
+            }
         }
     }
 

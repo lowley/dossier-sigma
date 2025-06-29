@@ -633,7 +633,7 @@ class MainActivity : ComponentActivity() {
         }
 
 //        mainViewModel.setSelectedItem(null)
-//        mainViewModel.bottomTools.setCurrentContent(DEFAULT)
+//        mainViewModel.bottomTools.setCurrentContent(DEFAULT, mainViewModel))
     }
 }
 

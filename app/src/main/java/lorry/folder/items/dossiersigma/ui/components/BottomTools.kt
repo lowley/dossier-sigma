@@ -30,6 +30,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -74,9 +75,10 @@ class BottomTools @Inject constructor(
 
     private val _bottomToolsContent = MutableStateFlow<BottomToolContent?>(null)
     val currentContent: StateFlow<BottomToolContent?> = _bottomToolsContent
-
+    internal val defaultContent = BottomToolContent(emptyList())
+    
     fun setCurrentContent(tools: Tools) {
-        _bottomToolsContent.value = tools.content
+        _bottomToolsContent.value = tools.content(viewModel)
     }
 
     //destiné à l'affichage par remontée dans MainActivity
@@ -166,7 +168,8 @@ class BottomTools @Inject constructor(
                             .size(28.dp),
                         painter = painterResource(id = tool.icon),
                         contentDescription = null,
-                        tint = if (tool.isColoredIcon) Color.Unspecified else Color(0xFFe9c46a)
+                        tint = if (tool.isColoredIcon) Color.Unspecified else
+                            (tool.tint ?: Color(0xFFe9c46a))
                     )
 
                     Text(
@@ -178,6 +181,26 @@ class BottomTools @Inject constructor(
                         fontSize = 12.sp
                     )
                 }
+            }
+        }
+    }
+
+    fun observeDefaultContent(viewModel: SigmaViewModel) {
+        viewModel.viewModelScope.launch {
+            viewModel.flagCache.collect { tagsMap ->
+                println(" BottomTools: collect de tagsMap, ${tagsMap.size}")
+                val tagsSet = tagsMap.values.toSet()
+                val newTools = tagsSet.map { tag ->
+                    Tool(
+                        text = { tag.title },
+                        icon = R.drawable.etiquette,
+                        tint = tag.color,
+                        onClick = { vm, activity ->
+                            // Action au clic
+                        }
+                    )
+                }
+                defaultContent.updateTools(newTools)
             }
         }
     }
@@ -215,21 +238,42 @@ data class Tool(
     val tint: Color? = null
 )
 
-sealed class Tools(
-    val content: BottomToolContent
-) {
-    object DEFAULT : Tools(
-        content = BottomToolContent(
-            listOf(
-                /////////////////////////////////////
-                // liste des TAGS de ce répertoire //
-                /////////////////////////////////////
-            )
-        )
-    )
+sealed class Tools {
+    abstract fun content(viewModel: SigmaViewModel? = null): BottomToolContent
 
-    object TAGS_MENU : Tools(
-        content = BottomToolContent(
+    object DEFAULT : Tools() {
+        override fun content(viewModel: SigmaViewModel?) = viewModel?.bottomTools?.defaultContent ?: 
+        BottomToolContent(emptyList())
+        
+//        : BottomToolContent {
+//            if (viewModel == null) return BottomToolContent(emptyList())
+//
+//            val content = BottomToolContent(emptyList())
+//
+//            // Observer les changements de flagCache
+//            viewModel.viewModelScope.launch {
+//                viewModel.flagCache.collect { tagsMap ->
+//                    val tagsSet = tagsMap.values.toSet()
+//                    val newTools = tagsSet.map { tag ->
+//                        Tool(
+//                            text = { tag.title },
+//                            icon = R.drawable.etiquette,
+//                            tint = tag.color,
+//                            onClick = { vm, activity ->
+//                                // Action : filtrer, par exemple
+//                            }
+//                        )
+//                    }
+//                    content.updateTools(newTools)
+//                }
+//            }
+//
+//            return content
+//        }
+    }
+
+    object TAGS_MENU : Tools() {
+        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
             listOf(
                 /////////////
                 // ajouter //
@@ -250,7 +294,7 @@ sealed class Tools(
                             viewModel.setDialogMessage("Entrez les informations du drapeau")
                             viewModel.dialogTagLambda = { tagInfos, viewModel, mainActivity ->
                                 run {
-                                    DEFAULT.content.addTool(
+                                    DEFAULT.content(viewModel).addTool(
                                         Tool(
                                             text = { tagInfos?.title ?: "" },
                                             icon = R.drawable.etiquette,
@@ -285,7 +329,7 @@ sealed class Tools(
                                                 color = tagInfos.color
                                             )
                                         )
-                                    
+
 //                                    if (currentItem != null && tagInfos != null) {
 //                                        currentItem.tag = ColoredTag(
 //                                            title = tagInfos.title,
@@ -302,6 +346,7 @@ sealed class Tools(
 
                             mainActivity.openTagInfosDialog.value = true
                         }
+
                     }
                 ),
                 //////////////
@@ -368,16 +413,25 @@ sealed class Tools(
                 )
             )
         )
-    )
+    }
 
-    object TAGS : Tools(
-        content = BottomToolContent(
-            listOf()
+    object TAGS : Tools() {
+        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+            listOf(
+                Tool(
+                    text = { "TAGS" },
+                    icon = R.drawable.move,
+                    isColoredIcon = true,
+                    onClick = { viewModel, mainActivity ->
+//                        viewModel.bottomTools.setCurrentContent(MOVES)
+                    }
+                )
+            )
         )
-    )
+    }
 
-    object FILE : Tools(
-        BottomToolContent(
+    object FILE : Tools() {
+        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
             toolInit = listOf(
                 //////////////////
                 // image google //
@@ -662,10 +716,11 @@ sealed class Tools(
 
                 ),
             )
-        ))
+        )
+    }
 
-    object MOVES : Tools(
-        content = BottomToolContent(
+    object MOVES : Tools() {
+        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
             listOf(
                 ////////////
                 // copier //
@@ -748,10 +803,11 @@ sealed class Tools(
                     }
                 )
             )
-        ))
+        )
+    }
 
-    object COPY_FILE : Tools(
-        BottomToolContent(
+    object COPY_FILE : Tools() {
+        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
             listOf(
                 /////////////
                 // annuler //
@@ -779,10 +835,11 @@ sealed class Tools(
                     }
                 )
             )
-        ))
+        )
+    }
 
-    object MOVE_FILE : Tools(
-        BottomToolContent(
+    object MOVE_FILE : Tools() {
+        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
             listOf(
                 /////////////
                 // annuler //
@@ -875,16 +932,17 @@ sealed class Tools(
 
 
                             //vm.diskRepository.copyFile(sourceFile, destinationFile)
-//                        viewModel.bottomTools.setCurrentContent(DEFAULT)
+//                        viewModel.bottomTools.setCurrentContent(DEFAULT, viewModel)
 //                        MovingItem = null
                         }
                     }
                 )
             )
-        ))
+        )
+    }
 
-    object CROP : Tools(
-        BottomToolContent(
+    object CROP : Tools() {
+        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
             toolInit = listOf(
                 Tool(
                     text = { "Aucun" },
@@ -984,7 +1042,7 @@ sealed class Tools(
                 ),
             )
         )
-    )
+    }
 
 //    object SHORTCUTS: Tools(BottomToolContent(
 //
@@ -1026,7 +1084,7 @@ fun changeCrop(
     }
 
     //viewModel.setSelectedItem(null)
-    //viewModel.bottomTools.setCurrentContent(DEFAULT)
+    //viewModel.bottomTools.setCurrentContent(DEFAULT, viewModel)
 }
 
 @Composable
