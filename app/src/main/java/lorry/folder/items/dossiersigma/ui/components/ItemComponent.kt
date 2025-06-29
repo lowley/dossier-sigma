@@ -93,6 +93,9 @@ fun ItemComponent(
     val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
     var contentScale by remember { mutableStateOf(ContentScale.Crop) }
 
+    val coloredTag by flagCache.collectAsState()
+    val tag = coloredTag[item.fullPath]
+    
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val cached = imageCache[item.fullPath]
         if (cached != null) {
@@ -137,9 +140,8 @@ fun ItemComponent(
                         dashLength = 10.dp,
                         gapLength = 10.dp
                     )
-                else (if (item.tag != null) {
-                    val tag = item.tag
-                    Modifier.border(2.dp, tag!!.color, shape1)
+                else (if (tag != null) {
+                    Modifier.border(2.dp, tag.color, shape1)
                 } else Modifier)
             )
             .pointerInput(Unit) {
@@ -177,312 +179,312 @@ fun ItemComponent(
                         viewModel.bottomTools.setCurrentContent(Tools.FILE)
                     })
             }
-        
-        Box(
-            modifier = modifierWithBorder//.background(Color.Blue)
-                .width(imageHeight)
-                .height(imageHeight),
-        ) {
-            var expanded by remember { mutableStateOf(false) }
-            val scrollState = rememberScrollState()
 
-            imageSource.value?.let { bitmap ->
-                key(pictureUpdateId) {
-                    ImageSection(
-                        modifier = Modifier//.background(Color.Yellow)
-                            .align(Alignment.BottomCenter)
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
-                        imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(
-                            context, R.drawable
-                                .file
-                        ),
-                        contentScale = contentScale,
-                        item = item,
-                        selectedItemFullPath = selectedItemFullPath
-                    )
+        key(item.tag?.id) {
+            Box(
+                modifier = modifierWithBorder//.background(Color.Blue)
+                    .width(imageHeight)
+                    .height(imageHeight),
+            ) {
+                var expanded by remember { mutableStateOf(false) }
+                val scrollState = rememberScrollState()
+
+                imageSource.value?.let { bitmap ->
+                    key(pictureUpdateId) {
+                        ImageSection(
+                            modifier = Modifier//.background(Color.Yellow)
+                                .align(Alignment.BottomCenter)
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
+                            imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(
+                                context, R.drawable.file
+                            ),
+                            contentScale = contentScale,
+                            item = item,
+                            selectedItemFullPath = selectedItemFullPath
+                        )
+                    }
                 }
-            }
 
-            if (item is SigmaFolder) {
-                val fileCount =
-                    viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component1()
-                val folderCount =
-                    viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
+                if (item is SigmaFolder) {
+                    val fileCount =
+                        viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component1()
+                    val folderCount =
+                        viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
 
-                val boxWidth = 30.dp
+                    val boxWidth = 30.dp
 
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .graphicsLayer {
-                            shape = RoundedCornerShape(
-                                topStart = 8.dp,
-                                bottomEnd = 8.dp
-                            )
-                            clip = true
-                            shadowElevation = 0f
-                        }
-                        .background(item.tag?.color ?: Color.Gray) // Rouge
-                        .widthIn(min = boxWidth)
-                    //.padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Column(
+                    Box(
                         modifier = Modifier
                             .align(Alignment.TopStart)
-                            .padding(start = 0.dp, top = 0.dp)
-                            .width(boxWidth)
+                            .graphicsLayer {
+                                shape = RoundedCornerShape(
+                                    topStart = 8.dp,
+                                    bottomEnd = 8.dp
+                                )
+                                clip = true
+                                shadowElevation = 0f
+                            }
+                            .background(tag?.color ?: Color.Gray) // Rouge
+                            .widthIn(min = boxWidth)
+                        //.padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
-                        val textHeight = 20.dp
-
-                        Text(
+                        Column(
                             modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(0.dp)
-                                .height(textHeight),
-                            text = "$fileCount",
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
-                        Text(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(
-                                    top = 0.dp, start = 0.dp, bottom = 4.dp, end = 0.dp
-                                )
-                                .height(textHeight),
-                            text = "$folderCount",
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
-                    }
-                }
-
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 6.dp, bottom = 20.dp)
-                        .graphicsLayer {
-                            rotationZ = -15f
-                            shadowElevation = 4f
-                            shape = RoundedCornerShape(4.dp)
-                            clip = true
-                        }
-                        .background(
-                            color = Color(0xFFD32F2F), // rouge tampons administratifs
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 3.dp)
-                ) {
-                    Text(
-                        text = "DOSSIER",
-                        fontSize = 11.sp,
-                        color = Color.White,
-                        letterSpacing = 1.sp,
-                        lineHeight = 12.sp
-                    )
-                }
-            }
-
-            val selectedItem by viewModel.selectedItem.collectAsState()
-            val isContextMenuVisible = context.isContextMenuVisible
-
-            DropdownMenu(
-                expanded = selectedItem?.id == item.id && context.isContextMenuVisible.value,
-                onDismissRequest = {
-                    viewModel.setIsContextMenuVisible(false)
-                },
-                offset = with(density) {
-                    DpOffset(imageOffset.x, (-imageHeight / 2))
-                },
-                containerColor = Color(0xFF111A2C),
-                scrollState = scrollState
-            ) {
-                val modifierItem = Modifier.height(25.dp)
-
-                DropdownMenuItem(
-                    modifier = modifierItem,
-                    text = {
-                        Text(
-                            text = item.name.substringBeforeLast("."),
-                            color = Color(0xFFE57373),
-                            fontSize = 10.sp,
-                            lineHeight = 11.sp
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier.size(20.dp),
-                            painter = when (item) {
-                                is SigmaFolder -> painterResource(R.drawable.dossier)
-                                is SigmaFile -> when (item.name.substringAfterLast(".")) {
-                                    "mp4", "mpg", "avi", "mkv", "iso" -> painterResource(R.drawable.camera)
-                                    "html" -> painterResource(R.drawable.html)
-                                    else -> painterResource(R.drawable.fichier)
-                                }
-
-                                else -> painterResource(R.drawable.fichier)
-                            },
-                            tint = Color(0xFFE1AFAF),
-                            contentDescription = null
-                        )
-                    },
-                    onClick = {}
-                )
-
-                Divider(
-                    modifier = Modifier.padding(vertical = 0.dp, horizontal = 5.dp),
-                    thickness = 1.dp,
-                    color = Color(0xFFB48E98)
-                )
-
-                val itemfontSizes = 14.sp
-
-                ////////////
-                // Google //
-                ////////////
-                DropdownMenuItem(
-                    modifier = modifierItem,
-                    text = {
-                        Text(
-                            "Google", color = Color(0xFFB0BEC5),
-                            fontSize = itemfontSizes,
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .size(15.dp),
-                            tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.web_nb), contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        /**
-                         * @see BrowserOverlay
-                         * le Browser est un composable dans MainActivity
-                         * voir BrowserOverlay et son appel par MainActivity
-                         * le callback est un de ses paramètres d'appel
-                         */
-                        viewModel.browserManager.openBrowser(item, BrowserTarget.GOOGLE)
-                        viewModel.setIsContextMenuVisible(false)
-                    }
-                )
-
-                //////////
-                // crop //
-                //////////
-                DropdownMenuItem(
-                    modifier = modifierItem,
-                    text = {
-                        Text(
-                            text = when (contentScale) {
-                                ContentScale.Crop -> "Rogner"
-                                ContentScale.None -> "Aucun"
-                                ContentScale.Inside -> "Dedans"
-                                ContentScale.FillBounds -> "Remplir"
-                                ContentScale.FillHeight -> "Remplir hauteur"
-                                ContentScale.FillWidth -> "Remplir largeur"
-                                ContentScale.Fit -> "Etirer"
-                                else -> "???"
-                            },
-                            color = Color(0xFFB0BEC5),
-                            fontSize = itemfontSizes,
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .size(15.dp),
-                            tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.la_droite), contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        contentScale = when (contentScale) {
-                            ContentScale.Crop -> ContentScale.Fit
-                            ContentScale.Fit -> ContentScale.FillBounds
-                            ContentScale.FillBounds -> ContentScale.FillWidth
-                            ContentScale.FillWidth -> ContentScale.FillHeight
-                            ContentScale.FillHeight -> ContentScale.Inside
-                            ContentScale.Inside -> ContentScale.None
-                            ContentScale.None -> ContentScale.Crop
-                            else -> ContentScale.Crop
-                        }
-
-                        scaleCache[item.fullPath] = contentScale
-
-                        if (item.isFile() &&
-                            item.fullPath.endsWith(".mp4") ||
-                            item.fullPath.endsWith(".avi") ||
-                            item.fullPath.endsWith(".mpg") ||
-                            item.fullPath.endsWith(".html") ||
-                            item.fullPath.endsWith(".iso") ||
-                            item.fullPath.endsWith(".mkv")
+                                .align(Alignment.TopStart)
+                                .padding(start = 0.dp, top = 0.dp)
+                                .width(boxWidth)
                         ) {
-                            viewModel.viewModelScope.launch {
-                                val file = File(item.fullPath)
-                                viewModel.base64Embedder.removeScale(file)
-                                viewModel.base64Embedder.appendScaleToFile(file, contentScale)
-                            }
-                        }
+                            val textHeight = 20.dp
 
-                        if (item.isFolder()) {
-                            viewModel.viewModelScope.launch {
-                                val file = File(item.fullPath + "/.folderPicture.html")
-                                if (!file.exists())
-                                    viewModel.diskRepository.createFolderHtmlFile(item)
-                                viewModel.diskRepository.removeScaleFromHtml(item.fullPath)
-                                viewModel.diskRepository.insertScaleToHtmlFile(item, contentScale)
-                            }
-                        }
-
-                        viewModel.setSelectedItem(null, true)
-                        viewModel.setIsContextMenuVisible(false)
-                        viewModel.bottomTools.setCurrentContent(DEFAULT)
-                    }
-                )
-
-                /////////////////
-                // crop manuel //
-                /////////////////
-                DropdownMenuItem(
-                    modifier = modifierItem,
-                    text = {
-                        Text(
-                            text = "Couper manuellement",
-                            color = Color(0xFFB0BEC5),
-                            fontSize = itemfontSizes,
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .size(15.dp),
-                            tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.crop), contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        val sourceBitmap = imageSource.value as Bitmap
-
-                        val sourceUri = bitmapToTempUri(context, sourceBitmap)
-                        val destinationUri =
-                            Uri.fromFile(
-                                File.createTempFile(
-                                    "cropped_", ".jpg",
-                                    context.cacheDir
-                                )
+                            Text(
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(0.dp)
+                                    .height(textHeight),
+                                text = "$fileCount",
+                                fontSize = 10.sp,
+                                color = Color.White
                             )
-
-                        //le callback est dans MainActivity : onActivityResult (override)
-                        UCrop.of(sourceUri, destinationUri)
-                            .withAspectRatio(1f, 1f)
-                            .withMaxResultSize(175, 175)
-                            .start(context)
+                            Text(
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(
+                                        top = 0.dp, start = 0.dp, bottom = 4.dp, end = 0.dp
+                                    )
+                                    .height(textHeight),
+                                text = "$folderCount",
+                                fontSize = 10.sp,
+                                color = Color.White
+                            )
+                        }
                     }
-                )
+
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 6.dp, bottom = 20.dp)
+                            .graphicsLayer {
+                                rotationZ = -15f
+                                shadowElevation = 4f
+                                shape = RoundedCornerShape(4.dp)
+                                clip = true
+                            }
+                            .background(
+                                color = Color(0xFFD32F2F), // rouge tampons administratifs
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "DOSSIER",
+                            fontSize = 11.sp,
+                            color = Color.White,
+                            letterSpacing = 1.sp,
+                            lineHeight = 12.sp
+                        )
+                    }
+                }
+
+                val selectedItem by viewModel.selectedItem.collectAsState()
+                val isContextMenuVisible = context.isContextMenuVisible
+
+                DropdownMenu(
+                    expanded = selectedItem?.id == item.id && context.isContextMenuVisible.value,
+                    onDismissRequest = {
+                        viewModel.setIsContextMenuVisible(false)
+                    },
+                    offset = with(density) {
+                        DpOffset(imageOffset.x, (-imageHeight / 2))
+                    },
+                    containerColor = Color(0xFF111A2C),
+                    scrollState = scrollState
+                ) {
+                    val modifierItem = Modifier.height(25.dp)
+
+                    DropdownMenuItem(
+                        modifier = modifierItem,
+                        text = {
+                            Text(
+                                text = item.name.substringBeforeLast("."),
+                                color = Color(0xFFE57373),
+                                fontSize = 10.sp,
+                                lineHeight = 11.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                modifier = Modifier.size(20.dp),
+                                painter = when (item) {
+                                    is SigmaFolder -> painterResource(R.drawable.dossier)
+                                    is SigmaFile -> when (item.name.substringAfterLast(".")) {
+                                        "mp4", "mpg", "avi", "mkv", "iso" -> painterResource(R.drawable.camera)
+                                        "html" -> painterResource(R.drawable.html)
+                                        else -> painterResource(R.drawable.fichier)
+                                    }
+
+                                    else -> painterResource(R.drawable.fichier)
+                                },
+                                tint = Color(0xFFE1AFAF),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = {}
+                    )
+
+                    Divider(
+                        modifier = Modifier.padding(vertical = 0.dp, horizontal = 5.dp),
+                        thickness = 1.dp,
+                        color = Color(0xFFB48E98)
+                    )
+
+                    val itemfontSizes = 14.sp
+
+                    ////////////
+                    // Google //
+                    ////////////
+                    DropdownMenuItem(
+                        modifier = modifierItem,
+                        text = {
+                            Text(
+                                "Google", color = Color(0xFFB0BEC5),
+                                fontSize = itemfontSizes,
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                modifier = Modifier
+                                    .size(15.dp),
+                                tint = Color(0xFF90CAF9),
+                                painter = painterResource(R.drawable.web_nb), contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            /**
+                             * @see BrowserOverlay
+                             * le Browser est un composable dans MainActivity
+                             * voir BrowserOverlay et son appel par MainActivity
+                             * le callback est un de ses paramètres d'appel
+                             */
+                            viewModel.browserManager.openBrowser(item, BrowserTarget.GOOGLE)
+                            viewModel.setIsContextMenuVisible(false)
+                        }
+                    )
+
+                    //////////
+                    // crop //
+                    //////////
+                    DropdownMenuItem(
+                        modifier = modifierItem,
+                        text = {
+                            Text(
+                                text = when (contentScale) {
+                                    ContentScale.Crop -> "Rogner"
+                                    ContentScale.None -> "Aucun"
+                                    ContentScale.Inside -> "Dedans"
+                                    ContentScale.FillBounds -> "Remplir"
+                                    ContentScale.FillHeight -> "Remplir hauteur"
+                                    ContentScale.FillWidth -> "Remplir largeur"
+                                    ContentScale.Fit -> "Etirer"
+                                    else -> "???"
+                                },
+                                color = Color(0xFFB0BEC5),
+                                fontSize = itemfontSizes,
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                modifier = Modifier
+                                    .size(15.dp),
+                                tint = Color(0xFF90CAF9),
+                                painter = painterResource(R.drawable.la_droite), contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            contentScale = when (contentScale) {
+                                ContentScale.Crop -> ContentScale.Fit
+                                ContentScale.Fit -> ContentScale.FillBounds
+                                ContentScale.FillBounds -> ContentScale.FillWidth
+                                ContentScale.FillWidth -> ContentScale.FillHeight
+                                ContentScale.FillHeight -> ContentScale.Inside
+                                ContentScale.Inside -> ContentScale.None
+                                ContentScale.None -> ContentScale.Crop
+                                else -> ContentScale.Crop
+                            }
+
+                            scaleCache[item.fullPath] = contentScale
+
+                            if (item.isFile() &&
+                                item.fullPath.endsWith(".mp4") ||
+                                item.fullPath.endsWith(".avi") ||
+                                item.fullPath.endsWith(".mpg") ||
+                                item.fullPath.endsWith(".html") ||
+                                item.fullPath.endsWith(".iso") ||
+                                item.fullPath.endsWith(".mkv")
+                            ) {
+                                viewModel.viewModelScope.launch {
+                                    val file = File(item.fullPath)
+                                    viewModel.base64Embedder.removeScale(file)
+                                    viewModel.base64Embedder.appendScaleToFile(file, contentScale)
+                                }
+                            }
+
+                            if (item.isFolder()) {
+                                viewModel.viewModelScope.launch {
+                                    val file = File(item.fullPath + "/.folderPicture.html")
+                                    if (!file.exists())
+                                        viewModel.diskRepository.createFolderHtmlFile(item)
+                                    viewModel.diskRepository.removeScaleFromHtml(item.fullPath)
+                                    viewModel.diskRepository.insertScaleToHtmlFile(item, contentScale)
+                                }
+                            }
+
+                            viewModel.setSelectedItem(null, true)
+                            viewModel.setIsContextMenuVisible(false)
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        }
+                    )
+
+                    /////////////////
+                    // crop manuel //
+                    /////////////////
+                    DropdownMenuItem(
+                        modifier = modifierItem,
+                        text = {
+                            Text(
+                                text = "Couper manuellement",
+                                color = Color(0xFFB0BEC5),
+                                fontSize = itemfontSizes,
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                modifier = Modifier
+                                    .size(15.dp),
+                                tint = Color(0xFF90CAF9),
+                                painter = painterResource(R.drawable.crop), contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            val sourceBitmap = imageSource.value as Bitmap
+
+                            val sourceUri = bitmapToTempUri(context, sourceBitmap)
+                            val destinationUri =
+                                Uri.fromFile(
+                                    File.createTempFile(
+                                        "cropped_", ".jpg",
+                                        context.cacheDir
+                                    )
+                                )
+
+                            //le callback est dans MainActivity : onActivityResult (override)
+                            UCrop.of(sourceUri, destinationUri)
+                                .withAspectRatio(1f, 1f)
+                                .withMaxResultSize(175, 175)
+                                .start(context)
+                        }
+                    )
 
 //                DropdownMenuItem(
 //                    text = {
@@ -509,49 +511,14 @@ fun ItemComponent(
 //                    }
 //                )
 
-                /////////////////////
-                // + dossier frère //
-                /////////////////////
-                DropdownMenuItem(
-                    modifier = modifierItem,
-                    text = {
-                        Text(
-                            text = "Créer dossier frère",
-                            color = Color(0xFFB0BEC5),
-                            fontSize = itemfontSizes,
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .size(15.dp),
-                            tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.plus), contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        viewModel.setSelectedItem(null, true)
-                        viewModel.setIsContextMenuVisible(false)
-                        viewModel.setDialogMessage("Ajouter un dossier frère")
-                        viewModel.dialogOnOkLambda = { name, viewModel, context ->
-                            File(item.fullPath.substringBeforeLast("/") + "/$name").mkdir()
-                            viewModel.refreshCurrentFolder()
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
-                        }
-
-                        context.openTextDialog.value = true
-                    }
-                )
-
-                ////////////////////
-                // + dossier fils //
-                ////////////////////
-                if (item.isFolder()) {
+                    /////////////////////
+                    // + dossier frère //
+                    /////////////////////
                     DropdownMenuItem(
                         modifier = modifierItem,
                         text = {
                             Text(
-                                text = "Créer dossier fils",
+                                text = "Créer dossier frère",
                                 color = Color(0xFFB0BEC5),
                                 fontSize = itemfontSizes,
                             )
@@ -565,11 +532,11 @@ fun ItemComponent(
                             )
                         },
                         onClick = {
-                            viewModel.setIsContextMenuVisible(false)
                             viewModel.setSelectedItem(null, true)
-                            viewModel.setDialogMessage("Ajouter un dossier fils")
+                            viewModel.setIsContextMenuVisible(false)
+                            viewModel.setDialogMessage("Ajouter un dossier frère")
                             viewModel.dialogOnOkLambda = { name, viewModel, context ->
-                                File(item.fullPath + "/$name").mkdir()
+                                File(item.fullPath.substringBeforeLast("/") + "/$name").mkdir()
                                 viewModel.refreshCurrentFolder()
                                 viewModel.bottomTools.setCurrentContent(DEFAULT)
                             }
@@ -577,38 +544,73 @@ fun ItemComponent(
                             context.openTextDialog.value = true
                         }
                     )
-                }
 
-                ///////////////
-                // supprimer //
-                ///////////////
-                DropdownMenuItem(
-                    modifier = modifierItem,
-                    text = {
-                        Text(
-                            text = "Supprimer",
-                            color = Color(0xFFB0BEC5),
-                            fontSize = itemfontSizes,
+                    ////////////////////
+                    // + dossier fils //
+                    ////////////////////
+                    if (item.isFolder()) {
+                        DropdownMenuItem(
+                            modifier = modifierItem,
+                            text = {
+                                Text(
+                                    text = "Créer dossier fils",
+                                    color = Color(0xFFB0BEC5),
+                                    fontSize = itemfontSizes,
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    modifier = Modifier
+                                        .size(15.dp),
+                                    tint = Color(0xFF90CAF9),
+                                    painter = painterResource(R.drawable.plus), contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                viewModel.setIsContextMenuVisible(false)
+                                viewModel.setSelectedItem(null, true)
+                                viewModel.setDialogMessage("Ajouter un dossier fils")
+                                viewModel.dialogOnOkLambda = { name, viewModel, context ->
+                                    File(item.fullPath + "/$name").mkdir()
+                                    viewModel.refreshCurrentFolder()
+                                    viewModel.bottomTools.setCurrentContent(DEFAULT)
+                                }
+
+                                context.openTextDialog.value = true
+                            }
                         )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            modifier = Modifier
-                                .size(15.dp),
-                            tint = Color(0xFF90CAF9),
-                            painter = painterResource(R.drawable.corbeille), contentDescription = null
-                        )
-                    },
-                    onClick = {
-                        if (item.isFolder())
-                            File(item.fullPath).deleteRecursively()
-                        else File(item.fullPath).delete()
-                        viewModel.setSelectedItem(null, true)
-                        viewModel.setIsContextMenuVisible(false)
-                        viewModel.refreshCurrentFolder()
-                        viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
-                )
+
+                    ///////////////
+                    // supprimer //
+                    ///////////////
+                    DropdownMenuItem(
+                        modifier = modifierItem,
+                        text = {
+                            Text(
+                                text = "Supprimer",
+                                color = Color(0xFFB0BEC5),
+                                fontSize = itemfontSizes,
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                modifier = Modifier
+                                    .size(15.dp),
+                                tint = Color(0xFF90CAF9),
+                                painter = painterResource(R.drawable.corbeille), contentDescription = null
+                            )
+                        },
+                        onClick = {
+                            if (item.isFolder())
+                                File(item.fullPath).deleteRecursively()
+                            else File(item.fullPath).delete()
+                            viewModel.setSelectedItem(null, true)
+                            viewModel.setIsContextMenuVisible(false)
+                            viewModel.refreshCurrentFolder()
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        }
+                    )
 
 //                DropdownMenuItem(
 //                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
@@ -627,10 +629,11 @@ fun ItemComponent(
 //                    }
 //                )
 
-                LaunchedEffect(expanded) {
-                    if (expanded) {
-                        // Scroll to show the bottom menu items.
-                        scrollState.scrollTo(scrollState.maxValue)
+                    LaunchedEffect(expanded) {
+                        if (expanded) {
+                            // Scroll to show the bottom menu items.
+                            scrollState.scrollTo(scrollState.maxValue)
+                        }
                     }
                 }
             }
@@ -672,7 +675,7 @@ suspend fun getImage(
                         File(item.fullPath),
                         tagSuffix = Tags.COVER
                     )
-                    
+
                     if (image64 != null) {
                         viewModel.base64Embedder.appendBase64ToFile(
                             file = File(item.fullPath),
@@ -681,13 +684,13 @@ suspend fun getImage(
                         )
                     }
                 }
-                
-                val picture = if (image64 != null) viewModel.base64Embedder.base64ToBitmap(image64) else 
+
+                val picture = if (image64 != null) viewModel.base64Embedder.base64ToBitmap(image64) else
                     vectorDrawableToBitmap(context, R.drawable.file)
 
                 //item.copy(picture = picture)
                 picture ?: vectorDrawableToBitmap(context, R.drawable.file)
-                
+
             } else vectorDrawableToBitmap(context, R.drawable.file)
         }
 
@@ -725,9 +728,15 @@ suspend fun getImage(
                             viewModel.diskRepository.saveFolderPictureToHtmlFile(item, true)
 
                         picture as Bitmap
-                    } else vectorDrawableToBitmap(context, 
-                        if (viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)) == Pair(0,0)) R.drawable.folder_empty 
-                        else R.drawable.folder_full)
+                    } else vectorDrawableToBitmap(
+                        context,
+                        if (viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)) == Pair(
+                                0,
+                                0
+                            )
+                        ) R.drawable.folder_empty
+                        else R.drawable.folder_full
+                    )
                 } catch (e: Exception) {
                     println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
                     vectorDrawableToBitmap(context, R.drawable.file)
@@ -771,7 +780,7 @@ suspend fun getFlag(
 
     if (item.isFolder()) {
         val flag = viewModel.diskRepository.extractFlagFromHtml(item.fullPath)
-        return flag 
+        return flag
     }
 
     return null

@@ -71,6 +71,7 @@ fun Long.toFormattedDate(): String {
 
 @Serializable
 data class ColoredTag(
+    val id: UUID? = UUID.randomUUID(),
     val color: Color,
     val title: String
 )
