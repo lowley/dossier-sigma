@@ -250,32 +250,6 @@ sealed class Tools {
     object DEFAULT : Tools() {
         override fun content(viewModel: SigmaViewModel?) =
             viewModel?.bottomTools?.defaultContent ?: BottomToolContent(emptyList())
-
-//        : BottomToolContent {
-//            if (viewModel == null) return BottomToolContent(emptyList())
-//
-//            val content = BottomToolContent(emptyList())
-//
-//            // Observer les changements de flagCache
-//            viewModel.viewModelScope.launch {
-//                viewModel.flagCache.collect { tagsMap ->
-//                    val tagsSet = tagsMap.values.toSet()
-//                    val newTools = tagsSet.map { tag ->
-//                        Tool(
-//                            text = { tag.title },
-//                            icon = R.drawable.etiquette,
-//                            tint = tag.color,
-//                            onClick = { vm, activity ->
-//                                // Action : filtrer, par exemple
-//                            }
-//                        )
-//                    }
-//                    content.updateTools(newTools)
-//                }
-//            }
-//
-//            return content
-//        }
     }
 
     object TAGS_MENU : Tools() {

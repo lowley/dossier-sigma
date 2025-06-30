@@ -126,7 +126,11 @@ class MainActivity : ComponentActivity() {
 
             Scaffold(
                 floatingActionButton = {
-                    if (!homePageVisible)
+                    if (!homePageVisible &&
+                        (::openTextDialog.isInitialized && !openTextDialog.value) &&
+                        (::openYesNoDialog.isInitialized && !openYesNoDialog.value) &&
+                        (::openMoveFileDialog.isInitialized && !openMoveFileDialog.value) &&
+                        (::openTagInfosDialog.isInitialized && !openTagInfosDialog.value))
                         Button(
                             onClick = {
                                 mainViewModel.setDialogMessage("Nom du dossier à créer")
