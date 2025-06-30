@@ -772,18 +772,26 @@ suspend fun getFlag(
     item: Item,
     viewModel: SigmaViewModel,
 ): ColoredTag? {
+    
     //créer html d'office
-    if (item.isFile()) {
+    val flag = if (item.isFile()) {
         val flag = viewModel.base64Embedder.extractFlagFromFile(File(item.fullPath))
-        return flag
+        flag
     }
-
-    if (item.isFolder()) {
+    else {
         val flag = viewModel.diskRepository.extractFlagFromHtml(item.fullPath)
-        return flag
+        flag
     }
 
-    return null
+    //il faudrait pouvoir savoir si le flag est dans la liste des Tools.DEFAULT
+    //si non => supprimer le Tag du fichier
+    //comment est construite cette liste Tools.DEFAULT? progressivement? 
+    //dans ce cas est-elle complète maintenant?
+    
+    
+    
+    
+    return flag
 }
 
 fun vectorDrawableToBitmap(context: Context, drawableId: Int): Bitmap {

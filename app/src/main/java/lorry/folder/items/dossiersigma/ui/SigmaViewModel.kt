@@ -42,7 +42,9 @@ import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.nasProgress
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.progress
 import lorry.folder.items.dossiersigma.ui.components.TagInfos
+import lorry.folder.items.dossiersigma.ui.components.Tool
 import lorry.folder.items.dossiersigma.ui.components.Tools
+import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URLDecoder
@@ -78,7 +80,7 @@ class SigmaViewModel @Inject constructor(
 
     fun clearFlagCache() {
         _flagCache.value = mutableMapOf()
-        println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
+        println("clearFlagCache, il y a ${_flagCache.value.size} clés")
 
     }
     
@@ -327,6 +329,7 @@ class SigmaViewModel @Inject constructor(
         imageCache.clear()
         scaleCache.clear()
         clearFlagCache()
+        DEFAULT.content().updateTools(emptyList<Tool>())
         
         viewModelScope.launch(Dispatchers.IO) {
             //val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
@@ -337,6 +340,9 @@ class SigmaViewModel @Inject constructor(
                     addFolderPathToHistory(folderPath)
             }
         }
+        
+        
+        
     }
 
     init {
@@ -361,7 +367,7 @@ class SigmaViewModel @Inject constructor(
 
         bottomTools.viewModel = this
         bottomTools.observeDefaultContent(this)
-        bottomTools.setCurrentContent(Tools.DEFAULT)
+        bottomTools.setCurrentContent(DEFAULT)
     }
 
 //    init {

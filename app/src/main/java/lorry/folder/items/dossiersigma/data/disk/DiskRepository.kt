@@ -493,4 +493,25 @@ class DiskRepository @Inject constructor(
             fichier.writeText(newHtmlContent, Charsets.UTF_8)
         }
     }
+
+    override suspend fun removeTagFromHtml(htmlFileFullPath: String) {
+        val htmlFile = File(htmlFileFullPath+"/.folderPicture.html")
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() })
+            return
+
+        val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
+
+        // Regex pour trouver le contenu de src="data:image/...;base64,..."
+        val regex = Regex("""<div class="coloredTag">(.*?)</div>"""")
+        val correctedText = htmlContent.replace(regex, "")
+
+        if (htmlContent == correctedText)
+            return
+        
+        htmlFile.delete()
+        withContext(Dispatchers.IO) {
+            val fichier = File(htmlFileFullPath + "/.folderPicture.html")
+            fichier.writeText(correctedText, Charsets.UTF_8)
+        }
+    }
 }

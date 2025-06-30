@@ -37,4 +37,5 @@ interface IDiskRepository {
         item: Item,
         tag: ColoredTag,
     )
+    suspend fun removeTagFromHtml(htmlFileFullPath: String)
 }

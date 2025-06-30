@@ -30,7 +30,6 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +65,7 @@ import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.itemToMove
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.movingItem
 import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 
 class BottomTools @Inject constructor(
@@ -76,7 +76,7 @@ class BottomTools @Inject constructor(
     private val _bottomToolsContent = MutableStateFlow<BottomToolContent?>(null)
     val currentContent: StateFlow<BottomToolContent?> = _bottomToolsContent
     internal val defaultContent = BottomToolContent(emptyList())
-    
+
     fun setCurrentContent(tools: Tools) {
         _bottomToolsContent.value = tools.content(viewModel)
     }
@@ -188,6 +188,10 @@ class BottomTools @Inject constructor(
     fun observeDefaultContent(viewModel: SigmaViewModel) {
         viewModel.viewModelScope.launch {
             viewModel.flagCache.collect { tagsMap ->
+                if (tagsMap.isEmpty()) {
+                    defaultContent.updateTools(emptyList())
+                    return@collect
+                }
                 println(" BottomTools: collect de tagsMap, ${tagsMap.size}")
                 val tagsSet = tagsMap.values.toSet()
                 val newTools = tagsSet.map { tag ->
@@ -195,6 +199,7 @@ class BottomTools @Inject constructor(
                         text = { tag.title },
                         icon = R.drawable.etiquette,
                         tint = tag.color,
+                        id = tag.id ?: UUID.randomUUID(),
                         onClick = { vm, activity ->
                             // Action au clic
                         }
@@ -235,16 +240,17 @@ data class Tool(
     val isColoredIcon: Boolean = false,
     val onClick: suspend (SigmaViewModel, MainActivity) -> Any?,
     val visible: suspend (SigmaViewModel, MainActivity) -> Boolean = { _, _ -> true },
-    val tint: Color? = null
+    val tint: Color? = null,
+    val id: UUID = UUID.randomUUID()
 )
 
 sealed class Tools {
     abstract fun content(viewModel: SigmaViewModel? = null): BottomToolContent
 
     object DEFAULT : Tools() {
-        override fun content(viewModel: SigmaViewModel?) = viewModel?.bottomTools?.defaultContent ?: 
-        BottomToolContent(emptyList())
-        
+        override fun content(viewModel: SigmaViewModel?) =
+            viewModel?.bottomTools?.defaultContent ?: BottomToolContent(emptyList())
+
 //        : BottomToolContent {
 //            if (viewModel == null) return BottomToolContent(emptyList())
 //
@@ -294,22 +300,23 @@ sealed class Tools {
                             viewModel.setDialogMessage("Entrez les informations du drapeau")
                             viewModel.dialogTagLambda = { tagInfos, viewModel, mainActivity ->
                                 run {
-                                    DEFAULT.content(viewModel).addTool(
-                                        Tool(
-                                            text = { tagInfos?.title ?: "" },
-                                            icon = R.drawable.etiquette,
-                                            isColoredIcon = false,
-                                            onClick = { viewModel, mainActivity ->
-                                                //filtre des items
+
+                                    val newTool = Tool(
+                                        text = { tagInfos?.title ?: "" },
+                                        icon = R.drawable.etiquette,
+                                        isColoredIcon = false,
+                                        onClick = { viewModel, mainActivity ->
+                                            //filtre des items
 
 
-                                            },
-                                            visible = { viewModel, mainActivity ->
-                                                true
-                                            },
-                                            tint = tagInfos?.color ?: Color.Unspecified
-                                        ), 0
+                                        },
+                                        visible = { viewModel, mainActivity ->
+                                            true
+                                        },
+                                        tint = tagInfos?.color ?: Color.Unspecified
                                     )
+
+                                    DEFAULT.content(viewModel).addTool(newTool, 0)
 
                                     if (tagInfos == null)
                                         return@run
@@ -318,7 +325,8 @@ sealed class Tools {
                                         viewModel.base64Embedder.appendFlagToFile(
                                             File(currentItem.fullPath), ColoredTag(
                                                 title = tagInfos.title,
-                                                color = tagInfos.color
+                                                color = tagInfos.color,
+                                                id = newTool.id
                                             )
                                         )
 
@@ -326,7 +334,8 @@ sealed class Tools {
                                         viewModel.diskRepository.insertTagToHtmlFile(
                                             currentItem, ColoredTag(
                                                 title = tagInfos.title,
-                                                color = tagInfos.color
+                                                color = tagInfos.color,
+                                                id = newTool.id
                                             )
                                         )
 
@@ -346,7 +355,6 @@ sealed class Tools {
 
                             mainActivity.openTagInfosDialog.value = true
                         }
-
                     }
                 ),
                 //////////////
@@ -390,25 +398,66 @@ sealed class Tools {
                         viewModel.selectedItem.value?.tag != null
                     },
                     onClick = { viewModel, mainActivity ->
-//                        viewModel.setDialogMessage("Nom du dossier à créer")
-//                        viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
-//                            val currentFolderPath = viewModel.currentFolderPath.value
-//                            val newFullName = "$currentFolderPath/$newName"
-//                            if (!File(newFullName).exists()) {
-//                                if (File(newFullName).mkdir()) {
-//                                    Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
-//                                    viewModel.refreshCurrentFolder()
-//                                } else
-//                                    Toast.makeText(
-//                                        mainActivity,
-//                                        "Un problème est survenu",
-//                                        Toast.LENGTH_SHORT
-//                                    )
-//                                        .show()
-//                            }
-//                        }
-//
-//                        mainActivity.openTextDialog.value = true
+                        run {
+                            val currentItem = viewModel.selectedItem.value
+                            if (currentItem == null)
+                                return@run
+
+                            val tool = DEFAULT.content(viewModel)
+                                .tools.value.first { it.id == currentItem.tag?.id }
+
+                            DEFAULT.content(viewModel).removeTool(tool)
+                            val flagCacheItemsToRemove =
+                                viewModel.flagCache.value.keys.filter { key ->
+                                    viewModel.flagCache.value[key]?.id == tool.id
+                                }
+
+                            flagCacheItemsToRemove.forEach { key ->
+                                viewModel.flagCache.value.remove(key)
+
+                                if (currentItem.isFile())
+                                    viewModel.base64Embedder.removeFlagFromFile(File(currentItem.fullPath))
+                                else {
+                                    //c'est un dossier
+                                    viewModel.diskRepository.removeTagFromHtml(currentItem.fullPath)
+                                }
+                            }
+
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            viewModel.setSelectedItem(null, true)
+                            viewModel.refreshCurrentFolder()
+                        }
+                    }
+                ),
+                ////////////////////
+                // supprimer tous //
+                ////////////////////
+                Tool(
+                    text = { "carnage" },
+                    icon = R.drawable.moins,
+                    visible = { viewModel, mainActivity ->
+                        viewModel.selectedItem.value?.tag != null
+                    },
+                    onClick = { viewModel, mainActivity ->
+                        run {
+                            val files = viewModel.currentFolder.value.items
+
+                            files.forEach {
+                                if (it.isFile())
+                                    viewModel.base64Embedder.removeFlagFromFile(File(it.fullPath))
+                                else {
+                                    //c'est un dossier
+                                    viewModel.diskRepository.removeTagFromHtml(it.fullPath)
+                                }
+                            }
+                            
+                            viewModel.clearFlagCache()
+                            DEFAULT.content().updateTools(emptyList<Tool>())
+                            
+                            viewModel.setSelectedItem(null, true)
+                            viewModel.refreshCurrentFolder()
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        }
                     }
                 )
             )
