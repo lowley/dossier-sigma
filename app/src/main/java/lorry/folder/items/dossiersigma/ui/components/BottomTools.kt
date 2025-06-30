@@ -405,27 +405,32 @@ sealed class Tools {
 
                             val tool = DEFAULT.content(viewModel)
                                 .tools.value.first { it.id == currentItem.tag?.id }
-
-                            DEFAULT.content(viewModel).removeTool(tool)
-                            val flagCacheItemsToRemove =
-                                viewModel.flagCache.value.keys.filter { key ->
-                                    viewModel.flagCache.value[key]?.id == tool.id
+                            
+                            val flagCacheItemToRemove =
+                                viewModel.flagCache.value.keys.firstOrNull {
+                                    it == currentItem.fullPath
                                 }
 
-                            flagCacheItemsToRemove.forEach { key ->
-                                viewModel.flagCache.value.remove(key)
+                            if (flagCacheItemToRemove == null)
+                                return@run
 
-                                if (currentItem.isFile())
-                                    viewModel.base64Embedder.removeFlagFromFile(File(currentItem.fullPath))
-                                else {
-                                    //c'est un dossier
-                                    viewModel.diskRepository.removeTagFromHtml(currentItem.fullPath)
-                                }
+                            viewModel.flagCache.value.remove(flagCacheItemToRemove)
+
+                            if (currentItem.isFile())
+                                viewModel.base64Embedder.removeFlagFromFile(File(currentItem.fullPath))
+                            else {
+                                //c'est un dossier
+                                viewModel.diskRepository.removeTagFromHtml(currentItem.fullPath)
                             }
 
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            DEFAULT.content(viewModel).removeTool(tool)
+
                             viewModel.setSelectedItem(null, true)
                             viewModel.refreshCurrentFolder()
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+
+//                            viewModel.clearFlagCache()
+//                            DEFAULT.content().updateTools(emptyList<Tool>())
                         }
                     }
                 ),
@@ -433,32 +438,35 @@ sealed class Tools {
                 // supprimer tous //
                 ////////////////////
                 Tool(
-                    text = { "carnage" },
+                    text =
+                        { "carnage" },
                     icon = R.drawable.moins,
-                    visible = { viewModel, mainActivity ->
-                        viewModel.selectedItem.value?.tag != null
-                    },
-                    onClick = { viewModel, mainActivity ->
-                        run {
-                            val files = viewModel.currentFolder.value.items
+                    visible =
+                        { viewModel, mainActivity ->
+                            viewModel.selectedItem.value?.tag != null
+                        },
+                    onClick =
+                        { viewModel, mainActivity ->
+                            run {
+                                val files = viewModel.currentFolder.value.items
 
-                            files.forEach {
-                                if (it.isFile())
-                                    viewModel.base64Embedder.removeFlagFromFile(File(it.fullPath))
-                                else {
-                                    //c'est un dossier
-                                    viewModel.diskRepository.removeTagFromHtml(it.fullPath)
+                                files.forEach {
+                                    if (it.isFile())
+                                        viewModel.base64Embedder.removeFlagFromFile(File(it.fullPath))
+                                    else {
+                                        //c'est un dossier
+                                        viewModel.diskRepository.removeTagFromHtml(it.fullPath)
+                                    }
                                 }
+
+                                viewModel.clearFlagCache()
+                                DEFAULT.content().updateTools(emptyList<Tool>())
+
+                                viewModel.setSelectedItem(null, true)
+                                viewModel.refreshCurrentFolder()
+                                viewModel.bottomTools.setCurrentContent(DEFAULT)
                             }
-                            
-                            viewModel.clearFlagCache()
-                            DEFAULT.content().updateTools(emptyList<Tool>())
-                            
-                            viewModel.setSelectedItem(null, true)
-                            viewModel.refreshCurrentFolder()
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
                         }
-                    }
                 )
             )
         )
