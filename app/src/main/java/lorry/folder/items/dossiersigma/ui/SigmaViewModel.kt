@@ -4,9 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -82,6 +80,34 @@ class SigmaViewModel @Inject constructor(
         _flagCache.value = mutableMapOf()
         println("clearFlagCache, il y a ${_flagCache.value.size} clés")
 
+    }
+    
+    private val _dragTargetItem = MutableStateFlow<Item?>(null)
+    val dragTargetItem: StateFlow<Item?> = _dragTargetItem
+    
+    fun setDragTargetItem(item: Item?) {
+        _dragTargetItem.value = item
+    }
+
+    private val _dragOffset = MutableStateFlow<Offset?>(null)
+    val dragOffset: StateFlow<Offset?> = _dragOffset
+
+    fun setDragOffset(offset: Offset?) {
+        _dragOffset.value = offset
+    }
+
+    private val _draggableStartPosition = MutableStateFlow<Offset?>(null)
+    val draggableStartPosition: StateFlow<Offset?> = _draggableStartPosition
+
+    fun setDraggableStartPosition(position: Offset?) {
+        _draggableStartPosition.value = position
+    }
+
+    private val _draggedTag = MutableStateFlow<ColoredTag?>(null)
+    val draggedTag: StateFlow<ColoredTag?> = _draggedTag
+    
+    fun setDraggedTag(tag: ColoredTag?) {
+        _draggedTag.value = tag
     }
     
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
@@ -408,6 +434,19 @@ class SigmaViewModel @Inject constructor(
             if (valueToSave != "^^")
                 goToFolder(valueToSave)
         }
+    }
+
+    /**
+     * se produit lors du drag'n drop d'une étiquette dans bottomTools
+     * l'Item peut déjà contenir une étiquette -> modification
+     * sinon -> ajout
+     * @see BottomTools.BottomToolBar
+     */
+    fun assignColoredTagToItem(item: Item, tag: ColoredTag) {
+        println("DRAG assignColoredTagToItem, item = ${item.name}, tag = ${tag.title}")
+        
+        
+        
     }
 }
 

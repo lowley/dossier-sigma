@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,9 +39,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -75,7 +82,7 @@ class BottomTools @Inject constructor(
 
     private val _bottomToolsContent = MutableStateFlow<BottomToolContent?>(null)
     val currentContent: StateFlow<BottomToolContent?> = _bottomToolsContent
-    internal val defaultContent = BottomToolContent(emptyList())
+    internal val defaultContent = BottomToolContent(emptyList(), "DEFAULT_CONTENT")
 
     fun setCurrentContent(tools: Tools) {
         _bottomToolsContent.value = tools.content(viewModel)
@@ -130,19 +137,16 @@ class BottomTools @Inject constructor(
             _copyNASText.value = value
         }
     }
-
-
+    
     @Composable
     fun BottomToolBar(
         openDialog: MutableState<Boolean>,
         activity: MainActivity
     ) {
-        if (currentContent == null)
-            return
-
+        
         val content by currentContent.collectAsState()
         val toolList by content?.tools?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
-
+        
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -150,6 +154,10 @@ class BottomTools @Inject constructor(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             toolList.forEach { tool ->
+                var offset by remember { mutableStateOf(Offset.Zero) }
+                var iconSize = if (offset == Offset.Zero) 28.dp else 60.dp
+                var iconYDelta = if (offset == Offset.Zero) 0 else 200
+
                 Box(
                     modifier = Modifier
                         .width(85.dp)
@@ -171,6 +179,62 @@ class BottomTools @Inject constructor(
                         tint = if (tool.isColoredIcon) Color.Unspecified else
                             (tool.tint ?: Color(0xFFe9c46a))
                     )
+
+                    if (content?.name == "DEFAULT_CONTENT") {
+                        val coloredTag = tool.toColoredTag(viewModel)
+                        var draggableStartPosition by remember { mutableStateOf(Offset.Zero) }
+                        
+                        Icon(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 10.dp)
+                                .offset { IntOffset(offset.x.toInt(), offset.y.toInt() 
+//                                        - iconYDelta) 
+                                ) }
+                                .size(iconSize)
+                                .onGloballyPositioned {
+                                    draggableStartPosition = it.positionInRoot()
+                                }
+                                .pointerInput(Unit) {
+                                    detectDragGestures(
+                                        onDragStart = {
+//                                            movingItem = viewModel.selectedItem.value
+                                            viewModel.setDraggedTag(coloredTag)
+                                            println("DRAG start, ${coloredTag.title}")
+                                        },
+                                        onDrag = { change, dragAmount ->
+                                            change.consume()
+                                            offset += dragAmount
+                                            val u = offset.x
+                                            val v = offset.y
+                                            val newOffset = offset.copy(
+                                                y = offset.y - iconYDelta
+                                            )
+                                            val currentGlobalOffset = draggableStartPosition + offset
+                                            
+                                            viewModel.setDragOffset(currentGlobalOffset)
+//                                            println("DRAG offset: ${currentGlobalOffset.x}, ${currentGlobalOffset.y}")
+                                        },
+                                        onDragEnd = {
+//                                            movingItem = null
+                                            val target = viewModel.dragTargetItem.value
+                                            println("DRAG end, ${target?.name ?:"null"}")
+                                            
+                                            if (target != null) {
+                                                viewModel.assignColoredTagToItem(target, coloredTag)
+                                                viewModel.setDragOffset(null)
+                                                viewModel.setDraggedTag(null)
+                                                viewModel.setDragTargetItem(null)
+                                            }
+                                        },
+                                    )
+                                },
+                            painter = painterResource(id = tool.icon),
+                            contentDescription = null,
+                            tint = if (tool.isColoredIcon) Color.Unspecified else
+                                (tool.tint ?: Color(0xFFe9c46a))
+                        )
+                    }
 
                     Text(
                         modifier = Modifier
@@ -212,7 +276,9 @@ class BottomTools @Inject constructor(
 }
 
 class BottomToolContent(
-    var toolInit: List<Tool>
+    var toolInit: List<Tool>,
+    val name: String
+
 ) {
     private val _tools = MutableStateFlow(toolInit)
     val tools: StateFlow<List<Tool>> = _tools
@@ -244,12 +310,20 @@ data class Tool(
     val id: UUID = UUID.randomUUID()
 )
 
-sealed class Tools {
+@Composable
+fun Tool.toColoredTag(viewModel: SigmaViewModel): ColoredTag = ColoredTag(
+    id = this.id,
+    title = this.text(viewModel),
+    color = this.tint ?: Color.Unspecified,
+)
+
+
+sealed class Tools() {
     abstract fun content(viewModel: SigmaViewModel? = null): BottomToolContent
 
     object DEFAULT : Tools() {
         override fun content(viewModel: SigmaViewModel?) =
-            viewModel?.bottomTools?.defaultContent ?: BottomToolContent(emptyList())
+            viewModel?.bottomTools?.defaultContent ?: BottomToolContent(emptyList(), "DEFAULT")
     }
 
     object TAGS_MENU : Tools() {
@@ -379,7 +453,7 @@ sealed class Tools {
 
                             val tool = DEFAULT.content(viewModel)
                                 .tools.value.first { it.id == currentItem.tag?.id }
-                            
+
                             val flagCacheItemToRemove =
                                 viewModel.flagCache.value.keys.firstOrNull {
                                     it == currentItem.fullPath
@@ -442,7 +516,8 @@ sealed class Tools {
                             }
                         }
                 )
-            )
+            ),
+            "TAGS_MENU"
         )
     }
 
@@ -457,7 +532,8 @@ sealed class Tools {
 //                        viewModel.bottomTools.setCurrentContent(MOVES)
                     }
                 )
-            )
+            ),
+            "TAGS"
         )
     }
 
@@ -746,7 +822,8 @@ sealed class Tools {
                     }
 
                 ),
-            )
+            ),
+            "FILE"
         )
     }
 
@@ -833,7 +910,8 @@ sealed class Tools {
                         }
                     }
                 )
-            )
+            ),
+            "MOVES"
         )
     }
 
@@ -865,7 +943,8 @@ sealed class Tools {
                         viewModel.bottomTools.setCurrentContent(DEFAULT)
                     }
                 )
-            )
+            ),
+            "COPY_FILE"
         )
     }
 
@@ -968,7 +1047,8 @@ sealed class Tools {
                         }
                     }
                 )
-            )
+            ),
+            "MOVE_FILE"
         )
     }
 
@@ -1071,7 +1151,8 @@ sealed class Tools {
                         }
                     }
                 ),
-            )
+            ),
+            "CROP"
         )
     }
 

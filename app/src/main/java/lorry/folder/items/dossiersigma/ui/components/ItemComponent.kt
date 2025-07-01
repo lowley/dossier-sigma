@@ -38,6 +38,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -46,6 +47,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -84,7 +87,7 @@ fun ItemComponent(
     imageCache: MutableMap<String, Any?>,
     scaleCache: MutableMap<String, ContentScale>,
     flagCache: StateFlow<MutableMap<String, ColoredTag>>,
-    context: MainActivity
+    context: MainActivity,
 ) {
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
@@ -95,6 +98,26 @@ fun ItemComponent(
 
     val coloredTag by flagCache.collectAsState()
     val tag = coloredTag[item.fullPath]
+    
+    val dragOffset by viewModel.dragOffset.collectAsState()
+//    val draggedTag by viewModel.draggedTag.collectAsState()
+
+    val bounds = remember { mutableStateOf<Rect?>(null)}
+    
+    val isHovered = remember(dragOffset){
+        val new = dragOffset != null && bounds.value?.contains(dragOffset!!) == true
+        if (new) 
+            println("DRAG survolé: item ${item.name}") 
+//            else println("DRAG sorti: item ${item.name}")
+        new
+    }
+    
+    LaunchedEffect(isHovered) { 
+        if (isHovered)
+            viewModel.setDragTargetItem(item)
+        else
+            viewModel.setDragTargetItem(null)
+    }
     
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val cached = imageCache[item.fullPath]
@@ -182,9 +205,19 @@ fun ItemComponent(
 
         key(item.tag?.id) {
             Box(
-                modifier = modifierWithBorder//.background(Color.Blue)
+                modifier = modifierWithBorder
                     .width(imageHeight)
-                    .height(imageHeight),
+                    .height(imageHeight)
+                    .onGloballyPositioned{
+                        val pos = it.positionInRoot()
+                        bounds.value = Rect(
+                            offset = pos,
+                            size = Size(
+                                it.size.width.toFloat(),
+                                it.size.height.toFloat())
+                        )
+                    }
+                    .border(if (isHovered) 1.dp else 0.dp, Color.Black)
             ) {
                 var expanded by remember { mutableStateOf(false) }
                 val scrollState = rememberScrollState()
