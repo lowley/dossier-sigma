@@ -33,9 +33,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -155,8 +155,8 @@ class BottomTools @Inject constructor(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             toolList.forEach { tool ->
-                var offset by remember { mutableStateOf(Offset.Zero) }
-                var iconSize = if (offset == Offset.Zero) 28.dp else 140.dp
+                val offset by viewModel.dragOffset.collectAsState()
+                var iconSize = if (offset == Offset.Zero || offset == null) 28.dp else 140.dp
                 var iconYDelta = if (offset == Offset.Zero) 0 else 200
 
                 Box(
@@ -174,7 +174,10 @@ class BottomTools @Inject constructor(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
                             .padding(top = 10.dp)
-                            .size(28.dp),
+                            .size(28.dp)
+                            .onGloballyPositioned {
+                                viewModel.setDraggableStartPosition(it.positionInRoot())
+                            },
                         painter = painterResource(id = tool.icon),
                         contentDescription = null,
                         tint = if (tool.isColoredIcon) Color.Unspecified else
@@ -183,7 +186,6 @@ class BottomTools @Inject constructor(
 
                     if (content?.name == "DEFAULT_CONTENT") {
                         val coloredTag = tool.toColoredTag(viewModel)
-                        var draggableStartPosition = viewModel.draggableStartPosition.collectAsState()
 
                         Icon(
                             modifier = Modifier
@@ -191,14 +193,11 @@ class BottomTools @Inject constructor(
                                 .padding(top = 10.dp)
                                 .offset {
                                     IntOffset(
-                                        offset.x.toInt(), offset.y.toInt()
+                                        offset?.x?.toInt() ?: 0, offset?.y?.toInt() ?: 0
 //                                        - iconYDelta) 
                                     )
                                 }
                                 .size(iconSize)
-                                .onGloballyPositioned {
-                                    viewModel.setDraggableStartPosition(it.positionInRoot())
-                                }
                                 .pointerInput(Unit) {
                                     detectDragGestures(
                                         onDragStart = {
@@ -208,16 +207,13 @@ class BottomTools @Inject constructor(
                                         },
                                         onDrag = { change, dragAmount ->
                                             change.consume()
-                                            offset += dragAmount
-                                            val u = offset.x
-                                            val v = offset.y
-                                            val newOffset = offset.copy(
-                                                y = offset.y - iconYDelta
-                                            )
-                                            val currentGlobalOffset =
-                                                (draggableStartPosition.value ?: Offset.Zero) + offset
+                                            viewModel.addToDragOffset(dragAmount)
+                                            
+//                                            val newOffset = offset.copy(
+//                                                y = offset.y - iconYDelta
+//                                            )
 
-                                            viewModel.setDragOffset(offset)
+//                                            viewModel.setDragOffset(offset)
 //                                            println("DRAG offset: ${currentGlobalOffset.x}, ${currentGlobalOffset.y}")
                                         },
                                         onDragEnd = {
@@ -227,10 +223,12 @@ class BottomTools @Inject constructor(
 
                                             if (target != null) {
                                                 viewModel.assignColoredTagToItem(target, coloredTag)
-                                                viewModel.setDragOffset(null)
-                                                viewModel.setDraggedTag(null)
-                                                viewModel.setDragTargetItem(null)
+
                                             }
+
+                                            viewModel.setDragOffset(Offset.Zero)
+                                            viewModel.setDraggedTag(null)
+                                            viewModel.setDragTargetItem(null)
                                         },
                                     )
                                 },
@@ -445,7 +443,7 @@ sealed class Tools() {
                 // supprimer //
                 ///////////////
                 Tool(
-                    text = { "Supprimer" },
+                    text = { "item" },
                     icon = R.drawable.moins,
                     visible = { viewModel, mainActivity ->
                         viewModel.selectedItem.value?.tag != null
@@ -463,7 +461,7 @@ sealed class Tools() {
                                 println("problème, tool inexistant")
                                 return@run
                             }
-                            
+
                             if (viewModel.removeFlagCacheForKey(currentItem.fullPath) == null) {
                                 println("problème, suppression de tag impossible")
                                 return@run
@@ -485,6 +483,62 @@ sealed class Tools() {
 
 //                            viewModel.clearFlagCache()
 //                            DEFAULT.content().updateTools(emptyList<Tool>())
+                        }
+                    }
+                ),
+                ///////////////
+                // supprimer //
+                ///////////////
+                Tool(
+                    text = { "tag" },
+                    icon = R.drawable.moins,
+                    visible = { viewModel, mainActivity ->
+                        viewModel.selectedItem.value?.tag != null
+                    },
+                    onClick = { viewModel, mainActivity ->
+                        run {
+                            val currentItem = viewModel.selectedItem.value
+                            if (currentItem == null)
+                                return@run
+
+                            val tool = DEFAULT.content(viewModel)
+                                .tools.value.firstOrNull { it.id == currentItem.tag?.id }
+
+                            if (tool == null) {
+                                println("problème, tool inexistant")
+                                return@run
+                            }
+
+                            //on fait ça parce que par lazy loading au début de l'affichage 
+                            //du dossier de tous les items
+                            val itemsWithThisTag = viewModel.currentFolder.value.items.filter {
+                                val tag = if (it.isFile()) viewModel.base64Embedder.extractFlagFromFile(File(it.fullPath))
+                                else viewModel.diskRepository.extractFlagFromHtml(it.fullPath)
+
+                                tag?.id == tool.id
+                            }
+                            
+                            itemsWithThisTag.forEach {
+                                if (viewModel.removeFlagCacheForKey(it.fullPath) == null) {
+                                    println("problème, suppression de tag impossible")
+                                    return@run
+                                }
+
+                                if (currentItem.isFile())
+                                    viewModel.base64Embedder.removeFlagFromFile(File(it.fullPath))
+                                else {
+                                    //c'est un dossier
+                                    viewModel.diskRepository.removeTagFromHtml(it.fullPath)
+                                }
+                            }
+
+                            //normalement toujours vrai
+                            if (!viewModel.flagCache.containsFlagAsValue(tool.id))
+                                DEFAULT.content(viewModel).removeTool(tool)
+
+                            viewModel.setSelectedItem(null, true)
+                            viewModel.refreshCurrentFolder()
+                            viewModel.bottomTools.setCurrentContent(DEFAULT)
                         }
                     }
                 ),

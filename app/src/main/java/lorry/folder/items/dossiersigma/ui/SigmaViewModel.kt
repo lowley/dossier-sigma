@@ -100,7 +100,11 @@ class SigmaViewModel @Inject constructor(
     fun setDragOffset(offset: Offset?) {
         _dragOffset.value = offset
     }
-
+    
+    fun addToDragOffset(offset: Offset) {
+        _dragOffset.value = (_dragOffset.value ?: Offset.Zero) + offset
+    }
+    
     private val _draggableStartPosition = MutableStateFlow<Offset?>(null)
     val draggableStartPosition: StateFlow<Offset?> = _draggableStartPosition
 

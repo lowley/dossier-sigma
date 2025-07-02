@@ -104,8 +104,11 @@ fun ItemComponent(
     val draggableStartPosition by viewModel.draggableStartPosition.collectAsState()
     val bounds = remember { mutableStateOf<Rect?>(null) }
 
-    val isHovered = remember(draggableStartPosition) {
-        val new = draggableStartPosition != null && bounds.value?.contains(draggableStartPosition!!) == true
+    val isHovered = remember(draggableStartPosition, dragOffset) {
+        if (dragOffset == null || draggableStartPosition == null) 
+            return@remember false
+        
+        val new = bounds.value?.contains(draggableStartPosition!! + dragOffset!!) == true
 //        if (new) 
 //            println("DRAG survolé: item ${item.name}") 
 //            else println("DRAG sorti: item ${item.name}")
