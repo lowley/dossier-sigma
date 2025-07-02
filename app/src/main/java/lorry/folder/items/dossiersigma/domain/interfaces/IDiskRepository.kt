@@ -26,7 +26,7 @@ interface IDiskRepository {
     suspend fun hasPictureFile(folder: Item): Boolean
     fun askInputFolder()
 
-    fun countFilesAndFolders(folder: File): Pair<Int, Int>
+    suspend fun countFilesAndFolders(folder: File): Pair<Int, Int>
     suspend fun copyFile(source: File, destination: File)
     suspend fun removeScaleFromHtml(htmlFileFullPath: String)
 
@@ -38,4 +38,5 @@ interface IDiskRepository {
         tag: ColoredTag,
     )
     suspend fun removeTagFromHtml(htmlFileFullPath: String)
+    suspend fun getSize(file: File): Long
 }

@@ -37,6 +37,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.Tool
 import lorry.folder.items.dossiersigma.ui.components.Tools
@@ -73,8 +74,8 @@ class SigmaViewModel @Inject constructor(
         println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
 
     }
-    
-    fun removeFlagCacheForKey(key: String) : ColoredTag?{
+
+    fun removeFlagCacheForKey(key: String): ColoredTag? {
         return _flagCache.value.remove(key)
     }
 
@@ -97,11 +98,11 @@ class SigmaViewModel @Inject constructor(
     fun setDragOffset(offset: Offset?) {
         _dragOffset.value = offset
     }
-    
+
     fun addToDragOffset(offset: Offset) {
         _dragOffset.value = (_dragOffset.value ?: Offset.Zero) + offset
     }
-    
+
     private val _draggableStartPosition = MutableStateFlow<Offset?>(null)
     val draggableStartPosition: StateFlow<Offset?> = _draggableStartPosition
 
@@ -481,6 +482,26 @@ class SigmaViewModel @Inject constructor(
 
             removeFlagCacheForKey(item.fullPath)
             refreshCurrentFolder()
+        }
+    }
+
+    suspend fun getInfoSup(item: Item): String {
+        return withContext(Dispatchers.IO) {
+            val infos = if (item is SigmaFolder) diskRepository
+                .countFilesAndFolders(File(item.fullPath)).component1().toString() else item.name
+                .substringAfterLast(".")
+            
+            infos
+        }
+    }
+
+    suspend fun getInfoInf(item: Item): String {
+        return withContext(Dispatchers.IO) {
+            val infos = if (item is SigmaFolder)
+                viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2().toString()
+            else viewModel.diskRepository.getSize(File(item.fullPath)).toString()
+            
+            infos
         }
     }
 }

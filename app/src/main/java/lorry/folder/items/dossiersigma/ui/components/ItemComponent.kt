@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -105,9 +106,9 @@ fun ItemComponent(
     val bounds = remember { mutableStateOf<Rect?>(null) }
 
     val isHovered = remember(draggableStartPosition, dragOffset) {
-        if (dragOffset == null || draggableStartPosition == null) 
+        if (dragOffset == null || draggableStartPosition == null)
             return@remember false
-        
+
         val new = bounds.value?.contains(draggableStartPosition!! + dragOffset!!) == true
 //        if (new) 
 //            println("DRAG survolé: item ${item.name}") 
@@ -247,12 +248,19 @@ fun ItemComponent(
                     }
                 }
 
-                if (item is SigmaFolder) {
-                    val fileCount =
-                        viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component1()
-                    val folderCount =
-                        viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
 
+                val infoSup = produceState<String?>(initialValue = null, item) {
+                    value = viewModel.getInfoSup(item)
+                }.value
+
+                val infoInf = produceState<String?>(initialValue = null, item) {
+                    value = viewModel.getInfoInf(item)
+                }.value
+
+
+                if (infoSup == null || infoInf == null) {
+//                        CircularProgressIndicator()
+                } else {
                     val boxWidth = 30.dp
 
                     Box(
@@ -283,7 +291,7 @@ fun ItemComponent(
                                     .align(Alignment.CenterHorizontally)
                                     .padding(0.dp)
                                     .height(textHeight),
-                                text = "$fileCount",
+                                text = infoSup,
                                 fontSize = 10.sp,
                                 color = Color.White
                             )
@@ -294,37 +302,37 @@ fun ItemComponent(
                                         top = 0.dp, start = 0.dp, bottom = 4.dp, end = 0.dp
                                     )
                                     .height(textHeight),
-                                text = "$folderCount",
+                                text = infoInf,
                                 fontSize = 10.sp,
                                 color = Color.White
                             )
                         }
                     }
+                }
 
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 6.dp, bottom = 20.dp)
-                            .graphicsLayer {
-                                rotationZ = -15f
-                                shadowElevation = 4f
-                                shape = RoundedCornerShape(4.dp)
-                                clip = true
-                            }
-                            .background(
-                                color = Color(0xFFD32F2F), // rouge tampons administratifs
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            text = "DOSSIER",
-                            fontSize = 11.sp,
-                            color = Color.White,
-                            letterSpacing = 1.sp,
-                            lineHeight = 12.sp
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 6.dp, bottom = 20.dp)
+                        .graphicsLayer {
+                            rotationZ = -15f
+                            shadowElevation = 4f
+                            shape = RoundedCornerShape(4.dp)
+                            clip = true
+                        }
+                        .background(
+                            color = Color(0xFFD32F2F), // rouge tampons administratifs
+                            shape = RoundedCornerShape(4.dp)
                         )
-                    }
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Text(
+                        text = "DOSSIER",
+                        fontSize = 11.sp,
+                        color = Color.White,
+                        letterSpacing = 1.sp,
+                        lineHeight = 12.sp
+                    )
                 }
 
                 val selectedItem by viewModel.selectedItem.collectAsState()

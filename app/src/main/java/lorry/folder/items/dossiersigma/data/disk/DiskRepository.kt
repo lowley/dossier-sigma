@@ -401,7 +401,7 @@ class DiskRepository @Inject constructor(
         intentWrapper.do_ACTION_OPEN_DOCUMENT_TREE()
     }
 
-    override fun countFilesAndFolders(folder: File): Pair<Int, Int> {
+    override suspend fun countFilesAndFolders(folder: File): Pair<Int, Int> {
         if (!folder.isDirectory) return 0 to 0
 
         val files = folder.listFiles() ?: return 0 to 0
@@ -512,6 +512,12 @@ class DiskRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             val fichier = File(folderPath + "/.folderPicture.html")
             fichier.writeText(correctedText, Charsets.UTF_8)
+        }
+    }
+
+    override suspend fun getSize(file: File): Long {
+        withContext(Dispatchers.IO) {
+            return@withContext file.length()
         }
     }
 }
