@@ -175,7 +175,7 @@ fun ItemComponent(
                     onTap = {
                         if (selectedItemFullPath != null) {
                             viewModel.setSelectedItem(null, true)
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
                             return@detectTapGestures
                         }
 
@@ -202,7 +202,7 @@ fun ItemComponent(
 //                                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
 //                                        viewModel.setIsContextMenuVisible(true)
                         viewModel.setSelectedItem(item, true)
-                        viewModel.bottomTools.setCurrentContent(Tools.FILE)
+                        BottomTools.setCurrentContent(Tools.FILE)
                     })
             }
 
@@ -482,7 +482,7 @@ fun ItemComponent(
 
                             viewModel.setSelectedItem(null, true)
                             viewModel.setIsContextMenuVisible(false)
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
                         }
                     )
 
@@ -578,7 +578,7 @@ fun ItemComponent(
                             viewModel.dialogOnOkLambda = { name, viewModel, context ->
                                 File(item.fullPath.substringBeforeLast("/") + "/$name").mkdir()
                                 viewModel.refreshCurrentFolder()
-                                viewModel.bottomTools.setCurrentContent(DEFAULT)
+                                BottomTools.setCurrentContent(DEFAULT)
                             }
 
                             context.openTextDialog.value = true
@@ -613,7 +613,7 @@ fun ItemComponent(
                                 viewModel.dialogOnOkLambda = { name, viewModel, context ->
                                     File(item.fullPath + "/$name").mkdir()
                                     viewModel.refreshCurrentFolder()
-                                    viewModel.bottomTools.setCurrentContent(DEFAULT)
+                                    BottomTools.setCurrentContent(DEFAULT)
                                 }
 
                                 context.openTextDialog.value = true
@@ -648,7 +648,7 @@ fun ItemComponent(
                             viewModel.setSelectedItem(null, true)
                             viewModel.setIsContextMenuVisible(false)
                             viewModel.refreshCurrentFolder()
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
                         }
                     )
 

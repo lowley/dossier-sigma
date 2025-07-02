@@ -9,6 +9,8 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.components.Tools
+import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -42,12 +44,11 @@ class MoveFileService : Service() {
                 stopSelf()
             }
 
-            if (verify(source, destination) || File(source).isDirectory
-            ) {
+            if (verify(source, destination) || File(source).isDirectory) 
                 delete(source)
-            }
 
             SigmaViewModel.requestRefresh()
+            BottomTools.setCurrentContent(DEFAULT)
             stopSelf()
         }.start()
 
@@ -55,9 +56,7 @@ class MoveFileService : Service() {
     }
 
     private fun copy(source: String, destination: String, suffix: String?) {
-        if (source == null || destination == null)
-            return
-
+        
         val sourceFile = File(source)
         val destinationItem = File(destination)
 

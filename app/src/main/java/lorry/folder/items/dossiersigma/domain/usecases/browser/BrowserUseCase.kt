@@ -26,7 +26,6 @@ class BrowserUseCase @Inject constructor(
     }
 
     fun openBrowser(item: Item, target: BrowserTarget) {
-        
         var final = ""
         
         if (item.isFolder()) {

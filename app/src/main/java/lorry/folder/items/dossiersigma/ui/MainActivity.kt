@@ -79,8 +79,7 @@ import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.itemToMove
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.movingItem
+import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.CustomMoveFileExistingDestinationDialog
@@ -195,7 +194,7 @@ class MainActivity : ComponentActivity() {
                     val selectedItem by mainViewModel.selectedItem.collectAsState()
                     val activity = LocalContext.current as Activity
                     val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
-                    val currentTool by mainViewModel.bottomTools.currentTool.collectAsState()
+                    val currentTool by BottomTools.currentTool.collectAsState()
 
                     openTextDialog = remember { mutableStateOf(false) }
                     openYesNoDialog = remember { mutableStateOf(false) }
@@ -224,7 +223,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     LaunchedEffect(Unit) {
-                        mainViewModel.bottomTools.setCurrentContent(DEFAULT)
+                        BottomTools.setCurrentContent(DEFAULT)
                     }
 
                     LaunchedEffect(pictureUpdateId) {
@@ -255,7 +254,7 @@ class MainActivity : ComponentActivity() {
                                 detectTapGestures(onTap = {
                                     if (selectedItem?.id != null) {
                                         mainViewModel.setSelectedItem(null, true)
-                                        mainViewModel.bottomTools.setCurrentContent(DEFAULT)
+                                        BottomTools.setCurrentContent(DEFAULT)
                                     }
                                 })
                             }
@@ -492,7 +491,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         if (!homePageVisible) {
-                            mainViewModel.bottomTools.BottomToolBar(
+                            BottomTools.BottomToolBar(
                                 openTextDialog,
                                 activity = this@MainActivity
                             )
@@ -510,7 +509,7 @@ class MainActivity : ComponentActivity() {
                                     manageImageClick(mainViewModel, url)
                                     //génère des problèmes dans manageImageClick
 //                            mainViewModel.setSelectedItem(null)
-                                    mainViewModel.bottomTools.setCurrentContent(DEFAULT)
+                                    BottomTools.setCurrentContent(DEFAULT)
                                     mainViewModel.setSelectedItem(null, true)
                                     mainViewModel.refreshCurrentFolder()
                                 }
@@ -559,21 +558,21 @@ class MainActivity : ComponentActivity() {
                             openDialog = openMoveFileDialog,
                             onOverwrite = {
                                 val intent = Intent(this@MainActivity, MoveFileService::class.java).apply {
-                                    putExtra("source", movingItem?.fullPath ?: "")
-                                    putExtra("destination", movingItem?.fullPath ?: "")
+                                    putExtra("source", BottomTools.movingItem?.fullPath ?: "")
+                                    putExtra("destination", BottomTools.movingItem?.fullPath ?: "")
                                     putExtra("addSuffix", "")
                                 }
                                 startService(intent)
                                 mainViewModel.refreshCurrentFolder()
                             },
                             onCancel = {
-                                mainViewModel.bottomTools.setCurrentContent(DEFAULT)
-                                val item = movingItem
+                                BottomTools.setCurrentContent(DEFAULT)
+                                val item = BottomTools.movingItem
                                 val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                                 if (movingParent != null)
                                     mainViewModel.goToFolder(movingParent)
-                                movingItem = null
+                                BottomTools.movingItem = null
                                 mainViewModel.setSelectedItem(null, true)
                                 mainViewModel.refreshCurrentFolder()
 
@@ -581,8 +580,8 @@ class MainActivity : ComponentActivity() {
                             },
                             onCreateCopy = {
                                 val intent = Intent(this@MainActivity, MoveFileService::class.java).apply {
-                                    putExtra("source", movingItem?.fullPath ?: "")
-                                    putExtra("destination", itemToMove?.fullPath)
+                                    putExtra("source", BottomTools.movingItem?.fullPath ?: "")
+                                    putExtra("destination", BottomTools.itemToMove?.fullPath)
                                     putExtra("addSuffix", " - copie")
                                 }
                                 startService(intent)
@@ -652,7 +651,7 @@ class MainActivity : ComponentActivity() {
         }
 
 //        mainViewModel.setSelectedItem(null)
-//        mainViewModel.bottomTools.setCurrentContent(DEFAULT, mainViewModel))
+//        BottomTools.setCurrentContent(DEFAULT, mainViewModel))
     }
 }
 

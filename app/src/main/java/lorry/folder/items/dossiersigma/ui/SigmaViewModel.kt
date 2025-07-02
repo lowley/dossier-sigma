@@ -37,8 +37,6 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.nasProgress
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.progress
 import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.Tool
 import lorry.folder.items.dossiersigma.ui.components.Tools
@@ -59,7 +57,6 @@ class SigmaViewModel @Inject constructor(
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
-    val bottomTools: BottomTools
 ) : ViewModel() {
 
     val imageCache = mutableMapOf<String, Any?>()
@@ -234,9 +231,9 @@ class SigmaViewModel @Inject constructor(
 
         if (!keepBottomToolsAsIs) {
             if (item != null)
-                bottomTools.setCurrentContent(Tools.FILE)
+                BottomTools.setCurrentContent(Tools.FILE)
             else
-                bottomTools.setCurrentContent(Tools.DEFAULT)
+                BottomTools.setCurrentContent(Tools.DEFAULT)
         }
     }
 
@@ -387,9 +384,9 @@ class SigmaViewModel @Inject constructor(
     }
 
     init {
-        bottomTools.viewModel = this
+        BottomTools.viewModel = this
         viewModelScope.launch() {
-            progress.collect { p ->
+            BottomTools.progress.collect { p ->
                 if (p == 0 || p == 100)
                     BottomTools.updateMovePasteText("Coller")
                 else
@@ -398,7 +395,7 @@ class SigmaViewModel @Inject constructor(
         }
 
         viewModelScope.launch() {
-            nasProgress.collect { p ->
+            BottomTools.nasProgress.collect { p ->
                 if (p == 0 || p == 100)
                     BottomTools.updateMoveNASText("1 -> NAS")
                 else
@@ -406,9 +403,9 @@ class SigmaViewModel @Inject constructor(
             }
         }
 
-        bottomTools.viewModel = this
-        bottomTools.observeDefaultContent(this)
-        bottomTools.setCurrentContent(DEFAULT)
+        BottomTools.viewModel = this
+        BottomTools.observeDefaultContent(this)
+        BottomTools.setCurrentContent(DEFAULT)
     }
 
 //    init {

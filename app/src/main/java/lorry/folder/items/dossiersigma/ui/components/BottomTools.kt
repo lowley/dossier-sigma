@@ -1,6 +1,5 @@
 package lorry.folder.items.dossiersigma.ui.components
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -33,9 +32,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,16 +68,11 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.itemToMove
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.movingItem
 import lorry.folder.items.dossiersigma.ui.containsFlagAsValue
 import java.io.File
 import java.util.UUID
-import javax.inject.Inject
 
-class BottomTools @Inject constructor(
-    val context: Context,
-) {
+object BottomTools {
     lateinit var viewModel: SigmaViewModel
 
     private val _bottomToolsContent = MutableStateFlow<BottomToolContent?>(null)
@@ -97,46 +91,44 @@ class BottomTools @Inject constructor(
         _currentTool.value = tool
     }
 
-    companion object {
-        var movingItem: Item? = null
-        var copyingItem: Item? = null
-        var itemToMove: Item? = null
+    var movingItem: Item? = null
+    var copyingItem: Item? = null
+    var itemToMove: Item? = null
 
-        private val _progress = MutableStateFlow(0)
-        val progress: StateFlow<Int> = _progress
+    private val _progress = MutableStateFlow(0)
+    val progress: StateFlow<Int> = _progress
 
-        /**
-         * utilisé par
-         * @see MoveFileService.copy
-         */
-        fun updateProgress(value: Int) {
-            _progress.value = value
-        }
+    /**
+     * utilisé par
+     * @see MoveFileService.copy
+     */
+    fun updateProgress(value: Int) {
+        _progress.value = value
+    }
 
-        private val _movePasteText = MutableStateFlow("Coller")
-        val movePasteText: StateFlow<String> = _movePasteText
+    private val _movePasteText = MutableStateFlow("Coller")
+    val movePasteText: StateFlow<String> = _movePasteText
 
-        fun updateMovePasteText(value: String) {
-            _movePasteText.value = value
-        }
+    fun updateMovePasteText(value: String) {
+        _movePasteText.value = value
+    }
 
-        private val _NASprogress = MutableStateFlow(0)
-        val nasProgress: StateFlow<Int> = _NASprogress
+    private val _NASprogress = MutableStateFlow(0)
+    val nasProgress: StateFlow<Int> = _NASprogress
 
-        /**
-         * utilisé par
-         * @see MoveToNASService.copy
-         */
-        fun updateNASProgress(value: Int) {
-            _NASprogress.value = value
-        }
+    /**
+     * utilisé par
+     * @see MoveToNASService.copy
+     */
+    fun updateNASProgress(value: Int) {
+        _NASprogress.value = value
+    }
 
-        private val _copyNASText = MutableStateFlow("1 -> NAS")
-        val copyNASText: StateFlow<String> = _copyNASText
+    private val _copyNASText = MutableStateFlow("1 -> NAS")
+    val copyNASText: StateFlow<String> = _copyNASText
 
-        fun updateMoveNASText(value: String) {
-            _copyNASText.value = value
-        }
+    fun updateMoveNASText(value: String) {
+        _copyNASText.value = value
     }
 
     @Composable
@@ -193,7 +185,8 @@ class BottomTools @Inject constructor(
                                 .padding(top = 10.dp)
                                 .offset {
                                     IntOffset(
-                                        offset?.x?.toInt() ?: 0, offset?.y?.toInt() ?: 0)
+                                        offset?.x?.toInt() ?: 0, offset?.y?.toInt() ?: 0
+                                    )
                                 }
                                 .size(iconSize)
                                 .pointerInput(Unit) {
@@ -202,13 +195,13 @@ class BottomTools @Inject constructor(
 //                                            movingItem = viewModel.selectedItem.value
                                             viewModel.setDraggedTag(coloredTag)
 //                                            println("DRAG start, ${coloredTag.title}")
-                                            val adjustment = Offset(x = 0f, y =  0 - iconYDelta)
+                                            val adjustment = Offset(x = 0f, y = 0 - iconYDelta)
                                             viewModel.addToDragOffset(adjustment)
                                         },
                                         onDrag = { change, dragAmount ->
                                             change.consume()
                                             viewModel.addToDragOffset(dragAmount)
-                                            
+
 //                                            println("DRAG offset: ${currentGlobalOffset.x}, ${currentGlobalOffset.y}")
                                         },
                                         onDragEnd = {
@@ -321,7 +314,7 @@ sealed class Tools() {
 
     object DEFAULT : Tools() {
         override fun content(viewModel: SigmaViewModel?) =
-            viewModel?.bottomTools?.defaultContent ?: BottomToolContent(emptyList(), "DEFAULT")
+            BottomTools.defaultContent ?: BottomToolContent(emptyList(), "DEFAULT")
     }
 
     object TAGS_MENU : Tools() {
@@ -395,7 +388,7 @@ sealed class Tools() {
                                     viewModel.refreshCurrentFolder()
                                 }
 
-                                viewModel.bottomTools.setCurrentContent(DEFAULT)
+                                BottomTools.setCurrentContent(DEFAULT)
                                 viewModel.setSelectedItem(null, true)
                             }
 
@@ -474,7 +467,7 @@ sealed class Tools() {
 
                             viewModel.setSelectedItem(null, true)
                             viewModel.refreshCurrentFolder()
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
 
 //                            viewModel.clearFlagCache()
 //                            DEFAULT.content().updateTools(emptyList<Tool>())
@@ -507,12 +500,13 @@ sealed class Tools() {
                             //on fait ça parce que par lazy loading au début de l'affichage 
                             //du dossier de tous les items
                             val itemsWithThisTag = viewModel.currentFolder.value.items.filter {
-                                val tag = if (it.isFile()) viewModel.base64Embedder.extractFlagFromFile(File(it.fullPath))
-                                else viewModel.diskRepository.extractFlagFromHtml(it.fullPath)
+                                val tag =
+                                    if (it.isFile()) viewModel.base64Embedder.extractFlagFromFile(File(it.fullPath))
+                                    else viewModel.diskRepository.extractFlagFromHtml(it.fullPath)
 
                                 tag?.id == tool.id
                             }
-                            
+
                             itemsWithThisTag.forEach {
                                 if (viewModel.removeFlagCacheForKey(it.fullPath) == null) {
                                     println("problème, suppression de tag impossible")
@@ -533,7 +527,7 @@ sealed class Tools() {
 
                             viewModel.setSelectedItem(null, true)
                             viewModel.refreshCurrentFolder()
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
                         }
                     }
                 ),
@@ -567,7 +561,7 @@ sealed class Tools() {
 
                                 viewModel.setSelectedItem(null, true)
                                 viewModel.refreshCurrentFolder()
-                                viewModel.bottomTools.setCurrentContent(DEFAULT)
+                                BottomTools.setCurrentContent(DEFAULT)
                             }
                         }
                 )
@@ -584,7 +578,7 @@ sealed class Tools() {
                     icon = R.drawable.move,
                     isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
-//                        viewModel.bottomTools.setCurrentContent(MOVES)
+//                        BottomTools.setCurrentContent(MOVES)
                     }
                 )
             ),
@@ -627,7 +621,7 @@ sealed class Tools() {
                     icon = R.drawable.move,
                     isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
-                        viewModel.bottomTools.setCurrentContent(MOVES)
+                        BottomTools.setCurrentContent(MOVES)
                     }
                 ),
                 ///////////////
@@ -638,7 +632,7 @@ sealed class Tools() {
                     icon = R.drawable.etiquette2,
                     isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
-                        viewModel.bottomTools.setCurrentContent(TAGS_MENU)
+                        BottomTools.setCurrentContent(TAGS_MENU)
                     }
                 ),
                 //////////////
@@ -649,7 +643,7 @@ sealed class Tools() {
                     icon = R.drawable.recadrer2,
                     isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
-                        viewModel.bottomTools.setCurrentContent(CROP)
+                        BottomTools.setCurrentContent(CROP)
                     }
                 ),
                 //////////////
@@ -700,7 +694,7 @@ sealed class Tools() {
                                 }
                             }
 
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
                             viewModel.setSelectedItem(null, true)
                         }
 
@@ -751,7 +745,7 @@ sealed class Tools() {
                                         .show()
                             }
 
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
                             viewModel.setSelectedItem(null, true)
                         }
 
@@ -814,7 +808,7 @@ sealed class Tools() {
                                         .show()
                             }
 
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
                             viewModel.setSelectedItem(null, true)
 
                         }
@@ -870,7 +864,7 @@ sealed class Tools() {
                                     .show()
                             }
 
-                            viewModel.bottomTools.setCurrentContent(DEFAULT)
+                            BottomTools.setCurrentContent(DEFAULT)
                         }
 
                         mainActivity.openYesNoDialog.value = true
@@ -904,8 +898,8 @@ sealed class Tools() {
                     text = { "Déplacer" },
                     icon = R.drawable.deplacer,
                     onClick = { viewModel, mainActivity ->
-                        movingItem = viewModel.selectedItem.value
-                        viewModel.bottomTools.setCurrentContent(MOVE_FILE)
+                        BottomTools.movingItem = viewModel.selectedItem.value
+                        BottomTools.setCurrentContent(MOVE_FILE)
                         viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
                     }
                 ),
@@ -921,9 +915,9 @@ sealed class Tools() {
                     icon = R.drawable.deplacer,
                     onClick = { viewModel, mainActivity ->
                         run {
-                            itemToMove = viewModel.selectedItem.value
+                            BottomTools.itemToMove = viewModel.selectedItem.value
 
-                            if (itemToMove == null)
+                            if (BottomTools.itemToMove == null)
                                 return@run
 
                             //toast
@@ -955,7 +949,7 @@ sealed class Tools() {
                                 putExtra(
                                     "filesToTransfer", Gson().toJson(
                                         listOf<String>(
-                                            itemToMove?.fullPath
+                                            BottomTools.itemToMove?.fullPath
                                                 ?: ""
                                         )
                                     )
@@ -982,7 +976,7 @@ sealed class Tools() {
                     onClick = { viewModel, mainActivity ->
 
 
-                        viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        BottomTools.setCurrentContent(DEFAULT)
                     }
                 ),
                 ////////////
@@ -995,7 +989,7 @@ sealed class Tools() {
 
 
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)
-                        viewModel.bottomTools.setCurrentContent(DEFAULT)
+                        BottomTools.setCurrentContent(DEFAULT)
                     }
                 )
             ),
@@ -1013,13 +1007,13 @@ sealed class Tools() {
                     text = { "Annuler" },
                     icon = R.drawable.annuler,
                     onClick = { viewModel, mainActivity ->
-                        viewModel.bottomTools.setCurrentContent(DEFAULT)
-                        val item = movingItem
+                        BottomTools.setCurrentContent(DEFAULT)
+                        val item = BottomTools.movingItem
                         val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                         if (movingParent != null)
                             viewModel.goToFolder(movingParent)
-                        movingItem = null
+                        BottomTools.movingItem = null
                         viewModel.setSelectedItem(null, true)
                         viewModel.refreshCurrentFolder()
                     }
@@ -1036,18 +1030,18 @@ sealed class Tools() {
                     icon = R.drawable.coller,
                     onClick = { viewModel, mainActivity ->
                         run {
-                            itemToMove = viewModel.selectedItem.value
-                            var dest = itemToMove
+                            BottomTools.itemToMove = viewModel.selectedItem.value
+                            var dest = BottomTools.itemToMove
 
                             if (dest == null) {
-                                itemToMove = viewModel.currentFolder.value
-                                dest = itemToMove
+                                BottomTools.itemToMove = viewModel.currentFolder.value
+                                dest = BottomTools.itemToMove
                             }
 
                             //toast
                             println("MovingItem: choisir fichier destination")
                             //1.copie
-                            val sourceFile = File(movingItem?.fullPath ?: "")
+                            val sourceFile = File(BottomTools.movingItem?.fullPath ?: "")
                             //créer service avec notification(avec avancement)
                             //dans le service: copie
                             //passer au service une lambda pour l'action de retour(2.+3.)
@@ -1065,11 +1059,11 @@ sealed class Tools() {
                             }
 
                             if (dest.isFolder()) {
-                                if (movingItem == null)
+                                if (BottomTools.movingItem == null)
                                     return@run
                                 val isItemExists = viewModel.diskRepository.isFileOrFolderExists(
                                     dest.fullPath,
-                                    movingItem!!
+                                    BottomTools.movingItem!!
                                 )
                                 if (isItemExists) {
                                     mainActivity.openMoveFileDialog.value = true
@@ -1083,11 +1077,12 @@ sealed class Tools() {
                              * @see MoveFileService.onStartCommand
                              */
                             val intent = Intent(mainActivity, MoveFileService::class.java).apply {
-                                putExtra("source", movingItem?.fullPath ?: "")
+                                putExtra("source", BottomTools.movingItem?.fullPath ?: "")
                                 putExtra("destination", dest.fullPath)
                                 putExtra("addSuffix", "")
                             }
                             mainActivity.startService(intent)
+//                            viewModel.setSelectedItem(null, true)
                             viewModel.refreshCurrentFolder()
                             //2.vérif copie bien réalisée:
                             //dest existe
@@ -1097,7 +1092,7 @@ sealed class Tools() {
 
 
                             //vm.diskRepository.copyFile(sourceFile, destinationFile)
-//                        viewModel.bottomTools.setCurrentContent(DEFAULT, viewModel)
+//                        BottomTools.setCurrentContent(DEFAULT, viewModel)
 //                        MovingItem = null
                         }
                     }
@@ -1251,7 +1246,7 @@ fun changeCrop(
     }
 
     //viewModel.setSelectedItem(null)
-    //viewModel.bottomTools.setCurrentContent(DEFAULT, viewModel)
+    //BottomTools.setCurrentContent(DEFAULT, viewModel)
 }
 
 @Composable
