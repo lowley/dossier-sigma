@@ -7,6 +7,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -276,6 +277,9 @@ fun ItemComponent(
                             }
                             .background(tag?.color ?: Color.Gray) // Rouge
                             .widthIn(min = boxWidth)
+                            .clickable {
+                                println("clicked")
+                            }
                         //.padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Column(
@@ -310,30 +314,31 @@ fun ItemComponent(
                     }
                 }
 
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 6.dp, bottom = 20.dp)
-                        .graphicsLayer {
-                            rotationZ = -15f
-                            shadowElevation = 4f
-                            shape = RoundedCornerShape(4.dp)
-                            clip = true
-                        }
-                        .background(
-                            color = Color(0xFFD32F2F), // rouge tampons administratifs
-                            shape = RoundedCornerShape(4.dp)
+                if (item.isFolder())
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 6.dp, bottom = 20.dp)
+                            .graphicsLayer {
+                                rotationZ = -15f
+                                shadowElevation = 4f
+                                shape = RoundedCornerShape(4.dp)
+                                clip = true
+                            }
+                            .background(
+                                color = Color(0xFFD32F2F), // rouge tampons administratifs
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "DOSSIER",
+                            fontSize = 11.sp,
+                            color = Color.White,
+                            letterSpacing = 1.sp,
+                            lineHeight = 12.sp
                         )
-                        .padding(horizontal = 8.dp, vertical = 3.dp)
-                ) {
-                    Text(
-                        text = "DOSSIER",
-                        fontSize = 11.sp,
-                        color = Color.White,
-                        letterSpacing = 1.sp,
-                        lineHeight = 12.sp
-                    )
-                }
+                    }
 
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 val isContextMenuVisible = context.isContextMenuVisible
