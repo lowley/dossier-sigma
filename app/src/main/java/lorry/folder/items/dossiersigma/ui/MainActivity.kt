@@ -57,6 +57,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -170,7 +171,8 @@ class MainActivity : ComponentActivity() {
                             ),
                             modifier = Modifier
                                 .padding(bottom = 55.dp, end = 20.dp)
-                                .size(60.dp),
+                                .size(60.dp)
+                                .alpha(0.5f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF006d77),
                                 contentColor = Color(0xFF83c5be)
@@ -178,7 +180,7 @@ class MainActivity : ComponentActivity() {
                             )
                         ) {
                             Icon(
-                                painterResource(R.drawable.plus),
+                                painter = painterResource(R.drawable.plus),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(50.dp)

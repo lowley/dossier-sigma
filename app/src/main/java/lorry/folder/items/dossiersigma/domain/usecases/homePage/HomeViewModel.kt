@@ -87,6 +87,16 @@ class HomeViewModel @Inject constructor(
 
         homeItems.add(
             HomeItem(
+                title = "Bizarre",
+                icon = R.drawable.film,
+                onClick = { mainVM, homeVM ->
+                    mainVM.goToFolder("/storage/emulated/0/Movies/bizarre")
+                    homeVM.setHomePageVisible(false)
+                }
+            ))
+        
+        homeItems.add(
+            HomeItem(
                 title = "sensations fortes",
                 icon = R.drawable.film,
                 onClick = { mainVM, homeVM ->
