@@ -101,11 +101,11 @@ fun ItemComponent(
     
     val dragOffset by viewModel.dragOffset.collectAsState()
 //    val draggedTag by viewModel.draggedTag.collectAsState()
-
+    val draggableStartPosition by viewModel.draggableStartPosition.collectAsState()
     val bounds = remember { mutableStateOf<Rect?>(null)}
     
-    val isHovered = remember(dragOffset){
-        val new = dragOffset != null && bounds.value?.contains(dragOffset!!) == true
+    val isHovered = remember(draggableStartPosition){
+        val new = draggableStartPosition != null && bounds.value?.contains(draggableStartPosition!!) == true
         if (new) 
             println("DRAG survolé: item ${item.name}") 
 //            else println("DRAG sorti: item ${item.name}")
@@ -217,7 +217,7 @@ fun ItemComponent(
                                 it.size.height.toFloat())
                         )
                     }
-                    .border(if (isHovered) 1.dp else 0.dp, Color.Black)
+                    .border(if (isHovered) 1.dp else 0.dp, Color.Yellow)
             ) {
                 var expanded by remember { mutableStateOf(false) }
                 val scrollState = rememberScrollState()

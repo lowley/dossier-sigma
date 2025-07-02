@@ -157,7 +157,7 @@ class BottomTools @Inject constructor(
                 var offset by remember { mutableStateOf(Offset.Zero) }
                 var iconSize = if (offset == Offset.Zero) 28.dp else 60.dp
                 var iconYDelta = if (offset == Offset.Zero) 0 else 200
-
+                
                 Box(
                     modifier = Modifier
                         .width(85.dp)
@@ -182,7 +182,7 @@ class BottomTools @Inject constructor(
 
                     if (content?.name == "DEFAULT_CONTENT") {
                         val coloredTag = tool.toColoredTag(viewModel)
-                        var draggableStartPosition by remember { mutableStateOf(Offset.Zero) }
+                        var draggableStartPosition = viewModel.draggableStartPosition.collectAsState()
                         
                         Icon(
                             modifier = Modifier
@@ -193,7 +193,7 @@ class BottomTools @Inject constructor(
                                 ) }
                                 .size(iconSize)
                                 .onGloballyPositioned {
-                                    draggableStartPosition = it.positionInRoot()
+                                    viewModel.setDraggableStartPosition(it.positionInRoot())
                                 }
                                 .pointerInput(Unit) {
                                     detectDragGestures(
@@ -210,9 +210,10 @@ class BottomTools @Inject constructor(
                                             val newOffset = offset.copy(
                                                 y = offset.y - iconYDelta
                                             )
-                                            val currentGlobalOffset = draggableStartPosition + offset
+                                            val currentGlobalOffset = (draggableStartPosition.value ?: 
+                                            Offset.Zero) + offset
                                             
-                                            viewModel.setDragOffset(currentGlobalOffset)
+                                            viewModel.setDragOffset(offset)
 //                                            println("DRAG offset: ${currentGlobalOffset.x}, ${currentGlobalOffset.y}")
                                         },
                                         onDragEnd = {

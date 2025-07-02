@@ -52,6 +52,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -75,7 +76,6 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
-import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
@@ -137,7 +137,8 @@ class MainActivity : ComponentActivity() {
                         (::openTextDialog.isInitialized && !openTextDialog.value) &&
                         (::openYesNoDialog.isInitialized && !openYesNoDialog.value) &&
                         (::openMoveFileDialog.isInitialized && !openMoveFileDialog.value) &&
-                        (::openTagInfosDialog.isInitialized && !openTagInfosDialog.value))
+                        (::openTagInfosDialog.isInitialized && !openTagInfosDialog.value)
+                    )
                         Button(
                             onClick = {
                                 mainViewModel.setDialogMessage("Nom du dossier à créer")
@@ -146,7 +147,11 @@ class MainActivity : ComponentActivity() {
                                     val newFullName = "$currentFolderPath/$newName"
                                     if (!File(newFullName).exists()) {
                                         if (File(newFullName).mkdir()) {
-                                            Toast.makeText(mainActivity, "Répertoire créé", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                mainActivity,
+                                                "Répertoire créé",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                             viewModel.refreshCurrentFolder()
                                         } else
                                             Toast.makeText(
@@ -170,7 +175,7 @@ class MainActivity : ComponentActivity() {
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF006d77),
                                 contentColor = Color(0xFF83c5be)
-                                
+
                             )
                         ) {
                             Icon(
@@ -245,18 +250,28 @@ class MainActivity : ComponentActivity() {
                     val dragOffset by mainViewModel.dragOffset.collectAsState()
                     val density = LocalDensity.current
                     val draggableStartPosition by mainViewModel.draggableStartPosition.collectAsState()
-                    val circlePosition = Offset((draggableStartPosition?.x ?: 0f) + (dragOffset?.x ?: 0f),
-                        (draggableStartPosition?.y ?: 0f) + (dragOffset?.y ?: 0f))
+                    val circlePosition = Offset(
+                        (draggableStartPosition?.x ?: 0f) + (dragOffset?.x ?: 0f),
+                        (draggableStartPosition?.y ?: 0f) + (dragOffset?.y ?: 0f)
+                    )
+
+                    key(draggableStartPosition) {
+                        Box(
+                            modifier = Modifier
+                                .offset {
+                                    IntOffset(
+                                        (draggableStartPosition?.x?.toInt() ?: 0),
+//                                        + (dragOffset?.x?.toInt() ?: 0),
+                                        (draggableStartPosition?.y?.toInt() ?: 0),
+//                                               +(dragOffset?.y?.toInt() ?: 0)
+                                    )
+                                }
+                                .size(80.dp)
+                                .zIndex(10f)
+                                .background(color = Color.Red, shape = CircleShape)
+                        )
+                    }
                     
-//                    Box(
-//                        modifier = Modifier
-//                            .offset {
-//                                IntOffset(0-(dragOffset?.x?.toInt() ?: 0), 0-(dragOffset?.y?.toInt() ?:0))
-//                            }
-//                            .size(80.dp)
-//                            .zIndex(10f)
-//                            .background(color = Color.Red, shape = CircleShape)
-//                    )
 
                     Column(
                         modifier = Modifier
@@ -271,13 +286,14 @@ class MainActivity : ComponentActivity() {
                                 })
                             }
                     ) {
+                        
                         Spacer(modifier = Modifier.height(20.dp))
 
                         Box(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             val sortingWidth = 200.dp
-
+                            
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
