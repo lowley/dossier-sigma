@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -33,13 +32,13 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -52,25 +51,27 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -112,7 +113,9 @@ class MainActivity : ComponentActivity() {
     lateinit var isContextMenuVisible: State<Boolean>
     lateinit var homePageVisible: State<Boolean>
 
-    @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
+    @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class,
+        ExperimentalMaterial3Api::class
+    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -248,369 +251,439 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFF363E4C))
-                            .pointerInput(selectedItem?.id) {
-                                detectTapGestures(onTap = {
-                                    if (selectedItem?.id != null) {
-                                        mainViewModel.setSelectedItem(null, true)
-                                        BottomTools.setCurrentContent(DEFAULT)
-                                    }
-                                })
-                            }
+                    Box(
+
                     ) {
-                        
-                        Spacer(modifier = Modifier.height(20.dp))
+                        val richTextState = rememberRichTextState()
+                        val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
+                        var text = "<p>test <b>abc</b></p>"
+                        if (richTextState.toHtml().isEmpty())
+                            richTextState.insertHtml("<p>test <b>abc</b></p>",0)
 
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            val sortingWidth = 200.dp
-                            
-                            Row(
+                        if (isRichText.value) {
+                            Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(end = sortingWidth),
+                                    .width(500.dp)
+                                    .height(400.dp)
+//                                    .fillMaxSize()
+                                    .align(Alignment.Center)
+                                    .zIndex(15f)
                             ) {
-                                Icon(
+//                                Button(onClick = { richTextState..toggleBold() }) {
+//                                    Text("Gras")
+//                                }
+//                                Spacer(Modifier.width(8.dp))
+//                                Button(onClick = { richTextState.toggleItalic() }) {
+//                                    Text("Italique")
+//                                }
+//                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                Row(
                                     modifier = Modifier
-                                        .size(50.dp)
-                                        .padding(
-                                            start = 15.dp,
-                                            end = 5.dp
-                                        )
-                                        .align(Alignment.CenterVertically)
-                                        .size(50.dp)
-                                        .pointerInput(true) {
-                                            detectTapGestures(
-                                                onTap = {
-//                                                changePathUseCase.askInputFolder()
-                                                    homeViewModel.setHomePageVisible(!homePageVisible)
+                                        .zIndex(10f)
+                                ) {
+                                    Button(onClick = {
+                                        richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
+                                    }) {
+                                        Text("Gras")
+                                    }
+                                    Button(onClick = {
+                                        println(richTextState.toHtml())
+                                        mainViewModel.setIsDisplayingMemo(false)
+                                    }) {
+                                        Text("Fermer")
+                                    }
+                                }
 
-                                                }
-                                            )
-                                        },
-                                    painter = painterResource(R.drawable.mouvement),
-                                    tint = Color(0xFFe9c46a),
-                                    contentDescription = null
-                                )
-
-                                if (!homePageVisible)
-                                    Breadcrumb(
-                                        items = currentFolder.fullPath.split("/").filter { it != "" },
-                                        onPathClick = { path ->
-                                            mainViewModel.goToFolder(path)
-                                        },
-                                        modifier = Modifier
-                                            .padding(start = 10.dp)
-                                            .align(Alignment.CenterVertically),
-                                        activeColor = Color(0xFF8697CB),
-                                        inactiveColor = Color(0xFF8697CB),
-                                        arrowColor = Color.Magenta,
-                                        transitionDuration = 200,
+                                RichTextEditor(
+                                    modifier = Modifier.fillMaxSize(),
+                                    state = richTextState,
+                                    textStyle = TextStyle(Color.Black),
+                                    colors = RichTextEditorDefaults.richTextEditorColors(containerColor = 
+                                        Color.White),
+                                    enabled = true,
+                                    readOnly = false,
+                                    contentPadding = RichTextEditorDefaults.richTextEditorWithoutLabelPadding(
+                                        start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp
                                     )
+                                )
+                            }
+                        }
+
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFF363E4C))
+                                .pointerInput(selectedItem?.id) {
+                                    detectTapGestures(onTap = {
+                                        if (selectedItem?.id != null) {
+                                            mainViewModel.setSelectedItem(null, true)
+                                            BottomTools.setCurrentContent(DEFAULT)
+                                        }
+                                    })
+                                }
+                        ) {
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                val sortingWidth = 200.dp
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(end = sortingWidth),
+                                ) {
+                                    Icon(
+                                        modifier = Modifier
+                                            .size(50.dp)
+                                            .padding(
+                                                start = 15.dp,
+                                                end = 5.dp
+                                            )
+                                            .align(Alignment.CenterVertically)
+                                            .size(50.dp)
+                                            .pointerInput(true) {
+                                                detectTapGestures(
+                                                    onTap = {
+//                                                changePathUseCase.askInputFolder()
+                                                        homeViewModel.setHomePageVisible(!homePageVisible)
+
+                                                    }
+                                                )
+                                            },
+                                        painter = painterResource(R.drawable.mouvement),
+                                        tint = Color(0xFFe9c46a),
+                                        contentDescription = null
+                                    )
+
+                                    if (!homePageVisible)
+                                        Breadcrumb(
+                                            items = currentFolder.fullPath.split("/")
+                                                .filter { it != "" },
+                                            onPathClick = { path ->
+                                                mainViewModel.goToFolder(path)
+                                            },
+                                            modifier = Modifier
+                                                .padding(start = 10.dp)
+                                                .align(Alignment.CenterVertically),
+                                            activeColor = Color(0xFF8697CB),
+                                            inactiveColor = Color(0xFF8697CB),
+                                            arrowColor = Color.Magenta,
+                                            transitionDuration = 200,
+                                        )
+                                }
+
+                                if (homePageVisible) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(end = 10.dp)
+                                    )
+                                    {
+                                        Text(
+                                            text = "truc",
+                                            modifier = Modifier.align(Alignment.CenterEnd),
+                                            color = Color.White
+                                        )
+                                    }
+
+                                } else
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.CenterEnd)
+                                            .width(sortingWidth),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+
+                                        val sorting by mainViewModel.sorting.collectAsState()
+
+                                        FilterChip(
+                                            label = { Text("Date") },
+                                            modifier = Modifier
+                                                .padding(end = 5.dp)
+                                                .align(Alignment.CenterVertically),
+                                            selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
+                                            leadingIcon = {
+                                                if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                                                    Icon(
+                                                        painterResource(id = R.drawable.trier_decroissant),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(24.dp),
+                                                        tint = Color.Red
+                                                    )
+                                                else
+                                                    Icon(
+                                                        painterResource(id = R.drawable.trier_decroissant),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(24.dp),
+                                                    )
+                                            },
+//                            enabled = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
+                                            onClick = {
+                                                mainViewModel.goToFolder(
+                                                    currentFolder.fullPath,
+                                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                                )
+                                            }
+                                        )
+
+                                        FilterChip(
+                                            label = { Text("Nom") },
+                                            modifier = Modifier
+                                                .align(Alignment.CenterVertically),
+                                            selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
+                                            leadingIcon = {
+                                                if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
+                                                    Icon(
+                                                        painterResource(id = R.drawable.trier_croissant),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(24.dp),
+                                                        tint = Color.Red
+                                                    )
+                                                else
+                                                    Icon(
+                                                        painterResource(id = R.drawable.trier_croissant),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(24.dp),
+                                                    )
+                                            },
+//                            enabled = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
+                                            onClick = {
+                                                mainViewModel.goToFolder(
+                                                    currentFolder.fullPath,
+                                                    ITEMS_ORDERING_STRATEGY.NAME_ASC
+                                                )
+                                            }
+                                        )
+                                    }
                             }
 
                             if (homePageVisible) {
-                                Box(
+                                LazyVerticalGrid(
+                                    columns = GridCells.Adaptive(150.dp),
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(end = 10.dp)
-                                )
-                                {
-                                    Text(
-                                        text = "truc",
-                                        modifier = Modifier.align(Alignment.CenterEnd),
-                                        color = Color.White
-                                    )
-                                }
-
-                            } else
-                                Row(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                        .width(sortingWidth),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .fillMaxSize()
+                                        .padding(horizontal = 10.dp, vertical = 10.dp)
+                                        .weight(1f)
                                 ) {
+                                    val _60Color = Color(0xFF243e36)
+                                    val _30Color = Color(0xFF7ca982)
+                                    val _10Color = Color(0xFF8fc0a9)
 
-                                    val sorting by mainViewModel.sorting.collectAsState()
-
-                                    FilterChip(
-                                        label = { Text("Date") },
-                                        modifier = Modifier
-                                            .padding(end = 5.dp)
-                                            .align(Alignment.CenterVertically),
-                                        selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
-                                        leadingIcon = {
-                                            if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                                                Icon(
-                                                    painterResource(id = R.drawable.trier_decroissant),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(24.dp),
-                                                    tint = Color.Red
-                                                )
-                                            else
-                                                Icon(
-                                                    painterResource(id = R.drawable.trier_decroissant),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(24.dp),
-                                                )
-                                        },
-//                            enabled = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
-                                        onClick = {
-                                            mainViewModel.goToFolder(
-                                                currentFolder.fullPath,
-                                                ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                            )
-                                        }
-                                    )
-
-                                    FilterChip(
-                                        label = { Text("Nom") },
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically),
-                                        selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
-                                        leadingIcon = {
-                                            if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
-                                                Icon(
-                                                    painterResource(id = R.drawable.trier_croissant),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(24.dp),
-                                                    tint = Color.Red
-                                                )
-                                            else
-                                                Icon(
-                                                    painterResource(id = R.drawable.trier_croissant),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(24.dp),
-                                                )
-                                        },
-//                            enabled = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
-                                        onClick = {
-                                            mainViewModel.goToFolder(
-                                                currentFolder.fullPath,
-                                                ITEMS_ORDERING_STRATEGY.NAME_ASC
-                                            )
-                                        }
-                                    )
-                                }
-                        }
-
-                        if (homePageVisible) {
-                            LazyVerticalGrid(
-                                columns = GridCells.Adaptive(150.dp),
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 10.dp, vertical = 10.dp)
-                                    .weight(1f)
-                            ) {
-                                val _60Color = Color(0xFF243e36)
-                                val _30Color = Color(0xFF7ca982)
-                                val _10Color = Color(0xFF8fc0a9)
-
-                                lazyGridItems(homeViewModel.homeItems.value, key = { it.id }) { item ->
-                                    Card(
-                                        modifier = Modifier
-                                            .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
-                                            .size(150.dp)
-                                            .clip(RoundedCornerShape(13.dp)),
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = _60Color,
-                                            contentColor = _30Color,
-                                        ),
-                                        elevation = CardDefaults.cardElevation(
-                                            defaultElevation = 10.dp
-                                        ),
-                                        onClick = {
-                                            mainViewModel.viewModelScope.launch {
-                                                item.onClick(mainViewModel, homeViewModel)
-                                            }
-                                        },
-                                        border = BorderStroke(2.dp, _10Color),
-                                    ) {
-                                        Box(
+                                    lazyGridItems(
+                                        homeViewModel.homeItems.value,
+                                        key = { it.id }) { item ->
+                                        Card(
                                             modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(RoundedCornerShape(13.dp))
+                                                .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
+                                                .size(150.dp)
+                                                .clip(RoundedCornerShape(13.dp)),
+                                            colors = CardDefaults.cardColors(
+                                                containerColor = _60Color,
+                                                contentColor = _30Color,
+                                            ),
+                                            elevation = CardDefaults.cardElevation(
+                                                defaultElevation = 10.dp
+                                            ),
+                                            onClick = {
+                                                mainViewModel.viewModelScope.launch {
+                                                    item.onClick(mainViewModel, homeViewModel)
+                                                }
+                                            },
+                                            border = BorderStroke(2.dp, _10Color),
                                         ) {
-                                            Icon(
-                                                painter = painterResource(id = item.icon),
-                                                contentDescription = null,
+                                            Box(
                                                 modifier = Modifier
-                                                    .size(100.dp)
-                                                    .align(Alignment.TopCenter)
-                                                    .padding(top = 15.dp),
-                                                tint = Color.Unspecified
-                                            )
+                                                    .fillMaxSize()
+                                                    .clip(RoundedCornerShape(13.dp))
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(id = item.icon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(100.dp)
+                                                        .align(Alignment.TopCenter)
+                                                        .padding(top = 15.dp),
+                                                    tint = Color.Unspecified
+                                                )
 
-                                            Text(
-                                                text = item.title,
-                                                color = _30Color,
-                                                modifier = Modifier
-                                                    .align(Alignment.BottomCenter)
-                                                    .padding(bottom = 15.dp)
-                                            )
+                                                Text(
+                                                    text = item.title,
+                                                    color = _30Color,
+                                                    modifier = Modifier
+                                                        .align(Alignment.BottomCenter)
+                                                        .padding(bottom = 15.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        } else {
-                            val scrollStates = remember { mutableMapOf<String, LazyGridState>() }
-                            val currentScrollState = scrollStates.getOrPut(currentFolder.fullPath) {
-                                LazyGridState()
-                            }
+                            } else {
+                                val scrollStates = remember { mutableMapOf<String, LazyGridState>() }
+                                val currentScrollState =
+                                    scrollStates.getOrPut(currentFolder.fullPath) {
+                                        LazyGridState()
+                                    }
 
-                            LazyVerticalGrid(
-                                columns = GridCells.Adaptive(150.dp),
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 10.dp)
-                                    .weight(1f),
-                                state = currentScrollState
-                            ) {
-                                lazyGridItems(currentFolder.items, key = {
-                                    it.fullPath + "-" +
-                                            pictureUpdateId + it.id.toString()
-                                }) { item ->
-                                    ItemComponent(
-                                        viewModel = mainViewModel,
-                                        item = item,
-                                        modifier = Modifier
-                                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                                        imageCache = mainViewModel.imageCache,
-                                        context = this@MainActivity,
-                                        scaleCache = mainViewModel.scaleCache,
-                                        flagCache = mainViewModel.flagCache,
+                                LazyVerticalGrid(
+                                    columns = GridCells.Adaptive(150.dp),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 10.dp)
+                                        .weight(1f),
+                                    state = currentScrollState
+                                ) {
+                                    lazyGridItems(currentFolder.items, key = {
+                                        it.fullPath + "-" +
+                                                pictureUpdateId + it.id.toString()
+                                    }) { item ->
+                                        ItemComponent(
+                                            viewModel = mainViewModel,
+                                            item = item,
+                                            modifier = Modifier
+                                                .padding(horizontal = 10.dp, vertical = 6.dp),
+                                            imageCache = mainViewModel.imageCache,
+                                            context = this@MainActivity,
+                                            scaleCache = mainViewModel.scaleCache,
+                                            flagCache = mainViewModel.flagCache,
 //                                        onDrop = { tag: ColoredTag ->
 //                                            mainViewModel.assignColoredTagToItem(item, tag)
 //                                        }
-                                    )
+                                        )
+                                    }
                                 }
                             }
-                        }
 
-                        if (!homePageVisible) {
-                            BottomTools.BottomToolBar(
-                                openTextDialog,
-                                activity = this@MainActivity
+                            if (!homePageVisible) {
+                                BottomTools.BottomToolBar(
+                                    openTextDialog,
+                                    activity = this@MainActivity
+                                )
+                            }
+
+                            val url by mainViewModel.browserManager.currentPage.collectAsState()
+
+                            BrowserOverlay(
+                                currentPage = url,
+                                onClose = {
+                                    mainViewModel.browserManager.closeBrowser()
+                                },
+                                onImageClicked = { url ->
+                                    mainViewModel.viewModelScope.launch {
+                                        manageImageClick(mainViewModel, url)
+                                        //génère des problèmes dans manageImageClick
+//                            mainViewModel.setSelectedItem(null)
+                                        BottomTools.setCurrentContent(DEFAULT)
+                                        mainViewModel.setSelectedItem(null, true)
+                                        mainViewModel.refreshCurrentFolder()
+                                    }
+                                },
+                                viewmodel = mainViewModel
                             )
                         }
 
-                        val url by mainViewModel.browserManager.currentPage.collectAsState()
+                        if (openTextDialog.value)
+                            CustomTextDialog(dialogMessage.value ?: "", openTextDialog) { text ->
+                                if (mainViewModel.dialogOnOkLambda != null) {
+                                    mainViewModel.viewModelScope.launch {
+                                        mainViewModel.dialogOnOkLambda?.invoke(
+                                            text,
+                                            mainViewModel,
+                                            this@MainActivity
+                                        )
+                                    }
+                                    mainViewModel.dialogOnOkLambda = null
+                                } else
+                                    mainViewModel.viewModelScope.launch {
+                                        currentTool?.onClick(mainViewModel, this@MainActivity)
+                                    }
+                            }
 
-                        BrowserOverlay(
-                            currentPage = url,
-                            onClose = {
-                                mainViewModel.browserManager.closeBrowser()
-                            },
-                            onImageClicked = { url ->
-                                mainViewModel.viewModelScope.launch {
-                                    manageImageClick(mainViewModel, url)
-                                    //génère des problèmes dans manageImageClick
-//                            mainViewModel.setSelectedItem(null)
+                        if (openYesNoDialog.value) {
+                            CustomYesNoDialog(dialogMessage.value ?: "", openYesNoDialog) { yesNo ->
+                                if (mainViewModel.dialogYesNoLambda != null) {
+                                    mainViewModel.viewModelScope.launch {
+                                        mainViewModel.dialogYesNoLambda?.invoke(
+                                            yesNo,
+                                            mainViewModel,
+                                            this@MainActivity
+                                        )
+                                    }
+                                    mainViewModel.dialogYesNoLambda = null
+                                } else
+                                    mainViewModel.viewModelScope.launch {
+                                        currentTool?.onClick(mainViewModel, this@MainActivity)
+                                    }
+                            }
+                        }
+
+                        if (openMoveFileDialog.value) {
+                            CustomMoveFileExistingDestinationDialog(
+                                openDialog = openMoveFileDialog,
+                                onOverwrite = {
+                                    val intent =
+                                        Intent(this@MainActivity, MoveFileService::class.java).apply {
+                                            putExtra("source", BottomTools.movingItem?.fullPath ?: "")
+                                            putExtra(
+                                                "destination",
+                                                BottomTools.movingItem?.fullPath ?: ""
+                                            )
+                                            putExtra("addSuffix", "")
+                                        }
+                                    startService(intent)
+                                    mainViewModel.refreshCurrentFolder()
+                                },
+                                onCancel = {
                                     BottomTools.setCurrentContent(DEFAULT)
+                                    val item = BottomTools.movingItem
+                                    val movingParent = item?.fullPath?.substringBeforeLast("/")
+
+                                    if (movingParent != null)
+                                        mainViewModel.goToFolder(movingParent)
+                                    BottomTools.movingItem = null
                                     mainViewModel.setSelectedItem(null, true)
                                     mainViewModel.refreshCurrentFolder()
-                                }
-                            },
-                            viewmodel = mainViewModel
-                        )
-                    }
 
-                    if (openTextDialog.value)
-                        CustomTextDialog(dialogMessage.value ?: "", openTextDialog) { text ->
-                            if (mainViewModel.dialogOnOkLambda != null) {
-                                mainViewModel.viewModelScope.launch {
-                                    mainViewModel.dialogOnOkLambda?.invoke(
-                                        text,
+
+                                },
+                                onCreateCopy = {
+                                    val intent =
+                                        Intent(this@MainActivity, MoveFileService::class.java).apply {
+                                            putExtra("source", BottomTools.movingItem?.fullPath ?: "")
+                                            putExtra("destination", BottomTools.itemToMove?.fullPath)
+                                            putExtra("addSuffix", " - copie")
+                                        }
+                                    startService(intent)
+                                    mainViewModel.refreshCurrentFolder()
+                                }
+                            )
+                        }
+
+                        if (openTagInfosDialog.value) {
+                            TagInfosDialog(
+                                text = dialogMessage.value ?: "",
+                                openDialog = openTagInfosDialog,
+                                onDatasCompleted = { infos: TagInfos?, model: SigmaViewModel, activity: MainActivity ->
+                                    mainViewModel.dialogTagLambda?.invoke(
+                                        infos!!,
                                         mainViewModel,
                                         this@MainActivity
                                     )
-                                }
-                                mainViewModel.dialogOnOkLambda = null
-                            } else
-                                mainViewModel.viewModelScope.launch {
-                                    currentTool?.onClick(mainViewModel, this@MainActivity)
-                                }
+                                },
+                                viewModel = mainViewModel,
+                                mainActivity = this@MainActivity
+                            )
                         }
-
-                    if (openYesNoDialog.value) {
-                        CustomYesNoDialog(dialogMessage.value ?: "", openYesNoDialog) { yesNo ->
-                            if (mainViewModel.dialogYesNoLambda != null) {
-                                mainViewModel.viewModelScope.launch {
-                                    mainViewModel.dialogYesNoLambda?.invoke(
-                                        yesNo,
-                                        mainViewModel,
-                                        this@MainActivity
-                                    )
-                                }
-                                mainViewModel.dialogYesNoLambda = null
-                            } else
-                                mainViewModel.viewModelScope.launch {
-                                    currentTool?.onClick(mainViewModel, this@MainActivity)
-                                }
-                        }
-                    }
-
-                    if (openMoveFileDialog.value) {
-                        CustomMoveFileExistingDestinationDialog(
-                            openDialog = openMoveFileDialog,
-                            onOverwrite = {
-                                val intent = Intent(this@MainActivity, MoveFileService::class.java).apply {
-                                    putExtra("source", BottomTools.movingItem?.fullPath ?: "")
-                                    putExtra("destination", BottomTools.movingItem?.fullPath ?: "")
-                                    putExtra("addSuffix", "")
-                                }
-                                startService(intent)
-                                mainViewModel.refreshCurrentFolder()
-                            },
-                            onCancel = {
-                                BottomTools.setCurrentContent(DEFAULT)
-                                val item = BottomTools.movingItem
-                                val movingParent = item?.fullPath?.substringBeforeLast("/")
-
-                                if (movingParent != null)
-                                    mainViewModel.goToFolder(movingParent)
-                                BottomTools.movingItem = null
-                                mainViewModel.setSelectedItem(null, true)
-                                mainViewModel.refreshCurrentFolder()
-
-
-                            },
-                            onCreateCopy = {
-                                val intent = Intent(this@MainActivity, MoveFileService::class.java).apply {
-                                    putExtra("source", BottomTools.movingItem?.fullPath ?: "")
-                                    putExtra("destination", BottomTools.itemToMove?.fullPath)
-                                    putExtra("addSuffix", " - copie")
-                                }
-                                startService(intent)
-                                mainViewModel.refreshCurrentFolder()
-                            }
-                        )
-                    }
-
-                    if (openTagInfosDialog.value) {
-                        TagInfosDialog(
-                            text = dialogMessage.value ?: "",
-                            openDialog = openTagInfosDialog,
-                            onDatasCompleted = { infos: TagInfos?, model: SigmaViewModel, activity: MainActivity ->
-                                mainViewModel.dialogTagLambda?.invoke(
-                                    infos!!,
-                                    mainViewModel,
-                                    this@MainActivity
-                                )
-                            },
-                            viewModel = mainViewModel,
-                            mainActivity = this@MainActivity
-                        )
                     }
                 }
             }
         }
     }
+
 
     suspend fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
         if (viewModel.selectedItem.value != null)

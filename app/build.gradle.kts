@@ -129,6 +129,8 @@ dependencies {
     implementation("com.github.skydoves:colorpicker-compose:1.1.2")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+//    implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13")
+    implementation("com.github.pChochura:richtext-compose:1.3.2")
 }
 
 // Allow references to generated code

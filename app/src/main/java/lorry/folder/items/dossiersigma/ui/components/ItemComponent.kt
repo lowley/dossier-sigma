@@ -275,10 +275,10 @@ fun ItemComponent(
                                 clip = true
                                 shadowElevation = 0f
                             }
-                            .background(tag?.color ?: Color.Gray) // Rouge
+                            .background(tag?.color ?: Color.Gray)
                             .widthIn(min = boxWidth)
                             .clickable {
-                                println("clicked")
+                                viewModel.setIsDisplayingMemo(!viewModel.isDisplayingMemo.value)
                             }
                         //.padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
@@ -326,7 +326,7 @@ fun ItemComponent(
                                 clip = true
                             }
                             .background(
-                                color = Color(0xFFD32F2F), // rouge tampons administratifs
+                                color = Color(0xFFCCFF00), // rouge tampons administratifs
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(horizontal = 8.dp, vertical = 3.dp)
@@ -334,7 +334,7 @@ fun ItemComponent(
                         Text(
                             text = "DOSSIER",
                             fontSize = 11.sp,
-                            color = Color.White,
+                            color = Color(0xFF0047AB),
                             letterSpacing = 1.sp,
                             lineHeight = 12.sp
                         )
@@ -696,7 +696,7 @@ fun ItemComponent(
             modifier = Modifier
                 .height(52.dp)
                 .align(Alignment.CenterHorizontally),
-            name = item.name
+            name = item.name.substringBeforeLast(".")
         )
     }
 }

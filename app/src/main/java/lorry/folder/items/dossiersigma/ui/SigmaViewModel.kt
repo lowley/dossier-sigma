@@ -119,6 +119,13 @@ class SigmaViewModel @Inject constructor(
         _draggedTag.value = tag
     }
 
+    private val _isDisplayingMemo = MutableStateFlow(false)
+    val isDisplayingMemo: StateFlow<Boolean> = _isDisplayingMemo
+
+    fun setIsDisplayingMemo(isVisible: Boolean) {
+        _isDisplayingMemo.value = isVisible
+    }
+    
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
 
