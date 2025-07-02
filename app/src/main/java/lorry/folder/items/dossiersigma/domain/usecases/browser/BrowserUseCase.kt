@@ -5,7 +5,6 @@ import android.widget.Toast
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.domain.Item
-import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import javax.inject.Inject
 
 class BrowserUseCase @Inject constructor(
@@ -27,34 +26,46 @@ class BrowserUseCase @Inject constructor(
     }
 
     fun openBrowser(item: Item, target: BrowserTarget) {
-        val coreName = item.name.substringBeforeLast(".")
+        
+        var final = ""
+        
+        if (item.isFolder()) {
+            val coreName = item.name
+            val splitted = coreName.split(".")
+            if (splitted.size == 2)
+                final = splitted.last()
+        }
+        
+        if (item.isFile()) {
+            val coreName = item.name.substringBeforeLast(".")
 
-        val prepared1 = target
-            .prepareSearchText(coreName)
-            .split(' ')
-            .filter {
-                it.isNotEmpty()
+            val prepared1 = target
+                .prepareSearchText(coreName)
+                .split(' ')
+                .filter {
+                    it.isNotEmpty()
 //                    && !it.matches(Regex("^\\(\\d{4}\\)$"))
-            }
+                }
 
-        val byPart = prepared1.indexOfFirst { it == "by" }
+            val byPart = prepared1.indexOfFirst { it == "by" }
 
-        val prepared2 = if (byPart != -1) {
-            val tiretIndex = prepared1.indexOfFirst {
-                it == "-" && prepared1.indexOf(it) > byPart
-            }
-            prepared1
-                .take(tiretIndex)
-                .filter { it != "by" }
-        } else prepared1
+            val prepared2 = if (byPart != -1) {
+                val tiretIndex = prepared1.indexOfFirst {
+                    it == "-" && prepared1.indexOf(it) > byPart
+                }
+                prepared1
+                    .take(tiretIndex)
+                    .filter { it != "by" }
+            } else prepared1
 
-        val prepared3 = prepared2
-            .joinToString("+") {
-                it.replace("(", "")
-                    .replace(")", "")
-            }
+            final = prepared2
+                .joinToString("+") {
+                    it.replace("(", "")
+                        .replace(")", "")
+                }
+        }
 
-        setCurrentPage(target.url + prepared3)
+        setCurrentPage(target.url + final)
 
         Toast.makeText(context, "Naviguez et appuyez longuement sur l'image choisie", Toast.LENGTH_LONG)
             .show()
