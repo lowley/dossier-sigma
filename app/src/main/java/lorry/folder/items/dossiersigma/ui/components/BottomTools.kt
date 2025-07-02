@@ -71,6 +71,7 @@ import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.itemToMove
 import lorry.folder.items.dossiersigma.ui.components.BottomTools.Companion.movingItem
+import lorry.folder.items.dossiersigma.ui.containsFlagAsValue
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
@@ -137,16 +138,16 @@ class BottomTools @Inject constructor(
             _copyNASText.value = value
         }
     }
-    
+
     @Composable
     fun BottomToolBar(
         openDialog: MutableState<Boolean>,
         activity: MainActivity
     ) {
-        
+
         val content by currentContent.collectAsState()
         val toolList by content?.tools?.collectAsState() ?: remember { mutableStateOf(emptyList()) }
-        
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -157,7 +158,7 @@ class BottomTools @Inject constructor(
                 var offset by remember { mutableStateOf(Offset.Zero) }
                 var iconSize = if (offset == Offset.Zero) 28.dp else 140.dp
                 var iconYDelta = if (offset == Offset.Zero) 0 else 200
-                
+
                 Box(
                     modifier = Modifier
                         .width(85.dp)
@@ -183,14 +184,17 @@ class BottomTools @Inject constructor(
                     if (content?.name == "DEFAULT_CONTENT") {
                         val coloredTag = tool.toColoredTag(viewModel)
                         var draggableStartPosition = viewModel.draggableStartPosition.collectAsState()
-                        
+
                         Icon(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .padding(top = 10.dp)
-                                .offset { IntOffset(offset.x.toInt(), offset.y.toInt() 
+                                .offset {
+                                    IntOffset(
+                                        offset.x.toInt(), offset.y.toInt()
 //                                        - iconYDelta) 
-                                ) }
+                                    )
+                                }
                                 .size(iconSize)
                                 .onGloballyPositioned {
                                     viewModel.setDraggableStartPosition(it.positionInRoot())
@@ -210,9 +214,9 @@ class BottomTools @Inject constructor(
                                             val newOffset = offset.copy(
                                                 y = offset.y - iconYDelta
                                             )
-                                            val currentGlobalOffset = (draggableStartPosition.value ?: 
-                                            Offset.Zero) + offset
-                                            
+                                            val currentGlobalOffset =
+                                                (draggableStartPosition.value ?: Offset.Zero) + offset
+
                                             viewModel.setDragOffset(offset)
 //                                            println("DRAG offset: ${currentGlobalOffset.x}, ${currentGlobalOffset.y}")
                                         },
@@ -220,7 +224,7 @@ class BottomTools @Inject constructor(
 //                                            movingItem = null
                                             val target = viewModel.dragTargetItem.value
 //                                            println("DRAG end, ${target?.name ?:"null"}")
-                                            
+
                                             if (target != null) {
                                                 viewModel.assignColoredTagToItem(target, coloredTag)
                                                 viewModel.setDragOffset(null)
@@ -453,17 +457,17 @@ sealed class Tools() {
                                 return@run
 
                             val tool = DEFAULT.content(viewModel)
-                                .tools.value.first { it.id == currentItem.tag?.id }
+                                .tools.value.firstOrNull { it.id == currentItem.tag?.id }
 
-                            val flagCacheItemToRemove =
-                                viewModel.flagCache.value.keys.firstOrNull {
-                                    it == currentItem.fullPath
-                                }
-
-                            if (flagCacheItemToRemove == null)
+                            if (tool == null) {
+                                println("problème, tool inexistant")
                                 return@run
-
-                            viewModel.flagCache.value.remove(flagCacheItemToRemove)
+                            }
+                            
+                            if (viewModel.removeFlagCacheForKey(currentItem.fullPath) == null) {
+                                println("problème, suppression de tag impossible")
+                                return@run
+                            }
 
                             if (currentItem.isFile())
                                 viewModel.base64Embedder.removeFlagFromFile(File(currentItem.fullPath))
@@ -472,7 +476,8 @@ sealed class Tools() {
                                 viewModel.diskRepository.removeTagFromHtml(currentItem.fullPath)
                             }
 
-                            DEFAULT.content(viewModel).removeTool(tool)
+                            if (!viewModel.flagCache.containsFlagAsValue(tool.id))
+                                DEFAULT.content(viewModel).removeTool(tool)
 
                             viewModel.setSelectedItem(null, true)
                             viewModel.refreshCurrentFolder()

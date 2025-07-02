@@ -46,6 +46,7 @@ import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URLDecoder
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -76,8 +77,8 @@ class SigmaViewModel @Inject constructor(
 
     }
     
-    fun removeFlagCacheForKey(key: String){
-        _flagCache.value.remove(key)
+    fun removeFlagCacheForKey(key: String) : ColoredTag?{
+        return _flagCache.value.remove(key)
     }
 
     fun clearFlagCache() {
@@ -486,4 +487,8 @@ class SigmaViewModel @Inject constructor(
 enum class ITEMS_ORDERING_STRATEGY {
     DATE_DESC,
     NAME_ASC
+}
+
+fun StateFlow<MutableMap<String, ColoredTag>>.containsFlagAsValue(valueId: UUID): Boolean {
+    return valueId in this.value.values.map { it.id }
 }
