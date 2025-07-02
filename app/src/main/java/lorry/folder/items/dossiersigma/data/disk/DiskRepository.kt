@@ -516,8 +516,8 @@ class DiskRepository @Inject constructor(
     }
 
     override suspend fun getSize(file: File): Long {
-        withContext(Dispatchers.IO) {
-            return@withContext file.length()
+        return withContext(Dispatchers.IO) {
+            file.length()
         }
     }
 }

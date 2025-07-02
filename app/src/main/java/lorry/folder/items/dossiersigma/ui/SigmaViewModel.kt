@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -489,7 +491,7 @@ class SigmaViewModel @Inject constructor(
         return withContext(Dispatchers.IO) {
             val infos = if (item is SigmaFolder) diskRepository
                 .countFilesAndFolders(File(item.fullPath)).component1().toString() else item.name
-                .substringAfterLast(".")
+                .substringAfterLast(".").toUpperCase(Locale.current)
             
             infos
         }

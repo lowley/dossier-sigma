@@ -233,7 +233,7 @@ fun ItemComponent(
                 imageSource.value?.let { bitmap ->
                     key(pictureUpdateId) {
                         ImageSection(
-                            modifier = Modifier//.background(Color.Yellow)
+                            modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(8.dp))
