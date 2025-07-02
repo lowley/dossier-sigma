@@ -155,7 +155,7 @@ class BottomTools @Inject constructor(
         ) {
             toolList.forEach { tool ->
                 var offset by remember { mutableStateOf(Offset.Zero) }
-                var iconSize = if (offset == Offset.Zero) 28.dp else 60.dp
+                var iconSize = if (offset == Offset.Zero) 28.dp else 140.dp
                 var iconYDelta = if (offset == Offset.Zero) 0 else 200
                 
                 Box(
@@ -200,7 +200,7 @@ class BottomTools @Inject constructor(
                                         onDragStart = {
 //                                            movingItem = viewModel.selectedItem.value
                                             viewModel.setDraggedTag(coloredTag)
-                                            println("DRAG start, ${coloredTag.title}")
+//                                            println("DRAG start, ${coloredTag.title}")
                                         },
                                         onDrag = { change, dragAmount ->
                                             change.consume()
@@ -219,7 +219,7 @@ class BottomTools @Inject constructor(
                                         onDragEnd = {
 //                                            movingItem = null
                                             val target = viewModel.dragTargetItem.value
-                                            println("DRAG end, ${target?.name ?:"null"}")
+//                                            println("DRAG end, ${target?.name ?:"null"}")
                                             
                                             if (target != null) {
                                                 viewModel.assignColoredTagToItem(target, coloredTag)

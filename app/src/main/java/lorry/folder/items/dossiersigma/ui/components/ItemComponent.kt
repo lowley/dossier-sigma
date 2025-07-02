@@ -98,27 +98,27 @@ fun ItemComponent(
 
     val coloredTag by flagCache.collectAsState()
     val tag = coloredTag[item.fullPath]
-    
+
     val dragOffset by viewModel.dragOffset.collectAsState()
 //    val draggedTag by viewModel.draggedTag.collectAsState()
     val draggableStartPosition by viewModel.draggableStartPosition.collectAsState()
-    val bounds = remember { mutableStateOf<Rect?>(null)}
-    
-    val isHovered = remember(draggableStartPosition){
+    val bounds = remember { mutableStateOf<Rect?>(null) }
+
+    val isHovered = remember(draggableStartPosition) {
         val new = draggableStartPosition != null && bounds.value?.contains(draggableStartPosition!!) == true
-        if (new) 
-            println("DRAG survolé: item ${item.name}") 
+//        if (new) 
+//            println("DRAG survolé: item ${item.name}") 
 //            else println("DRAG sorti: item ${item.name}")
         new
     }
-    
-    LaunchedEffect(isHovered) { 
+
+    LaunchedEffect(isHovered) {
         if (isHovered)
             viewModel.setDragTargetItem(item)
         else
             viewModel.setDragTargetItem(null)
     }
-    
+
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val cached = imageCache[item.fullPath]
         if (cached != null) {
@@ -208,16 +208,20 @@ fun ItemComponent(
                 modifier = modifierWithBorder
                     .width(imageHeight)
                     .height(imageHeight)
-                    .onGloballyPositioned{
+                    .onGloballyPositioned {
                         val pos = it.positionInRoot()
                         bounds.value = Rect(
                             offset = pos,
                             size = Size(
                                 it.size.width.toFloat(),
-                                it.size.height.toFloat())
+                                it.size.height.toFloat()
+                            )
                         )
                     }
-                    .border(if (isHovered) 1.dp else 0.dp, Color.Yellow)
+                    .then(
+                        if (isHovered) Modifier.border(2.dp, Color.Black)
+                        else Modifier
+                    )
             ) {
                 var expanded by remember { mutableStateOf(false) }
                 val scrollState = rememberScrollState()
@@ -805,13 +809,12 @@ suspend fun getFlag(
     item: Item,
     viewModel: SigmaViewModel,
 ): ColoredTag? {
-    
+
     //créer html d'office
     val flag = if (item.isFile()) {
         val flag = viewModel.base64Embedder.extractFlagFromFile(File(item.fullPath))
         flag
-    }
-    else {
+    } else {
         val flag = viewModel.diskRepository.extractFlagFromHtml(item.fullPath)
         flag
     }
@@ -820,10 +823,8 @@ suspend fun getFlag(
     //si non => supprimer le Tag du fichier
     //comment est construite cette liste Tools.DEFAULT? progressivement? 
     //dans ce cas est-elle complète maintenant?
-    
-    
-    
-    
+
+
     return flag
 }
 

@@ -247,32 +247,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val dragOffset by mainViewModel.dragOffset.collectAsState()
-                    val density = LocalDensity.current
-                    val draggableStartPosition by mainViewModel.draggableStartPosition.collectAsState()
-                    val circlePosition = Offset(
-                        (draggableStartPosition?.x ?: 0f) + (dragOffset?.x ?: 0f),
-                        (draggableStartPosition?.y ?: 0f) + (dragOffset?.y ?: 0f)
-                    )
-
-                    key(draggableStartPosition) {
-                        Box(
-                            modifier = Modifier
-                                .offset {
-                                    IntOffset(
-                                        (draggableStartPosition?.x?.toInt() ?: 0),
-//                                        + (dragOffset?.x?.toInt() ?: 0),
-                                        (draggableStartPosition?.y?.toInt() ?: 0),
-//                                               +(dragOffset?.y?.toInt() ?: 0)
-                                    )
-                                }
-                                .size(80.dp)
-                                .zIndex(10f)
-                                .background(color = Color.Red, shape = CircleShape)
-                        )
-                    }
-                    
-
                     Column(
                         modifier = Modifier
                             .fillMaxSize()

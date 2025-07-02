@@ -494,8 +494,8 @@ class DiskRepository @Inject constructor(
         }
     }
 
-    override suspend fun removeTagFromHtml(htmlFileFullPath: String) {
-        val htmlFile = File(htmlFileFullPath+"/.folderPicture.html")
+    override suspend fun removeTagFromHtml(folderPath: String) {
+        val htmlFile = File(folderPath+"/.folderPicture.html")
         if (!withContext(Dispatchers.IO) { htmlFile.exists() })
             return
 
@@ -510,7 +510,7 @@ class DiskRepository @Inject constructor(
         
         htmlFile.delete()
         withContext(Dispatchers.IO) {
-            val fichier = File(htmlFileFullPath + "/.folderPicture.html")
+            val fichier = File(folderPath + "/.folderPicture.html")
             fichier.writeText(correctedText, Charsets.UTF_8)
         }
     }

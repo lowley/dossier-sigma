@@ -73,7 +73,11 @@ class SigmaViewModel @Inject constructor(
             put(key, tag)
         }
         println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
-        
+
+    }
+    
+    fun removeFlagCacheForKey(key: String){
+        _flagCache.value.remove(key)
     }
 
     fun clearFlagCache() {
@@ -81,10 +85,10 @@ class SigmaViewModel @Inject constructor(
         println("clearFlagCache, il y a ${_flagCache.value.size} clés")
 
     }
-    
+
     private val _dragTargetItem = MutableStateFlow<Item?>(null)
     val dragTargetItem: StateFlow<Item?> = _dragTargetItem
-    
+
     fun setDragTargetItem(item: Item?) {
         _dragTargetItem.value = item
     }
@@ -105,11 +109,11 @@ class SigmaViewModel @Inject constructor(
 
     private val _draggedTag = MutableStateFlow<ColoredTag?>(null)
     val draggedTag: StateFlow<ColoredTag?> = _draggedTag
-    
+
     fun setDraggedTag(tag: ColoredTag?) {
         _draggedTag.value = tag
     }
-    
+
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
 
@@ -167,22 +171,22 @@ class SigmaViewModel @Inject constructor(
         val refreshRequested = _refreshRequested.asSharedFlow()
 
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        
+
         fun requestRefresh() {
             scope.launch {
                 _refreshRequested.emit(Unit)
             }
         }
     }
-    
-    init{
-        viewModelScope.launch { 
-            refreshRequested.collect { 
+
+    init {
+        viewModelScope.launch {
+            refreshRequested.collect {
                 refreshCurrentFolder()
             }
         }
     }
-    
+
     private val _dialogMessage = MutableStateFlow("")
     val dialogMessage: StateFlow<String?> = _dialogMessage
 
@@ -193,7 +197,7 @@ class SigmaViewModel @Inject constructor(
     var dialogOnOkLambda: (suspend (String, SigmaViewModel, Context) -> Unit)? = null
     var dialogYesNoLambda: (suspend (Boolean, SigmaViewModel, Context) -> Unit)? = null
     var dialogTagLambda: (suspend (tagInfos: TagInfos?, vm: SigmaViewModel, context: Context) -> Unit)? = null
-    
+
     fun refreshCurrentFolder() {
         reloadTrigger.value = reloadTrigger.value + 1 // redéclenchement immédiat
     }
@@ -240,8 +244,10 @@ class SigmaViewModel @Inject constructor(
         )
 
 
-    suspend fun updatePicture(newPicture: Any?,
-                              onlyCropped: Boolean = false) {
+    suspend fun updatePicture(
+        newPicture: Any?,
+        onlyCropped: Boolean = false
+    ) {
         if (_selectedItem.value == null)
             return
 
@@ -256,36 +262,39 @@ class SigmaViewModel @Inject constructor(
 
         //s'assure que les refreshs ci-dessous verront bien la nouvelle image
         imageCache.remove(_selectedItem.value?.fullPath)
-        
+
         //expérimental
         pictureBitmap = compressBitmapToMaxSizeAsBitmap(pictureBitmap)
-        
+
         if (_selectedItem.value?.isFile() == true) {
             val image64 = base64Embedder.bitmapToBase64(pictureBitmap)
             val item = _selectedItem.value
             if (item == null)
                 return
-            
-            
+
+
             val base64_tag = if (onlyCropped) {
-                base64Embedder.extractBase64FromFile(File(item.fullPath),
-                    tagSuffix = Tags.COVER)
-            }
-            else null
-            
+                base64Embedder.extractBase64FromFile(
+                    File(item.fullPath),
+                    tagSuffix = Tags.COVER
+                )
+            } else null
+
             base64Embedder.removeBothBase64(File(item.fullPath))
-            
+
             if (onlyCropped)
                 base64Embedder.appendBase64ToFile(File(item.fullPath), base64_tag!!, tagSuffix = Tags.COVER)
             else
                 base64Embedder.appendBase64ToFile(File(item.fullPath), image64, tagSuffix = Tags.COVER)
-            
+
             base64Embedder.appendBase64ToFile(File(item.fullPath), image64, tagSuffix = Tags.COVER_CROPPED)
         } else {
             _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
-            setPictureInFolder(_selectedItem.value!!, 
+            setPictureInFolder(
+                _selectedItem.value!!,
                 fromClipboard = false,
-                onlyCropped = onlyCropped)
+                onlyCropped = onlyCropped
+            )
         }
     }
 
@@ -313,8 +322,10 @@ class SigmaViewModel @Inject constructor(
             newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
 
         viewModelScope.launch {
-            changingPictureUseCase.savePictureOfFolder(newItem,
-                onlyCropped = onlyCropped)
+            changingPictureUseCase.savePictureOfFolder(
+                newItem,
+                onlyCropped = onlyCropped
+            )
             withContext(Dispatchers.Main) {
                 refreshCurrentFolder()
             }
@@ -346,17 +357,17 @@ class SigmaViewModel @Inject constructor(
 
     fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY? = null) {
         sortingCache[currentFolderPath.value] = this.sorting.value
-        
+
         if (sorting != null)
             setSorting(sorting)
         else
             setSorting(sortingCache[folderPath] ?: ITEMS_ORDERING_STRATEGY.DATE_DESC)
-            
+
         imageCache.clear()
         scaleCache.clear()
         clearFlagCache()
         DEFAULT.content().updateTools(emptyList<Tool>())
-        
+
         viewModelScope.launch(Dispatchers.IO) {
             //val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
             withContext(Dispatchers.Main) {
@@ -366,9 +377,8 @@ class SigmaViewModel @Inject constructor(
                     addFolderPathToHistory(folderPath)
             }
         }
-        
-        
-        
+
+
     }
 
     init {
@@ -443,10 +453,33 @@ class SigmaViewModel @Inject constructor(
      * @see BottomTools.BottomToolBar
      */
     fun assignColoredTagToItem(item: Item, tag: ColoredTag) {
-        println("DRAG assignColoredTagToItem, item = ${item.name}, tag = ${tag.title}")
-        
-        
-        
+//        println("DRAG assignColoredTagToItem, item = ${item.name}, tag = ${tag.title}")
+
+        val containsTag = item.tag != null
+
+        viewModelScope.launch {
+            if (item.isFile()) {
+                val file = File(item.fullPath)
+                if (containsTag) {
+                    base64Embedder.removeFlagFromFile(file)
+                    base64Embedder.appendFlagToFile(file, tag)
+                } else {
+                    base64Embedder.appendFlagToFile(file, tag)
+                }
+            }
+
+            if (item.isFolder()) {
+                if (containsTag) {
+                    diskRepository.removeTagFromHtml(item.fullPath)
+                    diskRepository.insertTagToHtmlFile(item, tag)
+                } else {
+                    diskRepository.insertTagToHtmlFile(item, tag)
+                }
+            }
+
+            removeFlagCacheForKey(item.fullPath)
+            refreshCurrentFolder()
+        }
     }
 }
 
