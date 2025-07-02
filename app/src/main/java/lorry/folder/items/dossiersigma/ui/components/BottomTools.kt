@@ -157,7 +157,7 @@ class BottomTools @Inject constructor(
             toolList.forEach { tool ->
                 val offset by viewModel.dragOffset.collectAsState()
                 var iconSize = if (offset == Offset.Zero || offset == null) 28.dp else 140.dp
-                var iconYDelta = if (offset == Offset.Zero) 0 else 200
+                var iconYDelta = if (offset == Offset.Zero) 0f else 200f
 
                 Box(
                     modifier = Modifier
@@ -193,9 +193,7 @@ class BottomTools @Inject constructor(
                                 .padding(top = 10.dp)
                                 .offset {
                                     IntOffset(
-                                        offset?.x?.toInt() ?: 0, offset?.y?.toInt() ?: 0
-//                                        - iconYDelta) 
-                                    )
+                                        offset?.x?.toInt() ?: 0, offset?.y?.toInt() ?: 0)
                                 }
                                 .size(iconSize)
                                 .pointerInput(Unit) {
@@ -204,16 +202,13 @@ class BottomTools @Inject constructor(
 //                                            movingItem = viewModel.selectedItem.value
                                             viewModel.setDraggedTag(coloredTag)
 //                                            println("DRAG start, ${coloredTag.title}")
+                                            val adjustment = Offset(x = 0f, y =  0 - iconYDelta)
+                                            viewModel.addToDragOffset(adjustment)
                                         },
                                         onDrag = { change, dragAmount ->
                                             change.consume()
                                             viewModel.addToDragOffset(dragAmount)
                                             
-//                                            val newOffset = offset.copy(
-//                                                y = offset.y - iconYDelta
-//                                            )
-
-//                                            viewModel.setDragOffset(offset)
 //                                            println("DRAG offset: ${currentGlobalOffset.x}, ${currentGlobalOffset.y}")
                                         },
                                         onDragEnd = {
