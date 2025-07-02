@@ -12,9 +12,11 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +29,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +46,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +59,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -63,15 +70,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
-import com.mohamedrejeb.richeditor.ui.material3.RichTextEditorDefaults
+import com.pointlessapps.rt_editor.model.RichTextValue
+import com.pointlessapps.rt_editor.model.Style
+import com.pointlessapps.rt_editor.ui.RichTextEditor
+import com.pointlessapps.rt_editor.ui.defaultRichTextFieldStyle
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -94,6 +102,7 @@ import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import java.io.File
 import javax.inject.Inject
+import kotlin.random.Random
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -113,7 +122,8 @@ class MainActivity : ComponentActivity() {
     lateinit var isContextMenuVisible: State<Boolean>
     lateinit var homePageVisible: State<Boolean>
 
-    @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class,
+    @OptIn(
+        ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class,
         ExperimentalMaterial3Api::class
     )
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -254,11 +264,10 @@ class MainActivity : ComponentActivity() {
                     Box(
 
                     ) {
-                        val richTextState = rememberRichTextState()
+                        var value by remember { mutableStateOf(RichTextValue.get()) }
                         val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
                         var text = "<p>test <b>abc</b></p>"
-                        if (richTextState.toHtml().isEmpty())
-                            richTextState.insertHtml("<p>test <b>abc</b></p>",0)
+
 
                         if (isRichText.value) {
                             Column(
@@ -266,47 +275,147 @@ class MainActivity : ComponentActivity() {
                                     .width(500.dp)
                                     .height(400.dp)
 //                                    .fillMaxSize()
-                                    .align(Alignment.Center)
+                                    .align(Alignment.TopCenter)
                                     .zIndex(15f)
                             ) {
-//                                Button(onClick = { richTextState..toggleBold() }) {
-//                                    Text("Gras")
-//                                }
-//                                Spacer(Modifier.width(8.dp))
-//                                Button(onClick = { richTextState.toggleItalic() }) {
-//                                    Text("Italique")
-//                                }
-//                                    Spacer(modifier = Modifier.height(8.dp))
-
-                                Row(
-                                    modifier = Modifier
-                                        .zIndex(10f)
-                                ) {
-                                    Button(onClick = {
-                                        richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
-                                    }) {
-                                        Text("Gras")
-                                    }
-                                    Button(onClick = {
-                                        println(richTextState.toHtml())
-                                        mainViewModel.setIsDisplayingMemo(false)
-                                    }) {
-                                        Text("Fermer")
-                                    }
-                                }
-
                                 RichTextEditor(
-                                    modifier = Modifier.fillMaxSize(),
-                                    state = richTextState,
-                                    textStyle = TextStyle(Color.Black),
-                                    colors = RichTextEditorDefaults.richTextEditorColors(containerColor = 
-                                        Color.White),
-                                    enabled = true,
-                                    readOnly = false,
-                                    contentPadding = RichTextEditorDefaults.richTextEditorWithoutLabelPadding(
-                                        start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp
+                                    modifier = Modifier
+                                        .background(Color.White)
+                                        .height(300.dp),
+                                    value = value,
+                                    onValueChange = { value = it },
+                                    textFieldStyle = defaultRichTextFieldStyle().copy(
+                                        placeholder = "My rich text editor in action",
+                                        textColor = Color.Black,
+                                        placeholderColor = Color.Gray,
                                     )
                                 )
+
+                                Box(
+                                    modifier = Modifier,
+                                    contentAlignment = Alignment.BottomCenter
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight()
+                                            .background(Color.DarkGray)
+                                            .horizontalScroll(rememberScrollState()),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        // Button for a custom style
+                                        IconButton(onClick = {
+                                            value = value.insertStyle(BoldRedStyle)
+                                        }) {
+                                            Icon(
+                                                modifier = Modifier.size(24.dp),
+                                                painter = painterResource(id = R.drawable.plus),
+                                                tint = if (value.currentStyles.contains(BoldRedStyle)) {
+                                                    Color.Red
+                                                } else {
+                                                    Color.Red.copy(alpha = 0.3f)
+                                                },
+                                                contentDescription = null
+                                            )
+                                        }
+
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles.contains(Style.Bold)
+                                        ) {
+                                            value = value.insertStyle(Style.Bold)
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles.contains(Style.Underline)
+                                        ) {
+                                            value = value.insertStyle(Style.Underline)
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles.contains(Style.Italic)
+                                        ) {
+                                            value = value.insertStyle(Style.Italic)
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles.contains(Style.Strikethrough)
+                                        ) {
+                                            value = value.insertStyle(Style.Strikethrough)
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles.contains(Style.AlignLeft)
+                                        ) {
+                                            value = value.insertStyle(Style.AlignLeft)
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles.contains(Style.AlignCenter)
+                                        ) {
+                                            value = value.insertStyle(Style.AlignCenter)
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles.contains(Style.AlignRight)
+                                        ) {
+                                            value = value.insertStyle(Style.AlignRight)
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles
+                                                .filterIsInstance<Style.TextSize>()
+                                                .isNotEmpty()
+                                        ) {
+                                            // Remove all styles in selected region that changes the text size
+                                            value = value.clearStyles(Style.TextSize())
+
+                                            // Here you would show a dialog of some sorts and allow user to pick
+                                            // a specific text size. I'm gonna use a random one between 50% and 200%
+
+                                            value = value.insertStyle(
+                                                Style.TextSize(
+                                                    (Random.nextFloat() *
+                                                            (Style.TextSize.MAX_VALUE - Style.TextSize.MIN_VALUE) +
+                                                            Style.TextSize.MIN_VALUE).toFloat()
+                                                )
+                                            )
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.currentStyles
+                                                .filterIsInstance<Style.TextColor>()
+                                                .isNotEmpty()
+                                        ) {
+                                            // Remove all styles in selected region that changes the text color
+                                            value = value.clearStyles(Style.TextColor(Color.Transparent))
+
+                                            // Here you would show a dialog of some sorts and allow user to pick
+                                            // a specific color. I'm gonna use a random one
+
+                                            value = value.insertStyle(
+                                                Style.TextColor(Random.nextInt(360).hueToColor())
+                                            )
+                                        }
+                                        EditorAction(R.drawable.plus, active = true) {
+                                            value = value.insertStyle(Style.ClearFormat)
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.isUndoAvailable
+                                        ) {
+                                            value = value.undo()
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.plus,
+                                            active = value.isRedoAvailable
+                                        ) {
+                                            value = value.redo()
+                                        }
+                                    }
+                                }
+                                
                             }
                         }
 
@@ -728,6 +837,26 @@ class MainActivity : ComponentActivity() {
 //        mainViewModel.setSelectedItem(null)
 //        BottomTools.setCurrentContent(DEFAULT, mainViewModel))
     }
+
+    @Composable
+    private fun EditorAction(
+        @DrawableRes iconRes: Int,
+        active: Boolean,
+        onClick: () -> Unit,
+    ) {
+        IconButton(onClick = onClick) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(id = iconRes),
+                tint = if (active) Color.White else Color.Black,
+                contentDescription = null
+            )
+        }
+    }
+
+    private fun Int.hueToColor(saturation: Float = 1f, value: Float = 0.5f): Color = Color(
+        ColorUtils.HSLToColor(floatArrayOf(this.toFloat(), saturation, value))
+    )
 }
 
 fun <T> LazyGridScope.lazyGridItems(
@@ -738,4 +867,12 @@ fun <T> LazyGridScope.lazyGridItems(
     itemsIndexed(items, key = { index, item -> key?.invoke(item) ?: index }) { _, item ->
         itemContent(item)
     }
+}
+
+object BoldRedStyle : Style.TextStyle {
+    override val spanStyle = SpanStyle(
+        color = Color.Red,
+        fontWeight = FontWeight.Bold,
+    )
+    override val tag = "BoldRedStyle"
 }
