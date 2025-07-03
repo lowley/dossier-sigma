@@ -47,7 +47,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -285,14 +284,14 @@ class MainActivity : ComponentActivity() {
                                     value = value,
                                     onValueChange = { value = it },
                                     textFieldStyle = defaultRichTextFieldStyle().copy(
-                                        placeholder = "My rich text editor in action",
+                                        placeholder = "Entrez du texte",
                                         textColor = Color.Black,
                                         placeholderColor = Color.Gray,
                                     )
                                 )
 
                                 Box(
-                                    modifier = Modifier,
+                                    modifier = Modifier.fillMaxWidth(),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
                                     Row(
@@ -304,66 +303,85 @@ class MainActivity : ComponentActivity() {
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Center
                                     ) {
-                                        // Button for a custom style
                                         IconButton(onClick = {
-                                            value = value.insertStyle(BoldRedStyle)
+                                            val shapshot = value.getLastSnapshot()
+
+                                            value = RichTextValue.get()
+                                            mainViewModel.setIsDisplayingMemo(false)
+
+                                            val item = mainViewModel.selectedItem.value
+                                            if (item == null)
+                                                return@IconButton
+
+                                            mainViewModel.viewModelScope.launch {
+                                                if (item.isFile()) {
+                                                    if (mainViewModel.base64Embedder.extractMemoFromFile
+                                                            (item.fullPath) != null)
+                                                        mainViewModel.base64Embedder.removeMemoFromFile(item.fullPath)
+                                                    
+                                                    mainViewModel.base64Embedder.appendMemoToFile(item.fullPath)
+                                                }
+
+                                                if (item.isFolder()) {
+                                                    if (mainViewModel.diskRepository.extractMemoFromFolder
+                                                            (item.fullPath) != null)
+                                                        mainViewModel.diskRepository.removeMemoFromFolder(item.fullPath)
+                                                    
+                                                    mainViewModel.diskRepository.insertMemoToFolder(item.fullPath)
+                                                }
+                                            }
                                         }) {
                                             Icon(
                                                 modifier = Modifier.size(24.dp),
-                                                painter = painterResource(id = R.drawable.plus),
-                                                tint = if (value.currentStyles.contains(BoldRedStyle)) {
-                                                    Color.Red
-                                                } else {
-                                                    Color.Red.copy(alpha = 0.3f)
-                                                },
+                                                painter = painterResource(id = R.drawable.exit),
                                                 contentDescription = null
                                             )
                                         }
 
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.bold,
                                             active = value.currentStyles.contains(Style.Bold)
                                         ) {
                                             value = value.insertStyle(Style.Bold)
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.underline,
                                             active = value.currentStyles.contains(Style.Underline)
                                         ) {
                                             value = value.insertStyle(Style.Underline)
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.italic,
                                             active = value.currentStyles.contains(Style.Italic)
                                         ) {
                                             value = value.insertStyle(Style.Italic)
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.strikethrough,
                                             active = value.currentStyles.contains(Style.Strikethrough)
                                         ) {
                                             value = value.insertStyle(Style.Strikethrough)
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.leftalign,
                                             active = value.currentStyles.contains(Style.AlignLeft)
                                         ) {
                                             value = value.insertStyle(Style.AlignLeft)
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.centeralign,
                                             active = value.currentStyles.contains(Style.AlignCenter)
                                         ) {
                                             value = value.insertStyle(Style.AlignCenter)
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.rightalign,
                                             active = value.currentStyles.contains(Style.AlignRight)
                                         ) {
                                             value = value.insertStyle(Style.AlignRight)
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.textsize,
                                             active = value.currentStyles
                                                 .filterIsInstance<Style.TextSize>()
                                                 .isNotEmpty()
@@ -383,7 +401,7 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.palette,
                                             active = value.currentStyles
                                                 .filterIsInstance<Style.TextColor>()
                                                 .isNotEmpty()
@@ -398,24 +416,24 @@ class MainActivity : ComponentActivity() {
                                                 Style.TextColor(Random.nextInt(360).hueToColor())
                                             )
                                         }
-                                        EditorAction(R.drawable.plus, active = true) {
+                                        EditorAction(R.drawable.clear, active = true) {
                                             value = value.insertStyle(Style.ClearFormat)
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.undo,
                                             active = value.isUndoAvailable
                                         ) {
                                             value = value.undo()
                                         }
                                         EditorAction(
-                                            iconRes = R.drawable.plus,
+                                            iconRes = R.drawable.redo,
                                             active = value.isRedoAvailable
                                         ) {
                                             value = value.redo()
                                         }
                                     }
                                 }
-                                
+
                             }
                         }
 

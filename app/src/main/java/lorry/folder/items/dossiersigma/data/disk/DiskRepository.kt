@@ -8,6 +8,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import com.google.gson.Gson
+import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -519,5 +520,17 @@ class DiskRepository @Inject constructor(
         return withContext(Dispatchers.IO) {
             file.length()
         }
+    }
+
+    override suspend fun insertMemoToFolder(folderPath: String) {
+        
+    }
+
+    override suspend fun extractMemoFromFolder(folderPath: String): RichTextValueSnapshot? {
+        return null
+    }
+
+    override suspend fun removeMemoFromFolder(folderPath: String) {
+        
     }
 }

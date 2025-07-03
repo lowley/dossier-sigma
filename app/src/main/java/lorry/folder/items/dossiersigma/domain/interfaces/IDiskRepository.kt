@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.domain.interfaces
 
 import androidx.compose.ui.layout.ContentScale
+import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
@@ -39,4 +40,8 @@ interface IDiskRepository {
     )
     suspend fun removeTagFromHtml(htmlFileFullPath: String)
     suspend fun getSize(file: File): Long
+    
+    suspend fun insertMemoToFolder(folderPath: String)
+    suspend fun extractMemoFromFolder(folderPath: String): RichTextValueSnapshot?
+    suspend fun removeMemoFromFolder(folderPath: String)
 }

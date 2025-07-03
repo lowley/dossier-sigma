@@ -262,7 +262,7 @@ fun ItemComponent(
                 if (infoSup == null || infoInf == null) {
 //                        CircularProgressIndicator()
                 } else {
-                    val boxWidth = 30.dp
+                    val boxWidth = 40.dp //30
 
                     Box(
                         modifier = Modifier

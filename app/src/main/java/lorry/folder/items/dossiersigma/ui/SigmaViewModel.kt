@@ -508,10 +508,17 @@ class SigmaViewModel @Inject constructor(
         return withContext(Dispatchers.IO) {
             val infos = if (item is SigmaFolder)
                 viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2().toString()
-            else viewModel.diskRepository.getSize(File(item.fullPath)).toString()
+            else formatFileSizeShort(viewModel.diskRepository.getSize(File(item.fullPath)))
             
             infos
         }
+    }
+
+    fun formatFileSizeShort(bytes: Long): String {
+        if (bytes < 1024) return "${bytes}B"
+        val z = (63 - java.lang.Long.numberOfLeadingZeros(bytes)) / 10
+        val value = bytes.toDouble() / (1L shl (z * 10))
+        return String.format("%.1f%c", value, " KMGTPE"[z])
     }
 }
 

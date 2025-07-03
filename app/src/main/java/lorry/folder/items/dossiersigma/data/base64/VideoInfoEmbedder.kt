@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.ui.layout.ContentScale
 import com.google.gson.Gson
+import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.domain.ColoredTag
@@ -350,6 +351,21 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         
         
     }
+
+    override suspend fun appendMemoToFile(filePath: String) {
+        
+        
+        
+        
+    }
+
+    override suspend fun extractMemoFromFile(filePath: String): RichTextValueSnapshot? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun removeMemoFromFile(filePath: String): Boolean {
+        TODO("Not yet implemented")
+    }
 }
 
 sealed class Tags(
@@ -374,5 +390,10 @@ sealed class Tags(
     object COLORED_TAG : Tags(
         start = "##SIGMA-TAG-START##",
         end = "##SIGMA-TAG-END##"
+    )
+
+    object MEMO : Tags(
+        start = "##SIGMA-MEMO-START##",
+        end = "##SIGMA-MEMO-END##"
     )
 }
