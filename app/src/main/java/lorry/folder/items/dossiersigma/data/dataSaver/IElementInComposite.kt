@@ -18,31 +18,26 @@ data class CompositeData(
 
 interface IElementInComposite {
 
-    fun update(composite: CompositeData): CompositeData
+    suspend fun update(composite: CompositeData): CompositeData
 //    abstract suspend fun get(): Any
 //
 }
 
 data class Picture @Inject constructor(
     val picture: Bitmap,
-    val videoInfoEmbedder: IVideoInfoEmbedder
+    val videoInfoEmbedder: IVideoInfoEmbedder,
 ) : IElementInComposite {
-    override fun update(composite: CompositeData): CompositeData {
+    override suspend fun update(composite: CompositeData): CompositeData {
         val base64 = videoInfoEmbedder.bitmapToBase64(picture)
         return composite.copy(picture = base64)
     }
-//    override suspend fun get(): Bitmap {
-//        return 
-//        
-//        
-//    }
 }
 
 
 data class Flag @Inject constructor(
     val flag: ColoredTag
 ) : IElementInComposite {
-    override fun update(composite: CompositeData): CompositeData {
+    override suspend fun update(composite: CompositeData): CompositeData {
         val flagAsString = Gson().toJson(flag)
         return composite.copy(flag = flagAsString)
     }
@@ -51,7 +46,7 @@ data class Flag @Inject constructor(
 data class Scale @Inject constructor(
     val scale: ContentScale
 ) : IElementInComposite {
-    override fun update(composite: CompositeData): CompositeData {
+    override suspend fun update(composite: CompositeData): CompositeData {
         val scaleAsString = Gson().toJson(scale)
         return composite.copy(scale = scaleAsString)
     }
@@ -60,7 +55,7 @@ data class Scale @Inject constructor(
 data class Memo @Inject constructor(
     val scale: ContentScale
 ) : IElementInComposite {
-    override fun update(composite: CompositeData): CompositeData {
+    override suspend fun update(composite: CompositeData): CompositeData {
         val scaleAsString = Gson().toJson(scale)
         return composite.copy(scale = scaleAsString)
     }
