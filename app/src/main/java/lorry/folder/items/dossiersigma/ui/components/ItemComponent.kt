@@ -696,7 +696,9 @@ fun ItemComponent(
             modifier = Modifier
                 .height(52.dp)
                 .align(Alignment.CenterHorizontally),
-            name = item.name.substringBeforeLast(".")
+            name = if (item.isFile())
+                item.name.substringBeforeLast(".")
+            else item.name
         )
     }
 }

@@ -181,10 +181,12 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         format: Bitmap.CompressFormat,
         quality: Int
     ): String {
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(format, quality, outputStream)
-        val byteArray = outputStream.toByteArray()
-        return Base64.encodeToString(byteArray, Base64.NO_WRAP)
+        return withContext(Dispatchers.Main) {
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(format, quality, outputStream)
+            val byteArray = outputStream.toByteArray()
+            Base64.encodeToString(byteArray, Base64.NO_WRAP)
+        }
     }
 
     override suspend fun appendScaleToFile(file: File, contentScale: ContentScale) {
