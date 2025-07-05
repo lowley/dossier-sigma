@@ -60,6 +60,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
+import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
+import lorry.folder.items.dossiersigma.data.dataSaver.Flag
+import lorry.folder.items.dossiersigma.data.dataSaver.Scale
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
@@ -360,23 +363,31 @@ sealed class Tools() {
                                     if (tagInfos == null)
                                         return@run
 
-                                    if (currentItem.isFile())
-                                        viewModel.base64Embedder.appendFlagToFile(
-                                            File(currentItem.fullPath), ColoredTag(
-                                                title = tagInfos.title,
-                                                color = tagInfos.color,
-                                                id = newTool.id
-                                            )
-                                        )
-
-                                    if (currentItem.isFolder())
-                                        viewModel.diskRepository.insertTagToHtmlFile(
-                                            currentItem, ColoredTag(
-                                                title = tagInfos.title,
-                                                color = tagInfos.color,
-                                                id = newTool.id
-                                            )
-                                        )
+                                    val compositeMgr = CompositeManager(currentItem.fullPath)
+                                    
+                                    compositeMgr.save(Flag(ColoredTag(
+                                        title = tagInfos.title,
+                                        color = tagInfos.color,
+                                        id = newTool.id
+                                    )))
+                                    
+//                                    if (currentItem.isFile())
+//                                        viewModel.base64Embedder.appendFlagToFile(
+//                                            File(currentItem.fullPath), ColoredTag(
+//                                                title = tagInfos.title,
+//                                                color = tagInfos.color,
+//                                                id = newTool.id
+//                                            )
+//                                        )
+//
+//                                    if (currentItem.isFolder())
+//                                        viewModel.diskRepository.insertTagToHtmlFile(
+//                                            currentItem, ColoredTag(
+//                                                title = tagInfos.title,
+//                                                color = tagInfos.color,
+//                                                id = newTool.id
+//                                            )
+//                                        )
 
 //                                    if (currentItem != null && tagInfos != null) {
 //                                        currentItem.tag = ColoredTag(
@@ -455,12 +466,8 @@ sealed class Tools() {
                                 return@run
                             }
 
-                            if (currentItem.isFile())
-                                viewModel.base64Embedder.removeFlagFromFile(File(currentItem.fullPath))
-                            else {
-                                //c'est un dossier
-                                viewModel.diskRepository.removeTagFromHtml(currentItem.fullPath)
-                            }
+                            val compositeMgr = CompositeManager(currentItem.fullPath)
+                            compositeMgr.save(Flag(null))
 
                             if (!viewModel.flagCache.containsFlagAsValue(tool.id))
                                 DEFAULT.content(viewModel).removeTool(tool)
@@ -478,7 +485,7 @@ sealed class Tools() {
                 // supprimer //
                 ///////////////
                 Tool(
-                    text = { "tag" },
+                    text = { "étiquette" },
                     icon = R.drawable.moins,
                     visible = { viewModel, mainActivity ->
                         viewModel.selectedItem.value?.tag != null
@@ -500,10 +507,10 @@ sealed class Tools() {
                             //on fait ça parce que par lazy loading au début de l'affichage 
                             //du dossier de tous les items
                             val itemsWithThisTag = viewModel.currentFolder.value.items.filter {
-                                val tag =
-                                    if (it.isFile()) viewModel.base64Embedder.extractFlagFromFile(File(it.fullPath))
-                                    else viewModel.diskRepository.extractFlagFromHtml(it.fullPath)
-
+                                
+                                val compositeMgr = CompositeManager(it.fullPath)
+                                val tag = compositeMgr.getElement(Flag)
+                                
                                 tag?.id == tool.id
                             }
 
@@ -513,12 +520,9 @@ sealed class Tools() {
                                     return@run
                                 }
 
-                                if (currentItem.isFile())
-                                    viewModel.base64Embedder.removeFlagFromFile(File(it.fullPath))
-                                else {
-                                    //c'est un dossier
-                                    viewModel.diskRepository.removeTagFromHtml(it.fullPath)
-                                }
+                                val compositeMgr = CompositeManager(it.fullPath)
+                                compositeMgr.save(Flag(null))
+                                
                             }
 
                             //normalement toujours vrai
@@ -548,12 +552,8 @@ sealed class Tools() {
                                 val files = viewModel.currentFolder.value.items
 
                                 files.forEach {
-                                    if (it.isFile())
-                                        viewModel.base64Embedder.removeFlagFromFile(File(it.fullPath))
-                                    else {
-                                        //c'est un dossier
-                                        viewModel.diskRepository.removeTagFromHtml(it.fullPath)
-                                    }
+                                    val compositeMgr = CompositeManager(it.fullPath)
+                                    compositeMgr.save(Flag(null))
                                 }
 
                                 viewModel.clearFlagCache()
@@ -974,8 +974,6 @@ sealed class Tools() {
                     text = { "Annuler" },
                     icon = R.drawable.annuler,
                     onClick = { viewModel, mainActivity ->
-
-
                         BottomTools.setCurrentContent(DEFAULT)
                     }
                 ),
@@ -986,8 +984,6 @@ sealed class Tools() {
                     text = { "Coller" },
                     icon = R.drawable.coller,
                     onClick = { viewModel, mainActivity ->
-
-
                         //vm.diskRepository.copyFile(sourceFile, destinationFile)
                         BottomTools.setCurrentContent(DEFAULT)
                     }
@@ -1217,7 +1213,7 @@ fun changeCrop(
     ContentScale
 ) {
     val item = viewModel.selectedItem.value ?: return
-    viewModel.scaleCache[item.fullPath] = scale
+    viewModel.scaleCache.value[item.fullPath] = scale
 
     if (item.isFile() &&
         item.fullPath.endsWith(".mp4") ||
@@ -1228,9 +1224,8 @@ fun changeCrop(
         item.fullPath.endsWith(".mkv")
     ) {
         viewModel.viewModelScope.launch {
-            val file = File(item.fullPath)
-            viewModel.base64Embedder.removeScale(file)
-            viewModel.base64Embedder.appendScaleToFile(file, scale)
+            val compositeMgr = CompositeManager(item.fullPath)
+            compositeMgr.save(Scale(scale))
         }
     }
 
@@ -1239,8 +1234,9 @@ fun changeCrop(
             val file = File(item.fullPath + "/.folderPicture.html")
             if (!file.exists())
                 viewModel.diskRepository.createFolderHtmlFile(item)
-            viewModel.diskRepository.removeScaleFromHtml(item.fullPath)
-            viewModel.diskRepository.insertScaleToHtmlFile(item, scale)
+
+            val compositeMgr = CompositeManager(item.fullPath)
+            compositeMgr.save(Scale(scale))
             viewModel.refreshCurrentFolder()
         }
     }

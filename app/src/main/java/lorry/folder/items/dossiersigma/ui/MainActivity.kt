@@ -86,6 +86,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
+import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
@@ -271,7 +273,7 @@ class MainActivity : ComponentActivity() {
                                 snapshot?.let { RichTextValue.fromSnapshot(it) } ?: RichTextValue.get()
                             }
 
-                            var currentValue by remember(currentItem.value?.fullPath) {
+                            var currentValue by remember(currentItem.value?.fullPath) { 
                                 mutableStateOf(initialValue)
                             }
 
@@ -299,10 +301,11 @@ class MainActivity : ComponentActivity() {
                                     value = currentValue,
                                     onValueChange = {
                                         currentValue = it
+                                        val snapshot = it.getLastSnapshot()
                                         currentItem.value?.fullPath?.let { path ->
                                             mainViewModel.setMemoCacheValue(path, it.getLastSnapshot())
                                         }
-                                        currentItem.value?.memo = it.getLastSnapshot()
+                                        currentItem.value?.memo = snapshot
                                     },
                                     textFieldStyle = defaultRichTextFieldStyle().copy(
                                         placeholder = "Entrez du texte",
@@ -324,34 +327,23 @@ class MainActivity : ComponentActivity() {
                                         horizontalArrangement = Arrangement.Center
                                     ) {
                                         IconButton(onClick = {
-                                            val shapshot = currentValue.getLastSnapshot()
+                                            val snapshot = currentValue.getLastSnapshot()
 
                                             currentValue = RichTextValue.get()
                                             mainViewModel.setIsDisplayingMemo(false)
-
+                                            
                                             val item = mainViewModel.selectedItem.value
                                             if (item == null)
                                                 return@IconButton
 
-                                            mainViewModel.viewModelScope.launch {
-                                                if (item.isFile()) {
-//                                                    if (mainViewModel.base64Embedder.extractMemoFromFile
-//                                                            (item.fullPath) != null)
-//                                                        mainViewModel.base64Embedder.removeMemoFromFile(item.fullPath)
-
-                                                    mainViewModel.base64Embedder.appendMemoToFile(item.fullPath)
-                                                }
-
-                                                if (item.isFolder()) {
-//                                                    if (mainViewModel.diskRepository.extractMemoFromFolder
-//                                                            (item.fullPath) != null)
-//                                                        mainViewModel.diskRepository.removeMemoFromFolder(item.fullPath)
-
-                                                    mainViewModel.diskRepository.insertMemoToFolder(item.fullPath)
-                                                }
-                                            }
+                                            item.memo = snapshot
+                                            mainViewModel.setMemoCacheValue(item.fullPath, snapshot)
+                                            
+                                            val compositeMgr = CompositeManager(currentItem.value?.fullPath ?: "")
+                                            compositeMgr.save(Memo(snapshot))
 
                                             mainViewModel.setSelectedItem(null)
+                                            mainViewModel.refreshCurrentFolder()
                                         }) {
                                             Icon(
                                                 modifier = Modifier.size(24.dp),

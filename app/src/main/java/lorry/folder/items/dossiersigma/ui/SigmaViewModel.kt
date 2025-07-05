@@ -31,6 +31,10 @@ import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
+import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
+import lorry.folder.items.dossiersigma.data.dataSaver.CroppedPicture
+import lorry.folder.items.dossiersigma.data.dataSaver.Flag
+import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
@@ -64,7 +68,7 @@ class SigmaViewModel @Inject constructor(
 ) : ViewModel() {
 
     val imageCache = mutableMapOf<String, Any?>()
-    
+
     private val _scaleCache = MutableStateFlow(mutableMapOf<String, ContentScale>())
     val scaleCache: StateFlow<MutableMap<String, ContentScale>> = _scaleCache
 
@@ -74,18 +78,18 @@ class SigmaViewModel @Inject constructor(
         }
         println("ajout de clé dans scaleCache, il y a ${_scaleCache.value.size} clés")
     }
-    
+
     val sortingCache = mutableMapOf<String, ITEMS_ORDERING_STRATEGY>()
     private val _flagCache = MutableStateFlow(mutableMapOf<String, ColoredTag>())
     val flagCache: StateFlow<MutableMap<String, ColoredTag>> = _flagCache
-    
+
     fun setFlagCacheValue(key: String, tag: ColoredTag) {
         _flagCache.value = _flagCache.value.toMutableMap().apply {
             put(key, tag)
         }
         println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
     }
-    
+
     fun removeFlagCacheForKey(key: String): ColoredTag? {
         return _flagCache.value.remove(key)
     }
@@ -95,7 +99,7 @@ class SigmaViewModel @Inject constructor(
         println("clearFlagCache, il y a ${_flagCache.value.size} clés")
 
     }
-    
+
     private val _memoCache = MutableStateFlow(mutableMapOf<String, RichTextValueSnapshot>())
     val memoCache: StateFlow<MutableMap<String, RichTextValueSnapshot>> = _memoCache
 
@@ -103,7 +107,7 @@ class SigmaViewModel @Inject constructor(
         _memoCache.value = _memoCache.value.toMutableMap().apply {
             put(key, tag)
         }
-        
+
         println("ajout de clé dans memoCache, il y a ${_memoCache.value.size} clés")
     }
 
@@ -155,7 +159,7 @@ class SigmaViewModel @Inject constructor(
     fun setIsDisplayingMemo(isVisible: Boolean) {
         _isDisplayingMemo.value = isVisible
     }
-    
+
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
 
@@ -212,7 +216,8 @@ class SigmaViewModel @Inject constructor(
     )
 
     val currentMemo: StateFlow<RichTextValueSnapshot> = combine(
-        currentFolderPath, memoCache) { path, cache ->
+        currentFolderPath, memoCache
+    ) { path, cache ->
         cache[path] ?: RichTextValueSnapshot()
     }.stateIn(
         scope = viewModelScope,
@@ -320,36 +325,11 @@ class SigmaViewModel @Inject constructor(
         //expérimental
         pictureBitmap = compressBitmapToMaxSizeAsBitmap(pictureBitmap)
 
-        if (_selectedItem.value?.isFile() == true) {
-            val image64 = base64Embedder.bitmapToBase64(pictureBitmap)
-            val item = _selectedItem.value
-            if (item == null)
-                return
+        val compositeMgr = CompositeManager(_selectedItem.value?.fullPath ?: "")
+        compositeMgr.save(CroppedPicture(pictureBitmap, base64Embedder))
 
-
-            val base64_tag = if (onlyCropped) {
-                base64Embedder.extractBase64FromFile(
-                    File(item.fullPath),
-                    tagSuffix = Tags.COVER
-                )
-            } else null
-
-            base64Embedder.removeBothBase64(File(item.fullPath))
-
-            if (onlyCropped)
-                base64Embedder.appendBase64ToFile(File(item.fullPath), base64_tag!!, tagSuffix = Tags.COVER)
-            else
-                base64Embedder.appendBase64ToFile(File(item.fullPath), image64, tagSuffix = Tags.COVER)
-
-            base64Embedder.appendBase64ToFile(File(item.fullPath), image64, tagSuffix = Tags.COVER_CROPPED)
-        } else {
-            _selectedItem.value = _selectedItem.value!!.copy(picture = pictureBitmap)
-            setPictureInFolder(
-                _selectedItem.value!!,
-                fromClipboard = false,
-                onlyCropped = onlyCropped
-            )
-        }
+        if (!onlyCropped)
+            compositeMgr.save(InitialPicture(pictureBitmap, base64Embedder))
     }
 
     fun compressBitmapToMaxSizeAsBitmap(
@@ -370,44 +350,6 @@ class SigmaViewModel @Inject constructor(
         return BitmapFactory.decodeByteArray(compressedBytes, 0, compressedBytes.size)
     }
 
-    fun setPictureInFolder(item: Item, fromClipboard: Boolean = false, onlyCropped: Boolean) {
-        var newItem = item
-        if (fromClipboard)
-            newItem = changingPictureUseCase.changeItemWithClipboardPicture(item)
-
-        viewModelScope.launch {
-            changingPictureUseCase.savePictureOfFolder(
-                newItem,
-                onlyCropped = onlyCropped
-            )
-            withContext(Dispatchers.Main) {
-                refreshCurrentFolder()
-            }
-        }
-    }
-
-//    fun updateItemList(newItem: Item) {
-//        viewModelScope.launch {
-//            val currentFolderPath = this@SigmaViewModel.currentFolder.value
-//
-//            var currentFolder: SigmaFolder? = null
-//            currentFolder = withContext(Dispatchers.IO) {
-//                diskRepository.getSigmaFolder(
-//                    currentFolderPath,
-//                    ITEMS_ORDERING_STRATEGY.DATE_DESC
-//                )
-//            }
-//            
-//            val index = currentFolder.items.indexOfFirst { it.id == newItem.id }
-//            if (index == -1)
-//                return@launch
-//
-//            val updatedItems = currentFolder.items.toMutableList()
-//            updatedItems[index] = newItem
-//            _folder.value = currentFolder.copy(items = updatedItems)
-//        }
-//
-//    }
 
     fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY? = null) {
         sortingCache[currentFolderPath.value] = this.sorting.value
@@ -418,7 +360,7 @@ class SigmaViewModel @Inject constructor(
             setSorting(sortingCache[folderPath] ?: ITEMS_ORDERING_STRATEGY.DATE_DESC)
 
         imageCache.clear()
-        scaleCache.clear()
+        scaleCache.value.clear()
         clearFlagCache()
         DEFAULT.content().updateTools(emptyList<Tool>())
 
@@ -431,8 +373,6 @@ class SigmaViewModel @Inject constructor(
                     addFolderPathToHistory(folderPath)
             }
         }
-
-
     }
 
     init {
@@ -512,25 +452,9 @@ class SigmaViewModel @Inject constructor(
         val containsTag = item.tag != null
 
         viewModelScope.launch {
-            if (item.isFile()) {
-                val file = File(item.fullPath)
-                if (containsTag) {
-                    base64Embedder.removeFlagFromFile(file)
-                    base64Embedder.appendFlagToFile(file, tag)
-                } else {
-                    base64Embedder.appendFlagToFile(file, tag)
-                }
-            }
-
-            if (item.isFolder()) {
-                if (containsTag) {
-                    diskRepository.removeTagFromHtml(item.fullPath)
-                    diskRepository.insertTagToHtmlFile(item, tag)
-                } else {
-                    diskRepository.insertTagToHtmlFile(item, tag)
-                }
-            }
-
+            val compositeMgr = CompositeManager(item.fullPath)
+            compositeMgr.save(Flag(tag))
+            
             removeFlagCacheForKey(item.fullPath)
             refreshCurrentFolder()
         }
@@ -541,7 +465,7 @@ class SigmaViewModel @Inject constructor(
             val infos = if (item is SigmaFolder) diskRepository
                 .countFilesAndFolders(File(item.fullPath)).component1().toString() else item.name
                 .substringAfterLast(".").toUpperCase(Locale.current)
-            
+
             infos
         }
     }
@@ -551,7 +475,7 @@ class SigmaViewModel @Inject constructor(
             val infos = if (item is SigmaFolder)
                 viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2().toString()
             else formatFileSizeShort(viewModel.diskRepository.getSize(File(item.fullPath)))
-            
+
             infos
         }
     }

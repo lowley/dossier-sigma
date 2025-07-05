@@ -17,9 +17,9 @@ data class CompositeData(
     val flag: String? = null,
     val scale: String? = null,
     val memo: String? = null
-){
+) {
     val videoInfoEmbedder = VideoInfoEmbedder()
-    
+
     suspend fun getInitialPicture(): Bitmap? {
         val base64 = initialPicture ?: return null
         return videoInfoEmbedder.base64ToBitmap(base64)
@@ -33,13 +33,13 @@ data class CompositeData(
     fun getFlag(): ColoredTag? {
         return if (flag == null)
             null
-        else 
+        else
             Gson().fromJson(flag, ColoredTag::class.java)
     }
 
     fun getScale(): ContentScale? {
         return if (scale == null)
-            null 
+            null
         else
             Gson().fromJson(scale, ContentScale::class.java)
     }
@@ -58,16 +58,18 @@ interface IElementInComposite {
 }
 
 data class InitialPicture @Inject constructor(
-    val initialPicture: Bitmap,
+    val initialPicture: Bitmap?,
     val videoInfoEmbedder: IVideoInfoEmbedder,
 ) : IElementInComposite {
     override suspend fun update(composite: CompositeData): CompositeData {
-        val base64 = videoInfoEmbedder.bitmapToBase64(initialPicture)
+        val base64 = if (initialPicture != null)
+            videoInfoEmbedder.bitmapToBase64(initialPicture)
+        else null
         return composite.copy(initialPicture = base64)
     }
 
     companion object : IElementReader<Bitmap> {
-        
+
         var videoInfoEmbedder = VideoInfoEmbedder()
 
         override suspend fun fileGet(filePath: String): Bitmap? {
@@ -85,16 +87,18 @@ data class InitialPicture @Inject constructor(
 }
 
 data class CroppedPicture @Inject constructor(
-    val croppedPicture: Bitmap,
+    val croppedPicture: Bitmap?,
     val videoInfoEmbedder: IVideoInfoEmbedder,
 ) : IElementInComposite {
     override suspend fun update(composite: CompositeData): CompositeData {
-        val base64 = videoInfoEmbedder.bitmapToBase64(croppedPicture)
+        val base64 = if (croppedPicture != null)
+            videoInfoEmbedder.bitmapToBase64(croppedPicture)
+        else null
         return composite.copy(croppedPicture = base64)
     }
 
     companion object : IElementReader<Bitmap> {
-        
+
         var videoInfoEmbedder = VideoInfoEmbedder()
 
         override suspend fun fileGet(filePath: String): Bitmap? {
@@ -112,7 +116,7 @@ data class CroppedPicture @Inject constructor(
 }
 
 data class Flag @Inject constructor(
-    val flag: ColoredTag
+    val flag: ColoredTag?
 ) : IElementInComposite {
     override suspend fun update(composite: CompositeData): CompositeData {
         val flagAsString = Gson().toJson(flag)
@@ -120,7 +124,7 @@ data class Flag @Inject constructor(
     }
 
     companion object : IElementReader<ColoredTag> {
-        
+
         var videoInfoEmbedder = VideoInfoEmbedder()
 
         override suspend fun fileGet(filePath: String): ColoredTag? {
@@ -140,7 +144,7 @@ data class Flag @Inject constructor(
 }
 
 data class Scale @Inject constructor(
-    val scale: ContentScale
+    val scale: ContentScale?
 ) : IElementInComposite {
     override suspend fun update(composite: CompositeData): CompositeData {
         val scaleAsString = Gson().toJson(scale)
@@ -148,7 +152,7 @@ data class Scale @Inject constructor(
     }
 
     companion object : IElementReader<ContentScale> {
-        
+
         var videoInfoEmbedder = VideoInfoEmbedder()
 
         override suspend fun fileGet(filePath: String): ContentScale? {
@@ -157,7 +161,7 @@ data class Scale @Inject constructor(
             if (composite.scale == null)
                 return null
 
-            return Gson().fromJson(composite.flag, ContentScale::class.java)
+            return Gson().fromJson(composite.scale, ContentScale::class.java)
         }
 
         override suspend fun folderGet(folderPath: String): ContentScale? {
@@ -168,7 +172,7 @@ data class Scale @Inject constructor(
 }
 
 data class Memo @Inject constructor(
-    val memo: RichTextValueSnapshot
+    val memo: RichTextValueSnapshot?
 ) : IElementInComposite {
     override suspend fun update(composite: CompositeData): CompositeData {
         val memoAsString = Gson().toJson(memo)
@@ -176,7 +180,7 @@ data class Memo @Inject constructor(
     }
 
     companion object : IElementReader<RichTextValueSnapshot> {
-        
+
         var videoInfoEmbedder = VideoInfoEmbedder()
 
         override suspend fun fileGet(filePath: String): RichTextValueSnapshot? {

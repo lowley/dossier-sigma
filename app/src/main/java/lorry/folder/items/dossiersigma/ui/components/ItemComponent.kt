@@ -14,19 +14,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -65,24 +58,20 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
-import androidx.lifecycle.viewModelScope
 import coil.request.ImageRequest
+import com.pointlessapps.rt_editor.model.RichTextValue
 import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
-import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeData
-import lorry.folder.items.dossiersigma.data.dataSaver.CroppedPicture
+import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
 import lorry.folder.items.dossiersigma.data.dataSaver.Flag
-import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
 import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.data.dataSaver.Scale
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
@@ -95,7 +84,7 @@ fun ItemComponent(
     viewModel: SigmaViewModel,
     item: Item,
     imageCache: MutableMap<String, Any?>,
-    scaleCache: MutableMap<String, ContentScale>,
+    scaleCache: StateFlow<MutableMap<String, ContentScale>>,
     flagCache: StateFlow<MutableMap<String, ColoredTag>>,
     memoCache: StateFlow<MutableMap<String, RichTextValueSnapshot>>,
     context: MainActivity,
@@ -114,7 +103,7 @@ fun ItemComponent(
 //    val draggedTag by viewModel.draggedTag.collectAsState()
     val draggableStartPosition by viewModel.draggableStartPosition.collectAsState()
     val bounds = remember { mutableStateOf<Rect?>(null) }
-
+    
     val isHovered = remember(draggableStartPosition, dragOffset) {
         if (dragOffset == null || draggableStartPosition == null)
             return@remember false
@@ -132,7 +121,8 @@ fun ItemComponent(
 
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val composite = item.getComposite()
-
+        val compositeManager = CompositeManager(item.fullPath)
+        
         ///////////
         // image //
         ///////////
@@ -149,11 +139,11 @@ fun ItemComponent(
         ///////////
         // scale //
         ///////////
-        val scaleCached = scaleCache[item.fullPath]
+        val scaleCached = scaleCache.value[item.fullPath]
         if (scaleCached != null) {
             item.scale = scaleCached
         } else {
-            val fromDisk = Scale.fileGet(item.fullPath)
+            val fromDisk = compositeManager.getElement(Scale)
             item.scale = fromDisk
             if (fromDisk != null) {
                 viewModel.setScaleCacheValue(item.fullPath, fromDisk)
@@ -167,7 +157,7 @@ fun ItemComponent(
         if (flagCached != null) {
             item.tag = flagCached
         } else {
-            val fromDisk = Flag.fileGet(item.fullPath)
+            val fromDisk = compositeManager.getElement(Flag)
             item.tag = fromDisk
             if (fromDisk != null) {
                 viewModel.setFlagCacheValue(item.fullPath, fromDisk)
@@ -181,7 +171,7 @@ fun ItemComponent(
         if (memoCached != null) {
             item.memo = memoCached
         } else {
-            val fromDisk = Memo.fileGet(item.fullPath)
+            val fromDisk = compositeManager.getElement(Memo)
             item.memo = fromDisk
             if (fromDisk != null) {
                 viewModel.setMemoCacheValue(item.fullPath, fromDisk)
@@ -313,6 +303,9 @@ fun ItemComponent(
                             .background(tag?.color ?: Color.Gray)
                             .width(boxWidth)
                             .clickable {
+                                /**
+                                 * suite dans MainActivity
+                                 */
                                 viewModel.setSelectedItem(item)
                                 viewModel.setIsDisplayingMemo(!viewModel.isDisplayingMemo.value)
                             }
@@ -324,30 +317,34 @@ fun ItemComponent(
                                 .width(boxWidth)
                         ) {
                             val textHeight = 18.dp
-
-                            Text(
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(0.dp)
-                                    .height(textHeight),
-                                text = infoSup,
-                                fontWeight = if (item.isMemoUnchanged()) FontWeight.ExtraLight else FontWeight
-                                    .ExtraBold,
-                                fontSize = 10.sp,
-                                color = Color.White
-                            )
-                            Text(
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(
-                                        top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
-                                    )
-                                    .height(textHeight),
-                                text = infoInf,
-                                fontWeight = if (item.isMemoUnchanged()) FontWeight.ExtraLight else FontWeight.ExtraBold,
-                                fontSize = 10.sp,
-                                color = Color.White
-                            )
+                            val memoCacheLocal by memoCache.collectAsState()
+                            
+                            
+                            key(memoCacheLocal[item.fullPath]) {
+                                Text(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterHorizontally)
+                                        .padding(0.dp)
+                                        .height(textHeight),
+                                    text = infoSup,
+                                    fontWeight = if (item.isMemoUnchanged()) FontWeight.ExtraLight else FontWeight
+                                        .ExtraBold,
+                                    fontSize = 10.sp,
+                                    color = Color.White
+                                )
+                                Text(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterHorizontally)
+                                        .padding(
+                                            top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
+                                        )
+                                        .height(textHeight),
+                                    text = infoInf,
+                                    fontWeight = if (item.isMemoUnchanged()) FontWeight.ExtraLight else FontWeight.ExtraBold,
+                                    fontSize = 10.sp,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }

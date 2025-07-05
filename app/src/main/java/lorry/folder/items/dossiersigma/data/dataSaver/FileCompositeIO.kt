@@ -1,6 +1,10 @@
 package lorry.folder.items.dossiersigma.data.dataSaver
 
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.data.disk.DiskRepository
+import lorry.folder.items.dossiersigma.domain.Item
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.charset.Charset
@@ -30,13 +34,9 @@ class FileCompositeIO @Inject constructor() {
                 val (tail, startIndex, endIndex) = tryToExtract(
                     length, raf, charset)
 
+                extractedText = tail
                 if (tail == null) {
-                    extractedText = null
                     return@use
-                }
-
-                if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
-                    extractedText = tail.substring(startIndex + START_COMPOSITE.length, endIndex).trim()
                 }
             }
 
@@ -58,12 +58,16 @@ class FileCompositeIO @Inject constructor() {
 
     suspend fun saveComposite(
         filePath: String,
-        composite: CompositeData
+        composite: CompositeData?
     ): Boolean {
         val file = File(filePath)
-        if (!file.exists())
-            return false
-
+        if (!file.exists()) {
+            if (filePath.endsWith(".html")) {
+                createFolderHtmlFile(filePath)
+            }
+            else return false
+        }
+        
         if (getComposite(filePath) != null)
             removeCompositeAndDatas(filePath)
 
@@ -87,7 +91,7 @@ class FileCompositeIO @Inject constructor() {
 
         RandomAccessFile(file, "rw").use { raf ->
             raf.seek(raf.length())
-            val insert = "\n$start\n$data\n$end\n"
+            val insert = "$start\n$data\n$end\n"
             raf.write(insert.toByteArray(Charset.forName(CHARSET)))
         }
     }
@@ -104,7 +108,7 @@ class FileCompositeIO @Inject constructor() {
 
         RandomAccessFile(file, "rw").use { raf ->
             val firstSeekLength = minOf(10000.toLong(), length)
-            val firstSeekStart = minOf(length, firstSeekLength)
+            val firstSeekStart = length - firstSeekLength
             //position de départ
             raf.seek(firstSeekStart)
             //ce qui est lu cette fois-ci, au max longueur initialLookbackBytes
@@ -130,7 +134,8 @@ class FileCompositeIO @Inject constructor() {
             val firstSeekSTART_LENGTHtoEnd = firstSeekLength - firstSeekStartIndex
             val secondSeekEnd = length - firstSeekSTART_LENGTHtoEnd
             //longueurs des contenus des variables START_COMPOSITE + END_COMPOSITE = 48
-            val secondSeekStart = secondSeekEnd - firstSeekResult - 50
+            val secondSeekStart = secondSeekEnd - firstSeekResult - START_COMPOSITE.length - END_COMPOSITE
+                .length - 1
             //position de départ
             raf.seek(secondSeekStart)
             //ce qui est lu cette fois-ci, au max longueur initialLookbackBytes
@@ -144,7 +149,7 @@ class FileCompositeIO @Inject constructor() {
             val secondSeekEndIndex = firstSeekTail.lastIndexOf(END_COMPOSITE)
             
             if (secondSeekStartIndex != -1 && secondSeekEndIndex != -1 && secondSeekEndIndex > secondSeekStartIndex) {
-                raf.setLength(secondSeekStart + secondSeekEndIndex)
+                raf.setLength(secondSeekStartIndex.toLong())
             }
         }
     }
@@ -159,7 +164,7 @@ class FileCompositeIO @Inject constructor() {
         // lecture de length //
         ///////////////////////
         val firstSeekLength = minOf(10000.toLong(), length)
-        val firstSeekStart = minOf(length, firstSeekLength)
+        val firstSeekStart = length - firstSeekLength
         //position de départ
         raf.seek(firstSeekStart)
         //ce qui est lu cette fois-ci, au max longueur initialLookbackBytes
@@ -185,18 +190,18 @@ class FileCompositeIO @Inject constructor() {
         val firstSeekSTART_LENGTHtoEnd = firstSeekLength - firstSeekStartIndex
         val secondSeekEnd = length - firstSeekSTART_LENGTHtoEnd
         //longueurs des contenus des variables START_COMPOSITE + END_COMPOSITE = 48
-        val secondSeekStart = secondSeekEnd - firstSeekResult - 50
+        val secondSeekStart = maxOf(secondSeekEnd - firstSeekResult - 100, 0)
         //position de départ
         raf.seek(secondSeekStart)
         //ce qui est lu cette fois-ci, au max longueur initialLookbackBytes
-        val secondSeekBytes = ByteArray(firstSeekResult.toInt())
+        val secondSeekBytes = ByteArray(firstSeekResult.toInt() + 100)
         //lecture jusqu'à gaver bytes
         raf.readFully(secondSeekBytes)
 
         //lecture des bytes et recherche
         val secondSeekTail = String(secondSeekBytes, charset)
-        val secondSeekStartIndex = firstSeekTail.lastIndexOf(START_COMPOSITE)
-        val secondSeekEndIndex = firstSeekTail.lastIndexOf(END_COMPOSITE)
+        val secondSeekStartIndex = secondSeekTail.lastIndexOf(START_COMPOSITE)
+        val secondSeekEndIndex = secondSeekTail.lastIndexOf(END_COMPOSITE)
 
         val result =
             if (secondSeekStartIndex != -1 && secondSeekEndIndex != -1 && secondSeekEndIndex > secondSeekStartIndex)
@@ -206,4 +211,33 @@ class FileCompositeIO @Inject constructor() {
 
         return Triple(result, secondSeekStartIndex, secondSeekEndIndex)
     }
+}
+
+suspend fun createFolderHtmlFile(filePath: String) {
+    
+    //picture contient un bitmap
+    createShortcut(baseText(), filePath)
+}
+
+suspend fun createShortcut(text: String, fullPathAndName: String) {
+    withContext(Dispatchers.IO) {
+        val fichier = File(fullPathAndName)
+        fichier.writeText(text, Charsets.UTF_8)
+    }
+}
+
+fun baseText(): String {
+    val text = """<!DOCTYPE html>
+                                 <html lang="fr">
+                                 <head>
+                                     <meta charset="UTF-8">
+                                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                     <title>Image container</title>
+                                 </head>
+                                 <body>
+                                   
+                                 </body>
+                                 </html>"""
+
+    return text
 }

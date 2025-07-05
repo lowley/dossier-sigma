@@ -225,7 +225,7 @@ class DiskRepository @Inject constructor(
 
         val base64Cover: String? = (item.picture as Bitmap?)?.let {
             val outputStream = ByteArrayOutputStream()
-            it.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            it.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
             val imageBytes = outputStream.toByteArray()
             Base64.encodeToString(imageBytes, Base64.NO_WRAP)
         }
@@ -532,3 +532,4 @@ class DiskRepository @Inject constructor(
 //        
 //    }
 }
+
