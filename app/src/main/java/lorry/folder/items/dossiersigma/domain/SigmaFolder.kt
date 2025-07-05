@@ -18,7 +18,7 @@ class SigmaFolder : Item {
         modificationDate: Long,
         tag: ColoredTag?,
         scale: ContentScale?,
-        memo: RichTextValueSnapshot?
+        memo: RichTextValueSnapshot? = null
     ) : super(path, name, picture, id, modificationDate, tag,  scale, memo) {
         this.items = items
     }
@@ -36,7 +36,7 @@ class SigmaFolder : Item {
         modificationDate: Long,
         tag: ColoredTag?,
         scale: ContentScale?,
-        memo: RichTextValueSnapshot
+        memo: RichTextValueSnapshot? = RichTextValueSnapshot()
     ) : super(
         path = fullPath.substringBeforeLast("/"),
         name = fullPath.substringAfterLast("/"),

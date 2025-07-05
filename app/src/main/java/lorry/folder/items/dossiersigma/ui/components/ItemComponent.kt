@@ -55,6 +55,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
@@ -325,6 +326,8 @@ fun ItemComponent(
                                     .padding(0.dp)
                                     .height(textHeight),
                                 text = infoSup,
+                                fontWeight = if (item.isMemoUnchanged()) FontWeight.ExtraLight else FontWeight
+                                    .ExtraBold,
                                 fontSize = 10.sp,
                                 color = Color.White
                             )
@@ -336,6 +339,7 @@ fun ItemComponent(
                                     )
                                     .height(textHeight),
                                 text = infoInf,
+                                fontWeight = if (item.isMemoUnchanged()) FontWeight.ExtraLight else FontWeight.ExtraBold,
                                 fontSize = 10.sp,
                                 color = Color.White
                             )

@@ -303,6 +303,7 @@ class MainActivity : ComponentActivity() {
                                         currentItem.value?.fullPath?.let { path ->
                                             mainViewModel.setMemoCacheValue(path, it.getLastSnapshot())
                                         }
+                                        currentItem.value?.memo = it.getLastSnapshot()
                                     },
                                     textFieldStyle = defaultRichTextFieldStyle().copy(
                                         placeholder = "Entrez du texte",

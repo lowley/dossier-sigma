@@ -15,7 +15,7 @@ class SigmaFile(
     modificationDate: Long,
     tag: ColoredTag?,
     scale: ContentScale?,
-    memo: RichTextValueSnapshot?
+    memo: RichTextValueSnapshot? = null
 ) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale
 ) {
 

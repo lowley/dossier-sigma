@@ -25,7 +25,7 @@ abstract class Item(
     val modificationDate: Long,
     var tag: ColoredTag? = null,
     var scale: ContentScale? = null,
-    var memo: RichTextValueSnapshot?
+    var memo: RichTextValueSnapshot? = null
     
 ) {
     fun isFile(): Boolean {
@@ -102,8 +102,16 @@ abstract class Item(
             fileCompositeManager.getElement<T>(reader)
         }
     }
-    
-    
+
+    fun isMemoUnchanged(
+        initialSnapshot: RichTextValueSnapshot? = null
+    ): Boolean {
+        val currentSnapshot = memo
+        val result = (currentSnapshot?.text == initialSnapshot?.text)
+                || (currentSnapshot == null && initialSnapshot?.text == "")
+                || (currentSnapshot?.text == "" && initialSnapshot == null)
+        return result
+    }
     
     override fun toString(): String {
         return "Item(type=${if (isFile()) "File" else "Folder"}, name='$name', picture=${picture != null}, " +
