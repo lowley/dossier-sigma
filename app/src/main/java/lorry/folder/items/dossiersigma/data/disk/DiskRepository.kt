@@ -520,15 +520,15 @@ class DiskRepository @Inject constructor(
         }
     }
 
-    override suspend fun insertMemoToFolder(folderPath: String) {
-        
-    }
-
-    override suspend fun extractMemoFromFolder(folderPath: String): RichTextValueSnapshot? {
-        return null
-    }
-
-    override suspend fun removeMemoFromFolder(folderPath: String) {
-        
-    }
+//    override suspend fun insertMemoToFolder(folderPath: String) {
+//        
+//    }
+//
+//    override suspend fun extractMemoFromFolder(folderPath: String): RichTextValueSnapshot? {
+//        return null
+//    }
+//
+//    override suspend fun removeMemoFromFolder(folderPath: String) {
+//        
+//    }
 }

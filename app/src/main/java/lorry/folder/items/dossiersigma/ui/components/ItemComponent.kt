@@ -120,9 +120,6 @@ fun ItemComponent(
             return@remember false
 
         val new = bounds.value?.contains(draggableStartPosition!! + dragOffset!!) == true
-//        if (new) 
-//            println("DRAG survolé: item ${item.name}") 
-//            else println("DRAG sorti: item ${item.name}")
         new
     }
 
@@ -153,16 +150,27 @@ fun ItemComponent(
         // scale //
         ///////////
         val scaleCached = scaleCache[item.fullPath]
-        contentScale = scaleCached ?: composite?.getScale() ?: ContentScale.Crop
-        scaleCache[item.fullPath] = contentScale
+        if (scaleCached != null) {
+            item.scale = scaleCached
+        } else {
+            val fromDisk = Scale.fileGet(item.fullPath)
+            item.scale = fromDisk
+            if (fromDisk != null) {
+                viewModel.setScaleCacheValue(item.fullPath, fromDisk)
+            }
+        }
 
         //////////
         // flag //
         //////////
         val flagCached = flagCache.value[item.fullPath]
-        item.tag = flagCached ?: composite?.getFlag().also {
-            if (it != null) {
-                viewModel.setFlagCacheValue(item.fullPath, it)
+        if (flagCached != null) {
+            item.tag = flagCached
+        } else {
+            val fromDisk = Flag.fileGet(item.fullPath)
+            item.tag = fromDisk
+            if (fromDisk != null) {
+                viewModel.setFlagCacheValue(item.fullPath, fromDisk)
             }
         }
         
@@ -211,9 +219,7 @@ fun ItemComponent(
                         }
 
                         if (item.isFolder()) {
-                            viewModel.goToFolder(
-                                item.fullPath
-                            )
+                            viewModel.goToFolder(item.fullPath)
                         }
 
                         if (item.isFile() &&
@@ -310,7 +316,6 @@ fun ItemComponent(
                                 viewModel.setSelectedItem(item)
                                 viewModel.setIsDisplayingMemo(!viewModel.isDisplayingMemo.value)
                             }
-                        //.padding(horizontal = 8.dp, vertical = 4.dp)
                     ) {
                         Column(
                             modifier = Modifier
@@ -376,352 +381,7 @@ fun ItemComponent(
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 val isContextMenuVisible = context.isContextMenuVisible
 
-                DropdownMenu(
-                    expanded = selectedItem?.id == item.id && context.isContextMenuVisible.value,
-                    onDismissRequest = {
-                        viewModel.setIsContextMenuVisible(false)
-                    },
-                    offset = with(density) {
-                        DpOffset(imageOffset.x, (-imageHeight / 2))
-                    },
-                    containerColor = Color(0xFF111A2C),
-                    scrollState = scrollState
-                ) {
-                    val modifierItem = Modifier.height(25.dp)
-
-                    DropdownMenuItem(
-                        modifier = modifierItem,
-                        text = {
-                            Text(
-                                text = item.name.substringBeforeLast("."),
-                                color = Color(0xFFE57373),
-                                fontSize = 10.sp,
-                                lineHeight = 11.sp
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                modifier = Modifier.size(20.dp),
-                                painter = when (item) {
-                                    is SigmaFolder -> painterResource(R.drawable.dossier)
-                                    is SigmaFile -> when (item.name.substringAfterLast(".")) {
-                                        "mp4", "mpg", "avi", "mkv", "iso" -> painterResource(R.drawable.camera)
-                                        "html" -> painterResource(R.drawable.html)
-                                        else -> painterResource(R.drawable.fichier)
-                                    }
-
-                                    else -> painterResource(R.drawable.fichier)
-                                },
-                                tint = Color(0xFFE1AFAF),
-                                contentDescription = null
-                            )
-                        },
-                        onClick = {}
-                    )
-
-                    Divider(
-                        modifier = Modifier.padding(vertical = 0.dp, horizontal = 5.dp),
-                        thickness = 1.dp,
-                        color = Color(0xFFB48E98)
-                    )
-
-                    val itemfontSizes = 14.sp
-
-                    ////////////
-                    // Google //
-                    ////////////
-                    DropdownMenuItem(
-                        modifier = modifierItem,
-                        text = {
-                            Text(
-                                "Google", color = Color(0xFFB0BEC5),
-                                fontSize = itemfontSizes,
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                modifier = Modifier
-                                    .size(15.dp),
-                                tint = Color(0xFF90CAF9),
-                                painter = painterResource(R.drawable.web_nb), contentDescription = null
-                            )
-                        },
-                        onClick = {
-                            /**
-                             * @see BrowserOverlay
-                             * le Browser est un composable dans MainActivity
-                             * voir BrowserOverlay et son appel par MainActivity
-                             * le callback est un de ses paramètres d'appel
-                             */
-                            viewModel.browserManager.openBrowser(item, BrowserTarget.GOOGLE)
-                            viewModel.setIsContextMenuVisible(false)
-                        }
-                    )
-
-                    //////////
-                    // crop //
-                    //////////
-                    DropdownMenuItem(
-                        modifier = modifierItem,
-                        text = {
-                            Text(
-                                text = when (contentScale) {
-                                    ContentScale.Crop -> "Rogner"
-                                    ContentScale.None -> "Aucun"
-                                    ContentScale.Inside -> "Dedans"
-                                    ContentScale.FillBounds -> "Remplir"
-                                    ContentScale.FillHeight -> "Remplir hauteur"
-                                    ContentScale.FillWidth -> "Remplir largeur"
-                                    ContentScale.Fit -> "Etirer"
-                                    else -> "???"
-                                },
-                                color = Color(0xFFB0BEC5),
-                                fontSize = itemfontSizes,
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                modifier = Modifier
-                                    .size(15.dp),
-                                tint = Color(0xFF90CAF9),
-                                painter = painterResource(R.drawable.la_droite), contentDescription = null
-                            )
-                        },
-                        onClick = {
-                            contentScale = when (contentScale) {
-                                ContentScale.Crop -> ContentScale.Fit
-                                ContentScale.Fit -> ContentScale.FillBounds
-                                ContentScale.FillBounds -> ContentScale.FillWidth
-                                ContentScale.FillWidth -> ContentScale.FillHeight
-                                ContentScale.FillHeight -> ContentScale.Inside
-                                ContentScale.Inside -> ContentScale.None
-                                ContentScale.None -> ContentScale.Crop
-                                else -> ContentScale.Crop
-                            }
-
-                            scaleCache[item.fullPath] = contentScale
-
-                            if (item.isFile() &&
-                                item.fullPath.endsWith(".mp4") ||
-                                item.fullPath.endsWith(".avi") ||
-                                item.fullPath.endsWith(".mpg") ||
-                                item.fullPath.endsWith(".html") ||
-                                item.fullPath.endsWith(".iso") ||
-                                item.fullPath.endsWith(".mkv")
-                            ) {
-                                viewModel.viewModelScope.launch {
-                                    val file = File(item.fullPath)
-                                    viewModel.base64Embedder.removeScale(file)
-                                    viewModel.base64Embedder.appendScaleToFile(file, contentScale)
-                                }
-                            }
-
-                            if (item.isFolder()) {
-                                viewModel.viewModelScope.launch {
-                                    val file = File(item.fullPath + "/.folderPicture.html")
-                                    if (!file.exists())
-                                        viewModel.diskRepository.createFolderHtmlFile(item)
-                                    viewModel.diskRepository.removeScaleFromHtml(item.fullPath)
-                                    viewModel.diskRepository.insertScaleToHtmlFile(item, contentScale)
-                                }
-                            }
-
-                            viewModel.setSelectedItem(null, true)
-                            viewModel.setIsContextMenuVisible(false)
-                            BottomTools.setCurrentContent(DEFAULT)
-                        }
-                    )
-
-                    /////////////////
-                    // crop manuel //
-                    /////////////////
-                    DropdownMenuItem(
-                        modifier = modifierItem,
-                        text = {
-                            Text(
-                                text = "Couper manuellement",
-                                color = Color(0xFFB0BEC5),
-                                fontSize = itemfontSizes,
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                modifier = Modifier
-                                    .size(15.dp),
-                                tint = Color(0xFF90CAF9),
-                                painter = painterResource(R.drawable.crop), contentDescription = null
-                            )
-                        },
-                        onClick = {
-                            val sourceBitmap = imageSource.value as Bitmap
-
-                            val sourceUri = bitmapToTempUri(context, sourceBitmap)
-                            val destinationUri =
-                                Uri.fromFile(
-                                    File.createTempFile(
-                                        "cropped_", ".jpg",
-                                        context.cacheDir
-                                    )
-                                )
-
-                            //le callback est dans MainActivity : onActivityResult (override)
-                            UCrop.of(sourceUri, destinationUri)
-                                .withAspectRatio(1f, 1f)
-                                .withMaxResultSize(175, 175)
-                                .start(context)
-                        }
-                    )
-
-//                DropdownMenuItem(
-//                    text = {
-//                        Text(
-//                            text = "Renommer",
-//                            color = Color(0xFFB0BEC5)
-//                        )
-//                    },
-//                    leadingIcon = {
-//                        Icon(
-//                            modifier = Modifier
-//                                .size(24.dp),
-//                            tint = Color(0xFF90CAF9),
-//                            painter = painterResource(R.drawable.corbeille), contentDescription = null
-//                        )
-//                    },
-//                    onClick = {
-//                        File(item.fullPath).deleteRecursively()
-//                        expandedAddition = false
-//                        viewModel.goToFolder(
-//                            item.fullPath.substringBeforeLast("/"),
-//                            ITEMS_ORDERING_STRATEGY.DATE_DESC
-//                        )
-//                    }
-//                )
-
-                    /////////////////////
-                    // + dossier frère //
-                    /////////////////////
-                    DropdownMenuItem(
-                        modifier = modifierItem,
-                        text = {
-                            Text(
-                                text = "Créer dossier frère",
-                                color = Color(0xFFB0BEC5),
-                                fontSize = itemfontSizes,
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                modifier = Modifier
-                                    .size(15.dp),
-                                tint = Color(0xFF90CAF9),
-                                painter = painterResource(R.drawable.plus), contentDescription = null
-                            )
-                        },
-                        onClick = {
-                            viewModel.setSelectedItem(null, true)
-                            viewModel.setIsContextMenuVisible(false)
-                            viewModel.setDialogMessage("Ajouter un dossier frère")
-                            viewModel.dialogOnOkLambda = { name, viewModel, context ->
-                                File(item.fullPath.substringBeforeLast("/") + "/$name").mkdir()
-                                viewModel.refreshCurrentFolder()
-                                BottomTools.setCurrentContent(DEFAULT)
-                            }
-
-                            context.openTextDialog.value = true
-                        }
-                    )
-
-                    ////////////////////
-                    // + dossier fils //
-                    ////////////////////
-                    if (item.isFolder()) {
-                        DropdownMenuItem(
-                            modifier = modifierItem,
-                            text = {
-                                Text(
-                                    text = "Créer dossier fils",
-                                    color = Color(0xFFB0BEC5),
-                                    fontSize = itemfontSizes,
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    modifier = Modifier
-                                        .size(15.dp),
-                                    tint = Color(0xFF90CAF9),
-                                    painter = painterResource(R.drawable.plus), contentDescription = null
-                                )
-                            },
-                            onClick = {
-                                viewModel.setIsContextMenuVisible(false)
-                                viewModel.setSelectedItem(null, true)
-                                viewModel.setDialogMessage("Ajouter un dossier fils")
-                                viewModel.dialogOnOkLambda = { name, viewModel, context ->
-                                    File(item.fullPath + "/$name").mkdir()
-                                    viewModel.refreshCurrentFolder()
-                                    BottomTools.setCurrentContent(DEFAULT)
-                                }
-
-                                context.openTextDialog.value = true
-                            }
-                        )
-                    }
-
-                    ///////////////
-                    // supprimer //
-                    ///////////////
-                    DropdownMenuItem(
-                        modifier = modifierItem,
-                        text = {
-                            Text(
-                                text = "Supprimer",
-                                color = Color(0xFFB0BEC5),
-                                fontSize = itemfontSizes,
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                modifier = Modifier
-                                    .size(15.dp),
-                                tint = Color(0xFF90CAF9),
-                                painter = painterResource(R.drawable.corbeille), contentDescription = null
-                            )
-                        },
-                        onClick = {
-                            if (item.isFolder())
-                                File(item.fullPath).deleteRecursively()
-                            else File(item.fullPath).delete()
-                            viewModel.setSelectedItem(null, true)
-                            viewModel.setIsContextMenuVisible(false)
-                            viewModel.refreshCurrentFolder()
-                            BottomTools.setCurrentContent(DEFAULT)
-                        }
-                    )
-
-//                DropdownMenuItem(
-//                    text = { Text("Clipboard -> icône", color = Color(0xFFB0BEC5)) },
-//                    leadingIcon = {
-//                        Icon(
-//                            modifier = Modifier
-//                                .size(24.dp),
-//                            tint = Color(0xFF90CAF9),
-//                            painter = painterResource(R.drawable.presse_papiers),
-//                            contentDescription = null
-//                        )
-//                    },
-//                    onClick = {
-//                        viewModel.setPicture(item, true)
-//                        itemIdWithVisibleMenu.value = ""
-//                    }
-//                )
-
-                    LaunchedEffect(expanded) {
-                        if (expanded) {
-                            // Scroll to show the bottom menu items.
-                            scrollState.scrollTo(scrollState.maxValue)
-                        }
-                    }
-                }
+                
             }
         }
 
@@ -781,47 +441,7 @@ suspend fun getImage(
             }
 
         }
-//            var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
-//
-//            if (!hasPictureFile) {
-//                val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
-//                if (isPopulated) vectorDrawableToBitmap(
-//                    context,
-//                    R.drawable.folder_full
-//                ) else vectorDrawableToBitmap(context, R.drawable.folder_empty)
-//            } else {
-//                //une image est présente pour ce répertoire
-//                try {
-//                    var picture: Bitmap? = null
-//                    val folderPicturePath = "${item.fullPath}/" +
-//                            ".folderPicture.html"
-//                    val folderPictureCroppedPath = "${item.fullPath}/" +
-//                            ".folderPictureCropped.html"
-//
-//                    if (File(folderPictureCroppedPath).exists())
-//                        picture = viewModel.base64DataSource.extractImageFromHtml(folderPictureCroppedPath)
-//                    else {
-//                        picture = viewModel.base64DataSource.extractImageFromHtml(folderPicturePath)
-//                    }
 
-
-//                    if (picture != null) {
-//                        item.copy(picture = picture)
-//
-//                        //maintenance
-//                        if (!File(folderPictureCroppedPath).exists())
-//                            viewModel.diskRepository.saveFolderPictureToHtmlFile(item, true)
-//
-//                        picture as Bitmap
-//                    } else vectorDrawableToBitmap(
-//                        context,
-//                        if (viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)) == Pair(
-//                                0,
-//                                0
-//                            )
-//                        ) R.drawable.folder_empty
-//                        else R.drawable.folder_full
-//                    )
         else -> vectorDrawableToBitmap(
             context, R.drawable.folder_full
         )
@@ -829,26 +449,6 @@ suspend fun getImage(
     }
 
     return result
-}
-
-suspend fun getFlag(
-    item: Item,
-): ColoredTag? {
-
-    //créer html d'office
-
-    if (item.isFile())
-        return Flag.fileGet(item.fullPath)
-
-    if (item.isFolder())
-        return Flag.folderGet(item.fullPath)
-
-    return null
-
-    //il faudrait pouvoir savoir si le flag est dans la liste des Tools.DEFAULT
-    //si non => supprimer le Tag du fichier
-    //comment est construite cette liste Tools.DEFAULT? progressivement? 
-    //dans ce cas est-elle complète maintenant?
 }
 
 fun vectorDrawableToBitmap(context: Context, drawableId: Int): Bitmap {
@@ -902,24 +502,6 @@ fun ImageSection(
             )
         } else false
     }
-
-//    val shape = RoundedCornerShape(8.dp)
-//
-//    val modifierWithBorder = Modifier
-//        .clip(shape)
-//        .background(Color.Transparent)
-//        .then(
-//            if (item.id == selectedItemId)
-//                Modifier.dashedBorder(
-//                    color = Color(0xFFDBBC00),
-//                    strokeWidth = 2.dp,
-//                    cornerRadius = 8.dp,
-//                    dashLength = 10.dp,
-//                    gapLength = 10.dp
-//                )
-//            else Modifier
-//        )
-//        .then(modifier)
 
     Box(
         modifier = Modifier
@@ -1033,26 +615,4 @@ fun Modifier.dashedBorder(
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, gap), 0f)
         )
     )
-}
-
-suspend fun managePicture(
-    composite: CompositeData?,
-    item: Item,
-    imageCache: MutableMap<String, Any?>,
-    flagCache: StateFlow<MutableMap<String, ColoredTag>>,
-    scaleCache: MutableMap<String, ContentScale>,
-    imageSource: MutableState<Any?>,
-    viewModel: SigmaViewModel,
-    context: MainActivity
-) {
-
-    val cached = imageCache[item.fullPath]
-    if (cached != null) {
-        imageSource.value = cached
-    } else {
-        val result = getImage(item, viewModel, context, composite)
-        imageCache[item.fullPath] = null
-        imageCache[item.fullPath] = result
-        imageSource.value = result
-    }
 }

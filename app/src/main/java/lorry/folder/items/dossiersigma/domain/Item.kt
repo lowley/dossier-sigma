@@ -18,11 +18,11 @@ import java.util.UUID
 
 @Stable
 abstract class Item(
-    val path: String,
-    val name: String,
-    val picture: Any?,
-    val id: String = UUID.randomUUID().toString(),
-    val modificationDate: Long,
+    var path: String,
+    var name: String,
+    var picture: Any?,
+    var id: String = UUID.randomUUID().toString(),
+    var modificationDate: Long,
     var tag: ColoredTag? = null,
     var scale: ContentScale? = null,
     var memo: RichTextValueSnapshot? = null

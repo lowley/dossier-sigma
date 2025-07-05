@@ -64,10 +64,19 @@ class SigmaViewModel @Inject constructor(
 ) : ViewModel() {
 
     val imageCache = mutableMapOf<String, Any?>()
-    val scaleCache = mutableMapOf<String, ContentScale>()
+    
+    private val _scaleCache = MutableStateFlow(mutableMapOf<String, ContentScale>())
+    val scaleCache: StateFlow<MutableMap<String, ContentScale>> = _scaleCache
 
-    private val _flagCache = MutableStateFlow(mutableMapOf<String, ColoredTag>())
+    fun setScaleCacheValue(key: String, scale: ContentScale) {
+        _scaleCache.value = _scaleCache.value.toMutableMap().apply {
+            put(key, scale)
+        }
+        println("ajout de clé dans scaleCache, il y a ${_scaleCache.value.size} clés")
+    }
+    
     val sortingCache = mutableMapOf<String, ITEMS_ORDERING_STRATEGY>()
+    private val _flagCache = MutableStateFlow(mutableMapOf<String, ColoredTag>())
     val flagCache: StateFlow<MutableMap<String, ColoredTag>> = _flagCache
     
     fun setFlagCacheValue(key: String, tag: ColoredTag) {

@@ -122,7 +122,7 @@ class MainActivity : ComponentActivity() {
     lateinit var openTagInfosDialog: MutableState<Boolean>
     lateinit var isContextMenuVisible: State<Boolean>
     lateinit var homePageVisible: State<Boolean>
-
+    
     @OptIn(
         ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class,
         ExperimentalMaterial3Api::class
@@ -133,8 +133,7 @@ class MainActivity : ComponentActivity() {
         val permissionsManager = PermissionsManager()
         if (!permissionsManager.hasExternalStoragePermission())
             permissionsManager.requestExternalStoragePermission(this)
-
-
+        
         window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
 
 //        viewModel.viewModelScope.launch(Dispatchers.IO) {

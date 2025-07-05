@@ -40,7 +40,7 @@ interface IDiskRepository {
     suspend fun removeTagFromHtml(htmlFileFullPath: String)
     suspend fun getSize(file: File): Long
     
-    suspend fun insertMemoToFolder(folderPath: String)
-    suspend fun extractMemoFromFolder(folderPath: String): RichTextValueSnapshot?
-    suspend fun removeMemoFromFolder(folderPath: String)
+//    suspend fun insertMemoToFolder(folderPath: String)
+//    suspend fun extractMemoFromFolder(folderPath: String): RichTextValueSnapshot?
+//    suspend fun removeMemoFromFolder(folderPath: String)
 }
