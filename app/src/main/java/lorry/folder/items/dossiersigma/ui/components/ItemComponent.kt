@@ -290,7 +290,7 @@ fun ItemComponent(
                 if (infoSup == null || infoInf == null) {
 //                        CircularProgressIndicator()
                 } else {
-                    val boxWidth = 40.dp //30
+                    val boxWidth = 45.dp //30
 
                     Box(
                         modifier = Modifier
@@ -304,7 +304,7 @@ fun ItemComponent(
                                 shadowElevation = 0f
                             }
                             .background(tag?.color ?: Color.Gray)
-                            .widthIn(min = boxWidth)
+                            .width(boxWidth)
                             .clickable {
                                 viewModel.setSelectedItem(item)
                                 viewModel.setIsDisplayingMemo(!viewModel.isDisplayingMemo.value)
@@ -317,7 +317,7 @@ fun ItemComponent(
                                 .padding(start = 0.dp, top = 0.dp)
                                 .width(boxWidth)
                         ) {
-                            val textHeight = 20.dp
+                            val textHeight = 18.dp
 
                             Text(
                                 modifier = Modifier
@@ -332,7 +332,7 @@ fun ItemComponent(
                                 modifier = Modifier
                                     .align(Alignment.CenterHorizontally)
                                     .padding(
-                                        top = 0.dp, start = 0.dp, bottom = 4.dp, end = 0.dp
+                                        top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
                                     )
                                     .height(textHeight),
                                 text = infoInf,
