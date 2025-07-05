@@ -362,11 +362,11 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
     }
 
     override suspend fun extractMemoFromFile(filePath: String): RichTextValueSnapshot? {
-        TODO("Not yet implemented")
+        return null
     }
 
     override suspend fun removeMemoFromFile(filePath: String): Boolean {
-        TODO("Not yet implemented")
+        return false
     }
 }
 

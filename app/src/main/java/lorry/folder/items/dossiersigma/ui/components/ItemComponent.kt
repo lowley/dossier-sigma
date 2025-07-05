@@ -75,6 +75,7 @@ import lorry.folder.items.dossiersigma.data.dataSaver.CompositeData
 import lorry.folder.items.dossiersigma.data.dataSaver.CroppedPicture
 import lorry.folder.items.dossiersigma.data.dataSaver.Flag
 import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
+import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.data.dataSaver.Scale
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
@@ -168,16 +169,15 @@ fun ItemComponent(
         // memo //
         //////////
         val memoCached = memoCache.value[item.fullPath]
-        item.memo = memoCached ?: composite?.getMemo().also {
-            if (it != null) {
-                viewModel.setMemoCacheValue(item.fullPath, it)
+        if (memoCached != null) {
+            item.memo = memoCached
+        } else {
+            val fromDisk = Memo.fileGet(item.fullPath)
+            item.memo = fromDisk
+            if (fromDisk != null) {
+                viewModel.setMemoCacheValue(item.fullPath, fromDisk)
             }
         }
-    }
-
-
-    LaunchedEffect(item.fullPath) {
-        
     }
 
     Column() {
@@ -306,6 +306,7 @@ fun ItemComponent(
                             .background(tag?.color ?: Color.Gray)
                             .widthIn(min = boxWidth)
                             .clickable {
+                                viewModel.setSelectedItem(item)
                                 viewModel.setIsDisplayingMemo(!viewModel.isDisplayingMemo.value)
                             }
                         //.padding(horizontal = 8.dp, vertical = 4.dp)

@@ -75,7 +75,6 @@ class SigmaViewModel @Inject constructor(
             put(key, tag)
         }
         println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
-
     }
     
     fun removeFlagCacheForKey(key: String): ColoredTag? {
@@ -95,8 +94,8 @@ class SigmaViewModel @Inject constructor(
         _memoCache.value = _memoCache.value.toMutableMap().apply {
             put(key, tag)
         }
+        
         println("ajout de clé dans memoCache, il y a ${_memoCache.value.size} clés")
-
     }
 
     fun removeMemoCacheForKey(key: String): RichTextValueSnapshot? {
@@ -201,6 +200,15 @@ class SigmaViewModel @Inject constructor(
             modificationDate = System.currentTimeMillis(),
             memo = RichTextValueSnapshot()
         )
+    )
+
+    val currentMemo: StateFlow<RichTextValueSnapshot> = combine(
+        currentFolderPath, memoCache) { path, cache ->
+        cache[path] ?: RichTextValueSnapshot()
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = RichTextValueSnapshot()
     )
 
     companion object {
