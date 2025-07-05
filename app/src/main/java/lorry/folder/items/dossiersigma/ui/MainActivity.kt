@@ -312,9 +312,8 @@ class MainActivity : ComponentActivity() {
                                     )
                                 )
 
-                                Box(
+                                Column(
                                     modifier = Modifier.fillMaxWidth(),
-                                    contentAlignment = Alignment.BottomCenter
                                 ) {
                                     Row(
                                         modifier = Modifier
@@ -435,6 +434,18 @@ class MainActivity : ComponentActivity() {
                                                 )
                                             )
                                         }
+                                    }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight()
+                                            .background(Color.DarkGray)
+                                            .horizontalScroll(rememberScrollState()),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        
                                         EditorAction(
                                             iconRes = R.drawable.palette,
                                             active = currentValue.currentStyles
@@ -472,8 +483,7 @@ class MainActivity : ComponentActivity() {
 
                             }
                         }
-
-
+                        
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
