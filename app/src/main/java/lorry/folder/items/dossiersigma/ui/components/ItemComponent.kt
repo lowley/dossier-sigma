@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -65,11 +66,16 @@ import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.viewModelScope
 import coil.request.ImageRequest
+import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.data.base64.Tags
+import lorry.folder.items.dossiersigma.data.dataSaver.CompositeData
+import lorry.folder.items.dossiersigma.data.dataSaver.CroppedPicture
+import lorry.folder.items.dossiersigma.data.dataSaver.Flag
+import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
+import lorry.folder.items.dossiersigma.data.dataSaver.Scale
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
@@ -89,6 +95,7 @@ fun ItemComponent(
     imageCache: MutableMap<String, Any?>,
     scaleCache: MutableMap<String, ContentScale>,
     flagCache: StateFlow<MutableMap<String, ColoredTag>>,
+    memoCache: StateFlow<MutableMap<String, RichTextValueSnapshot>>,
     context: MainActivity,
 ) {
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
@@ -125,31 +132,52 @@ fun ItemComponent(
     }
 
     LaunchedEffect(item.fullPath, pictureUpdateId) {
+        val composite = item.getComposite()
+
+        ///////////
+        // image //
+        ///////////
         val cached = imageCache[item.fullPath]
         if (cached != null) {
             imageSource.value = cached
         } else {
-            val result = getImage(item, viewModel, context)
+            val result = getImage(item = item, viewModel = viewModel, context = context, composite = composite)
             imageCache[item.fullPath] = null
             imageCache[item.fullPath] = result
             imageSource.value = result
         }
-    }
 
-    LaunchedEffect(item.fullPath) {
-        val cached = scaleCache[item.fullPath]
-        contentScale = cached ?: getScale(item, viewModel).also {
-            scaleCache[item.fullPath] = it
-        }
-    }
+        ///////////
+        // scale //
+        ///////////
+        val scaleCached = scaleCache[item.fullPath]
+        contentScale = scaleCached ?: composite?.getScale() ?: ContentScale.Crop
+        scaleCache[item.fullPath] = contentScale
 
-    LaunchedEffect(item.fullPath) {
-        val cached = flagCache.value[item.fullPath]
-        item.tag = cached ?: getFlag(item, viewModel).also {
+        //////////
+        // flag //
+        //////////
+        val flagCached = flagCache.value[item.fullPath]
+        item.tag = flagCached ?: composite?.getFlag().also {
             if (it != null) {
                 viewModel.setFlagCacheValue(item.fullPath, it)
             }
         }
+        
+        //////////
+        // memo //
+        //////////
+        val memoCached = memoCache.value[item.fullPath]
+        item.memo = memoCached ?: composite?.getMemo().also {
+            if (it != null) {
+                viewModel.setMemoCacheValue(item.fullPath, it)
+            }
+        }
+    }
+
+
+    LaunchedEffect(item.fullPath) {
+        
     }
 
     Column() {
@@ -706,144 +734,116 @@ fun ItemComponent(
 suspend fun getImage(
     item: Item,
     viewModel: SigmaViewModel,
-    context: MainActivity
+    context: MainActivity,
+    composite: CompositeData?,
 ): Bitmap {
     var result: Bitmap
     result = when {
         item.picture != null -> item.picture as Bitmap // Utilise l'image en mémoire si disponible
+
         item is SigmaFile -> {
-            if (item.fullPath.endsWith("mp4") ||
-                item.fullPath.endsWith("mkv") ||
-                item.fullPath.endsWith("avi") ||
-                item.fullPath.endsWith("html") ||
-                item.fullPath.endsWith("iso") ||
-                item.fullPath.endsWith("mpg")
-            ) {
+//            if (item.fullPath.endsWith("mp4") ||
+//                item.fullPath.endsWith("mkv") ||
+//                item.fullPath.endsWith("avi") ||
+//                item.fullPath.endsWith("html") ||
+//                item.fullPath.endsWith("iso") ||
+//                item.fullPath.endsWith("mpg")
+//            ) {
+            var image = composite?.getCroppedPicture() ?: composite?.getInitialPicture()
+            ?: vectorDrawableToBitmap(context, R.drawable.file)
 
-                var image64 = viewModel.base64Embedder.extractBase64FromFile(
-                    File(item.fullPath),
-                    tagSuffix = Tags.COVER_CROPPED
-                )
-
-                if (image64 == null) {
-                    image64 = viewModel.base64Embedder.extractBase64FromFile(
-                        File(item.fullPath),
-                        tagSuffix = Tags.COVER
-                    )
-
-                    if (image64 != null) {
-                        viewModel.base64Embedder.appendBase64ToFile(
-                            file = File(item.fullPath),
-                            base64Image = image64,
-                            tagSuffix = Tags.COVER
-                        )
-                    }
-                }
-
-                val picture = if (image64 != null) viewModel.base64Embedder.base64ToBitmap(image64) else
-                    vectorDrawableToBitmap(context, R.drawable.file)
-
-                //item.copy(picture = picture)
-                picture ?: vectorDrawableToBitmap(context, R.drawable.file)
-
-            } else vectorDrawableToBitmap(context, R.drawable.file)
+            image
+//            } else vectorDrawableToBitmap(context, R.drawable.file)
         }
 
         item is SigmaFolder -> {
-            var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
+            val initialPicture = composite?.getInitialPicture()
+            val croppedPicture = composite?.getCroppedPicture()
 
-            if (!hasPictureFile) {
+            if (initialPicture == null && croppedPicture == null) {
                 val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
                 if (isPopulated) vectorDrawableToBitmap(
-                    context,
-                    R.drawable.folder_full
-                ) else vectorDrawableToBitmap(context, R.drawable.folder_empty)
+                    context, R.drawable.folder_full
+                )
+                else vectorDrawableToBitmap(context, R.drawable.folder_empty)
             } else {
                 //une image est présente pour ce répertoire
-                try {
-                    var picture: Bitmap? = null
-                    val folderPicturePath = "${item.fullPath}/" +
-                            ".folderPicture.html"
-                    val folderPictureCroppedPath = "${item.fullPath}/" +
-                            ".folderPictureCropped.html"
+                if (croppedPicture != null)
+                    croppedPicture
+                else
+                    initialPicture as Bitmap
 
-                    if (File(folderPictureCroppedPath).exists())
-                        picture = viewModel.base64DataSource.extractImageFromHtml(folderPictureCroppedPath)
-                    else {
-                        picture = viewModel.base64DataSource.extractImageFromHtml(folderPicturePath)
-                    }
-
-
-
-                    if (picture != null) {
-                        item.copy(picture = picture)
-
-                        //maintenance
-                        if (!File(folderPictureCroppedPath).exists())
-                            viewModel.diskRepository.saveFolderPictureToHtmlFile(item, true)
-
-                        picture as Bitmap
-                    } else vectorDrawableToBitmap(
-                        context,
-                        if (viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)) == Pair(
-                                0,
-                                0
-                            )
-                        ) R.drawable.folder_empty
-                        else R.drawable.folder_full
-                    )
-                } catch (e: Exception) {
-                    println("Erreur lors de la lecture de html pour le répertoire ${item.name}, ${e.message}")
-                    vectorDrawableToBitmap(context, R.drawable.file)
-                }
             }
-        }
 
-        else -> vectorDrawableToBitmap(context, R.drawable.file) // Valeur par défaut
+        }
+//            var hasPictureFile = viewModel.diskRepository.hasPictureFile(item)
+//
+//            if (!hasPictureFile) {
+//                val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
+//                if (isPopulated) vectorDrawableToBitmap(
+//                    context,
+//                    R.drawable.folder_full
+//                ) else vectorDrawableToBitmap(context, R.drawable.folder_empty)
+//            } else {
+//                //une image est présente pour ce répertoire
+//                try {
+//                    var picture: Bitmap? = null
+//                    val folderPicturePath = "${item.fullPath}/" +
+//                            ".folderPicture.html"
+//                    val folderPictureCroppedPath = "${item.fullPath}/" +
+//                            ".folderPictureCropped.html"
+//
+//                    if (File(folderPictureCroppedPath).exists())
+//                        picture = viewModel.base64DataSource.extractImageFromHtml(folderPictureCroppedPath)
+//                    else {
+//                        picture = viewModel.base64DataSource.extractImageFromHtml(folderPicturePath)
+//                    }
+
+
+//                    if (picture != null) {
+//                        item.copy(picture = picture)
+//
+//                        //maintenance
+//                        if (!File(folderPictureCroppedPath).exists())
+//                            viewModel.diskRepository.saveFolderPictureToHtmlFile(item, true)
+//
+//                        picture as Bitmap
+//                    } else vectorDrawableToBitmap(
+//                        context,
+//                        if (viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)) == Pair(
+//                                0,
+//                                0
+//                            )
+//                        ) R.drawable.folder_empty
+//                        else R.drawable.folder_full
+//                    )
+        else -> vectorDrawableToBitmap(
+            context, R.drawable.folder_full
+        )
+
     }
 
     return result
 }
 
-suspend fun getScale(
-    item: Item,
-    viewModel: SigmaViewModel,
-): ContentScale {
-    //créer html d'office
-    if (item.isFile()) {
-        val scale = viewModel.base64Embedder.extractScaleFromFile(File(item.fullPath))
-        return scale ?: ContentScale.Crop
-    }
-
-    if (item.isFolder()) {
-        val scale = viewModel.diskRepository.extractScaleFromHtml(item.fullPath)
-        return scale ?: ContentScale.Crop
-    }
-
-    return ContentScale.Crop
-}
-
 suspend fun getFlag(
     item: Item,
-    viewModel: SigmaViewModel,
 ): ColoredTag? {
 
     //créer html d'office
-    val flag = if (item.isFile()) {
-        val flag = viewModel.base64Embedder.extractFlagFromFile(File(item.fullPath))
-        flag
-    } else {
-        val flag = viewModel.diskRepository.extractFlagFromHtml(item.fullPath)
-        flag
-    }
+
+    if (item.isFile())
+        return Flag.fileGet(item.fullPath)
+
+    if (item.isFolder())
+        return Flag.folderGet(item.fullPath)
+
+    return null
 
     //il faudrait pouvoir savoir si le flag est dans la liste des Tools.DEFAULT
     //si non => supprimer le Tag du fichier
     //comment est construite cette liste Tools.DEFAULT? progressivement? 
     //dans ce cas est-elle complète maintenant?
-
-
-    return flag
 }
 
 fun vectorDrawableToBitmap(context: Context, drawableId: Int): Bitmap {
@@ -1028,4 +1028,26 @@ fun Modifier.dashedBorder(
             pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, gap), 0f)
         )
     )
+}
+
+suspend fun managePicture(
+    composite: CompositeData?,
+    item: Item,
+    imageCache: MutableMap<String, Any?>,
+    flagCache: StateFlow<MutableMap<String, ColoredTag>>,
+    scaleCache: MutableMap<String, ContentScale>,
+    imageSource: MutableState<Any?>,
+    viewModel: SigmaViewModel,
+    context: MainActivity
+) {
+
+    val cached = imageCache[item.fullPath]
+    if (cached != null) {
+        imageSource.value = cached
+    } else {
+        val result = getImage(item, viewModel, context, composite)
+        imageCache[item.fullPath] = null
+        imageCache[item.fullPath] = result
+        imageSource.value = result
+    }
 }

@@ -39,18 +39,6 @@ class DiskRepository @Inject constructor(
     val intentWrapper: DSI_IntentWrapper
 ) : IDiskRepository {
 
-    override suspend fun getInitialFolder(): SigmaFolder {
-        return SigmaFolder(
-            fullPath = "C:/Users/olivier/Desktop",
-            items = List<Item>(
-                80,
-                init = { SigmaFile("/", "fichier ${it}", null, modificationDate = 0) }),
-            picture = null,
-            id = "",
-            modificationDate = 0
-        )
-    }
-
     @OptIn(DelicateCoroutinesApi::class)
     suspend override fun getFolderItems(
         folderPath: String,
@@ -71,7 +59,10 @@ class DiskRepository @Inject constructor(
                                     path = itemDTO.path,
                                     name = itemDTO.name,
                                     picture = null,
-                                    modificationDate = itemDTO.lastModified
+                                    modificationDate = itemDTO.lastModified,
+                                    tag = null,
+                                    scale = ContentScale.Crop,
+                                    memo = RichTextValueSnapshot(),
                                 )
 
                                 if (itemDTO.name.endsWith(".html")) {
@@ -102,8 +93,12 @@ class DiskRepository @Inject constructor(
                                     path = itemDTO.path,
                                     name = itemDTO.name,
                                     picture = null,
-                                    items = listOf(),
-                                    modificationDate = itemDTO.lastModified
+                                    items = listOf<Item>(),
+                                    modificationDate = itemDTO.lastModified,
+                                    tag = null,
+                                    scale = ContentScale.Crop,
+                                    memo = RichTextValueSnapshot(),
+                                    
                                 )
                             }
                         }
@@ -184,7 +179,10 @@ class DiskRepository @Inject constructor(
             fullPath = folderPath,
             picture = null,
             items = getFolderItems(folderPath, sorting),
-            modificationDate = folder.lastModified()
+            modificationDate = folder.lastModified(),
+            tag = null,
+            scale = ContentScale.Crop,
+            memo = RichTextValueSnapshot()
         )
     }
 

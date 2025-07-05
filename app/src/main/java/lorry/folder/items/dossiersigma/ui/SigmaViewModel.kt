@@ -10,6 +10,7 @@ import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +69,7 @@ class SigmaViewModel @Inject constructor(
     private val _flagCache = MutableStateFlow(mutableMapOf<String, ColoredTag>())
     val sortingCache = mutableMapOf<String, ITEMS_ORDERING_STRATEGY>()
     val flagCache: StateFlow<MutableMap<String, ColoredTag>> = _flagCache
-
+    
     fun setFlagCacheValue(key: String, tag: ColoredTag) {
         _flagCache.value = _flagCache.value.toMutableMap().apply {
             put(key, tag)
@@ -76,7 +77,7 @@ class SigmaViewModel @Inject constructor(
         println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
 
     }
-
+    
     fun removeFlagCacheForKey(key: String): ColoredTag? {
         return _flagCache.value.remove(key)
     }
@@ -84,6 +85,27 @@ class SigmaViewModel @Inject constructor(
     fun clearFlagCache() {
         _flagCache.value = mutableMapOf()
         println("clearFlagCache, il y a ${_flagCache.value.size} clés")
+
+    }
+    
+    private val _memoCache = MutableStateFlow(mutableMapOf<String, RichTextValueSnapshot>())
+    val memoCache: StateFlow<MutableMap<String, RichTextValueSnapshot>> = _memoCache
+
+    fun setMemoCacheValue(key: String, tag: RichTextValueSnapshot) {
+        _memoCache.value = _memoCache.value.toMutableMap().apply {
+            put(key, tag)
+        }
+        println("ajout de clé dans memoCache, il y a ${_memoCache.value.size} clés")
+
+    }
+
+    fun removeMemoCacheForKey(key: String): RichTextValueSnapshot? {
+        return _memoCache.value.remove(key)
+    }
+
+    fun clearMemoCache() {
+        _memoCache.value = mutableMapOf()
+        println("clearMemoCache, il y a ${_memoCache.value.size} clés")
 
     }
 
@@ -174,7 +196,10 @@ class SigmaViewModel @Inject constructor(
             name = "Veuillez attendre",
             picture = null,
             items = emptyList<Item>(),
-            modificationDate = System.currentTimeMillis()
+            tag = null,
+            scale = ContentScale.Crop,
+            modificationDate = System.currentTimeMillis(),
+            memo = RichTextValueSnapshot()
         )
     )
 

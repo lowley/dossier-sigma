@@ -36,7 +36,7 @@ class FileCompositeManager @Inject constructor(
         }
     }
 
-    suspend fun get(): CompositeData {
+    suspend fun getComposite(): CompositeData {
         val appContext = SigmaApplication.getContext().applicationContext
         val injector = EntryPointAccessors.fromApplication(appContext, MyInjectors::class.java)
         val compositeIO = injector.provideFileCompositeIO()
@@ -48,6 +48,12 @@ class FileCompositeManager @Inject constructor(
             } else {
                 CompositeData()
             }
+        }
+    }
+
+    suspend fun <T> getElement(reader: IElementReader<T>): T? {
+        return withContext(Dispatchers.IO) {
+            reader.fileGet(targetPath)
         }
     }
 }

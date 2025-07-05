@@ -677,6 +677,7 @@ class MainActivity : ComponentActivity() {
                                             context = this@MainActivity,
                                             scaleCache = mainViewModel.scaleCache,
                                             flagCache = mainViewModel.flagCache,
+                                            memoCache = mainViewModel.memoCache
 //                                        onDrop = { tag: ColoredTag ->
 //                                            mainViewModel.assignColoredTagToItem(item, tag)
 //                                        }

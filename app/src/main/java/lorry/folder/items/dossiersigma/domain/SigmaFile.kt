@@ -1,6 +1,10 @@
 package lorry.folder.items.dossiersigma.domain
 
 import android.graphics.Bitmap
+import androidx.annotation.ReturnThis
+import androidx.compose.ui.layout.ContentScale
+import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
+import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import java.util.UUID
 
 class SigmaFile(
@@ -8,8 +12,11 @@ class SigmaFile(
     name: String,
     picture: Any?,
     id: String = UUID.randomUUID().toString(),
-    modificationDate: Long
-) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate
+    modificationDate: Long,
+    tag: ColoredTag?,
+    scale: ContentScale?,
+    memo: RichTextValueSnapshot?
+) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale
 ) {
 
     fun copy(
@@ -17,15 +24,17 @@ class SigmaFile(
         name: String = this.name,
         picture: Any? = this.picture,
         id: String = this.id,
-        modificationDate: Long = this.modificationDate
+        modificationDate: Long = this.modificationDate,
+        tag: ColoredTag? = this.tag,
+        scale: ContentScale? = this.scale,
+        memo: RichTextValueSnapshot? = this.memo
     ): SigmaFile {
-        return SigmaFile(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate)
+        return SigmaFile(path = path, name = name, picture = picture, id = id, modificationDate = 
+            modificationDate, tag = tag, scale = scale, memo = memo)
     }
 
     override fun toString(): String {
-        return "SigmaFile(name='$name', path='$path', picture=${picture != null}, id='${id.toString().take(6)}', modificationDate=$modificationDate)"
+        return "SigmaFile(name='$name', path='$path', picture=${picture != null}, id='${id.toString().take(6)}', modificationDate=$modificationDate), tag=${tag}, scale=${scale},memo=${memo}"
     }
-
-
 }
     

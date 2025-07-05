@@ -10,7 +10,6 @@ import java.io.File
 
 interface IDiskRepository {
     
-    suspend fun getInitialFolder() : SigmaFolder
     suspend fun getFolderItems(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) : List<Item>
     suspend fun saveUrlToTempFile(fileUrl: String) : String?
     suspend fun getSigmaFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY):

@@ -1,6 +1,8 @@
 package lorry.folder.items.dossiersigma.domain
 
-import android.graphics.Bitmap
+import androidx.compose.ui.layout.ContentScale
+import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
+import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
 import java.util.UUID
 
 class SigmaFolder : Item {
@@ -13,13 +15,17 @@ class SigmaFolder : Item {
         picture: Any?,
         items: List<Item>,
         id: String = UUID.randomUUID().toString(),
-        modificationDate: Long
-    ) : super(path, name, picture, id, modificationDate) {
+        modificationDate: Long,
+        tag: ColoredTag?,
+        scale: ContentScale?,
+        memo: RichTextValueSnapshot?
+    ) : super(path, name, picture, id, modificationDate, tag,  scale, memo) {
         this.items = items
     }
 
     override fun toString(): String {
-        return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${id.take(5)}, items: ${items.size}, modification: ${modificationDate.toFormattedDate()})"
+        return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${id.take(5)}, " +
+                "items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: ${memo}"
     }
 
     constructor(
@@ -27,13 +33,19 @@ class SigmaFolder : Item {
         picture: Any?,
         items: List<Item>,
         id: String = UUID.randomUUID().toString(),
-        modificationDate: Long
+        modificationDate: Long,
+        tag: ColoredTag?,
+        scale: ContentScale?,
+        memo: RichTextValueSnapshot
     ) : super(
         path = fullPath.substringBeforeLast("/"),
         name = fullPath.substringAfterLast("/"),
         picture = picture,
         id = id,
-            modificationDate = modificationDate
+        modificationDate = modificationDate,
+        tag = tag,
+        scale = scale,
+        memo = memo
     ) {
         this.items = items
     }
@@ -47,10 +59,14 @@ class SigmaFolder : Item {
         picture: Any? = this.picture,
         items: List<Item> = this.items,
         id: String = this.id,
-        modificationDate: Long = this.modificationDate
+        modificationDate: Long = this.modificationDate,
+        tag: ColoredTag? = this.tag, 
+        scale: ContentScale? = this.scale,
+        memo: RichTextValueSnapshot? = this.memo
     ): SigmaFolder {
         val result = SigmaFolder(
-            path = path, name = name, picture = picture, items = items.map { item ->
+            path = path, name = name, picture = picture, 
+            items = items.map { item ->
                 when (item) {
                     is SigmaFolder -> item.copy()
                     is SigmaFile -> item.copy()
@@ -58,10 +74,13 @@ class SigmaFolder : Item {
                 }
             },
             id = id,
-            modificationDate = modificationDate
+            modificationDate = modificationDate,
+            tag = tag,
+            scale = scale,
+            memo = memo
         )
         return result
     }
-    
-    
+
+
 }
