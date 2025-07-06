@@ -62,6 +62,7 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
 import lorry.folder.items.dossiersigma.data.dataSaver.Flag
+import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
 import lorry.folder.items.dossiersigma.data.dataSaver.Scale
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
@@ -71,6 +72,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.containsFlagAsValue
 import java.io.File
 import java.util.UUID
@@ -1152,30 +1154,19 @@ sealed class Tools() {
                 Tool(
                     text = { "Manuel" },
                     icon = R.drawable.image,
-                    isColoredIcon = false,
+                    isColoredIcon = true,
                     onClick = { viewModel, mainActivity ->
                         run {
                             val item = viewModel.selectedItem.value
                             var sourceBitmap: Bitmap? = null
-                            if (item?.isFile() == true) {
-                                val test = viewModel.base64Embedder.extractBase64FromFile(
-                                    File(item.fullPath),
-                                    tagSuffix = Tags.COVER
-                                )
-                                if (test == null)
-                                    return@run
+                            
+                            if (item == null)
+                                return@run
+                            
+                            val compositeMgr = CompositeManager(item.fullPath)
+                            sourceBitmap = compositeMgr.getElement(InitialPicture)
 
-                                sourceBitmap = viewModel.base64Embedder.base64ToBitmap(test)
-                            }
-
-                            if (item?.isFolder() == true) {
-                                sourceBitmap = viewModel.base64DataSource.extractImageFromHtml(
-                                    item
-                                        .fullPath + "/.folderPicture.html"
-                                )
-                            }
-
-                            if (item == null || sourceBitmap == null)
+                            if (sourceBitmap == null)
                                 return@run
 
 //                            val sourceBitmap = viewModel.imageCache[viewModel.selectedItem.value?.fullPath ?: ""] as Bitmap
@@ -1214,6 +1205,7 @@ fun changeCrop(
 ) {
     val item = viewModel.selectedItem.value ?: return
     viewModel.scaleCache.value[item.fullPath] = scale
+    item.scale = scale
 
     if (item.isFile() &&
         item.fullPath.endsWith(".mp4") ||
@@ -1241,8 +1233,9 @@ fun changeCrop(
         }
     }
 
-    //viewModel.setSelectedItem(null)
-    //BottomTools.setCurrentContent(DEFAULT, viewModel)
+    viewModel.notifyPictureUpdated()
+//    viewModel.setSelectedItem(null)
+//    BottomTools.setCurrentContent(DEFAULT)
 }
 
 @Composable

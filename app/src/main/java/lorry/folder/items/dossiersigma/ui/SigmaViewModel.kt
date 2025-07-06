@@ -166,6 +166,10 @@ class SigmaViewModel @Inject constructor(
     private val _pictureUpdateId = MutableStateFlow(0)
     val pictureUpdateId: StateFlow<Int> = _pictureUpdateId
 
+    fun notifyPictureUpdated() {
+        _pictureUpdateId.value += 1
+    }
+    
     private val _isContextMenuVisible = MutableStateFlow(false)
     val isContextMenuVisible: StateFlow<Boolean> = _isContextMenuVisible
 
@@ -273,10 +277,6 @@ class SigmaViewModel @Inject constructor(
 
     fun setSorting(sorting: ITEMS_ORDERING_STRATEGY) {
         _sorting.value = sorting
-    }
-
-    fun notifyPictureUpdated() {
-        _pictureUpdateId.value += 1
     }
 
     //SELECTED ITEM

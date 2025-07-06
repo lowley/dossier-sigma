@@ -59,7 +59,6 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.FileProvider
 import androidx.core.graphics.createBitmap
 import coil.request.ImageRequest
-import com.pointlessapps.rt_editor.model.RichTextValue
 import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
@@ -94,7 +93,6 @@ fun ItemComponent(
     val imageHeight = 160.dp
     val imageSource = remember(item.fullPath) { mutableStateOf<Any?>(null) }
     val pictureUpdateId by viewModel.pictureUpdateId.collectAsState()
-    var contentScale by remember { mutableStateOf(ContentScale.Crop) }
 
     val coloredTag by flagCache.collectAsState()
     val tag = coloredTag[item.fullPath]
@@ -145,6 +143,7 @@ fun ItemComponent(
         } else {
             val fromDisk = compositeManager.getElement(Scale)
             item.scale = fromDisk
+                
             if (fromDisk != null) {
                 viewModel.setScaleCacheValue(item.fullPath, fromDisk)
             }
@@ -255,9 +254,11 @@ fun ItemComponent(
             ) {
                 var expanded by remember { mutableStateOf(false) }
                 val scrollState = rememberScrollState()
-
+                val scaleMap by scaleCache.collectAsState()
+                val scaleKey = scaleMap[item.fullPath]
+                
                 imageSource.value?.let { bitmap ->
-                    key(pictureUpdateId) {
+                    key(pictureUpdateId, item.toString(), scaleKey) {
                         ImageSection(
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
@@ -267,9 +268,9 @@ fun ItemComponent(
                             imageSource = imageSource.value as Bitmap? ?: vectorDrawableToBitmap(
                                 context, R.drawable.file
                             ),
-                            contentScale = contentScale,
                             item = item,
-                            selectedItemFullPath = selectedItemFullPath
+                            selectedItemFullPath = selectedItemFullPath,
+                            scaleKey = scaleKey
                         )
                     }
                 }
@@ -479,23 +480,23 @@ fun TextSection(name: String, modifier: Modifier) {
 fun ImageSection(
     modifier: Modifier,
     imageSource: Bitmap,
-    contentScale: ContentScale,
     item: Item,
     selectedItemFullPath: String?,
+    scaleKey: ContentScale?,
 ) {
     val context = LocalContext.current
     val imageRequest = ImageRequest.Builder(context).data(imageSource).build()
     val imageBitmap: Bitmap? = imageSource
     var containerSize = IntSize(175, 175)
 
-    val shouldShowMesh = remember(imageBitmap, contentScale) {
+    val shouldShowMesh = remember(imageBitmap, scaleKey) {
         if (imageBitmap != null) {
             !doesImageFillBox(
                 containerWidth = containerSize.width,
                 containerHeight = containerSize.height,
                 imageWidth = imageBitmap.width,
                 imageHeight = imageBitmap.height,
-                contentScale = contentScale
+                contentScale = item.scale ?: ContentScale.Crop
             )
         } else false
     }
@@ -517,7 +518,7 @@ fun ImageSection(
         Image(
             bitmap = imageSource.asImageBitmap(),
             contentDescription = "Miniature",
-            contentScale = contentScale,
+            contentScale = item.scale ?: ContentScale.Crop,
             modifier = modifier
                 .matchParentSize()
         )
