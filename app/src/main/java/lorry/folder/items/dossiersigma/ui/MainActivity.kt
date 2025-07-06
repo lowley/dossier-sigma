@@ -83,7 +83,9 @@ import com.pointlessapps.rt_editor.ui.RichTextEditor
 import com.pointlessapps.rt_editor.ui.defaultRichTextFieldStyle
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
@@ -339,11 +341,14 @@ class MainActivity : ComponentActivity() {
                                             item.memo = snapshot
                                             mainViewModel.setMemoCacheValue(item.fullPath, snapshot)
                                             
+                                            mainViewModel.viewModelScope.launch(Dispatchers.IO) {
                                             val compositeMgr = CompositeManager(currentItem.value?.fullPath ?: "")
                                             compositeMgr.save(Memo(snapshot))
-
-                                            mainViewModel.setSelectedItem(null)
-                                            mainViewModel.refreshCurrentFolder()
+                                                withContext(Dispatchers.Default) {
+                                                    mainViewModel.setSelectedItem(null)
+                                                    mainViewModel.refreshCurrentFolder()
+                                                }
+                                            }
                                         }) {
                                             Icon(
                                                 modifier = Modifier.size(24.dp),

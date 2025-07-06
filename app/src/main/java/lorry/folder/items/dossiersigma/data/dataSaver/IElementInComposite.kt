@@ -161,7 +161,10 @@ data class Scale @Inject constructor(
             if (composite.scale == null)
                 return null
 
-            return Gson().fromJson(composite.scale, ContentScale::class.java)
+            val scaleAsString = Gson().fromJson(composite.scale, String::class.java)
+            
+            val scale = scaleFromString(scaleAsString)
+            return scale
         }
 
         override suspend fun folderGet(folderPath: String): ContentScale? {
@@ -202,4 +205,15 @@ data class Memo @Inject constructor(
 interface IElementReader<T> {
     suspend fun fileGet(filePath: String): T?
     suspend fun folderGet(folderPath: String): T?
+}
+
+fun scaleFromString(value: String): ContentScale? = when (value) {
+    "Crop" -> ContentScale.Crop
+    "Fit" -> ContentScale.Fit
+    "FillBounds" -> ContentScale.FillBounds
+    "FillHeight" -> ContentScale.FillHeight
+    "FillWidth" -> ContentScale.FillWidth
+    "Inside" -> ContentScale.Inside
+    "None" -> ContentScale.None
+    else -> null // ou exception
 }

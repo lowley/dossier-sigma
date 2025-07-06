@@ -8,7 +8,7 @@ import javax.inject.Inject
 class CompositeManager @Inject constructor(
     private val targetPath: String,
 ) {
-    fun save(element: IElementInComposite) {
+    suspend fun save(element: IElementInComposite) {
         val file = File(targetPath)
         if (!file.exists())
             return

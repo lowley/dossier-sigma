@@ -4,6 +4,9 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeData
 import lorry.folder.items.dossiersigma.data.dataSaver.FileCompositeManager
@@ -80,10 +83,13 @@ abstract class Item(
     }
 
     fun save(element: IElementInComposite) {
-        if (this is SigmaFolder) {
-            folderCompositeManager.save(element)
-        } else {
-            fileCompositeManager.save(element)
+        val scope = CoroutineScope(Dispatchers.IO)
+        scope.launch {
+            if (this@Item is SigmaFolder) {
+                folderCompositeManager.save(element)
+            } else {
+                fileCompositeManager.save(element)
+            }
         }
     }
 

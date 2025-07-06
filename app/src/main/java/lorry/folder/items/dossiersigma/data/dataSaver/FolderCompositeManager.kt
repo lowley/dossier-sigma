@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 class FolderCompositeManager(
     private val targetPath: String,
 ) {
-    fun save(element: IElementInComposite) {
+    suspend fun save(element: IElementInComposite) {
         val targetHtmlPath = "$targetPath/.folderPicture.html"
         FileCompositeManager(targetHtmlPath).save(element)
     }

@@ -3,8 +3,6 @@ package lorry.folder.items.dossiersigma.data.dataSaver
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.data.disk.DiskRepository
-import lorry.folder.items.dossiersigma.domain.Item
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.charset.Charset
@@ -13,14 +11,14 @@ import javax.inject.Inject
 class FileCompositeIO @Inject constructor() {
 
     private val CHARSET = "UTF-8"
-    
+
     private val START_COMPOSITE = "##SIGMA-COMPOSITE-START##"
 
     //ici il y aura le composite
     private val END_COMPOSITE = "##SIGMA-COMPOSITE-END##"
     private val START_LENGTH = "##SIGMA-LENGTH-START##"
     private val END_LENGTH = "##SIGMA-LENGTH-END##"
-    
+
 
     suspend fun getComposite(filePath: String): CompositeData? {
 
@@ -32,7 +30,8 @@ class FileCompositeIO @Inject constructor() {
             RandomAccessFile(file, "r").use { raf ->
                 val length = raf.length()
                 val (tail, startIndex, endIndex) = tryToExtract(
-                    length, raf, charset)
+                    length, raf, charset
+                )
 
                 extractedText = tail
                 if (tail == null) {
@@ -41,7 +40,7 @@ class FileCompositeIO @Inject constructor() {
             }
 
             //composite pas trouvé malgré tous les essais
-            
+
         } catch (ex: Exception) {
             println("erreur getComposite: ${ex.message}")
             extractedText = null
@@ -49,7 +48,7 @@ class FileCompositeIO @Inject constructor() {
 
         if (extractedText == null)
             return null
-        
+
         val extractedComposite =
             Gson().fromJson<CompositeData>(extractedText, CompositeData::class.java)
 
@@ -64,10 +63,9 @@ class FileCompositeIO @Inject constructor() {
         if (!file.exists()) {
             if (filePath.endsWith(".html")) {
                 createFolderHtmlFile(filePath)
-            }
-            else return false
+            } else return false
         }
-        
+
         if (getComposite(filePath) != null)
             removeCompositeAndDatas(filePath)
 
@@ -132,25 +130,29 @@ class FileCompositeIO @Inject constructor() {
             // lecture du composite //
             //////////////////////////
             val firstSeekSTART_LENGTHtoEnd = firstSeekLength - firstSeekStartIndex
-            val secondSeekEnd = length - firstSeekSTART_LENGTHtoEnd
+            val secondSeekEnd = length - firstSeekSTART_LENGTHtoEnd - 1
             //longueurs des contenus des variables START_COMPOSITE + END_COMPOSITE = 48
+            val addition = 2
             val secondSeekStart = secondSeekEnd - firstSeekResult - START_COMPOSITE.length - END_COMPOSITE
-                .length - 1
+                .length - addition
+            
             //position de départ
-            raf.seek(secondSeekStart)
+            raf.seek(0)
             //ce qui est lu cette fois-ci, au max longueur initialLookbackBytes
-            val secondSeekBytes = ByteArray(firstSeekResult.toInt())
+            val secondSeekBytes = ByteArray(length.toInt())
             //lecture jusqu'à gaver bytes
             raf.readFully(secondSeekBytes)
 
             //lecture des bytes et recherche
             val secondSeekTail = String(secondSeekBytes, charset)
-            val secondSeekStartIndex = firstSeekTail.lastIndexOf(START_COMPOSITE)
-            val secondSeekEndIndex = firstSeekTail.lastIndexOf(END_COMPOSITE)
-            
-            if (secondSeekStartIndex != -1 && secondSeekEndIndex != -1 && secondSeekEndIndex > secondSeekStartIndex) {
-                raf.setLength(secondSeekStartIndex.toLong())
-            }
+//            val secondSeekStartIndex = secondSeekTail.lastIndexOf(START_COMPOSITE)
+//            val secondSeekEndIndex = secondSeekTail.lastIndexOf(END_COMPOSITE)
+//
+//            val cutIndex = length - secondSeekBytes.size + secondSeekStartIndex
+
+//            if (secondSeekStartIndex != -1 && secondSeekEndIndex != -1 && secondSeekEndIndex > secondSeekStartIndex) {
+            raf.setLength(secondSeekStart.toLong())
+//            }
         }
     }
 
@@ -214,7 +216,7 @@ class FileCompositeIO @Inject constructor() {
 }
 
 suspend fun createFolderHtmlFile(filePath: String) {
-    
+
     //picture contient un bitmap
     createShortcut(baseText(), filePath)
 }
