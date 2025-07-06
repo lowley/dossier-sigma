@@ -147,7 +147,7 @@ data class Scale @Inject constructor(
     val scale: ContentScale?
 ) : IElementInComposite {
     override suspend fun update(composite: CompositeData): CompositeData {
-        val scaleAsString = Gson().toJson(scale)
+        val scaleAsString = scaleToString(scale)
         return composite.copy(scale = scaleAsString)
     }
 
@@ -162,8 +162,8 @@ data class Scale @Inject constructor(
                 return null
 
             val scaleAsString = Gson().fromJson(composite.scale, String::class.java)
-            
-            val scale = scaleFromString(scaleAsString)
+
+            val scale = StringToScale(scaleAsString)
             return scale
         }
 
@@ -207,7 +207,7 @@ interface IElementReader<T> {
     suspend fun folderGet(folderPath: String): T?
 }
 
-fun scaleFromString(value: String): ContentScale? = when (value) {
+fun StringToScale(value: String): ContentScale? = when (value) {
     "Crop" -> ContentScale.Crop
     "Fit" -> ContentScale.Fit
     "FillBounds" -> ContentScale.FillBounds
@@ -216,4 +216,15 @@ fun scaleFromString(value: String): ContentScale? = when (value) {
     "Inside" -> ContentScale.Inside
     "None" -> ContentScale.None
     else -> null // ou exception
+}
+
+fun scaleToString(value: ContentScale?): String = when (value) {
+    ContentScale.Crop -> "Crop"
+    ContentScale.Fit -> "Fit"
+    ContentScale.FillBounds -> "FillBounds"
+    ContentScale.FillHeight -> "FillHeight"
+    ContentScale.FillWidth -> "FillWidth"
+    ContentScale.Inside -> "Inside"
+    ContentScale.None -> "None"
+    else -> "Crop" // ou exception
 }
