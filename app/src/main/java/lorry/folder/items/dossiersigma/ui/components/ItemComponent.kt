@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -62,9 +63,13 @@ import coil.request.ImageRequest
 import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.data.base64.Base64DataSource
+import lorry.folder.items.dossiersigma.data.base64.Tags
+import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeData
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
 import lorry.folder.items.dossiersigma.data.dataSaver.Flag
+import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
 import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.data.dataSaver.Scale
 import lorry.folder.items.dossiersigma.domain.ColoredTag
@@ -101,7 +106,7 @@ fun ItemComponent(
 //    val draggedTag by viewModel.draggedTag.collectAsState()
     val draggableStartPosition by viewModel.draggableStartPosition.collectAsState()
     val bounds = remember { mutableStateOf<Rect?>(null) }
-    
+
     val isHovered = remember(draggableStartPosition, dragOffset) {
         if (dragOffset == null || draggableStartPosition == null)
             return@remember false
@@ -120,7 +125,7 @@ fun ItemComponent(
     LaunchedEffect(item.fullPath, pictureUpdateId) {
         val composite = item.getComposite()
         val compositeManager = CompositeManager(item.fullPath)
-        
+
         ///////////
         // image //
         ///////////
@@ -128,7 +133,8 @@ fun ItemComponent(
         if (cached != null) {
             imageSource.value = cached
         } else {
-            val result = getImage(item = item, viewModel = viewModel, context = context, composite = composite)
+            val result =
+                getImage(item = item, viewModel = viewModel, context = context, composite = composite)
             imageCache[item.fullPath] = null
             imageCache[item.fullPath] = result
             imageSource.value = result
@@ -143,7 +149,7 @@ fun ItemComponent(
         } else {
             val fromDisk = compositeManager.getElement(Scale)
             item.scale = fromDisk
-                
+
             if (fromDisk != null) {
                 viewModel.setScaleCacheValue(item.fullPath, fromDisk)
             }
@@ -162,7 +168,7 @@ fun ItemComponent(
                 viewModel.setFlagCacheValue(item.fullPath, fromDisk)
             }
         }
-        
+
         //////////
         // memo //
         //////////
@@ -256,7 +262,7 @@ fun ItemComponent(
                 val scrollState = rememberScrollState()
                 val scaleMap by scaleCache.collectAsState()
                 val scaleKey = scaleMap[item.fullPath]
-                
+
                 imageSource.value?.let { bitmap ->
                     key(pictureUpdateId, item.toString(), scaleKey) {
                         ImageSection(
@@ -319,8 +325,8 @@ fun ItemComponent(
                         ) {
                             val textHeight = 18.dp
                             val memoCacheLocal by memoCache.collectAsState()
-                            
-                            
+
+
                             key(memoCacheLocal[item.fullPath]) {
                                 Text(
                                     modifier = Modifier
@@ -379,7 +385,7 @@ fun ItemComponent(
                 val selectedItem by viewModel.selectedItem.collectAsState()
                 val isContextMenuVisible = context.isContextMenuVisible
 
-                
+
             }
         }
 
@@ -405,6 +411,9 @@ suspend fun getImage(
         item.picture != null -> item.picture as Bitmap // Utilise l'image en mémoire si disponible
 
         item is SigmaFile -> {
+            var image = composite?.getCroppedPicture() ?: composite?.getInitialPicture()
+
+            if (image == null) {
 //            if (item.fullPath.endsWith("mp4") ||
 //                item.fullPath.endsWith("mkv") ||
 //                item.fullPath.endsWith("avi") ||
@@ -412,32 +421,53 @@ suspend fun getImage(
 //                item.fullPath.endsWith("iso") ||
 //                item.fullPath.endsWith("mpg")
 //            ) {
-            var image = composite?.getCroppedPicture() ?: composite?.getInitialPicture()
-            ?: vectorDrawableToBitmap(context, R.drawable.file)
+
+                //récupère image existante selon l'ancienne méthode, si elle existe
+                val repo = VideoInfoEmbedder()
+                val image64 = repo.extractBase64FromFile(
+                    File(item.fullPath),
+                    tag = Tags.COVER
+                )
+                if (image64 != null) {
+                    image = repo.base64ToBitmap(image64)
+                    val compositeMgr = CompositeManager(item.fullPath)
+                    compositeMgr.save(InitialPicture(image, repo))
+                }
+            }
+            
+            image = image ?: vectorDrawableToBitmap(context, R.drawable.file)
 
             image
-//            } else vectorDrawableToBitmap(context, R.drawable.file)
         }
 
         item is SigmaFolder -> {
-            val initialPicture = composite?.getInitialPicture()
-            val croppedPicture = composite?.getCroppedPicture()
+            var image = composite?.getCroppedPicture() ?: composite?.getInitialPicture()
+            
+            val compositeMgr = CompositeManager(item.fullPath)
+            val repo = Base64DataSource()
+            val repo2 = VideoInfoEmbedder()
 
-            if (initialPicture == null && croppedPicture == null) {
-                val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
-                if (isPopulated) vectorDrawableToBitmap(
-                    context, R.drawable.folder_full
-                )
-                else vectorDrawableToBitmap(context, R.drawable.folder_empty)
-            } else {
-                //une image est présente pour ce répertoire
-                if (croppedPicture != null)
-                    croppedPicture
-                else
-                    initialPicture as Bitmap
+            if (image == null) {
+                image = repo.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
 
+                compositeMgr.save(InitialPicture(image, repo2))
+            }
+            
+            if (composite?.getInitialPicture() == null
+                && image != null) {
+                compositeMgr.save(InitialPicture(image, repo2))
             }
 
+            if (image == null) {
+                val isPopulated = viewModel.changingPictureUseCase.isFolderPopulated(item)
+                image = if (isPopulated)
+                    vectorDrawableToBitmap(
+                        context, R.drawable.folder_full
+                    )
+                else vectorDrawableToBitmap(context, R.drawable.folder_empty)
+            }
+            
+            image
         }
 
         else -> vectorDrawableToBitmap(

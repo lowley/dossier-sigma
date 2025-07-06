@@ -137,14 +137,14 @@ class FileCompositeIO @Inject constructor() {
                 .length - addition
             
             //position de départ
-            raf.seek(0)
+//            raf.seek(0)
             //ce qui est lu cette fois-ci, au max longueur initialLookbackBytes
-            val secondSeekBytes = ByteArray(length.toInt())
+//            val secondSeekBytes = ByteArray(length.toInt())
             //lecture jusqu'à gaver bytes
-            raf.readFully(secondSeekBytes)
+//            raf.readFully(secondSeekBytes)
 
             //lecture des bytes et recherche
-            val secondSeekTail = String(secondSeekBytes, charset)
+//            val secondSeekTail = String(secondSeekBytes, charset)
 //            val secondSeekStartIndex = secondSeekTail.lastIndexOf(START_COMPOSITE)
 //            val secondSeekEndIndex = secondSeekTail.lastIndexOf(END_COMPOSITE)
 //

@@ -60,7 +60,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.Tags
+import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
+import lorry.folder.items.dossiersigma.data.dataSaver.CroppedPicture
 import lorry.folder.items.dossiersigma.data.dataSaver.Flag
 import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
 import lorry.folder.items.dossiersigma.data.dataSaver.Scale
@@ -76,6 +78,7 @@ import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.containsFlagAsValue
 import java.io.File
 import java.util.UUID
+import kotlin.time.TestTimeSource
 
 object BottomTools {
     lateinit var viewModel: SigmaViewModel
@@ -1165,7 +1168,13 @@ sealed class Tools() {
                             
                             val compositeMgr = CompositeManager(item.fullPath)
                             sourceBitmap = compositeMgr.getElement(InitialPicture)
-
+                            val test = compositeMgr.getElement(CroppedPicture)
+                            
+                            if (sourceBitmap == null && test != null) {
+                                compositeMgr.save(InitialPicture(test, VideoInfoEmbedder()))
+                                sourceBitmap = test
+                            }
+                            
                             if (sourceBitmap == null)
                                 return@run
 
