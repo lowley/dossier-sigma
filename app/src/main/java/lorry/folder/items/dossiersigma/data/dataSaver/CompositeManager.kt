@@ -7,6 +7,7 @@ import javax.inject.Inject
 
 class CompositeManager @Inject constructor(
     private val targetPath: String,
+    private val useOld: Boolean = false
 ) {
     suspend fun save(element: IElementInComposite) {
         val file = File(targetPath)
@@ -14,9 +15,9 @@ class CompositeManager @Inject constructor(
             return
 
         if (file.isFile())
-            FileCompositeManager(targetPath).save(element)
+            FileCompositeManager(targetPath, useOld).save(element)
         else {
-            FolderCompositeManager(targetPath).save(element)
+            FolderCompositeManager(targetPath, useOld).save(element)
         }
     }
 
@@ -26,9 +27,9 @@ class CompositeManager @Inject constructor(
             return null
 
         return if (file.isFile) {
-            FileCompositeManager(targetPath).getComposite()
+            FileCompositeManager(targetPath, useOld).getComposite()
         } else {
-            FolderCompositeManager(targetPath).getComposite()
+            FolderCompositeManager(targetPath, useOld).getComposite()
         }
     }
 

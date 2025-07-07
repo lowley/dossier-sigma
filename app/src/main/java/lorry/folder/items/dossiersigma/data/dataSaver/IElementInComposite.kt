@@ -72,16 +72,16 @@ data class InitialPicture @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String): Bitmap? {
-            val fileCompositeManager = FileCompositeManager(filePath)
+        override suspend fun fileGet(filePath: String, useOld: Boolean): Bitmap? {
+            val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
             val base64 = composite.initialPicture ?: return null
             return videoInfoEmbedder.base64ToBitmap(base64)
         }
 
-        override suspend fun folderGet(folderPath: String): Bitmap? {
+        override suspend fun folderGet(folderPath: String, useOld: Boolean): Bitmap? {
             val filePath = "$folderPath/.folderPicture.html"
-            return fileGet(filePath)
+            return fileGet(filePath, useOld)
         }
     }
 }
@@ -101,16 +101,16 @@ data class CroppedPicture @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String): Bitmap? {
-            val fileCompositeManager = FileCompositeManager(filePath)
+        override suspend fun fileGet(filePath: String, useOld: Boolean): Bitmap? {
+            val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
             val base64 = composite.croppedPicture ?: return null
             return videoInfoEmbedder.base64ToBitmap(base64)
         }
 
-        override suspend fun folderGet(folderPath: String): Bitmap? {
+        override suspend fun folderGet(folderPath: String, useOld: Boolean): Bitmap? {
             val filePath = "$folderPath/.folderPicture.html"
-            return fileGet(filePath)
+            return fileGet(filePath, useOld)
         }
     }
 }
@@ -127,8 +127,8 @@ data class Flag @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String): ColoredTag? {
-            val fileCompositeManager = FileCompositeManager(filePath)
+        override suspend fun fileGet(filePath: String, useOld: Boolean): ColoredTag? {
+            val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
             if (composite.flag == null)
                 return null
@@ -136,9 +136,9 @@ data class Flag @Inject constructor(
             return Gson().fromJson(composite.flag, ColoredTag::class.java)
         }
 
-        override suspend fun folderGet(folderPath: String): ColoredTag? {
+        override suspend fun folderGet(folderPath: String, useOld: Boolean): ColoredTag? {
             val filePath = "$folderPath/.folderPicture.html"
-            return fileGet(filePath)
+            return fileGet(filePath, useOld)
         }
     }
 }
@@ -155,8 +155,8 @@ data class Scale @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String): ContentScale? {
-            val fileCompositeManager = FileCompositeManager(filePath)
+        override suspend fun fileGet(filePath: String, useOld: Boolean): ContentScale? {
+            val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
             if (composite.scale == null)
                 return null
@@ -167,9 +167,9 @@ data class Scale @Inject constructor(
             return scale
         }
 
-        override suspend fun folderGet(folderPath: String): ContentScale? {
+        override suspend fun folderGet(folderPath: String, useOld: Boolean): ContentScale? {
             val filePath = "$folderPath/.folderPicture.html"
-            return fileGet(filePath)
+            return fileGet(filePath, useOld)
         }
     }
 }
@@ -186,8 +186,8 @@ data class Memo @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String): RichTextValueSnapshot? {
-            val fileCompositeManager = FileCompositeManager(filePath)
+        override suspend fun fileGet(filePath: String, useOld: Boolean): RichTextValueSnapshot? {
+            val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
             if (composite.memo == null)
                 return null
@@ -195,16 +195,16 @@ data class Memo @Inject constructor(
             return Gson().fromJson(composite.memo, RichTextValueSnapshot::class.java)
         }
 
-        override suspend fun folderGet(folderPath: String): RichTextValueSnapshot? {
+        override suspend fun folderGet(folderPath: String, useOld: Boolean): RichTextValueSnapshot? {
             val filePath = "$folderPath/.folderPicture.html"
-            return fileGet(filePath)
+            return fileGet(filePath, useOld)
         }
     }
 }
 
 interface IElementReader<T> {
-    suspend fun fileGet(filePath: String): T?
-    suspend fun folderGet(folderPath: String): T?
+    suspend fun fileGet(filePath: String, useOld: Boolean = false): T?
+    suspend fun folderGet(folderPath: String, useOld: Boolean = false): T?
 }
 
 fun StringToScale(value: String): ContentScale? = when (value) {

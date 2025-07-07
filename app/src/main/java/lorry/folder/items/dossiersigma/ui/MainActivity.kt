@@ -89,6 +89,7 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
+import lorry.folder.items.dossiersigma.data.dataSaver.FileCompositeIO
 import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
@@ -338,8 +339,8 @@ class MainActivity : ComponentActivity() {
                                             if (item == null)
                                                 return@IconButton
 
-                                            item.memo = snapshot
-                                            mainViewModel.setMemoCacheValue(item.fullPath, snapshot)
+                                            item?.memo = snapshot
+                                            mainViewModel.setMemoCacheValue(item?.fullPath ?: "", snapshot)
                                             
                                             mainViewModel.viewModelScope.launch(Dispatchers.IO) {
                                             val compositeMgr = CompositeManager(currentItem.value?.fullPath ?: "")

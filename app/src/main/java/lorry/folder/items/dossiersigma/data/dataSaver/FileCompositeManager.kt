@@ -1,23 +1,20 @@
 package lorry.folder.items.dossiersigma.data.dataSaver
 
-import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.SigmaApplication
 import java.io.File
 import javax.inject.Inject
 
 
 class FileCompositeManager @Inject constructor(
     private val targetPath: String,
+    private val useOld: Boolean = false
 ) {
-
     suspend fun save(element: IElementInComposite) {
-
-        val appContext = SigmaApplication.getContext().applicationContext
-        val injector = EntryPointAccessors.fromApplication(appContext, MyInjectors::class.java)
-        val compositeIO = injector.provideFileCompositeIO()
+        
+        val compositeIO = if (useOld)
+            FileCompositeIO()
+        else FileMetadataManager()
 
         val target = File(targetPath)
         val existingComposite = if (target.exists()) {
@@ -27,13 +24,11 @@ class FileCompositeManager @Inject constructor(
         }
 
         val updatedComposite = element.update(existingComposite)
-        compositeIO.saveComposite(targetPath, updatedComposite)
+        compositeIO.replaceComposite(targetPath, updatedComposite)
     }
 
     suspend fun getComposite(): CompositeData {
-        val appContext = SigmaApplication.getContext().applicationContext
-        val injector = EntryPointAccessors.fromApplication(appContext, MyInjectors::class.java)
-        val compositeIO = injector.provideFileCompositeIO()
+        val compositeIO = FileMetadataManager()
 
         val target = File(targetPath)
         return withContext(Dispatchers.IO) {

@@ -8,7 +8,7 @@ import java.io.RandomAccessFile
 import java.nio.charset.Charset
 import javax.inject.Inject
 
-class FileCompositeIO @Inject constructor() {
+class FileCompositeIO @Inject constructor() : ICompositeIO{
 
     private val CHARSET = "UTF-8"
 
@@ -19,8 +19,8 @@ class FileCompositeIO @Inject constructor() {
     private val START_LENGTH = "##SIGMA-LENGTH-START##"
     private val END_LENGTH = "##SIGMA-LENGTH-END##"
 
-
-    suspend fun getComposite(filePath: String): CompositeData? {
+    
+    override suspend fun getComposite(filePath: String): CompositeData? {
 
         val file = File(filePath)
         val charset = Charset.forName(CHARSET)
@@ -30,7 +30,7 @@ class FileCompositeIO @Inject constructor() {
             RandomAccessFile(file, "r").use { raf ->
                 val length = raf.length()
                 val (tail, startIndex, endIndex) = tryToExtract(
-                    length, raf, charset
+                    length, raf, charset, filePath = filePath
                 )
 
                 extractedText = tail
@@ -55,9 +55,7 @@ class FileCompositeIO @Inject constructor() {
         return extractedComposite
     }
 
-    suspend fun saveComposite(
-        filePath: String,
-        composite: CompositeData?
+    override suspend fun replaceComposite(filePath: String, composite: CompositeData?
     ): Boolean {
         val file = File(filePath)
         if (!file.exists()) {
@@ -66,8 +64,8 @@ class FileCompositeIO @Inject constructor() {
             } else return false
         }
 
-        if (getComposite(filePath) != null)
-            removeCompositeAndDatas(filePath)
+//        if (getComposite(filePath) != null)
+//            removeCompositeAndDatas(filePath)
 
         val data = Gson().toJson(composite)
         saveData(filePath, data = data, START_COMPOSITE, END_COMPOSITE)
@@ -124,7 +122,7 @@ class FileCompositeIO @Inject constructor() {
                     firstSeekTail.substring(firstSeekStartIndex + START_LENGTH.length, firstSeekEndIndex)
                         .trim().toLong()
                 else 0L
-            println("recherche length: $firstSeekResult")
+            println("recherche length pour fichier ${filePath.substringAfterLast("/")}: $firstSeekResult")
 
             //////////////////////////
             // lecture du composite //
@@ -160,6 +158,7 @@ class FileCompositeIO @Inject constructor() {
         length: Long,
         raf: RandomAccessFile,
         charset: Charset,
+        filePath: String,
     ): Triple<String?, Int, Int> {
 
         ///////////////////////
@@ -184,7 +183,7 @@ class FileCompositeIO @Inject constructor() {
                 firstSeekTail.substring(firstSeekStartIndex + START_LENGTH.length, firstSeekEndIndex).trim()
                     .toLong()
             else 0L
-        println("recherche length: $firstSeekResult")
+        println("FICHIER ${filePath.substringAfterLast("/")}\t(${File(filePath).length()})\tcomposite $firstSeekResult")
 
         //////////////////////////
         // lecture du composite //
@@ -243,3 +242,4 @@ fun baseText(): String {
 
     return text
 }
+
