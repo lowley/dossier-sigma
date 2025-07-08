@@ -35,9 +35,10 @@ class FileMetadataManager() : ICompositeIO {
         val metadataBlockStartOffsetInFile: Long // Offset où commence le START_COMPOSITE_TAG
     )
 
-    private suspend fun readExistingMetadataInfo(raf: RandomAccessFile, fileLength: Long): ParsedMetadata? {
+    private suspend fun readExistingMetadataInfo(raf: RandomAccessFile, fileLength: Long, fileName: String): ParsedMetadata? {
         if (fileLength < METADATA_LENGTH_LOOKBACK_BUFFER_SIZE) {
-            println("SIGMALOG readExistingMetadataInfo: Fichier trop petit pour les balises de longueur de " +
+            println("SIGMALOG Fichier $fileName readExistingMetadataInfo:  trop petit pour les balises de " +
+                    "longueur de " +
                     "métadonnées.")
             return null
         }
@@ -53,12 +54,17 @@ class FileMetadataManager() : ICompositeIO {
         val totalMetadataByteLengthString =
             extractLastContent(lengthSectionContent, START_METADATA_LENGTH_TAG, END_METADATA_LENGTH_TAG)
         if (totalMetadataByteLengthString == null) {
-            println("SIGMALOG readExistingMetadataInfo: Balises de longueur totale des métadonnées non trouvées.")
+            println("SIGMALOG fichier $fileName readExistingMetadataInfo:  Balises de longueur totale des " +
+                    "métadonnées " +
+                    "non trouvées.")
             return null
         }
         val totalMetadataByteLength = totalMetadataByteLengthString.trim().toLongOrNull()
         if (totalMetadataByteLength == null || totalMetadataByteLength <= 0) {
-            println("SIGMALOG readExistingMetadataInfo: Longueur totale des métadonnées invalide: '$totalMetadataByteLengthString'")
+            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Longueur totale des métadonnées" +
+                    " " +
+                    "invalide: " +
+                    "'$totalMetadataByteLengthString'")
             return null
         }
 
@@ -72,7 +78,8 @@ class FileMetadataManager() : ICompositeIO {
             fileLength - actualLengthBlockBytesSize - totalMetadataByteLength
 
         if (actualCompositeBlockStartOffset < 0 || totalMetadataByteLength > fileLength) {
-            println("SIGMALOG readExistingMetadataInfo: Calcul d'offset de métadonnées invalide.")
+            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Calcul d'offset de métadonnées " +
+                    "invalide.")
             return null
         }
 
@@ -92,7 +99,9 @@ class FileMetadataManager() : ICompositeIO {
             !compositeBlockBuffer.copyOfRange(jsonEndOffset, compositeBlockBuffer.size)
                 .contentEquals(END_COMPOSITE_TAG_BYTES)
         ) {
-            println("SIGMALOG readExistingMetadataInfo: Balises de composite non trouvées ou corrompues dans le bloc lu.")
+            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Balises de composite non " +
+                    "trouvées ou " +
+                    "corrompues dans le bloc lu.")
             // Cela pourrait indiquer un problème avec totalMetadataByteLength stocké
             return null
         }
@@ -103,7 +112,9 @@ class FileMetadataManager() : ICompositeIO {
         val compositeData = try {
             gson.fromJson(compositeJsonString, CompositeData::class.java)
         } catch (e: Exception) {
-            println("SIGMALOG readExistingMetadataInfo: Erreur de désérialisation du JSON: ${e.message}")
+            println("SIGMALOG fichier$fileName readExistingMetadataInfo:  Erreur de désérialisation du " +
+                    "JSON: ${e
+                .message}")
             null
         }
 
@@ -115,34 +126,57 @@ class FileMetadataManager() : ICompositeIO {
     }
 
 
-    override suspend fun getComposite(filePath: String): CompositeData? = withContext(Dispatchers.IO) {
+    override suspend fun getComposite(filePath: String): CompositeData? {
         val file = File(filePath)
-        if (!file.exists() || !file.isFile) return@withContext null
+        if (!file.exists() || !file.isFile) return null
 
         try {
+            if (filePath.contains("Co-Ed"))
+                println("dans Co-Ed confessions 2")
+            
             RandomAccessFile(file, "r").use { raf ->
                 val fileLength = raf.length()
                 if (fileLength == 0L) return@use null
-                val composite = readExistingMetadataInfo(raf, fileLength)?.compositeData
-                
-                println("SIGMALOG getComposite: lecture composite: $composite")
-                composite
+                val composite = readExistingMetadataInfo(
+                    raf, fileLength, filePath.substringAfterLast("/")
+                        .take(20).padEnd(20).padEnd(20)
+                )?.compositeData
+
+                println(
+                    "SIGMALOG fichier ${
+                        filePath.substringAfterLast("/").take(20).padEnd(20).padEnd(20)
+                    } getComposite: " +
+                            "lecture " +
+                            "composite: $composite"
+                )
+                return composite
             }
         } catch (e: Exception) {
-            println("SIGMALOG getComposite: erreur lecture composite ($filePath): ${e.message}")
-            null
+            println(
+                "SIGMALOG fichier ${
+                    filePath.substringAfterLast("/").take(20).padEnd(20)
+                } getComposite: erreur " +
+                        "lecture " +
+                        "composite ($filePath): ${e.message}"
+            )
+            return null
         }
+        
+        return null
     }
 
     override suspend fun replaceComposite(filePath: String, newComposite: CompositeData?): Boolean {
         val file = File(filePath)
         if (!file.exists() && !filePath.endsWith(".html", ignoreCase = true)) {
-            println("SIGMA replaceComposite: Fichier non trouvé (et n'est pas un HTML à créer) pour remplacement: $filePath")
+            println("SIGMA fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Fichier " +
+                    "non trouvé (et n'est pas un HTML à créer) pour " +
+                    "remplacement")
             return false
         }
         if (filePath.endsWith(".html", ignoreCase = true) && !file.exists()) {
             // createFolderHtmlFile(filePath) // Si vous avez cette logique
-            println("SIGMALOG: replaceComposite Fichier HTML créé pour $filePath. Ajout initial de " +
+            println("SIGMALOG: fichier ${filePath.substringAfterLast("/")} replaceComposite Fichier HTML " +
+                    "créé. Ajout initial de " +
                     "composite" +
                     "...")
             // Pour un nouveau fichier, pas de troncature, juste un ajout.
@@ -159,7 +193,9 @@ class FileMetadataManager() : ICompositeIO {
             val fileLength = raf.length()
             var positionToTruncate = fileLength
 
-            val existingMetadata = if (fileLength > 0) readExistingMetadataInfo(raf, fileLength) else null
+            val existingMetadata = if (fileLength > 0) readExistingMetadataInfo(raf, fileLength, 
+                fileName = filePath.substringAfterLast("/").take(20).padEnd(20)) 
+            else null
 
             if (existingMetadata != null) {
                 // La position à tronquer est le début du bloc composite existant
@@ -181,7 +217,8 @@ class FileMetadataManager() : ICompositeIO {
 
 
             if (positionToTruncate < fileLength) {
-                println("SIGMALOG replaceComposite: Troncature de $filePath à $positionToTruncate (longueur" +
+                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Troncature à $positionToTruncate " +
+                        "(longueur" +
                         " originale $fileLength)")
                 raf.setLength(positionToTruncate)
             }
@@ -204,7 +241,8 @@ class FileMetadataManager() : ICompositeIO {
                 // Écrire le bloc composite
                 raf.write(compositeBlockToWrite)
 
-                println("SIGMALOG replaceComposite: Ecrit composite #1: $compositeJsonString")
+                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
+                        "Ecrit composite #1: $compositeJsonString")
                 
                 // Préparer et écrire le bloc de longueur
                 val lengthValueString = totalCompositeBlockByteLength.toString()
@@ -212,7 +250,8 @@ class FileMetadataManager() : ICompositeIO {
                     "$START_METADATA_LENGTH_TAG\n$lengthValueString\n$END_METADATA_LENGTH_TAG\n"
                 val lengthBlockBytes = lengthBlockString.toByteArray(CHARSET)
                 raf.write(lengthBlockBytes)
-                println("SIGMALOG replaceComposite: Ecrit composite #2: $lengthBlockString")
+                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
+                        "Ecrit composite #2: $lengthBlockString")
             }
 
             raf.close()
@@ -223,13 +262,15 @@ class FileMetadataManager() : ICompositeIO {
                 val verification = getComposite(filePath)
                 val result = verification == newComposite
                 
-                println("SIGMALOG replaceComposite: Vérification: $result")
+                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
+                        "Vérification: $result")
                 return result
             }
             return true // Succès (même si newComposite était null, la troncature a fonctionné)
 
         } catch (e: Exception) {
-            println("SIGMALOG replaceComposite: Erreur ($filePath): ${e.message}")
+            println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Erreur" +
+                    " ($filePath): ${e.message}")
             return false
         }
     }

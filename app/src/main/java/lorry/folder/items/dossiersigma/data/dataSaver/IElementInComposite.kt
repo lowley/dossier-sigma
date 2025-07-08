@@ -50,6 +50,12 @@ data class CompositeData(
         else
             Gson().fromJson(memo, RichTextValueSnapshot::class.java)
     }
+
+    override fun toString(): String {
+        return "CompositeData(initialPicture=${initialPicture?.takeLast(10)}, " +
+                "croppedPicture=${croppedPicture?.takeLast(10)}, " +
+                "flag=$flag, scale=$scale, memo=${memo?.substring(memo.indexOf("text"))?.take(20)})"
+    }
 }
 
 interface IElementInComposite {
