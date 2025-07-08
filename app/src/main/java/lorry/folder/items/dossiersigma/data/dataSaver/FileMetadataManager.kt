@@ -1,6 +1,8 @@
 package lorry.folder.items.dossiersigma.data.dataSaver
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.pointlessapps.rt_editor.model.Style
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -10,7 +12,10 @@ import kotlin.math.min
 
 class FileMetadataManager() : ICompositeIO {
 
-    private val gson = Gson()
+    private val gson = GsonBuilder()
+        .registerTypeAdapter(Style::class.java, StyleAdapter())
+        .create()
+    
     private val CHARSET_NAME = "UTF-8"
     private val CHARSET = Charset.forName(CHARSET_NAME)
 
@@ -112,8 +117,8 @@ class FileMetadataManager() : ICompositeIO {
         val compositeData = try {
             gson.fromJson(compositeJsonString, CompositeData::class.java)
         } catch (e: Exception) {
-            println("SIGMALOG fichier$fileName readExistingMetadataInfo:  Erreur de désérialisation du " +
-                    "JSON: ${e
+            println("SIGMALOG fichier $fileName readExistingMetadataInfo:  Erreur de désérialisation du " +
+                    "JSON $compositeJsonString: ${e
                 .message}")
             null
         }
@@ -131,15 +136,11 @@ class FileMetadataManager() : ICompositeIO {
         if (!file.exists() || !file.isFile) return null
 
         try {
-            if (filePath.contains("Co-Ed"))
-                println("dans Co-Ed confessions 2")
-            
             RandomAccessFile(file, "r").use { raf ->
                 val fileLength = raf.length()
                 if (fileLength == 0L) return@use null
                 val composite = readExistingMetadataInfo(
-                    raf, fileLength, filePath.substringAfterLast("/")
-                        .take(20).padEnd(20).padEnd(20)
+                    raf, fileLength, filePath
                 )?.compositeData
 
                 println(
@@ -194,7 +195,7 @@ class FileMetadataManager() : ICompositeIO {
             var positionToTruncate = fileLength
 
             val existingMetadata = if (fileLength > 0) readExistingMetadataInfo(raf, fileLength, 
-                fileName = filePath.substringAfterLast("/").take(20).padEnd(20)) 
+                fileName = filePath) 
             else null
 
             if (existingMetadata != null) {
