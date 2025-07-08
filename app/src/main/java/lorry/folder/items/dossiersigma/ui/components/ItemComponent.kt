@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -123,8 +122,10 @@ fun ItemComponent(
     }
 
     LaunchedEffect(item.fullPath, pictureUpdateId) {
-        val composite = item.getComposite()
-        val compositeManager = CompositeManager(item.fullPath)
+        val newComposite = item.getComposite()
+        val newCompositeManager = CompositeManager(item.fullPath)
+        val oldCompositeManager = CompositeManager(item.fullPath, useOld = true)
+        val oldComposite = oldCompositeManager.getComposite()
 
         ///////////
         // image //
@@ -134,7 +135,13 @@ fun ItemComponent(
             imageSource.value = cached
         } else {
             val result =
-                getImage(item = item, viewModel = viewModel, context = context, composite = composite)
+                getImage(
+                    item = item,
+                    viewModel = viewModel,
+                    context = context,
+                    newComposite = newComposite,
+                    oldComposite = oldComposite
+                )
             imageCache[item.fullPath] = null
             imageCache[item.fullPath] = result
             imageSource.value = result
@@ -147,7 +154,7 @@ fun ItemComponent(
         if (scaleCached != null) {
             item.scale = scaleCached
         } else {
-            val fromDisk = compositeManager.getElement(Scale)
+            val fromDisk = newCompositeManager.getElement(Scale)
             item.scale = fromDisk
 
             if (fromDisk != null) {
@@ -162,7 +169,7 @@ fun ItemComponent(
         if (flagCached != null) {
             item.tag = flagCached
         } else {
-            val fromDisk = compositeManager.getElement(Flag)
+            val fromDisk = newCompositeManager.getElement(Flag)
             item.tag = fromDisk
             if (fromDisk != null) {
                 viewModel.setFlagCacheValue(item.fullPath, fromDisk)
@@ -176,7 +183,7 @@ fun ItemComponent(
         if (memoCached != null) {
             item.memo = memoCached
         } else {
-            val fromDisk = compositeManager.getElement(Memo)
+            val fromDisk = newCompositeManager.getElement(Memo)
             item.memo = fromDisk
             if (fromDisk != null) {
                 viewModel.setMemoCacheValue(item.fullPath, fromDisk)
@@ -404,14 +411,16 @@ suspend fun getImage(
     item: Item,
     viewModel: SigmaViewModel,
     context: MainActivity,
-    composite: CompositeData?,
+    newComposite: CompositeData?,
+    oldComposite: CompositeData?,
 ): Bitmap {
     var result: Bitmap
     result = when {
         item.picture != null -> item.picture as Bitmap // Utilise l'image en mémoire si disponible
 
         item is SigmaFile -> {
-            var image = composite?.getCroppedPicture() ?: composite?.getInitialPicture()
+            var image = newComposite?.getCroppedPicture() ?: newComposite?.getInitialPicture()
+            val repo = VideoInfoEmbedder()
 
             if (image == null) {
 //            if (item.fullPath.endsWith("mp4") ||
@@ -421,40 +430,54 @@ suspend fun getImage(
 //                item.fullPath.endsWith("iso") ||
 //                item.fullPath.endsWith("mpg")
 //            ) {
+                var image = oldComposite?.getCroppedPicture() ?: oldComposite?.getInitialPicture()
 
-                //récupère image existante selon l'ancienne méthode, si elle existe
-                val repo = VideoInfoEmbedder()
-                val image64 = repo.extractBase64FromFile(
-                    File(item.fullPath),
-                    tag = Tags.COVER
-                )
-                if (image64 != null) {
-                    image = repo.base64ToBitmap(image64)
+                if (image != null) {
                     val compositeMgr = CompositeManager(item.fullPath)
                     compositeMgr.save(InitialPicture(image, repo))
+                } else {
+                    //récupère image existante selon l'ancienne méthode, si elle existe
+                    val image64 = repo.extractBase64FromFile(
+                        File(item.fullPath),
+                        tag = Tags.COVER
+                    )
+                    if (image64 != null) {
+                        image = repo.base64ToBitmap(image64)
+                        val compositeMgr = CompositeManager(item.fullPath)
+                        compositeMgr.save(InitialPicture(image, repo))
+                    }
                 }
             }
-            
-            image = image ?: vectorDrawableToBitmap(context, R.drawable.file)
 
+            image = image ?: vectorDrawableToBitmap(context, R.drawable.file)
             image
         }
 
         item is SigmaFolder -> {
-            var image = composite?.getCroppedPicture() ?: composite?.getInitialPicture()
-            
+            var image = newComposite?.getCroppedPicture() ?: newComposite?.getInitialPicture()
+
             val compositeMgr = CompositeManager(item.fullPath)
             val repo = Base64DataSource()
             val repo2 = VideoInfoEmbedder()
 
             if (image == null) {
+                var image = oldComposite?.getCroppedPicture() ?: oldComposite?.getInitialPicture()
+
+                if (image != null) {
+                    val compositeMgr = CompositeManager(item.fullPath)
+                    compositeMgr.save(InitialPicture(image, repo2))
+                }
+            }
+            
+            if (image == null) {
                 image = repo.extractImageFromHtml("${item.fullPath}/.folderPicture.html")
 
                 compositeMgr.save(InitialPicture(image, repo2))
             }
-            
-            if (composite?.getInitialPicture() == null
-                && image != null) {
+
+            if (newComposite?.getInitialPicture() == null
+                && image != null
+            ) {
                 compositeMgr.save(InitialPicture(image, repo2))
             }
 
@@ -466,7 +489,7 @@ suspend fun getImage(
                     )
                 else vectorDrawableToBitmap(context, R.drawable.folder_empty)
             }
-            
+
             image
         }
 
