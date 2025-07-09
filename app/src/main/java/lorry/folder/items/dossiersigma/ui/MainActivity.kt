@@ -75,10 +75,8 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
-import com.pointlessapps.rt_editor.model.RichTextValue
-import com.pointlessapps.rt_editor.model.Style
-import com.pointlessapps.rt_editor.ui.RichTextEditor
-import com.pointlessapps.rt_editor.ui.defaultRichTextFieldStyle
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -262,17 +260,17 @@ class MainActivity : ComponentActivity() {
                         val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
 
                         if (isRichText.value) {
-                            val snapshots = mainViewModel.memoCache.collectAsState()
-                            val currentItem = mainViewModel.selectedItem.collectAsState()
-
-                            val initialValue = remember(currentItem.value?.fullPath, snapshots.value) {
-                                val snapshot = snapshots.value[currentItem.value?.fullPath]
-                                snapshot?.let { RichTextValue.fromSnapshot(it) } ?: RichTextValue.get()
-                            }
-
-                            var currentValue by remember(currentItem.value?.fullPath) { 
-                                mutableStateOf(initialValue)
-                            }
+//                            val snapshots = mainViewModel.memoCache.collectAsState()
+//                            val currentItem = mainViewModel.selectedItem.collectAsState()
+//
+//                            val initialValue = remember(currentItem.value?.fullPath, snapshots.value) {
+//                                val snapshot = snapshots.value[currentItem.value?.fullPath]
+//                                snapshot?.let { RichTextValue.fromSnapshot(it) } ?: RichTextValue.get()
+//                            }
+//
+//                            var currentValue by remember(currentItem.value?.fullPath) { 
+//                                mutableStateOf(initialValue)
+//                            }
 
                             Column(
                                 modifier = Modifier
@@ -290,188 +288,199 @@ class MainActivity : ComponentActivity() {
                                         focusRequester.requestFocus()
                                     }
 
+                                val state = rememberRichTextState()
+
                                 RichTextEditor(
+                                    state = state,
                                     modifier = Modifier
                                         .background(Color.White)
                                         .height(300.dp)
                                         .focusRequester(focusRequester),
-                                    value = currentValue,
-                                    onValueChange = {
-                                        currentValue = it
-                                        val snapshot = it.getLastSnapshot()
-                                        currentItem.value?.fullPath?.let { path ->
-                                            mainViewModel.setMemoCacheValue(path, it.getLastSnapshot())
-                                        }
-                                        currentItem.value?.memo = snapshot
-                                    },
-                                    textFieldStyle = defaultRichTextFieldStyle().copy(
-                                        placeholder = "Entrez du texte",
-                                        textColor = Color.Black,
-                                        placeholderColor = Color.Gray,
-                                    )
                                 )
+                                
+                                
+                                
+//                                RichTextEditor(
+//                                    modifier = Modifier
+//                                        .background(Color.White)
+//                                        .height(300.dp)
+//                                        .focusRequester(focusRequester),
+//                                    value = currentValue,
+//                                    onValueChange = {
+//                                        currentValue = it
+//                                        val snapshot = it.getLastSnapshot()
+//                                        currentItem.value?.fullPath?.let { path ->
+//                                            mainViewModel.setMemoCacheValue(path, it.getLastSnapshot())
+//                                        }
+//                                        currentItem.value?.memo = snapshot
+//                                    },
+//                                    textFieldStyle = defaultRichTextFieldStyle().copy(
+//                                        placeholder = "Entrez du texte",
+//                                        textColor = Color.Black,
+//                                        placeholderColor = Color.Gray,
+//                                    )
+//                                )
 
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight()
-                                            .background(Color.DarkGray)
-                                            .horizontalScroll(rememberScrollState()),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        IconButton(onClick = {
-                                            val snapshot = currentValue.getLastSnapshot()
-
-                                            currentValue = RichTextValue.get()
-                                            mainViewModel.setIsDisplayingMemo(false)
-                                            
-                                            val item = mainViewModel.selectedItem.value
-                                            if (item == null)
-                                                return@IconButton
-
-                                            item?.memo = snapshot
-                                            mainViewModel.setMemoCacheValue(item?.fullPath ?: "", snapshot)
-                                            
-                                            mainViewModel.viewModelScope.launch(Dispatchers.IO) {
-                                            val compositeMgr = CompositeManager(currentItem.value?.fullPath ?: "")
-                                            compositeMgr.save(Memo(snapshot))
-                                                withContext(Dispatchers.Default) {
-                                                    mainViewModel.setSelectedItem(null)
-                                                    mainViewModel.refreshCurrentFolder()
-                                                }
-                                            }
-                                        }) {
-                                            Icon(
-                                                modifier = Modifier.size(24.dp),
-                                                painter = painterResource(id = R.drawable.exit),
-                                                tint = Color(0xFFd1495b),
-                                                contentDescription = null
-                                            )
-                                        }
-
-                                        IconButton(onClick = {
-                                            integerForKeyboard += 1
-                                        }) {
-                                            Icon(
-                                                modifier = Modifier.size(24.dp),
-                                                painter = painterResource(id = R.drawable.clavier),
-                                                contentDescription = null
-                                            )
-                                        }
-
-                                        EditorAction(
-                                            iconRes = R.drawable.bold,
-                                            active = currentValue.currentStyles.contains(Style.Bold)
-                                        ) {
-                                            currentValue = currentValue.insertStyle(Style.Bold)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.underline,
-                                            active = currentValue.currentStyles.contains(Style.Underline)
-                                        ) {
-                                            currentValue = currentValue.insertStyle(Style.Underline)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.italic,
-                                            active = currentValue.currentStyles.contains(Style.Italic)
-                                        ) {
-                                            currentValue = currentValue.insertStyle(Style.Italic)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.strikethrough,
-                                            active = currentValue.currentStyles.contains(Style.Strikethrough)
-                                        ) {
-                                            currentValue = currentValue.insertStyle(Style.Strikethrough)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.leftalign,
-                                            active = currentValue.currentStyles.contains(Style.AlignLeft)
-                                        ) {
-                                            currentValue = currentValue.insertStyle(Style.AlignLeft)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.centeralign,
-                                            active = currentValue.currentStyles.contains(Style.AlignCenter)
-                                        ) {
-                                            currentValue = currentValue.insertStyle(Style.AlignCenter)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.rightalign,
-                                            active = currentValue.currentStyles.contains(Style.AlignRight)
-                                        ) {
-                                            currentValue = currentValue.insertStyle(Style.AlignRight)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.textsize,
-                                            active = currentValue.currentStyles
-                                                .filterIsInstance<Style.TextSize>()
-                                                .isNotEmpty()
-                                        ) {
-                                            // Remove all styles in selected region that changes the text size
-                                            currentValue = currentValue.clearStyles(Style.TextSize())
-
-                                            // Here you would show a dialog of some sorts and allow user to pick
-                                            // a specific text size. I'm gonna use a random one between 50% and 200%
-
-                                            currentValue = currentValue.insertStyle(
-                                                Style.TextSize(
-                                                    (Random.nextFloat() *
-                                                            (Style.TextSize.MAX_VALUE - Style.TextSize.MIN_VALUE) +
-                                                            Style.TextSize.MIN_VALUE).toFloat()
-                                                )
-                                            )
-                                        }
-                                    }
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight()
-                                            .background(Color.DarkGray)
-                                            .horizontalScroll(rememberScrollState()),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        
-                                        EditorAction(
-                                            iconRes = R.drawable.palette,
-                                            active = currentValue.currentStyles
-                                                .filterIsInstance<Style.TextColor>()
-                                                .isNotEmpty()
-                                        ) {
-                                            // Remove all styles in selected region that changes the text color
-                                            currentValue =
-                                                currentValue.clearStyles(Style.TextColor(Color.Transparent))
-
-                                            // Here you would show a dialog of some sorts and allow user to pick
-                                            // a specific color. I'm gonna use a random one
-
-                                            currentValue = currentValue.insertStyle(
-                                                Style.TextColor(Random.nextInt(360).hueToColor())
-                                            )
-                                        }
-                                        EditorAction(R.drawable.clear, active = true) {
-                                            currentValue = currentValue.insertStyle(Style.ClearFormat)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.undo,
-                                            active = currentValue.isUndoAvailable
-                                        ) {
-                                            currentValue = currentValue.undo()
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.redo,
-                                            active = currentValue.isRedoAvailable
-                                        ) {
-                                            currentValue = currentValue.redo()
-                                        }
-                                    }
-                                }
-
+//                                Column(
+//                                    modifier = Modifier.fillMaxWidth(),
+//                                ) {
+//                                    Row(
+//                                        modifier = Modifier
+//                                            .fillMaxWidth()
+//                                            .wrapContentHeight()
+//                                            .background(Color.DarkGray)
+//                                            .horizontalScroll(rememberScrollState()),
+//                                        verticalAlignment = Alignment.CenterVertically,
+//                                        horizontalArrangement = Arrangement.Center
+//                                    ) {
+//                                        IconButton(onClick = {
+//                                            val snapshot = currentValue.getLastSnapshot()
+//
+//                                            currentValue = RichTextValue.get()
+//                                            mainViewModel.setIsDisplayingMemo(false)
+//                                            
+//                                            val item = mainViewModel.selectedItem.value
+//                                            if (item == null)
+//                                                return@IconButton
+//
+//                                            item?.memo = snapshot
+//                                            mainViewModel.setMemoCacheValue(item?.fullPath ?: "", snapshot)
+//                                            
+//                                            mainViewModel.viewModelScope.launch(Dispatchers.IO) {
+//                                            val compositeMgr = CompositeManager(currentItem.value?.fullPath ?: "")
+//                                            compositeMgr.save(Memo(snapshot))
+//                                                withContext(Dispatchers.Default) {
+//                                                    mainViewModel.setSelectedItem(null)
+//                                                    mainViewModel.refreshCurrentFolder()
+//                                                }
+//                                            }
+//                                        }) {
+//                                            Icon(
+//                                                modifier = Modifier.size(24.dp),
+//                                                painter = painterResource(id = R.drawable.exit),
+//                                                tint = Color(0xFFd1495b),
+//                                                contentDescription = null
+//                                            )
+//                                        }
+//
+//                                        IconButton(onClick = {
+//                                            integerForKeyboard += 1
+//                                        }) {
+//                                            Icon(
+//                                                modifier = Modifier.size(24.dp),
+//                                                painter = painterResource(id = R.drawable.clavier),
+//                                                contentDescription = null
+//                                            )
+//                                        }
+//
+//                                        EditorAction(
+//                                            iconRes = R.drawable.bold,
+//                                            active = currentValue.currentStyles.contains(Style.Bold)
+//                                        ) {
+//                                            currentValue = currentValue.insertStyle(Style.Bold)
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.underline,
+//                                            active = currentValue.currentStyles.contains(Style.Underline)
+//                                        ) {
+//                                            currentValue = currentValue.insertStyle(Style.Underline)
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.italic,
+//                                            active = currentValue.currentStyles.contains(Style.Italic)
+//                                        ) {
+//                                            currentValue = currentValue.insertStyle(Style.Italic)
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.strikethrough,
+//                                            active = currentValue.currentStyles.contains(Style.Strikethrough)
+//                                        ) {
+//                                            currentValue = currentValue.insertStyle(Style.Strikethrough)
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.leftalign,
+//                                            active = currentValue.currentStyles.contains(Style.AlignLeft)
+//                                        ) {
+//                                            currentValue = currentValue.insertStyle(Style.AlignLeft)
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.centeralign,
+//                                            active = currentValue.currentStyles.contains(Style.AlignCenter)
+//                                        ) {
+//                                            currentValue = currentValue.insertStyle(Style.AlignCenter)
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.rightalign,
+//                                            active = currentValue.currentStyles.contains(Style.AlignRight)
+//                                        ) {
+//                                            currentValue = currentValue.insertStyle(Style.AlignRight)
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.textsize,
+//                                            active = currentValue.currentStyles
+//                                                .filterIsInstance<Style.TextSize>()
+//                                                .isNotEmpty()
+//                                        ) {
+//                                            // Remove all styles in selected region that changes the text size
+//                                            currentValue = currentValue.clearStyles(Style.TextSize())
+//
+//                                            // Here you would show a dialog of some sorts and allow user to pick
+//                                            // a specific text size. I'm gonna use a random one between 50% and 200%
+//
+//                                            currentValue = currentValue.insertStyle(
+//                                                Style.TextSize(
+//                                                    (Random.nextFloat() *
+//                                                            (Style.TextSize.MAX_VALUE - Style.TextSize.MIN_VALUE) +
+//                                                            Style.TextSize.MIN_VALUE).toFloat()
+//                                                )
+//                                            )
+//                                        }
+//                                    }
+//
+//                                    Row(
+//                                        modifier = Modifier
+//                                            .fillMaxWidth()
+//                                            .wrapContentHeight()
+//                                            .background(Color.DarkGray)
+//                                            .horizontalScroll(rememberScrollState()),
+//                                        verticalAlignment = Alignment.CenterVertically,
+//                                        horizontalArrangement = Arrangement.Center
+//                                    ) {
+//                                        
+//                                        EditorAction(
+//                                            iconRes = R.drawable.palette,
+//                                            active = currentValue.currentStyles
+//                                                .filterIsInstance<Style.TextColor>()
+//                                                .isNotEmpty()
+//                                        ) {
+//                                            // Remove all styles in selected region that changes the text color
+//                                            currentValue =
+//                                                currentValue.clearStyles(Style.TextColor(Color.Transparent))
+//
+//                                            // Here you would show a dialog of some sorts and allow user to pick
+//                                            // a specific color. I'm gonna use a random one
+//
+//                                            currentValue = currentValue.insertStyle(
+//                                                Style.TextColor(Random.nextInt(360).hueToColor())
+//                                            )
+//                                        }
+//                                        EditorAction(R.drawable.clear, active = true) {
+//                                            currentValue = currentValue.insertStyle(Style.ClearFormat)
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.undo,
+//                                            active = currentValue.isUndoAvailable
+//                                        ) {
+//                                            currentValue = currentValue.undo()
+//                                        }
+//                                        EditorAction(
+//                                            iconRes = R.drawable.redo,
+//                                            active = currentValue.isRedoAvailable
+//                                        ) {
+//                                            currentValue = currentValue.redo()
+//                                        }
+//                                    }
+//                                }
                             }
                         }
                         
@@ -923,12 +932,4 @@ fun <T> LazyGridScope.lazyGridItems(
     itemsIndexed(items, key = { index, item -> key?.invoke(item) ?: index }) { _, item ->
         itemContent(item)
     }
-}
-
-object BoldRedStyle : Style.TextStyle {
-    override val spanStyle = SpanStyle(
-        color = Color.Red,
-        fontWeight = FontWeight.Bold,
-    )
-    override val tag = "BoldRedStyle"
 }
