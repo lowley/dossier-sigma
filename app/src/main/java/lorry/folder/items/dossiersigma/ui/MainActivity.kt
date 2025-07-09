@@ -15,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -293,9 +294,24 @@ class MainActivity : ComponentActivity() {
                                 RichTextEditor(
                                     state = state,
                                     modifier = Modifier
+                                        .clip(RoundedCornerShape(
+                                            topStart = 8.dp,
+                                            topEnd = 8.dp,
+                                            bottomStart = 0.dp,
+                                            bottomEnd = 0.dp))
                                         .background(Color.White)
                                         .height(300.dp)
-                                        .focusRequester(focusRequester),
+                                        .fillMaxWidth()
+                                        .focusRequester(focusRequester)
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color.DarkGray,
+                                            shape = RoundedCornerShape(
+                                                topStart = 8.dp,
+                                                topEnd = 8.dp,
+                                                bottomStart = 0.dp,
+                                                bottomEnd = 0.dp)
+                                        ),
                                 )
                                 
                                 
@@ -321,31 +337,31 @@ class MainActivity : ComponentActivity() {
 //                                    )
 //                                )
 
-//                                Column(
-//                                    modifier = Modifier.fillMaxWidth(),
-//                                ) {
-//                                    Row(
-//                                        modifier = Modifier
-//                                            .fillMaxWidth()
-//                                            .wrapContentHeight()
-//                                            .background(Color.DarkGray)
-//                                            .horizontalScroll(rememberScrollState()),
-//                                        verticalAlignment = Alignment.CenterVertically,
-//                                        horizontalArrangement = Arrangement.Center
-//                                    ) {
-//                                        IconButton(onClick = {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight()
+                                            .background(Color.DarkGray)
+                                            .horizontalScroll(rememberScrollState()),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+                                        IconButton(onClick = {
 //                                            val snapshot = currentValue.getLastSnapshot()
 //
 //                                            currentValue = RichTextValue.get()
 //                                            mainViewModel.setIsDisplayingMemo(false)
-//                                            
+//
 //                                            val item = mainViewModel.selectedItem.value
 //                                            if (item == null)
 //                                                return@IconButton
 //
 //                                            item?.memo = snapshot
 //                                            mainViewModel.setMemoCacheValue(item?.fullPath ?: "", snapshot)
-//                                            
+//
 //                                            mainViewModel.viewModelScope.launch(Dispatchers.IO) {
 //                                            val compositeMgr = CompositeManager(currentItem.value?.fullPath ?: "")
 //                                            compositeMgr.save(Memo(snapshot))
@@ -354,74 +370,72 @@ class MainActivity : ComponentActivity() {
 //                                                    mainViewModel.refreshCurrentFolder()
 //                                                }
 //                                            }
-//                                        }) {
-//                                            Icon(
-//                                                modifier = Modifier.size(24.dp),
-//                                                painter = painterResource(id = R.drawable.exit),
-//                                                tint = Color(0xFFd1495b),
-//                                                contentDescription = null
-//                                            )
-//                                        }
-//
-//                                        IconButton(onClick = {
-//                                            integerForKeyboard += 1
-//                                        }) {
-//                                            Icon(
-//                                                modifier = Modifier.size(24.dp),
-//                                                painter = painterResource(id = R.drawable.clavier),
-//                                                contentDescription = null
-//                                            )
-//                                        }
-//
-//                                        EditorAction(
-//                                            iconRes = R.drawable.bold,
-//                                            active = currentValue.currentStyles.contains(Style.Bold)
-//                                        ) {
+                                        }) {
+                                            Icon(
+                                                modifier = Modifier.size(24.dp),
+                                                painter = painterResource(id = R.drawable.exit),
+                                                tint = Color(0xFFd1495b),
+                                                contentDescription = null
+                                            )
+                                        }
+
+                                        IconButton(onClick = {
+                                            integerForKeyboard += 1
+                                        }) {
+                                            Icon(
+                                                modifier = Modifier.size(24.dp),
+                                                painter = painterResource(id = R.drawable.clavier),
+                                                contentDescription = null
+                                            )
+                                        }
+
+                                        EditorAction(
+                                            iconRes = R.drawable.bold,
+                                            active = true
+                                        ) {
 //                                            currentValue = currentValue.insertStyle(Style.Bold)
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.underline,
-//                                            active = currentValue.currentStyles.contains(Style.Underline)
-//                                        ) {
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.underline,
+                                            active = true
+                                        ) {
 //                                            currentValue = currentValue.insertStyle(Style.Underline)
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.italic,
-//                                            active = currentValue.currentStyles.contains(Style.Italic)
-//                                        ) {
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.italic,
+                                            active = true
+                                        ) {
 //                                            currentValue = currentValue.insertStyle(Style.Italic)
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.strikethrough,
-//                                            active = currentValue.currentStyles.contains(Style.Strikethrough)
-//                                        ) {
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.strikethrough,
+                                            active = true
+                                        ) {
 //                                            currentValue = currentValue.insertStyle(Style.Strikethrough)
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.leftalign,
-//                                            active = currentValue.currentStyles.contains(Style.AlignLeft)
-//                                        ) {
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.leftalign,
+                                            active = true
+                                        ) {
 //                                            currentValue = currentValue.insertStyle(Style.AlignLeft)
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.centeralign,
-//                                            active = currentValue.currentStyles.contains(Style.AlignCenter)
-//                                        ) {
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.centeralign,
+                                            active = true
+                                        ) {
 //                                            currentValue = currentValue.insertStyle(Style.AlignCenter)
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.rightalign,
-//                                            active = currentValue.currentStyles.contains(Style.AlignRight)
-//                                        ) {
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.rightalign,
+                                            active = true
+                                        ) {
 //                                            currentValue = currentValue.insertStyle(Style.AlignRight)
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.textsize,
-//                                            active = currentValue.currentStyles
-//                                                .filterIsInstance<Style.TextSize>()
-//                                                .isNotEmpty()
-//                                        ) {
-//                                            // Remove all styles in selected region that changes the text size
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.textsize,
+                                            active = true
+                                        ) {
+                                            // Remove all styles in selected region that changes the text size
 //                                            currentValue = currentValue.clearStyles(Style.TextSize())
 //
 //                                            // Here you would show a dialog of some sorts and allow user to pick
@@ -434,26 +448,24 @@ class MainActivity : ComponentActivity() {
 //                                                            Style.TextSize.MIN_VALUE).toFloat()
 //                                                )
 //                                            )
-//                                        }
-//                                    }
-//
-//                                    Row(
-//                                        modifier = Modifier
-//                                            .fillMaxWidth()
-//                                            .wrapContentHeight()
-//                                            .background(Color.DarkGray)
-//                                            .horizontalScroll(rememberScrollState()),
-//                                        verticalAlignment = Alignment.CenterVertically,
-//                                        horizontalArrangement = Arrangement.Center
-//                                    ) {
-//                                        
-//                                        EditorAction(
-//                                            iconRes = R.drawable.palette,
-//                                            active = currentValue.currentStyles
-//                                                .filterIsInstance<Style.TextColor>()
-//                                                .isNotEmpty()
-//                                        ) {
-//                                            // Remove all styles in selected region that changes the text color
+                                        }
+                                    }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight()
+                                            .background(Color.DarkGray)
+                                            .horizontalScroll(rememberScrollState()),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+
+                                        EditorAction(
+                                            iconRes = R.drawable.palette,
+                                            active = true
+                                        ) {
+                                            // Remove all styles in selected region that changes the text color
 //                                            currentValue =
 //                                                currentValue.clearStyles(Style.TextColor(Color.Transparent))
 //
@@ -463,24 +475,12 @@ class MainActivity : ComponentActivity() {
 //                                            currentValue = currentValue.insertStyle(
 //                                                Style.TextColor(Random.nextInt(360).hueToColor())
 //                                            )
-//                                        }
-//                                        EditorAction(R.drawable.clear, active = true) {
+                                        }
+                                        EditorAction(R.drawable.clear, active = true) {
 //                                            currentValue = currentValue.insertStyle(Style.ClearFormat)
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.undo,
-//                                            active = currentValue.isUndoAvailable
-//                                        ) {
-//                                            currentValue = currentValue.undo()
-//                                        }
-//                                        EditorAction(
-//                                            iconRes = R.drawable.redo,
-//                                            active = currentValue.isRedoAvailable
-//                                        ) {
-//                                            currentValue = currentValue.redo()
-//                                        }
-//                                    }
-//                                }
+                                        }
+                                    }
+                                }
                             }
                         }
                         
@@ -773,7 +773,7 @@ class MainActivity : ComponentActivity() {
                                     mainViewModel.dialogOnOkLambda = null
                                 } else
                                     mainViewModel.viewModelScope.launch {
-                                        currentTool?.onClick(mainViewModel, this@MainActivity)
+                                        currentTool?.onClick?.let { it(mainViewModel, this@MainActivity) }
                                     }
                             }
 
@@ -790,7 +790,7 @@ class MainActivity : ComponentActivity() {
                                     mainViewModel.dialogYesNoLambda = null
                                 } else
                                     mainViewModel.viewModelScope.launch {
-                                        currentTool?.onClick(mainViewModel, this@MainActivity)
+                                        currentTool?.onClick?.let { it(mainViewModel, this@MainActivity) }
                                     }
                             }
                         }
