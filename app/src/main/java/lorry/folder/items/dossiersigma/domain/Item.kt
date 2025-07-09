@@ -28,7 +28,7 @@ abstract class Item(
     var modificationDate: Long,
     var tag: ColoredTag? = null,
     var scale: ContentScale? = null,
-    var memo: RichTextValueSnapshot? = null
+    var memo: String? = null
     
 ) {
     fun isFile(): Boolean {
@@ -54,7 +54,7 @@ abstract class Item(
         picture: Any? = this.picture,
         tag: ColoredTag? = this.tag,
         scale: ContentScale? = this.scale,
-        memo: RichTextValueSnapshot? = this.memo
+        memo: String? = this.memo
     ): Item {
         if (this is SigmaFolder) {
             return this.copy(
@@ -109,15 +109,7 @@ abstract class Item(
         }
     }
 
-    fun isMemoUnchanged(
-        initialSnapshot: RichTextValueSnapshot? = null
-    ): Boolean {
-        val currentSnapshot = memo
-        val result = (currentSnapshot?.text == initialSnapshot?.text)
-                || (currentSnapshot == null && initialSnapshot?.text == "")
-                || (currentSnapshot?.text == "" && initialSnapshot == null)
-        return result
-    }
+    fun isMemoUnchanged(): Boolean = memo == null || memo!!.isEmpty()
     
     override fun toString(): String {
         return "Item(type=${if (isFile()) "File" else "Folder"}, name='$name', picture=${picture != null}, " +

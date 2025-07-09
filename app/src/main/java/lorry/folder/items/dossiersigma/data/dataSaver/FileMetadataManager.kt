@@ -12,9 +12,7 @@ import kotlin.math.min
 
 class FileMetadataManager() : ICompositeIO {
 
-    private val gson = GsonBuilder()
-        .registerTypeAdapter(Style::class.java, StyleAdapter())
-        .create()
+    private val gson = Gson()
     
     private val CHARSET_NAME = "UTF-8"
     private val CHARSET = Charset.forName(CHARSET_NAME)
@@ -43,8 +41,7 @@ class FileMetadataManager() : ICompositeIO {
     private suspend fun readExistingMetadataInfo(raf: RandomAccessFile, fileLength: Long, fileName: String): ParsedMetadata? {
         if (fileLength < METADATA_LENGTH_LOOKBACK_BUFFER_SIZE) {
             println("SIGMALOG Fichier $fileName readExistingMetadataInfo:  trop petit pour les balises de " +
-                    "longueur de " +
-                    "métadonnées.")
+                    "longueur de métadonnées.")
             return null
         }
 

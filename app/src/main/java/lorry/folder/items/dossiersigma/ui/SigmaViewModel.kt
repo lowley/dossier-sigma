@@ -100,10 +100,10 @@ class SigmaViewModel @Inject constructor(
 
     }
 
-    private val _memoCache = MutableStateFlow(mutableMapOf<String, RichTextValueSnapshot>())
-    val memoCache: StateFlow<MutableMap<String, RichTextValueSnapshot>> = _memoCache
+    private val _memoCache = MutableStateFlow(mutableMapOf<String, String>())
+    val memoCache: StateFlow<MutableMap<String, String>> = _memoCache
 
-    fun setMemoCacheValue(key: String, tag: RichTextValueSnapshot) {
+    fun setMemoCacheValue(key: String, tag: String) {
         _memoCache.value = _memoCache.value.toMutableMap().apply {
             put(key, tag)
         }
@@ -111,7 +111,7 @@ class SigmaViewModel @Inject constructor(
         println("ajout de clé dans memoCache, il y a ${_memoCache.value.size} clés")
     }
 
-    fun removeMemoCacheForKey(key: String): RichTextValueSnapshot? {
+    fun removeMemoCacheForKey(key: String): String? {
         return _memoCache.value.remove(key)
     }
 
@@ -119,6 +119,13 @@ class SigmaViewModel @Inject constructor(
         _memoCache.value = mutableMapOf()
         println("clearMemoCache, il y a ${_memoCache.value.size} clés")
 
+    }
+
+    private val _isDisplayingMemo = MutableStateFlow(false)
+    val isDisplayingMemo: StateFlow<Boolean> = _isDisplayingMemo
+
+    fun setIsDisplayingMemo(isVisible: Boolean) {
+        _isDisplayingMemo.value = isVisible
     }
 
     private val _dragTargetItem = MutableStateFlow<Item?>(null)
@@ -151,13 +158,6 @@ class SigmaViewModel @Inject constructor(
 
     fun setDraggedTag(tag: ColoredTag?) {
         _draggedTag.value = tag
-    }
-
-    private val _isDisplayingMemo = MutableStateFlow(false)
-    val isDisplayingMemo: StateFlow<Boolean> = _isDisplayingMemo
-
-    fun setIsDisplayingMemo(isVisible: Boolean) {
-        _isDisplayingMemo.value = isVisible
     }
 
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
@@ -211,22 +211,22 @@ class SigmaViewModel @Inject constructor(
             path = "/storage/emulated/0/Movies",
             name = "Veuillez attendre",
             picture = null,
-            items = emptyList<Item>(),
+            items = emptyList(),
             tag = null,
             scale = ContentScale.Crop,
             modificationDate = System.currentTimeMillis(),
-            memo = RichTextValueSnapshot()
+            memo = ""
         )
     )
 
-    val currentMemo: StateFlow<RichTextValueSnapshot> = combine(
+    val currentMemo: StateFlow<String> = combine(
         currentFolderPath, memoCache
     ) { path, cache ->
-        cache[path] ?: RichTextValueSnapshot()
+        cache[path] ?: ""
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = RichTextValueSnapshot()
+        initialValue = ""
     )
 
     companion object {

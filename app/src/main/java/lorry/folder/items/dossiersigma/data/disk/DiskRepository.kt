@@ -39,7 +39,6 @@ class DiskRepository @Inject constructor(
     val intentWrapper: DSI_IntentWrapper
 ) : IDiskRepository {
 
-    @OptIn(DelicateCoroutinesApi::class)
     suspend override fun getFolderItems(
         folderPath: String,
         sorting: ITEMS_ORDERING_STRATEGY
@@ -62,7 +61,7 @@ class DiskRepository @Inject constructor(
                                     modificationDate = itemDTO.lastModified,
                                     tag = null,
                                     scale = ContentScale.Crop,
-                                    memo = RichTextValueSnapshot(),
+                                    memo = null,
                                 )
 
                                 if (itemDTO.name.endsWith(".html")) {
@@ -97,7 +96,7 @@ class DiskRepository @Inject constructor(
                                     modificationDate = itemDTO.lastModified,
                                     tag = null,
                                     scale = ContentScale.Crop,
-                                    memo = RichTextValueSnapshot(),
+                                    memo = null,
                                     
                                 )
                             }
@@ -182,7 +181,7 @@ class DiskRepository @Inject constructor(
             modificationDate = folder.lastModified(),
             tag = null,
             scale = ContentScale.Crop,
-            memo = RichTextValueSnapshot()
+            memo = null
         )
     }
 

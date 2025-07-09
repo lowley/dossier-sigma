@@ -18,14 +18,14 @@ class SigmaFolder : Item {
         modificationDate: Long,
         tag: ColoredTag?,
         scale: ContentScale?,
-        memo: RichTextValueSnapshot? = null
+        memo: String? = null
     ) : super(path, name, picture, id, modificationDate, tag,  scale, memo) {
         this.items = items
     }
 
     override fun toString(): String {
         return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${id.take(5)}, " +
-                "items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: ${memo}"
+                "items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: $memo"
     }
 
     constructor(
@@ -36,7 +36,7 @@ class SigmaFolder : Item {
         modificationDate: Long,
         tag: ColoredTag?,
         scale: ContentScale?,
-        memo: RichTextValueSnapshot? = RichTextValueSnapshot()
+        memo: String? = null
     ) : super(
         path = fullPath.substringBeforeLast("/"),
         name = fullPath.substringAfterLast("/"),
@@ -62,7 +62,7 @@ class SigmaFolder : Item {
         modificationDate: Long = this.modificationDate,
         tag: ColoredTag? = this.tag, 
         scale: ContentScale? = this.scale,
-        memo: RichTextValueSnapshot? = this.memo
+        memo: String? = this.memo
     ): SigmaFolder {
         val result = SigmaFolder(
             path = path, name = name, picture = picture, 

@@ -89,7 +89,7 @@ fun ItemComponent(
     imageCache: MutableMap<String, Any?>,
     scaleCache: StateFlow<MutableMap<String, ContentScale>>,
     flagCache: StateFlow<MutableMap<String, ColoredTag>>,
-    memoCache: StateFlow<MutableMap<String, RichTextValueSnapshot>>,
+    memoCache: StateFlow<MutableMap<String, String>>,
     context: MainActivity,
 ) {
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }

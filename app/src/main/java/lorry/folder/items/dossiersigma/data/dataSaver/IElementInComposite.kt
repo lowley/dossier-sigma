@@ -24,9 +24,7 @@ data class CompositeData(
 ) {
     val videoInfoEmbedder = VideoInfoEmbedder()
     @Transient
-    val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Style::class.java, StyleAdapter())
-        .create()
+    val gson: Gson = Gson()
     
     suspend fun getInitialPicture(): Bitmap? {
         val base64 = initialPicture ?: return null
@@ -52,27 +50,19 @@ data class CompositeData(
             gson.fromJson(scale, ContentScale::class.java)
     }
 
-    fun getMemo(): RichTextValueSnapshot? {
+    fun getTheMemo(): String? {
         return if (memo == null)
             null
         else
-            gson.fromJson(memo, RichTextValueSnapshot::class.java)
+            gson.fromJson(memo, String::class.java)
     }
 
     override fun toString(): String {
         return "CompositeData(initialPicture=${initialPicture?.takeLast(10)}, " +
                 "croppedPicture=${croppedPicture?.takeLast(10)}, " +
-                "flag=$flag, scale=$scale, memo=${memo?.substring(memo.indexOf("text"))?.take(20)})"
+                "flag=$flag, scale=$scale, memo=${memo?.take(20)})"
     }
 }
-
-data class MemoData(
-    val text: String,
-    val spanStyles: List<Style>,
-    val paragraphStyles: List<ParagraphStyle>
-    
-    
-)
 
 interface IElementInComposite {
 
@@ -140,9 +130,7 @@ data class CroppedPicture @Inject constructor(
 data class Flag @Inject constructor(
     val flag: ColoredTag?
 ) : IElementInComposite {
-    val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Style::class.java, StyleAdapter())
-        .create()
+    val gson: Gson = Gson()
     
     override suspend fun update(composite: CompositeData): CompositeData {
         val flagAsString = gson.toJson(flag)
@@ -180,9 +168,7 @@ data class Scale @Inject constructor(
     companion object : IElementReader<ContentScale> {
 
         var videoInfoEmbedder = VideoInfoEmbedder()
-        val gson: Gson = GsonBuilder()
-            .registerTypeAdapter(Style::class.java, StyleAdapter())
-            .create()
+        val gson: Gson = Gson()
         
         override suspend fun fileGet(filePath: String, useOld: Boolean): ContentScale? {
             val fileCompositeManager = FileCompositeManager(filePath, useOld)
@@ -204,34 +190,29 @@ data class Scale @Inject constructor(
 }
 
 data class Memo @Inject constructor(
-    val memo: RichTextValueSnapshot?
+    val memo: String?
 ) : IElementInComposite {
-    val gson: Gson = GsonBuilder()
-        .registerTypeAdapter(Style::class.java, StyleAdapter())
-        .create()
+    val gson: Gson = Gson()
     
     override suspend fun update(composite: CompositeData): CompositeData {
         val memoAsString = gson.toJson(memo)
-        return composite.copy(memo = memoAsString)
+        return composite.copy(memo2 = memoAsString)
     }
 
-    companion object : IElementReader<RichTextValueSnapshot> {
+    companion object : IElementReader<String> {
 
-        var videoInfoEmbedder = VideoInfoEmbedder()
-        val gson: Gson = GsonBuilder()
-            .registerTypeAdapter(Style::class.java, StyleAdapter())
-            .create()
+        val gson: Gson = Gson()
         
-        override suspend fun fileGet(filePath: String, useOld: Boolean): RichTextValueSnapshot? {
+        override suspend fun fileGet(filePath: String, useOld: Boolean): String? {
             val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
-            if (composite.memo == null)
+            if (composite.memo2 == null)
                 return null
 
-            return gson.fromJson(composite.memo, RichTextValueSnapshot::class.java)
+            return gson.fromJson(composite.memo2, String::class.java)
         }
 
-        override suspend fun folderGet(folderPath: String, useOld: Boolean): RichTextValueSnapshot? {
+        override suspend fun folderGet(folderPath: String, useOld: Boolean): String? {
             val filePath = "$folderPath/.folderPicture.html"
             return fileGet(filePath, useOld)
         }

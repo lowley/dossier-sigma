@@ -21,7 +21,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +37,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSizeDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -70,8 +70,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.ParagraphStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isUnspecified
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -86,8 +92,6 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
-import lorry.folder.items.dossiersigma.data.dataSaver.FileCompositeIO
-import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
@@ -106,6 +110,7 @@ import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import java.io.File
 import javax.inject.Inject
 import kotlin.random.Random
+import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -124,7 +129,7 @@ class MainActivity : ComponentActivity() {
     lateinit var openTagInfosDialog: MutableState<Boolean>
     lateinit var isContextMenuVisible: State<Boolean>
     lateinit var homePageVisible: State<Boolean>
-    
+
     @OptIn(
         ExperimentalMaterial3Api::class
     )
@@ -134,7 +139,7 @@ class MainActivity : ComponentActivity() {
         val permissionsManager = PermissionsManager()
         if (!permissionsManager.hasExternalStoragePermission())
             permissionsManager.requestExternalStoragePermission(this)
-        
+
         window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
 
 //        viewModel.viewModelScope.launch(Dispatchers.IO) {
@@ -156,25 +161,26 @@ class MainActivity : ComponentActivity() {
                         Button(
                             onClick = {
                                 mainViewModel.setDialogMessage("Nom du dossier à créer")
-                                mainViewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
-                                    val currentFolderPath = viewModel.currentFolderPath.value
-                                    val newFullName = "$currentFolderPath/$newName"
-                                    if (!File(newFullName).exists()) {
-                                        if (File(newFullName).mkdir()) {
-                                            Toast.makeText(
-                                                mainActivity,
-                                                "Répertoire créé",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            viewModel.refreshCurrentFolder()
-                                        } else
-                                            Toast.makeText(
-                                                mainActivity,
-                                                "Un problème est survenu",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                mainViewModel.dialogOnOkLambda =
+                                    { newName, viewModel, mainActivity ->
+                                        val currentFolderPath = viewModel.currentFolderPath.value
+                                        val newFullName = "$currentFolderPath/$newName"
+                                        if (!File(newFullName).exists()) {
+                                            if (File(newFullName).mkdir()) {
+                                                Toast.makeText(
+                                                    mainActivity,
+                                                    "Répertoire créé",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                viewModel.refreshCurrentFolder()
+                                            } else
+                                                Toast.makeText(
+                                                    mainActivity,
+                                                    "Un problème est survenu",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                        }
                                     }
-                                }
 
                                 openTextDialog.value = true
                             },
@@ -257,21 +263,10 @@ class MainActivity : ComponentActivity() {
                     Box(
 
                     ) {
-//                        var value by remember { mutableStateOf(RichTextValue.get()) }
                         val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
 
                         if (isRichText.value) {
-//                            val snapshots = mainViewModel.memoCache.collectAsState()
-//                            val currentItem = mainViewModel.selectedItem.collectAsState()
-//
-//                            val initialValue = remember(currentItem.value?.fullPath, snapshots.value) {
-//                                val snapshot = snapshots.value[currentItem.value?.fullPath]
-//                                snapshot?.let { RichTextValue.fromSnapshot(it) } ?: RichTextValue.get()
-//                            }
-//
-//                            var currentValue by remember(currentItem.value?.fullPath) { 
-//                                mutableStateOf(initialValue)
-//                            }
+                            val currentItem = mainViewModel.selectedItem.collectAsState()
 
                             Column(
                                 modifier = Modifier
@@ -283,22 +278,30 @@ class MainActivity : ComponentActivity() {
                                 val focusRequester = remember { FocusRequester() }
 
                                 var integerForKeyboard by remember { mutableStateOf(0) }
-
                                 if (integerForKeyboard != 0)
                                     LaunchedEffect(integerForKeyboard) {
                                         focusRequester.requestFocus()
                                     }
 
-                                val state = rememberRichTextState()
+                                val richTextState = rememberRichTextState()
+
+                                LaunchedEffect(isRichText.value) {
+                                    if (isRichText.value){
+                                        richTextState.setHtml(currentItem.value?.memo?: "")
+                                    }
+                                }
 
                                 RichTextEditor(
-                                    state = state,
+                                    state = richTextState,
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(
-                                            topStart = 8.dp,
-                                            topEnd = 8.dp,
-                                            bottomStart = 0.dp,
-                                            bottomEnd = 0.dp))
+                                        .clip(
+                                            RoundedCornerShape(
+                                                topStart = 8.dp,
+                                                topEnd = 8.dp,
+                                                bottomStart = 0.dp,
+                                                bottomEnd = 0.dp
+                                            )
+                                        )
                                         .background(Color.White)
                                         .height(300.dp)
                                         .fillMaxWidth()
@@ -310,32 +313,10 @@ class MainActivity : ComponentActivity() {
                                                 topStart = 8.dp,
                                                 topEnd = 8.dp,
                                                 bottomStart = 0.dp,
-                                                bottomEnd = 0.dp)
+                                                bottomEnd = 0.dp
+                                            )
                                         ),
                                 )
-                                
-                                
-                                
-//                                RichTextEditor(
-//                                    modifier = Modifier
-//                                        .background(Color.White)
-//                                        .height(300.dp)
-//                                        .focusRequester(focusRequester),
-//                                    value = currentValue,
-//                                    onValueChange = {
-//                                        currentValue = it
-//                                        val snapshot = it.getLastSnapshot()
-//                                        currentItem.value?.fullPath?.let { path ->
-//                                            mainViewModel.setMemoCacheValue(path, it.getLastSnapshot())
-//                                        }
-//                                        currentItem.value?.memo = snapshot
-//                                    },
-//                                    textFieldStyle = defaultRichTextFieldStyle().copy(
-//                                        placeholder = "Entrez du texte",
-//                                        textColor = Color.Black,
-//                                        placeholderColor = Color.Gray,
-//                                    )
-//                                )
 
                                 Column(
                                     modifier = Modifier.fillMaxWidth(),
@@ -349,11 +330,160 @@ class MainActivity : ComponentActivity() {
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Center
                                     ) {
+
+                                        IconButton(onClick = {
+                                            integerForKeyboard += 1
+                                        }) {
+                                            Icon(
+                                                modifier = Modifier.size(24.dp),
+                                                painter = painterResource(id = R.drawable.clavier),
+                                                contentDescription = null
+                                            )
+                                        }
+
+                                        EditorAction(
+                                            iconRes = R.drawable.bold,
+                                            active = true
+                                        ) {
+                                            // Toggle a span style .
+                                            richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.underline,
+                                            active = true
+                                        ) {
+                                            richTextState.config.linkTextDecoration =
+                                                TextDecoration.Underline
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.italic,
+                                            active = true
+                                        ) {
+                                            richTextState.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic))
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.strikethrough,
+                                            active = true
+                                        ) {
+                                            richTextState.config.linkTextDecoration =
+                                                TextDecoration.LineThrough
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.leftalign,
+                                            active = true
+                                        ) {
+                                            // Toggle a paragraph style.
+                                            richTextState.toggleParagraphStyle(
+                                                ParagraphStyle(
+                                                    textAlign = TextAlign.Start
+                                                )
+                                            )
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.centeralign,
+                                            active = true
+                                        ) {
+                                            // Toggle a paragraph style.
+                                            richTextState.toggleParagraphStyle(
+                                                ParagraphStyle(
+                                                    textAlign = TextAlign.Center
+                                                )
+                                            )
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.rightalign,
+                                            active = true
+                                        ) {
+                                            // Toggle a paragraph style.
+                                            richTextState.toggleParagraphStyle(
+                                                ParagraphStyle(
+                                                    textAlign = TextAlign.End
+                                                )
+                                            )
+                                        }
+                                        EditorAction(
+                                            iconRes = R.drawable.textsize,
+                                            active = true
+                                        ) {
+                                            val currentSpanStyle = richTextState.currentSpanStyle
+                                            val currentFontSize = currentSpanStyle.fontSize
+                                            val defaultFontSize = 16.sp
+
+                                            val baseSize = if (currentFontSize.isUnspecified) {
+                                                defaultFontSize
+                                            } else {
+                                                currentSpanStyle.fontSize
+                                            }
+
+//                                            val newFontSize = baseSize + 1.sp
+
+                                            richTextState.toggleSpanStyle(
+                                                spanStyle = SpanStyle(fontSize = TextAutoSizeDefaults.MaxFontSize)
+                                            )
+                                        }
+                                    }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight()
+                                            .background(Color.DarkGray)
+                                            .horizontalScroll(rememberScrollState()),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
+                                    ) {
+
+                                        EditorAction(
+                                            iconRes = R.drawable.palette,
+                                            active = true
+                                        ) {
+                                            richTextState.addSpanStyle(
+                                                SpanStyle(
+                                                    color = Random.nextInt(360).hueToColor()
+                                                )
+                                            )
+                                        }
+
+                                        IconButton(onClick = {
+                                            val editorContent = richTextState.toHtml()
+
+                                            val currentItem =
+                                                mainViewModel.selectedItem.value
+                                                    ?: return@IconButton
+
+                                            currentItem.memo = editorContent
+                                            mainViewModel.setMemoCacheValue(
+                                                key = currentItem.fullPath ?: "",
+                                                tag = editorContent
+                                            )
+
+                                            mainViewModel.viewModelScope.launch(Dispatchers.IO) {
+                                                val compositeMgr =
+                                                    CompositeManager(currentItem.fullPath ?: "")
+                                                compositeMgr.save(Memo(editorContent))
+                                                withContext(Dispatchers.Default) {
+                                                    mainViewModel.setSelectedItem(null)
+                                                    mainViewModel.refreshCurrentFolder()
+                                                }
+                                            }
+
+                                            richTextState.clear()
+                                            mainViewModel.setIsDisplayingMemo(false)
+                                        }) {
+                                            Icon(
+                                                modifier = Modifier.size(24.dp),
+                                                painter = painterResource(id = R.drawable.enregistrer),
+                                                tint = Color(0xFFd1495b),
+                                                contentDescription = null
+                                            )
+                                        }
+
                                         IconButton(onClick = {
 //                                            val snapshot = currentValue.getLastSnapshot()
 //
 //                                            currentValue = RichTextValue.get()
-//                                            mainViewModel.setIsDisplayingMemo(false)
+                                            richTextState.clear()
+                                            mainViewModel.setIsDisplayingMemo(false)
 //
 //                                            val item = mainViewModel.selectedItem.value
 //                                            if (item == null)
@@ -379,103 +509,6 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
 
-                                        IconButton(onClick = {
-                                            integerForKeyboard += 1
-                                        }) {
-                                            Icon(
-                                                modifier = Modifier.size(24.dp),
-                                                painter = painterResource(id = R.drawable.clavier),
-                                                contentDescription = null
-                                            )
-                                        }
-
-                                        EditorAction(
-                                            iconRes = R.drawable.bold,
-                                            active = true
-                                        ) {
-//                                            currentValue = currentValue.insertStyle(Style.Bold)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.underline,
-                                            active = true
-                                        ) {
-//                                            currentValue = currentValue.insertStyle(Style.Underline)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.italic,
-                                            active = true
-                                        ) {
-//                                            currentValue = currentValue.insertStyle(Style.Italic)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.strikethrough,
-                                            active = true
-                                        ) {
-//                                            currentValue = currentValue.insertStyle(Style.Strikethrough)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.leftalign,
-                                            active = true
-                                        ) {
-//                                            currentValue = currentValue.insertStyle(Style.AlignLeft)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.centeralign,
-                                            active = true
-                                        ) {
-//                                            currentValue = currentValue.insertStyle(Style.AlignCenter)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.rightalign,
-                                            active = true
-                                        ) {
-//                                            currentValue = currentValue.insertStyle(Style.AlignRight)
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.textsize,
-                                            active = true
-                                        ) {
-                                            // Remove all styles in selected region that changes the text size
-//                                            currentValue = currentValue.clearStyles(Style.TextSize())
-//
-//                                            // Here you would show a dialog of some sorts and allow user to pick
-//                                            // a specific text size. I'm gonna use a random one between 50% and 200%
-//
-//                                            currentValue = currentValue.insertStyle(
-//                                                Style.TextSize(
-//                                                    (Random.nextFloat() *
-//                                                            (Style.TextSize.MAX_VALUE - Style.TextSize.MIN_VALUE) +
-//                                                            Style.TextSize.MIN_VALUE).toFloat()
-//                                                )
-//                                            )
-                                        }
-                                    }
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight()
-                                            .background(Color.DarkGray)
-                                            .horizontalScroll(rememberScrollState()),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-
-                                        EditorAction(
-                                            iconRes = R.drawable.palette,
-                                            active = true
-                                        ) {
-                                            // Remove all styles in selected region that changes the text color
-//                                            currentValue =
-//                                                currentValue.clearStyles(Style.TextColor(Color.Transparent))
-//
-//                                            // Here you would show a dialog of some sorts and allow user to pick
-//                                            // a specific color. I'm gonna use a random one
-//
-//                                            currentValue = currentValue.insertStyle(
-//                                                Style.TextColor(Random.nextInt(360).hueToColor())
-//                                            )
-                                        }
                                         EditorAction(R.drawable.clear, active = true) {
 //                                            currentValue = currentValue.insertStyle(Style.ClearFormat)
                                         }
@@ -483,7 +516,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-                        
+
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -696,7 +729,8 @@ class MainActivity : ComponentActivity() {
                                     }
                                 }
                             } else {
-                                val scrollStates = remember { mutableMapOf<String, LazyGridState>() }
+                                val scrollStates =
+                                    remember { mutableMapOf<String, LazyGridState>() }
                                 val currentScrollState =
                                     scrollStates.getOrPut(currentFolder.fullPath) {
                                         LazyGridState()
@@ -773,7 +807,12 @@ class MainActivity : ComponentActivity() {
                                     mainViewModel.dialogOnOkLambda = null
                                 } else
                                     mainViewModel.viewModelScope.launch {
-                                        currentTool?.onClick?.let { it(mainViewModel, this@MainActivity) }
+                                        currentTool?.onClick?.let {
+                                            it(
+                                                mainViewModel,
+                                                this@MainActivity
+                                            )
+                                        }
                                     }
                             }
 
@@ -790,7 +829,12 @@ class MainActivity : ComponentActivity() {
                                     mainViewModel.dialogYesNoLambda = null
                                 } else
                                     mainViewModel.viewModelScope.launch {
-                                        currentTool?.onClick?.let { it(mainViewModel, this@MainActivity) }
+                                        currentTool?.onClick?.let {
+                                            it(
+                                                mainViewModel,
+                                                this@MainActivity
+                                            )
+                                        }
                                     }
                             }
                         }
@@ -800,8 +844,14 @@ class MainActivity : ComponentActivity() {
                                 openDialog = openMoveFileDialog,
                                 onOverwrite = {
                                     val intent =
-                                        Intent(this@MainActivity, MoveFileService::class.java).apply {
-                                            putExtra("source", BottomTools.movingItem?.fullPath ?: "")
+                                        Intent(
+                                            this@MainActivity,
+                                            MoveFileService::class.java
+                                        ).apply {
+                                            putExtra(
+                                                "source",
+                                                BottomTools.movingItem?.fullPath ?: ""
+                                            )
                                             putExtra(
                                                 "destination",
                                                 BottomTools.movingItem?.fullPath ?: ""
@@ -826,9 +876,18 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onCreateCopy = {
                                     val intent =
-                                        Intent(this@MainActivity, MoveFileService::class.java).apply {
-                                            putExtra("source", BottomTools.movingItem?.fullPath ?: "")
-                                            putExtra("destination", BottomTools.itemToMove?.fullPath)
+                                        Intent(
+                                            this@MainActivity,
+                                            MoveFileService::class.java
+                                        ).apply {
+                                            putExtra(
+                                                "source",
+                                                BottomTools.movingItem?.fullPath ?: ""
+                                            )
+                                            putExtra(
+                                                "destination",
+                                                BottomTools.itemToMove?.fullPath
+                                            )
                                             putExtra("addSuffix", " - copie")
                                         }
                                     startService(intent)
@@ -891,7 +950,8 @@ class MainActivity : ComponentActivity() {
             return
 
         mainViewModel.viewModelScope.launch {
-            val croppedBitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri))
+            val croppedBitmap =
+                BitmapFactory.decodeStream(contentResolver.openInputStream(resultUri))
             mainViewModel.updatePicture(
                 Bitmap.createBitmap(croppedBitmap),
                 onlyCropped = true

@@ -29,7 +29,7 @@ class FileCompositeIO @Inject constructor() : ICompositeIO{
         try {
             RandomAccessFile(file, "r").use { raf ->
                 val length = raf.length()
-                val (tail, startIndex, endIndex) = tryToExtract(
+                val (tail, _, _) = tryToExtract(
                     length, raf, charset, filePath = filePath
                 )
 

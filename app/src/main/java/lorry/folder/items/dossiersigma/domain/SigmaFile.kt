@@ -15,7 +15,7 @@ class SigmaFile(
     modificationDate: Long,
     tag: ColoredTag?,
     scale: ContentScale?,
-    memo: RichTextValueSnapshot? = null
+    memo: String? = null
 ) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale
 ) {
 
@@ -27,14 +27,14 @@ class SigmaFile(
         modificationDate: Long = this.modificationDate,
         tag: ColoredTag? = this.tag,
         scale: ContentScale? = this.scale,
-        memo: RichTextValueSnapshot? = this.memo
+        memo: String? = this.memo
     ): SigmaFile {
         return SigmaFile(path = path, name = name, picture = picture, id = id, modificationDate = 
             modificationDate, tag = tag, scale = scale, memo = memo)
     }
 
     override fun toString(): String {
-        return "SigmaFile(name='$name', path='$path', picture=${picture != null}, id='${id.toString().take(6)}', modificationDate=$modificationDate), tag=${tag}, scale=${scale},memo=${memo}"
+        return "SigmaFile(name='$name', path='$path', picture=${picture != null}, id='${id.take(6)}', modificationDate=$modificationDate), tag=${tag}, scale=${scale},memo=${memo}"
     }
 }
     
