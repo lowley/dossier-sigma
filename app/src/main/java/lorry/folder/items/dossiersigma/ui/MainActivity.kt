@@ -39,11 +39,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -129,7 +127,6 @@ class MainActivity : ComponentActivity() {
     lateinit var homePageVisible: State<Boolean>
     
     @OptIn(
-        ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class,
         ExperimentalMaterial3Api::class
     )
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -182,10 +179,7 @@ class MainActivity : ComponentActivity() {
 
                                 openTextDialog.value = true
                             },
-                            shapes = ButtonShapes(
-                                shape = RoundedCornerShape(30.dp),
-                                pressedShape = RoundedCornerShape(30.dp)
-                            ),
+                            shape = RoundedCornerShape(30.dp),
                             modifier = Modifier
                                 .padding(bottom = 55.dp, end = 20.dp)
                                 .size(60.dp)

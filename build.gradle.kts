@@ -3,15 +3,15 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    id("com.google.dagger.hilt.android") version "2.51.1" apply false
-    kotlin("plugin.serialization") version "1.9.0"
+    alias(libs.plugins.hilt.android.gradle) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.ksp) apply false
 }
 
 allprojects {
     repositories {
         google()
         mavenCentral()
-        jcenter()
         maven { url = uri("https://jitpack.io") }
     }
 }

@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
     id("com.google.dagger.hilt.android")
 }
 
@@ -106,7 +106,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
+    ksp(libs.hilt.android.compiler)
     implementation(libs.accompanist.flowlayout)
     implementation("me.saket.cascade:cascade:2.3.0")
     implementation("me.saket.cascade:cascade-compose:2.3.0")
@@ -128,12 +128,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.github.skydoves:colorpicker-compose:1.1.2")
 
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-//    implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13")
+    implementation(libs.kotlinx.serialization.json)
     implementation("com.github.pChochura:richtext-compose:1.3.2")
-}
-
-// Allow references to generated code
-kapt {
-    correctErrorTypes = true
+    implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13")
 }
