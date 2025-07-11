@@ -8,13 +8,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import com.google.gson.Gson
-import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.data.base64.Base64DataSource
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
+import lorry.folder.items.dossiersigma.data.base64.Tags
+import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
+import lorry.folder.items.dossiersigma.data.dataSaver.CompositeData
+import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
+import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.data.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.domain.ColoredTag
@@ -22,7 +27,10 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
+import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
+import lorry.folder.items.dossiersigma.ui.MainActivity
+import lorry.folder.items.dossiersigma.ui.components.vectorDrawableToBitmap
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.ByteArrayOutputStream
@@ -36,7 +44,8 @@ import java.nio.file.StandardCopyOption
 class DiskRepository @Inject constructor(
     val datasource: IDiskDataSource,
     val base64DataSource: IBase64DataSource,
-    val intentWrapper: DSI_IntentWrapper
+    val intentWrapper: DSI_IntentWrapper,
+    val changingPictureUseCase: ChangingPictureUseCase
 ) : IDiskRepository {
 
     suspend override fun getFolderItems(
@@ -168,21 +177,113 @@ class DiskRepository @Inject constructor(
 
     override suspend fun getSigmaFolder(
         folderPath: String,
-        sorting: ITEMS_ORDERING_STRATEGY
+        sorting: ITEMS_ORDERING_STRATEGY,
     ): SigmaFolder {
-
         val folder = File(folderPath)
-        val lastModified = withContext(Dispatchers.IO) { folder.lastModified() }
+
+        val newCompositeManager = CompositeManager(folderPath)
+        val newComposite = newCompositeManager.getComposite()
+        val oldCompositeManager = CompositeManager(folderPath, useOld = true)
+        val oldComposite = oldCompositeManager.getComposite()
 
         return SigmaFolder(
             fullPath = folderPath,
-            picture = null,
+            picture = getImage(
+                folderPath = folderPath,
+                newComposite = newComposite,
+                oldComposite = oldComposite,
+            ),
             items = getFolderItems(folderPath, sorting),
             modificationDate = folder.lastModified(),
-            tag = null,
+            tag = newComposite?.getFlag(),
             scale = ContentScale.Crop,
-            memo = null
+            memo = newComposite?.memo2
         )
+    }
+
+    suspend fun getImage(
+        folderPath: String,
+        newComposite: CompositeData?,
+        oldComposite: CompositeData?,
+    ): Any {
+        var result: Any
+        val isFile = File(folderPath).isFile()
+
+        result = when {
+            isFile -> {
+                var image: Any? = newComposite?.getCroppedPicture() ?: newComposite?.getInitialPicture()
+                val repo = VideoInfoEmbedder()
+
+                if (image == null) {
+//            if (item.fullPath.endsWith("mp4") ||
+//                item.fullPath.endsWith("mkv") ||
+//                item.fullPath.endsWith("avi") ||
+//                item.fullPath.endsWith("html") ||
+//                item.fullPath.endsWith("iso") ||
+//                item.fullPath.endsWith("mpg")
+//            ) {
+                    var image: Any? = oldComposite?.getCroppedPicture() ?: oldComposite?.getInitialPicture()
+
+                    if (image != null) {
+                        val compositeMgr = CompositeManager(folderPath)
+                        compositeMgr.save(InitialPicture(image, repo))
+                    } else {
+                        //récupère image existante selon l'ancienne méthode, si elle existe
+                        val image64 = repo.extractBase64FromFile(
+                            File(folderPath),
+                            tag = Tags.COVER
+                        )
+                        if (image64 != null) {
+                            image = repo.base64ToBitmap(image64)
+                            val compositeMgr = CompositeManager(folderPath)
+                            compositeMgr.save(InitialPicture(image, repo))
+                        }
+                    }
+                }
+
+                image = image ?: R.drawable.file
+                image
+            }
+
+            !isFile -> {
+                var image: Any? = newComposite?.getCroppedPicture() ?: newComposite?.getInitialPicture()
+
+                val compositeMgr = CompositeManager(folderPath)
+                val repo = Base64DataSource()
+                val repo2 = VideoInfoEmbedder()
+
+                if (image == null) {
+                    var image = oldComposite?.getCroppedPicture() ?: oldComposite?.getInitialPicture()
+
+                    if (image != null) {
+                        val compositeMgr = CompositeManager(folderPath)
+                        compositeMgr.save(InitialPicture(image, repo2))
+                    }
+                }
+
+                if (image == null) {
+                    image = repo.extractImageFromHtml("${folderPath}/.folderPicture.html")
+
+                    compositeMgr.save(InitialPicture(image, repo2))
+                }
+
+                if (newComposite?.getInitialPicture() == null && image != null)
+                    compositeMgr.save(InitialPicture(image, repo2))
+
+                if (image == null) {
+                    val isPopulated = changingPictureUseCase.isFolderPopulated(folderPath)
+                    image = if (isPopulated)
+                        R.drawable.folder_full
+                    else R.drawable.folder_empty
+                }
+
+                image
+            }
+
+            else -> R.drawable.folder_full
+        }
+
+        return result
     }
 
     override suspend fun saveFolderPictureToHtmlFile(item: Item, onlyCropped: Boolean) {

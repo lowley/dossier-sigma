@@ -10,6 +10,7 @@ import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import kotlinx.serialization.Serializable
 import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
+import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture.Companion
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import javax.inject.Inject
 
@@ -23,9 +24,10 @@ data class CompositeData(
     val memo2: String? = null
 ) {
     val videoInfoEmbedder = VideoInfoEmbedder()
+
     @Transient
     val gson: Gson = Gson()
-    
+
     suspend fun getInitialPicture(): Bitmap? {
         val base64 = initialPicture ?: return null
         return videoInfoEmbedder.base64ToBitmap(base64)
@@ -70,28 +72,46 @@ interface IElementInComposite {
 }
 
 data class InitialPicture @Inject constructor(
-    val initialPicture: Bitmap?,
+    val initialPicture: Any?,
     val videoInfoEmbedder: IVideoInfoEmbedder,
 ) : IElementInComposite {
     override suspend fun update(composite: CompositeData): CompositeData {
-        val base64 = if (initialPicture != null)
-            videoInfoEmbedder.bitmapToBase64(initialPicture)
-        else null
-        return composite.copy(initialPicture = base64)
+        if (initialPicture == null)
+            return composite.copy(initialPicture = null)
+
+        val intImage = initialPicture as? Int
+        if (intImage != null)
+            return composite.copy(initialPicture = intImage.toString())
+
+        val base64 = (initialPicture as? Bitmap)?.let {
+            videoInfoEmbedder.bitmapToBase64(it)
+        }
+        if (base64 != null)
+            return composite.copy(initialPicture = base64)
+
+        return composite
     }
 
-    companion object : IElementReader<Bitmap> {
+    companion object : IElementReader<Any> {
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String, useOld: Boolean): Bitmap? {
+        override suspend fun fileGet(filePath: String, useOld: Boolean): Any? {
             val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
-            val base64 = composite.initialPicture ?: return null
+            val initialData = composite.initialPicture ?: return null
+
+            val initialInt = initialData.toIntOrNull()
+            if (initialInt != null) {
+                return initialInt
+            }
+
+            val initialBase64 = initialData as? String
+            val base64 = initialBase64 ?: return null
             return videoInfoEmbedder.base64ToBitmap(base64)
         }
 
-        override suspend fun folderGet(folderPath: String, useOld: Boolean): Bitmap? {
+        override suspend fun folderGet(folderPath: String, useOld: Boolean): Any? {
             val filePath = "$folderPath/.folderPicture.html"
             return fileGet(filePath, useOld)
         }
@@ -99,28 +119,46 @@ data class InitialPicture @Inject constructor(
 }
 
 data class CroppedPicture @Inject constructor(
-    val croppedPicture: Bitmap?,
+    val croppedPicture: Any?,
     val videoInfoEmbedder: IVideoInfoEmbedder,
 ) : IElementInComposite {
     override suspend fun update(composite: CompositeData): CompositeData {
-        val base64 = if (croppedPicture != null)
-            videoInfoEmbedder.bitmapToBase64(croppedPicture)
-        else null
-        return composite.copy(croppedPicture = base64)
+        if (croppedPicture == null)
+            return composite.copy(croppedPicture = null)
+
+        val intImage = croppedPicture as? Int
+        if (intImage != null)
+            return composite.copy(croppedPicture = intImage.toString())
+
+        val base64 = (croppedPicture as? Bitmap)?.let {
+            videoInfoEmbedder.bitmapToBase64(it)
+        }
+        if (base64 != null)
+            return composite.copy(croppedPicture = base64)
+
+        return composite
     }
 
-    companion object : IElementReader<Bitmap> {
+    companion object : IElementReader<Any> {
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String, useOld: Boolean): Bitmap? {
+        override suspend fun fileGet(filePath: String, useOld: Boolean): Any? {
             val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
-            val base64 = composite.croppedPicture ?: return null
+            val initialData = composite.croppedPicture ?: return null
+
+            val initialInt = initialData.toIntOrNull()
+            if (initialInt != null) {
+                return initialInt
+            }
+
+            val initialBase64 = initialData as? String
+            val base64 = initialBase64 ?: return null
             return videoInfoEmbedder.base64ToBitmap(base64)
         }
 
-        override suspend fun folderGet(folderPath: String, useOld: Boolean): Bitmap? {
+        override suspend fun folderGet(folderPath: String, useOld: Boolean): Any? {
             val filePath = "$folderPath/.folderPicture.html"
             return fileGet(filePath, useOld)
         }
@@ -131,7 +169,7 @@ data class Flag @Inject constructor(
     val flag: ColoredTag?
 ) : IElementInComposite {
     val gson: Gson = Gson()
-    
+
     override suspend fun update(composite: CompositeData): CompositeData {
         val flagAsString = gson.toJson(flag)
         return composite.copy(flag = flagAsString)
@@ -169,7 +207,7 @@ data class Scale @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
         val gson: Gson = Gson()
-        
+
         override suspend fun fileGet(filePath: String, useOld: Boolean): ContentScale? {
             val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()
@@ -193,7 +231,7 @@ data class Memo @Inject constructor(
     val memo: String?
 ) : IElementInComposite {
     val gson: Gson = Gson()
-    
+
     override suspend fun update(composite: CompositeData): CompositeData {
         val memoAsString = gson.toJson(memo)
         return composite.copy(memo2 = memoAsString)
@@ -202,7 +240,7 @@ data class Memo @Inject constructor(
     companion object : IElementReader<String> {
 
         val gson: Gson = Gson()
-        
+
         override suspend fun fileGet(filePath: String, useOld: Boolean): String? {
             val fileCompositeManager = FileCompositeManager(filePath, useOld)
             val composite = fileCompositeManager.getComposite()

@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.components
 
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.DrawableRes
@@ -59,7 +58,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.data.base64.Tags
 import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
 import lorry.folder.items.dossiersigma.data.dataSaver.CroppedPicture
@@ -74,11 +72,9 @@ import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
-import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.containsFlagAsValue
 import java.io.File
 import java.util.UUID
-import kotlin.time.TestTimeSource
 
 object BottomTools {
     lateinit var viewModel: SigmaViewModel
@@ -303,7 +299,7 @@ data class Tool(
     val text: @Composable (vm: SigmaViewModel) -> String,
     @DrawableRes val icon: Int,
     val isColoredIcon: Boolean = false,
-    val onClick: suspend (SigmaViewModel, MainActivity) -> Any?,
+    val onClick: suspend (SigmaViewModel, MainActivity) -> Unit,
     val visible: suspend (SigmaViewModel, MainActivity) -> Boolean = { _, _ -> true },
     val tint: Color? = null,
     val id: UUID = UUID.randomUUID()
@@ -322,7 +318,7 @@ sealed class Tools() {
 
     object DEFAULT : Tools() {
         override fun content(viewModel: SigmaViewModel?) =
-            BottomTools.defaultContent ?: BottomToolContent(emptyList(), "DEFAULT")
+            BottomTools.defaultContent
     }
 
     object TAGS_MENU : Tools() {
@@ -335,7 +331,7 @@ sealed class Tools() {
                     text = { "Ajouter" },
                     icon = R.drawable.plus,
                     visible = { viewModel, mainActivity ->
-                        viewModel.selectedItem.value?.tag == null
+                        viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
                     },
                     onClick = { viewModel, mainActivity ->
                         run {
@@ -369,39 +365,22 @@ sealed class Tools() {
                                         return@run
 
                                     val compositeMgr = CompositeManager(currentItem.fullPath)
-                                    
-                                    compositeMgr.save(Flag(ColoredTag(
+
+                                    val newFlag = ColoredTag(
                                         title = tagInfos.title,
                                         color = tagInfos.color,
                                         id = newTool.id
-                                    )))
-                                    
-//                                    if (currentItem.isFile())
-//                                        viewModel.base64Embedder.appendFlagToFile(
-//                                            File(currentItem.fullPath), ColoredTag(
-//                                                title = tagInfos.title,
-//                                                color = tagInfos.color,
-//                                                id = newTool.id
-//                                            )
-//                                        )
-//
-//                                    if (currentItem.isFolder())
-//                                        viewModel.diskRepository.insertTagToHtmlFile(
-//                                            currentItem, ColoredTag(
-//                                                title = tagInfos.title,
-//                                                color = tagInfos.color,
-//                                                id = newTool.id
-//                                            )
-//                                        )
+                                    )
+                                    compositeMgr.save(Flag(newFlag))
 
+                                    viewModel.setFlagCacheValue(currentItem.fullPath,
+                                        newFlag)
+                                    
 //                                    if (currentItem != null && tagInfos != null) {
-//                                        currentItem.tag = ColoredTag(
-//                                            title = tagInfos.title,
-//                                            color = tagInfos.color
-//                                        )
+//                                        currentItem.tag = newFlag
 //                                    }
 
-                                    viewModel.refreshCurrentFolder()
+//                                    viewModel.refreshCurrentFolder()
                                 }
 
                                 BottomTools.setCurrentContent(DEFAULT)
@@ -419,7 +398,7 @@ sealed class Tools() {
                     text = { "Modifier" },
                     icon = R.drawable.modifier,
                     visible = { viewModel, mainActivity ->
-                        viewModel.selectedItem.value?.tag != null
+                        viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
                     },
                     onClick = { viewModel, mainActivity ->
 //                        viewModel.setDialogMessage("Nom du dossier à créer")
@@ -450,7 +429,7 @@ sealed class Tools() {
                     text = { "item" },
                     icon = R.drawable.moins,
                     visible = { viewModel, mainActivity ->
-                        viewModel.selectedItem.value?.tag != null
+                        viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
                     },
                     onClick = { viewModel, mainActivity ->
                         run {
@@ -458,8 +437,9 @@ sealed class Tools() {
                             if (currentItem == null)
                                 return@run
 
+                            val currentTag = viewModel.flagCache.value[viewModel.selectedItemFullPath.value]
                             val tool = DEFAULT.content(viewModel)
-                                .tools.value.firstOrNull { it.id == currentItem.tag?.id }
+                                .tools.value.firstOrNull { it.id == currentTag?.id }
 
                             if (tool == null) {
                                 println("problème, tool inexistant")
@@ -478,7 +458,7 @@ sealed class Tools() {
                                 DEFAULT.content(viewModel).removeTool(tool)
 
                             viewModel.setSelectedItem(null, true)
-                            viewModel.refreshCurrentFolder()
+//                            viewModel.refreshCurrentFolder()
                             BottomTools.setCurrentContent(DEFAULT)
 
 //                            viewModel.clearFlagCache()
@@ -493,16 +473,15 @@ sealed class Tools() {
                     text = { "étiquette" },
                     icon = R.drawable.moins,
                     visible = { viewModel, mainActivity ->
-                        viewModel.selectedItem.value?.tag != null
+                        viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
                     },
                     onClick = { viewModel, mainActivity ->
                         run {
-                            val currentItem = viewModel.selectedItem.value
-                            if (currentItem == null)
-                                return@run
+                            val currentItem = viewModel.selectedItem.value ?: return@run
+                            val currentTag = viewModel.flagCache.value[viewModel.selectedItemFullPath.value]
 
                             val tool = DEFAULT.content(viewModel)
-                                .tools.value.firstOrNull { it.id == currentItem.tag?.id }
+                                .tools.value.firstOrNull { it.id == currentTag?.id }
 
                             if (tool == null) {
                                 println("problème, tool inexistant")
@@ -512,11 +491,12 @@ sealed class Tools() {
                             //on fait ça parce que par lazy loading au début de l'affichage 
                             //du dossier de tous les items
                             val itemsWithThisTag = viewModel.currentFolder.value.items.filter {
-                                
                                 val compositeMgr = CompositeManager(it.fullPath)
-                                val tag = compositeMgr.getElement(Flag)
-                                
-                                tag?.id == tool.id
+                                val tagFile = compositeMgr.getElement(Flag)
+                                val tagCache = viewModel.flagCache.value[it.fullPath]
+
+                                val tagFinal = tagCache ?: tagFile
+                                tagFinal?.id == tool.id
                             }
 
                             itemsWithThisTag.forEach {
@@ -535,7 +515,7 @@ sealed class Tools() {
                                 DEFAULT.content(viewModel).removeTool(tool)
 
                             viewModel.setSelectedItem(null, true)
-                            viewModel.refreshCurrentFolder()
+//                            viewModel.refreshCurrentFolder()
                             BottomTools.setCurrentContent(DEFAULT)
                         }
                     }
@@ -549,7 +529,7 @@ sealed class Tools() {
                     icon = R.drawable.moins,
                     visible =
                         { viewModel, mainActivity ->
-                            viewModel.selectedItem.value?.tag != null
+                            viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
                         },
                     onClick =
                         { viewModel, mainActivity ->
@@ -565,29 +545,13 @@ sealed class Tools() {
                                 DEFAULT.content().updateTools(emptyList<Tool>())
 
                                 viewModel.setSelectedItem(null, true)
-                                viewModel.refreshCurrentFolder()
+//                                viewModel.refreshCurrentFolder()
                                 BottomTools.setCurrentContent(DEFAULT)
                             }
                         }
                 )
             ),
             "TAGS_MENU"
-        )
-    }
-
-    object TAGS : Tools() {
-        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
-            listOf(
-                Tool(
-                    text = { "TAGS" },
-                    icon = R.drawable.move,
-                    isColoredIcon = true,
-                    onClick = { viewModel, mainActivity ->
-//                        BottomTools.setCurrentContent(MOVES)
-                    }
-                )
-            ),
-            "TAGS"
         )
     }
 
@@ -667,18 +631,15 @@ sealed class Tools() {
                                         "/"
                                     )
                                 ) {
-                                    Toast.makeText(
-                                        mainActivity,
+                                    Toast.makeText(mainActivity,
                                         "Le nouveau nom doît être différent de l'ancien",
                                         Toast.LENGTH_SHORT
-                                    )
-                                        .show()
+                                    ).show()
                                     return@run
                                 }
 
                                 val newFullName = "${
-                                    currentFolderPath
-                                        .substringBeforeLast("/")
+                                    currentFolderPath.substringBeforeLast("/")
                                 }/$newName"
                                 println("NOM: $newFullName")
                                 if (File(currentFolderPath).exists()) {
@@ -772,7 +733,6 @@ sealed class Tools() {
                                 if (selectedItemPath == null)
                                     return@run
 
-                                val parentPath = parent.fullPath
                                 var children: List<String> = emptyList()
 
                                 children = viewModel.diskRepository
@@ -809,8 +769,7 @@ sealed class Tools() {
                                         mainActivity,
                                         "Un problème lors de la création  du dossier enfant est survenu",
                                         Toast.LENGTH_LONG
-                                    )
-                                        .show()
+                                    ).show()
                             }
 
                             BottomTools.setCurrentContent(DEFAULT)
@@ -829,7 +788,7 @@ sealed class Tools() {
                     text = { "Supprimer" },
                     icon = R.drawable.corbeille,
                     onClick = { viewModel, mainActivity ->
-                        val currentFolderPath = viewModel.selectedItem.value?.fullPath
+                        val currentFolderPath = viewModel.selectedItemFullPath.value
                         //viewModel.setSelectedItem(null)
                         viewModel.setDialogMessage(
                             "Voulez-vous vraiment supprimer ce ${
@@ -844,7 +803,7 @@ sealed class Tools() {
                                     return@run
 
                                 val item = viewModel.selectedItem.value
-                                val itemFullPath = item?.fullPath ?: ""
+                                val itemFullPath = viewModel.selectedItemFullPath.value
                                 if (item == null)
                                     return@run
 
@@ -852,21 +811,19 @@ sealed class Tools() {
                                     File(item.fullPath).deleteRecursively()
                                 else File(item.fullPath).delete()
                                 viewModel.setSelectedItem(null, true)
-                                viewModel.refreshCurrentFolder()
+//                                viewModel.refreshCurrentFolder()
 
                                 if (File(itemFullPath).exists())
                                     Toast.makeText(
                                         mainActivity,
                                         "Un problème lors de la suppression est survenu",
                                         Toast.LENGTH_LONG
-                                    )
-                                        .show()
+                                    ).show()
                                 else Toast.makeText(
                                     mainActivity,
                                     "Suppression effectuée",
                                     Toast.LENGTH_LONG
-                                )
-                                    .show()
+                                ).show()
                             }
 
                             BottomTools.setCurrentContent(DEFAULT)
@@ -914,7 +871,6 @@ sealed class Tools() {
                 Tool(
                     text = {
                         val nasText by BottomTools.copyNASText.collectAsState()
-
                         nasText
                     },
                     icon = R.drawable.deplacer,
@@ -954,8 +910,7 @@ sealed class Tools() {
                                 putExtra(
                                     "filesToTransfer", Gson().toJson(
                                         listOf<String>(
-                                            BottomTools.itemToMove?.fullPath
-                                                ?: ""
+                                            BottomTools.itemToMove?.fullPath ?: ""
                                         )
                                     )
                                 )
@@ -1016,7 +971,7 @@ sealed class Tools() {
                             viewModel.goToFolder(movingParent)
                         BottomTools.movingItem = null
                         viewModel.setSelectedItem(null, true)
-                        viewModel.refreshCurrentFolder()
+//                        viewModel.refreshCurrentFolder()
                     }
                 ),
                 ////////////
@@ -1025,7 +980,6 @@ sealed class Tools() {
                 Tool(
                     text = { vm ->
                         val movePasteText by BottomTools.movePasteText.collectAsState()
-
                         movePasteText
                     },
                     icon = R.drawable.coller,
@@ -1110,7 +1064,7 @@ sealed class Tools() {
                     text = { "Aucun" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, mainActivity, ContentScale.None)
+                        changeCrop(viewModel, ContentScale.None)
                     }
                 ),
 
@@ -1118,7 +1072,7 @@ sealed class Tools() {
                     text = { "Rogner" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, mainActivity, ContentScale.Crop)
+                        changeCrop(viewModel, ContentScale.Crop)
                     }
                 ),
 
@@ -1126,7 +1080,7 @@ sealed class Tools() {
                     text = { "Remplir ⇅" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, mainActivity, ContentScale.FillHeight)
+                        changeCrop(viewModel, ContentScale.FillHeight)
                     }
                 ),
 
@@ -1134,7 +1088,7 @@ sealed class Tools() {
                     text = { "Remplir ⇿" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, mainActivity, ContentScale.FillWidth)
+                        changeCrop(viewModel, ContentScale.FillWidth)
                     }
                 ),
 
@@ -1142,7 +1096,7 @@ sealed class Tools() {
                     text = { "Etirer" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, mainActivity, ContentScale.Fit)
+                        changeCrop(viewModel, ContentScale.Fit)
                     }
                 ),
 
@@ -1150,7 +1104,7 @@ sealed class Tools() {
                     text = { "Dedans" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, mainActivity, ContentScale.Inside)
+                        changeCrop(viewModel, ContentScale.Inside)
                     }
                 ),
 
@@ -1161,7 +1115,7 @@ sealed class Tools() {
                     onClick = { viewModel, mainActivity ->
                         run {
                             val item = viewModel.selectedItem.value
-                            var sourceBitmap: Bitmap? = null
+                            var sourceBitmap: Any? = null
                             
                             if (item == null)
                                 return@run
@@ -1178,9 +1132,7 @@ sealed class Tools() {
                             if (sourceBitmap == null)
                                 return@run
 
-//                            val sourceBitmap = viewModel.imageCache[viewModel.selectedItem.value?.fullPath ?: ""] as Bitmap
-
-                            val sourceUri = bitmapToTempUri(mainActivity, sourceBitmap)
+                            val sourceUri = imageAsAnyToTempUri(mainActivity, sourceBitmap)
                             val destinationUri =
                                 Uri.fromFile(
                                     File.createTempFile(
@@ -1208,13 +1160,10 @@ sealed class Tools() {
 
 }
 
-fun changeCrop(
-    viewModel: SigmaViewModel, activity: MainActivity, scale:
-    ContentScale
-) {
+fun changeCrop(viewModel: SigmaViewModel, scale: ContentScale) {
     val item = viewModel.selectedItem.value ?: return
-    viewModel.scaleCache.value[item.fullPath] = scale
-    item.scale = scale
+    viewModel.setScaleCacheValue(item.fullPath, scale)
+    viewModel.setSelectedItem(item.copy(scale = scale))
 
     if (item.isFile() &&
         item.fullPath.endsWith(".mp4") ||
@@ -1238,11 +1187,11 @@ fun changeCrop(
 
             val compositeMgr = CompositeManager(item.fullPath)
             compositeMgr.save(Scale(scale))
-            viewModel.refreshCurrentFolder()
+//            viewModel.refreshCurrentFolder()
         }
     }
 
-    viewModel.notifyPictureUpdated()
+//    viewModel.notifyPictureUpdated()
 //    viewModel.setSelectedItem(null)
 //    BottomTools.setCurrentContent(DEFAULT)
 }

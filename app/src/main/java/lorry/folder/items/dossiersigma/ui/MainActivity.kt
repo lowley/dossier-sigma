@@ -111,6 +111,7 @@ import java.io.File
 import javax.inject.Inject
 import kotlin.random.Random
 import lorry.folder.items.dossiersigma.data.dataSaver.Memo
+import lorry.folder.items.dossiersigma.domain.Item
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -127,8 +128,6 @@ class MainActivity : ComponentActivity() {
     lateinit var openYesNoDialog: MutableState<Boolean>
     lateinit var openMoveFileDialog: MutableState<Boolean>
     lateinit var openTagInfosDialog: MutableState<Boolean>
-    lateinit var isContextMenuVisible: State<Boolean>
-    lateinit var homePageVisible: State<Boolean>
 
     @OptIn(
         ExperimentalMaterial3Api::class
@@ -141,10 +140,6 @@ class MainActivity : ComponentActivity() {
             permissionsManager.requestExternalStoragePermission(this)
 
         window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
-
-//        viewModel.viewModelScope.launch(Dispatchers.IO) {
-//            viewModel.initCoil(this@MainActivity)
-//        }
         initializeFileIntentLauncher(mainViewModel)
 
         setContent {
@@ -165,6 +160,7 @@ class MainActivity : ComponentActivity() {
                                     { newName, viewModel, mainActivity ->
                                         val currentFolderPath = viewModel.currentFolderPath.value
                                         val newFullName = "$currentFolderPath/$newName"
+
                                         if (!File(newFullName).exists()) {
                                             if (File(newFullName).mkdir()) {
                                                 Toast.makeText(
@@ -192,7 +188,6 @@ class MainActivity : ComponentActivity() {
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF006d77),
                                 contentColor = Color(0xFF83c5be)
-
                             )
                         ) {
                             Icon(
@@ -209,7 +204,7 @@ class MainActivity : ComponentActivity() {
                     val currentFolder by mainViewModel.currentFolder.collectAsState()
                     val selectedItem by mainViewModel.selectedItem.collectAsState()
                     val activity = LocalContext.current as Activity
-                    val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
+//                    val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
                     val currentTool by BottomTools.currentTool.collectAsState()
 
                     openTextDialog = remember { mutableStateOf(false) }
@@ -217,8 +212,6 @@ class MainActivity : ComponentActivity() {
                     openMoveFileDialog = remember { mutableStateOf(false) }
                     openTagInfosDialog = remember { mutableStateOf(false) }
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-
-                    isContextMenuVisible = mainViewModel.isContextMenuVisible.collectAsState()
 
                     SideEffect {
                         activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
@@ -235,29 +228,11 @@ class MainActivity : ComponentActivity() {
                             mainViewModel.sortingCache[mainViewModel.folderPathHistory.value.last()]
                                 ?: ITEMS_ORDERING_STRATEGY.DATE_DESC
                         mainViewModel.setSorting(newSorting)
-                        mainViewModel.refreshCurrentFolder()
+//                        mainViewModel.refreshCurrentFolder()
                     }
 
                     LaunchedEffect(Unit) {
                         BottomTools.setCurrentContent(DEFAULT)
-                    }
-
-                    LaunchedEffect(pictureUpdateId) {
-                        //exécuté juste après AccessingToInternetSiteForPictureUseCase/openBrowser 
-//                    if (selectedItemPicture.reset) {
-//                        viewModel.startPictureFlow()
-//                        return@LaunchedEffect
-//                    }
-
-                        selectedItem?.let { item ->
-                            mainViewModel.browserManager.closeBrowser()
-                            mainViewModel.refreshCurrentFolder()
-//                        viewModel.updateItemList(item.copy(picture = selectedItemPicture.picture))
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Changement d'image effectué", Toast.LENGTH_SHORT
-                            ).show()
-                        }
                     }
 
                     Box(
@@ -286,8 +261,8 @@ class MainActivity : ComponentActivity() {
                                 val richTextState = rememberRichTextState()
 
                                 LaunchedEffect(isRichText.value) {
-                                    if (isRichText.value){
-                                        richTextState.setHtml(currentItem.value?.memo?: "")
+                                    if (isRichText.value) {
+                                        richTextState.setHtml(currentItem.value?.memo ?: "")
                                     }
                                 }
 
@@ -432,18 +407,6 @@ class MainActivity : ComponentActivity() {
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.Center
                                     ) {
-
-                                        EditorAction(
-                                            iconRes = R.drawable.palette,
-                                            active = true
-                                        ) {
-                                            richTextState.addSpanStyle(
-                                                SpanStyle(
-                                                    color = Random.nextInt(360).hueToColor()
-                                                )
-                                            )
-                                        }
-
                                         IconButton(onClick = {
                                             val editorContent = richTextState.toHtml()
 
@@ -451,10 +414,14 @@ class MainActivity : ComponentActivity() {
                                                 mainViewModel.selectedItem.value
                                                     ?: return@IconButton
 
-                                            currentItem.memo = editorContent
+                                            mainViewModel.setSelectedItem(
+                                                currentItem
+                                                    .copy(memo = editorContent)
+                                            )
+
                                             mainViewModel.setMemoCacheValue(
                                                 key = currentItem.fullPath ?: "",
-                                                tag = editorContent
+                                                memo = editorContent
                                             )
 
                                             mainViewModel.viewModelScope.launch(Dispatchers.IO) {
@@ -463,7 +430,7 @@ class MainActivity : ComponentActivity() {
                                                 compositeMgr.save(Memo(editorContent))
                                                 withContext(Dispatchers.Default) {
                                                     mainViewModel.setSelectedItem(null)
-                                                    mainViewModel.refreshCurrentFolder()
+//                                                    mainViewModel.refreshCurrentFolder()
                                                 }
                                             }
 
@@ -476,6 +443,20 @@ class MainActivity : ComponentActivity() {
                                                 tint = Color(0xFFd1495b),
                                                 contentDescription = null
                                             )
+                                        }
+
+                                        EditorAction(
+                                            iconRes = R.drawable.palette,
+                                            active = true
+                                        ) {
+                                            richTextState.addSpanStyle(
+                                                SpanStyle(
+                                                    color = Random.nextInt(360).hueToColor()
+                                                )
+                                            )
+                                        }
+                                        EditorAction(R.drawable.clear, active = true) {
+//                                            currentValue = currentValue.insertStyle(Style.ClearFormat)
                                         }
 
                                         IconButton(onClick = {
@@ -507,10 +488,6 @@ class MainActivity : ComponentActivity() {
                                                 tint = Color(0xFFd1495b),
                                                 contentDescription = null
                                             )
-                                        }
-
-                                        EditorAction(R.drawable.clear, active = true) {
-//                                            currentValue = currentValue.insertStyle(Style.ClearFormat)
                                         }
                                     }
                                 }
@@ -604,7 +581,6 @@ class MainActivity : ComponentActivity() {
                                         horizontalArrangement = Arrangement.Center,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-
                                         val sorting by mainViewModel.sorting.collectAsState()
 
                                         FilterChip(
@@ -745,19 +721,16 @@ class MainActivity : ComponentActivity() {
                                     state = currentScrollState
                                 ) {
                                     lazyGridItems(currentFolder.items, key = {
-                                        it.fullPath + "-" +
-                                                pictureUpdateId + it.id.toString()
+                                        it.fullPath + "-" + it.id
                                     }) { item ->
                                         ItemComponent(
                                             viewModel = mainViewModel,
                                             item = item,
                                             modifier = Modifier
                                                 .padding(horizontal = 10.dp, vertical = 6.dp),
-                                            imageCache = mainViewModel.imageCache,
-                                            context = this@MainActivity,
-                                            scaleCache = mainViewModel.scaleCache,
-                                            flagCache = mainViewModel.flagCache,
-                                            memoCache = mainViewModel.memoCache
+                                            onItemUpdated = { item ->
+//                                                mainViewModel.updateItemInList(item)
+                                            }
 //                                        onDrop = { tag: ColoredTag ->
 //                                            mainViewModel.assignColoredTagToItem(item, tag)
 //                                        }
@@ -787,7 +760,7 @@ class MainActivity : ComponentActivity() {
 //                            mainViewModel.setSelectedItem(null)
                                         BottomTools.setCurrentContent(DEFAULT)
                                         mainViewModel.setSelectedItem(null, true)
-                                        mainViewModel.refreshCurrentFolder()
+//                                        mainViewModel.refreshCurrentFolder()
                                     }
                                 },
                                 viewmodel = mainViewModel
@@ -956,7 +929,7 @@ class MainActivity : ComponentActivity() {
                 Bitmap.createBitmap(croppedBitmap),
                 onlyCropped = true
             )
-            mainViewModel.refreshCurrentFolder()
+//            mainViewModel.refreshCurrentFolder()
         }
 
 //        mainViewModel.setSelectedItem(null)

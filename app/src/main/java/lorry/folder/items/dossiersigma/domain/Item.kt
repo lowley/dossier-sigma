@@ -21,14 +21,14 @@ import java.util.UUID
 
 @Stable
 abstract class Item(
-    var path: String,
-    var name: String,
-    var picture: Any?,
-    var id: String = UUID.randomUUID().toString(),
-    var modificationDate: Long,
-    var tag: ColoredTag? = null,
-    var scale: ContentScale? = null,
-    var memo: String? = null
+    val path: String,
+    val name: String,
+    val picture: Any?,
+    val id: String = UUID.randomUUID().toString(),
+    val modificationDate: Long,
+    val tag: ColoredTag? = null,
+    val scale: ContentScale? = null,
+    val memo: String? = null
     
 ) {
     fun isFile(): Boolean {

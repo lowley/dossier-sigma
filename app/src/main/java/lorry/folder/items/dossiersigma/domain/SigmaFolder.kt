@@ -5,27 +5,22 @@ import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
 import java.util.UUID
 
-class SigmaFolder : Item {
-
-    var items: List<Item> = emptyList()
-
-    constructor(
-        path: String,
-        name: String,
-        picture: Any?,
-        items: List<Item>,
-        id: String = UUID.randomUUID().toString(),
-        modificationDate: Long,
-        tag: ColoredTag?,
-        scale: ContentScale?,
-        memo: String? = null
-    ) : super(path, name, picture, id, modificationDate, tag,  scale, memo) {
-        this.items = items
-    }
+class SigmaFolder(
+    val items: List<Item>,
+    path: String,
+    name: String,
+    picture: Any?,
+    id: String = UUID.randomUUID().toString(),
+    modificationDate: Long,
+    tag: ColoredTag?,
+    scale: ContentScale?,
+    memo: String? = null
+) : Item(path, name, picture, id, modificationDate, tag, scale, memo) {
 
     override fun toString(): String {
-        return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${id.take(5)}, " +
-                "items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: $memo"
+        return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${
+            id.take(5)
+        }, items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: $memo"
     }
 
     constructor(
@@ -37,7 +32,7 @@ class SigmaFolder : Item {
         tag: ColoredTag?,
         scale: ContentScale?,
         memo: String? = null
-    ) : super(
+    ) : this(
         path = fullPath.substringBeforeLast("/"),
         name = fullPath.substringAfterLast("/"),
         picture = picture,
@@ -45,10 +40,9 @@ class SigmaFolder : Item {
         modificationDate = modificationDate,
         tag = tag,
         scale = scale,
-        memo = memo
-    ) {
-        this.items = items
-    }
+        memo = memo,
+        items = items
+    )
 
     val isEmpty: Boolean
         get() = items.isEmpty()
@@ -60,12 +54,12 @@ class SigmaFolder : Item {
         items: List<Item> = this.items,
         id: String = this.id,
         modificationDate: Long = this.modificationDate,
-        tag: ColoredTag? = this.tag, 
+        tag: ColoredTag? = this.tag,
         scale: ContentScale? = this.scale,
         memo: String? = this.memo
     ): SigmaFolder {
         val result = SigmaFolder(
-            path = path, name = name, picture = picture, 
+            path = path, name = name, picture = picture,
             items = items.map { item ->
                 when (item) {
                     is SigmaFolder -> item.copy()
@@ -81,6 +75,4 @@ class SigmaFolder : Item {
         )
         return result
     }
-
-
 }
