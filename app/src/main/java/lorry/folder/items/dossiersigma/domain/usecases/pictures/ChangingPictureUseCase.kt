@@ -32,14 +32,6 @@ class ChangingPictureUseCase @Inject constructor(
         diskRepository.saveFolderPictureToHtmlFile(item, onlyCropped = onlyCropped)
     }
 
-    suspend fun isFolderPopulated(itemPath: String): Boolean {
-        val folder = File(itemPath)
-        if (!withContext(Dispatchers.IO) {!folder.exists() || folder.isFile()})
-            throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: Item does not exist or is not a folder")
-
-        return withContext(Dispatchers.IO) {  folder.listFiles()!!.isNotEmpty()}
-    }
-
 
     suspend fun isFolderPopulated(item: Item): Boolean {
         if(item.isFile())

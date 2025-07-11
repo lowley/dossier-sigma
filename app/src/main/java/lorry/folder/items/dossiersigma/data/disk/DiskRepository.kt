@@ -29,8 +29,6 @@ import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
-import lorry.folder.items.dossiersigma.ui.MainActivity
-import lorry.folder.items.dossiersigma.ui.components.vectorDrawableToBitmap
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.ByteArrayOutputStream
@@ -45,7 +43,6 @@ class DiskRepository @Inject constructor(
     val datasource: IDiskDataSource,
     val base64DataSource: IBase64DataSource,
     val intentWrapper: DSI_IntentWrapper,
-    val changingPictureUseCase: ChangingPictureUseCase
 ) : IDiskRepository {
 
     suspend override fun getFolderItems(
@@ -271,7 +268,7 @@ class DiskRepository @Inject constructor(
                     compositeMgr.save(InitialPicture(image, repo2))
 
                 if (image == null) {
-                    val isPopulated = changingPictureUseCase.isFolderPopulated(folderPath)
+                    val isPopulated = isFolderPopulated(folderPath)
                     image = if (isPopulated)
                         R.drawable.folder_full
                     else R.drawable.folder_empty
@@ -620,16 +617,12 @@ class DiskRepository @Inject constructor(
         }
     }
 
-//    override suspend fun insertMemoToFolder(folderPath: String) {
-//        
-//    }
-//
-//    override suspend fun extractMemoFromFolder(folderPath: String): RichTextValueSnapshot? {
-//        return null
-//    }
-//
-//    override suspend fun removeMemoFromFolder(folderPath: String) {
-//        
-//    }
+    suspend fun isFolderPopulated(itemPath: String): Boolean {
+        val folder = File(itemPath)
+        if (withContext(Dispatchers.IO) {!folder.exists() || folder.isFile()})
+            throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: Item does not exist or is not a folder")
+
+        return withContext(Dispatchers.IO) {  folder.listFiles()!!.isNotEmpty()}
+    }
 }
 
