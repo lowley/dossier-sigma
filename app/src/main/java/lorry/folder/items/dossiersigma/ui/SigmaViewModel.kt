@@ -74,8 +74,11 @@ class SigmaViewModel @Inject constructor(
     val imageCache: StateFlow<MutableMap<String, Any?>> = _imageCache
 
     fun setImageCacheValue(key: String, image: Any?) {
-        if (image != null)
+        if (image != null) {
             _imageCache.value[key] = image
+            println("ajout de clé dans imageCache: ${key.takeLast(20)}: $image")
+            println("il y a ${_imageCache.value.size} clés")
+        }
     }
 
     fun clearImageCache() {
@@ -98,8 +101,9 @@ class SigmaViewModel @Inject constructor(
             return
         _scaleCache.value = _scaleCache.value.toMutableMap().apply {
             put(key, scale)
+            println("ajout de clé dans scaleCache: ${key.takeLast(20)}: $scale")
+            println("il y a ${_scaleCache.value.size} clés")
         }
-        println("ajout de clé dans scaleCache, il y a ${_scaleCache.value.size} clés")
     }
 
     fun clearScalecache() {
@@ -119,6 +123,8 @@ class SigmaViewModel @Inject constructor(
             return
         _flagCache.value = _flagCache.value.toMutableMap().apply {
             put(key, tag)
+            println("ajout de clé dans flagCache: ${key.takeLast(20)}: $tag")
+            println("il y a ${_flagCache.value.size} clés")
         }
         println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
     }
@@ -144,6 +150,8 @@ class SigmaViewModel @Inject constructor(
             return
         _memoCache.value = _memoCache.value.toMutableMap().apply {
             put(key, memo)
+            println("ajout de clé dans memoCache: ${key.takeLast(20)}: $memo")
+            println("il y a ${_memoCache.value.size} clés")
         }
 
         println("ajout de clé dans memoCache, il y a ${_memoCache.value.size} clés")
@@ -406,14 +414,11 @@ class SigmaViewModel @Inject constructor(
         clearFlagCache()
         DEFAULT.content().updateTools(emptyList<Tool>())
 
-        viewModelScope.launch(Dispatchers.IO) {
-            //val newFolder = diskRepository.getSigmaFolder(folderPath, sorting)
-            withContext(Dispatchers.Main) {
-                if (folderPath == currentFolderPath.value)
-                    refreshCurrentFolder()
-                else
-                    addFolderPathToHistory(folderPath)
-            }
+        viewModelScope.launch(Dispatchers.Main) {
+            if (folderPath == currentFolderPath.value)
+                refreshCurrentFolder()
+            else
+                addFolderPathToHistory(folderPath)
         }
     }
 

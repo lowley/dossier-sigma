@@ -87,6 +87,8 @@ import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.PermissionsManager
@@ -241,7 +243,7 @@ class MainActivity : ComponentActivity() {
                         val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
 
                         if (isRichText.value) {
-                            val currentItem = mainViewModel.selectedItem.collectAsState()
+                            val currentItemFlow = mainViewModel.selectedItem
 
                             Column(
                                 modifier = Modifier
@@ -259,10 +261,18 @@ class MainActivity : ComponentActivity() {
                                     }
 
                                 val richTextState = rememberRichTextState()
+                                val selectedItemMemo by combine(
+                                    currentItemFlow,
+                                    mainViewModel.memoCache
+                                ) { item, cache ->
+                                    if (item != null)
+                                        cache[item.fullPath]
+                                    else ""
+                                }.collectAsState(initial = "")
 
-                                LaunchedEffect(isRichText.value) {
+                                LaunchedEffect(isRichText.value, selectedItemMemo) {
                                     if (isRichText.value) {
-                                        richTextState.setHtml(currentItem.value?.memo ?: "")
+                                        richTextState.setHtml(selectedItemMemo ?: "")
                                     }
                                 }
 
@@ -408,19 +418,28 @@ class MainActivity : ComponentActivity() {
                                         horizontalArrangement = Arrangement.Center
                                     ) {
                                         IconButton(onClick = {
-                                            val editorContent = richTextState.toHtml()
+                                            val onlyBr = Regex("^<br>$")
+                                            var editorContent = richTextState.toHtml()
+                                                .replace(onlyBr, "")
+
+                                            val nothingImportant = Regex("^\\s*$")
+                                            val nothingImportant2 = Regex("^(<br>|\\s|<p>|</p>|&Tab;)*$")
+
+                                            if (editorContent.matches(nothingImportant)
+                                                || editorContent.matches((nothingImportant2))
+                                            )
+                                                editorContent = ""
 
                                             val currentItem =
                                                 mainViewModel.selectedItem.value
                                                     ?: return@IconButton
 
                                             mainViewModel.setSelectedItem(
-                                                currentItem
-                                                    .copy(memo = editorContent)
+                                                currentItem.copy(memo = editorContent)
                                             )
 
                                             mainViewModel.setMemoCacheValue(
-                                                key = currentItem.fullPath ?: "",
+                                                key = currentItem.fullPath,
                                                 memo = editorContent
                                             )
 
@@ -430,7 +449,6 @@ class MainActivity : ComponentActivity() {
                                                 compositeMgr.save(Memo(editorContent))
                                                 withContext(Dispatchers.Default) {
                                                     mainViewModel.setSelectedItem(null)
-//                                                    mainViewModel.refreshCurrentFolder()
                                                 }
                                             }
 

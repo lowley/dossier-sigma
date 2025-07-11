@@ -87,6 +87,10 @@ fun ItemComponent(
         .map { map -> map[item.fullPath] }
         .collectAsState(initial = item.memo)
 
+    val memoEmpty by viewModel.memoCache
+        .map { map -> map[item.fullPath].isNullOrEmpty() }
+        .collectAsState(initial = true)
+
     var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
     val density = LocalDensity.current
     val imageHeight = 160.dp
@@ -238,29 +242,30 @@ fun ItemComponent(
                     ) {
                         val textHeight = 18.dp
 
-                        Text(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(0.dp)
-                                .height(textHeight),
-                            text = infoSup,
-                            fontWeight = if (memo.isNullOrEmpty()) FontWeight.ExtraLight else FontWeight
-                                .ExtraBold,
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
-                        Text(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(
-                                    top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
-                                )
-                                .height(textHeight),
-                            text = infoInf,
-                            fontWeight = if (memo.isNullOrEmpty()) FontWeight.ExtraLight else FontWeight.ExtraBold,
-                            fontSize = 10.sp,
-                            color = Color.White
-                        )
+                            Text(
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(0.dp)
+                                    .height(textHeight),
+                                text = infoSup,
+                                fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight
+                                    .ExtraBold,
+                                fontSize = 10.sp,
+                                color = Color.White
+                            )
+
+                            Text(
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(
+                                        top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
+                                    )
+                                    .height(textHeight),
+                                text = infoInf,
+                                fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight.ExtraBold,
+                                fontSize = 10.sp,
+                                color = Color.White
+                            )
                     }
                 }
             }

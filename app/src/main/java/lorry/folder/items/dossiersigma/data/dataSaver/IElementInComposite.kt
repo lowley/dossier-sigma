@@ -233,7 +233,8 @@ data class Memo @Inject constructor(
     val gson: Gson = Gson()
 
     override suspend fun update(composite: CompositeData): CompositeData {
-        val memoAsString = gson.toJson(memo)
+//        val memoAsString = gson.toJson(memo)
+        val memoAsString = if (memo.isNullOrEmpty()) null else memo
         return composite.copy(memo2 = memoAsString)
     }
 
@@ -247,7 +248,8 @@ data class Memo @Inject constructor(
             if (composite.memo2 == null)
                 return null
 
-            return gson.fromJson(composite.memo2, String::class.java)
+//            return gson.fromJson(composite.memo2, String::class.java)
+            return composite.memo2
         }
 
         override suspend fun folderGet(folderPath: String, useOld: Boolean): String? {

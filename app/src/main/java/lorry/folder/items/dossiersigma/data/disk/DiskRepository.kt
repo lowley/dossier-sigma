@@ -27,7 +27,6 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -59,15 +58,29 @@ class DiskRepository @Inject constructor(
                     }
                     .map { itemDTO ->
                         async {
+                            val itemDTOPath = "${itemDTO.path}/${itemDTO.name}"
+
+                            val newCompositeManager = CompositeManager(itemDTOPath)
+                            val newComposite = newCompositeManager.getComposite()
+                            val oldCompositeManager = CompositeManager(itemDTOPath, useOld = true)
+                            val oldComposite = oldCompositeManager.getComposite()
+
+                            if (newComposite == null || oldComposite == null)
+                                emptyList<Item>()
+
                             if (itemDTO.isFile) {
                                 var file: Item = SigmaFile(
                                     path = itemDTO.path,
                                     name = itemDTO.name,
-                                    picture = null,
+                                    picture = getImage(
+                                        path = itemDTOPath,
+                                        newComposite = newComposite,
+                                        oldComposite = oldComposite,
+                                    ),
                                     modificationDate = itemDTO.lastModified,
-                                    tag = null,
-                                    scale = ContentScale.Crop,
-                                    memo = null,
+                                    tag = newComposite!!.getFlag(),
+                                    scale = newComposite.getScale(),
+                                    memo = newComposite.memo2,
                                 )
 
                                 if (itemDTO.name.endsWith(".html")) {
@@ -97,13 +110,16 @@ class DiskRepository @Inject constructor(
                                 SigmaFolder(
                                     path = itemDTO.path,
                                     name = itemDTO.name,
-                                    picture = null,
-                                    items = listOf<Item>(),
+                                    picture = getImage(
+                                        path = itemDTOPath,
+                                        newComposite = newComposite,
+                                        oldComposite = oldComposite,
+                                    ),
+                                    items = listOf(),
                                     modificationDate = itemDTO.lastModified,
-                                    tag = null,
-                                    scale = ContentScale.Crop,
-                                    memo = null,
-                                    
+                                    tag = newComposite!!.getFlag(),
+                                    scale = newComposite.getScale(),
+                                    memo = newComposite.memo2,
                                 )
                             }
                         }
@@ -186,7 +202,7 @@ class DiskRepository @Inject constructor(
         return SigmaFolder(
             fullPath = folderPath,
             picture = getImage(
-                folderPath = folderPath,
+                path = folderPath,
                 newComposite = newComposite,
                 oldComposite = oldComposite,
             ),
@@ -199,17 +215,28 @@ class DiskRepository @Inject constructor(
     }
 
     suspend fun getImage(
-        folderPath: String,
+        path: String,
         newComposite: CompositeData?,
         oldComposite: CompositeData?,
     ): Any {
         var result: Any
-        val isFile = File(folderPath).isFile()
+        val isFile = File(path).isFile()
+
+        println("recherche Image pour: $path")
 
         result = when {
             isFile -> {
-                var image: Any? = newComposite?.getCroppedPicture() ?: newComposite?.getInitialPicture()
+                println("C'est un fichier")
+                val newCropped = newComposite?.getCroppedPicture()
+                val newInitial = newComposite?.getInitialPicture()
+                var image: Any? =  newCropped?: newInitial
                 val repo = VideoInfoEmbedder()
+
+                if (newCropped != null)
+                    println("trouvé newCropped")
+
+                if (newInitial != null)
+                    println("trouvé newInitial")
 
                 if (image == null) {
 //            if (item.fullPath.endsWith("mp4") ||
@@ -219,48 +246,81 @@ class DiskRepository @Inject constructor(
 //                item.fullPath.endsWith("iso") ||
 //                item.fullPath.endsWith("mpg")
 //            ) {
-                    var image: Any? = oldComposite?.getCroppedPicture() ?: oldComposite?.getInitialPicture()
+                    val oldCropped = oldComposite?.getCroppedPicture()
+                    val oldInitial = oldComposite?.getInitialPicture()
+
+                    var image: Any? =  oldCropped?: oldInitial
+
+                    if (oldCropped != null)
+                        println("trouvé oldCropped")
+
+                    if (oldInitial != null)
+                        println("trouvé oldInitial")
 
                     if (image != null) {
-                        val compositeMgr = CompositeManager(folderPath)
+                        val compositeMgr = CompositeManager(path)
                         compositeMgr.save(InitialPicture(image, repo))
                     } else {
                         //récupère image existante selon l'ancienne méthode, si elle existe
                         val image64 = repo.extractBase64FromFile(
-                            File(folderPath),
+                            File(path),
                             tag = Tags.COVER
                         )
                         if (image64 != null) {
                             image = repo.base64ToBitmap(image64)
-                            val compositeMgr = CompositeManager(folderPath)
+                            val compositeMgr = CompositeManager(path)
                             compositeMgr.save(InitialPicture(image, repo))
+                            println("trouvé n-2 Initial")
+
                         }
                     }
                 }
+
+                if (image == null)
+                    println("pas trouvé, utilisation de R.drawable.file")
 
                 image = image ?: R.drawable.file
                 image
             }
 
             !isFile -> {
+                println("C'est un dossier")
+                val newCropped = newComposite?.getCroppedPicture()
+                val newInitial = newComposite?.getInitialPicture()
                 var image: Any? = newComposite?.getCroppedPicture() ?: newComposite?.getInitialPicture()
 
-                val compositeMgr = CompositeManager(folderPath)
+                if (newCropped != null)
+                println("trouvé newCropped")
+
+                if (newInitial != null)
+                    println("trouvé newInitial")
+
+                val compositeMgr = CompositeManager(path)
                 val repo = Base64DataSource()
                 val repo2 = VideoInfoEmbedder()
 
                 if (image == null) {
-                    var image = oldComposite?.getCroppedPicture() ?: oldComposite?.getInitialPicture()
+                    val oldCropped = oldComposite?.getCroppedPicture()
+                    val oldInitial = oldComposite?.getInitialPicture()
+
+                    var image: Any? =  oldCropped?: oldInitial
+
+                    if (oldCropped != null)
+                        println("trouvé oldCropped")
+
+                    if (oldInitial != null)
+                        println("trouvé oldInitial")
 
                     if (image != null) {
-                        val compositeMgr = CompositeManager(folderPath)
+                        val compositeMgr = CompositeManager(path)
                         compositeMgr.save(InitialPicture(image, repo2))
                     }
                 }
 
                 if (image == null) {
-                    image = repo.extractImageFromHtml("${folderPath}/.folderPicture.html")
-
+                    image = repo.extractImageFromHtml("${path}/.folderPicture.html")
+                    if (image != null)
+                        println("trouvé n-2 Initial")
                     compositeMgr.save(InitialPicture(image, repo2))
                 }
 
@@ -268,7 +328,8 @@ class DiskRepository @Inject constructor(
                     compositeMgr.save(InitialPicture(image, repo2))
 
                 if (image == null) {
-                    val isPopulated = isFolderPopulated(folderPath)
+                    println("non trouvé")
+                    val isPopulated = isFolderPopulated(path)
                     image = if (isPopulated)
                         R.drawable.folder_full
                     else R.drawable.folder_empty
