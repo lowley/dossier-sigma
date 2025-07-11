@@ -785,7 +785,10 @@ class MainActivity : ComponentActivity() {
                         }
 
                         if (openTextDialog.value)
-                            CustomTextDialog(dialogMessage.value ?: "", openTextDialog) { text ->
+                            CustomTextDialog(
+                                text = dialogMessage.value ?: "",
+                                openDialog = openTextDialog,
+                                initialText = mainViewModel.dialogInitialText.value ?: "") { text ->
                                 if (mainViewModel.dialogOnOkLambda != null) {
                                     mainViewModel.viewModelScope.launch {
                                         mainViewModel.dialogOnOkLambda?.invoke(

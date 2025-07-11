@@ -2,10 +2,7 @@ package lorry.folder.items.dossiersigma.ui
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
-import androidx.collection.emptyLongSet
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
@@ -37,7 +34,6 @@ import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
-import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
@@ -49,7 +45,6 @@ import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.Tool
 import lorry.folder.items.dossiersigma.ui.components.Tools
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URLDecoder
 import java.util.UUID
@@ -306,11 +301,21 @@ class SigmaViewModel @Inject constructor(
         }
     }
 
+    ////////////////////////
+    // boîtes de dialogue //
+    ////////////////////////
     private val _dialogMessage = MutableStateFlow("")
     val dialogMessage: StateFlow<String?> = _dialogMessage
 
     fun setDialogMessage(message: String) {
         _dialogMessage.value = message
+    }
+
+    private val _dialogInitialText = MutableStateFlow("")
+    val dialogInitialText: StateFlow<String?> = _dialogInitialText
+
+    fun setDialogInitialText(text: String) {
+        _dialogInitialText.value = text
     }
 
     var dialogOnOkLambda: (suspend (String, SigmaViewModel, Context) -> Unit)? = null

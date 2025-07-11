@@ -623,8 +623,10 @@ sealed class Tools() {
                     icon = R.drawable.renommer,
                     onClick = { viewModel, mainActivity ->
                         val currentFolderPath = viewModel.selectedItem.value?.fullPath
+                        val currentItemName = currentFolderPath?.substringAfterLast("/") ?: ""
                         //viewModel.setSelectedItem(null)
                         viewModel.setDialogMessage("Nouveau nom du dossier")
+                        viewModel.setDialogInitialText(currentItemName)
                         viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
                             run {
                                 if (currentFolderPath == null || newName == currentFolderPath.substringAfterLast(
@@ -1200,10 +1202,11 @@ fun changeCrop(viewModel: SigmaViewModel, scale: ContentScale) {
 @Composable
 fun CustomTextDialog(
     text: String,
+    initialText: String,
     openDialog: MutableState<Boolean>,
     onOk: (String) -> Unit
 ) {
-    val editMessage = remember { mutableStateOf("") }
+    val editMessage = remember { mutableStateOf(initialText) }
 
     Box(
         modifier = Modifier
