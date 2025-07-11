@@ -337,8 +337,7 @@ class MainActivity : ComponentActivity() {
                                             iconRes = R.drawable.underline,
                                             active = true
                                         ) {
-                                            richTextState.config.linkTextDecoration =
-                                                TextDecoration.Underline
+                                            richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
                                         }
                                         EditorAction(
                                             iconRes = R.drawable.italic,
@@ -350,8 +349,7 @@ class MainActivity : ComponentActivity() {
                                             iconRes = R.drawable.strikethrough,
                                             active = true
                                         ) {
-                                            richTextState.config.linkTextDecoration =
-                                                TextDecoration.LineThrough
+                                            richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.LineThrough))
                                         }
                                         EditorAction(
                                             iconRes = R.drawable.leftalign,
@@ -423,7 +421,8 @@ class MainActivity : ComponentActivity() {
                                                 .replace(onlyBr, "")
 
                                             val nothingImportant = Regex("^\\s*$")
-                                            val nothingImportant2 = Regex("^(<br>|\\s|<p>|</p>|&Tab;)*$")
+                                            val nothingImportant2 =
+                                                Regex("^(<br>|\\s|<p>|</p>|&Tab;)*$")
 
                                             if (editorContent.matches(nothingImportant)
                                                 || editorContent.matches((nothingImportant2))

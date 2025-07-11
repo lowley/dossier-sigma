@@ -810,8 +810,8 @@ sealed class Tools() {
                                 if (item.isFolder())
                                     File(item.fullPath).deleteRecursively()
                                 else File(item.fullPath).delete()
+
                                 viewModel.setSelectedItem(null, true)
-//                                viewModel.refreshCurrentFolder()
 
                                 if (File(itemFullPath).exists())
                                     Toast.makeText(
@@ -826,6 +826,7 @@ sealed class Tools() {
                                 ).show()
                             }
 
+                            viewModel.refreshCurrentFolder()
                             BottomTools.setCurrentContent(DEFAULT)
                         }
 
