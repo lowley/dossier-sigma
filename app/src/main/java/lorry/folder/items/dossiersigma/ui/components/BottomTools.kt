@@ -56,6 +56,7 @@ import com.google.gson.Gson
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
@@ -912,11 +913,12 @@ sealed class Tools() {
                             val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
                                 putExtra(
                                     "filesToTransfer", Gson().toJson(
-                                        listOf<String>(
-                                            BottomTools.itemToMove?.fullPath ?: ""
+                                        listOf(BottomTools.itemToMove?.fullPath ?: ""
                                         )
                                     )
                                 )
+                                putExtra("nasDirectory",
+                                    mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull())
                             }
                             mainActivity.startService(intent)
                         }

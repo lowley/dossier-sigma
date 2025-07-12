@@ -13,8 +13,10 @@ import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.data.disk.DiskRepository
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
 import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegReporitory
+import lorry.folder.items.dossiersigma.domain.usecases.homePage.SettingDatas
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import javax.inject.Singleton
 
 

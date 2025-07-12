@@ -6,9 +6,11 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import androidx.annotation.IntegerRes
 import androidx.core.app.NotificationCompat
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -17,25 +19,35 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import lorry.folder.items.copieurtho2.__data.NAS.DS_FTP
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.domain.usecases.homePage.SettingDatas
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import javax.inject.Inject
 
 /**
  * Appelé par @see[lorry.folder.items.dossiersigma.ui.MainActivity.onCreate]
  * , déclaration de CustomMoveFileExistingDestinationDialog
  */
-class MoveToNASService : Service(), CoroutineScope by MainScope() {
+@AndroidEntryPoint
+class MoveToNASService @Inject constructor() : Service(), CoroutineScope by MainScope() {
 
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "move_nas_channel"
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    var nasDirectory: String? = null
+
+    @Inject
+    lateinit var ds_ftp : DS_FTP
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         println("dans onStartCommand")
         val filesTotransferString = intent?.getStringExtra("filesToTransfer") ?: return START_NOT_STICKY
+        nasDirectory = intent?.getStringExtra("nasDirectory") ?: return START_NOT_STICKY
 
         val type = object : TypeToken<List<String>>() {}.type
         val filesTotransfer = Gson().fromJson<List<String>>(filesTotransferString, type)
@@ -44,7 +56,7 @@ class MoveToNASService : Service(), CoroutineScope by MainScope() {
         startForeground(NOTIFICATION_ID, buildNotification("Copie de fichiers en cours"))
 
         println("copie de ${filesTotransfer.size} fichiers vers le NAS")
-        val destination = "/videos"
+        val destination = "/$nasDirectory"
 
         serviceScope.launch {
             println("MoveToNASService: dans launch")
@@ -73,7 +85,7 @@ class MoveToNASService : Service(), CoroutineScope by MainScope() {
             return
 
         val sourceFile = File(source)
-        val nasDS = DS_FTP()
+        val nasDS = ds_ftp
 
         if (sourceFile.isDirectory)
             return
@@ -136,7 +148,7 @@ class MoveToNASService : Service(), CoroutineScope by MainScope() {
     private suspend fun verify(source: String, destination: String): Boolean {
         val sourceFile = File(source)
 
-        val destinationFiles = DS_FTP().fetchMP4Files(destination)
+        val destinationFiles = ds_ftp.fetchMP4Files(destination)
 
         var file = destinationFiles
             ?.first { it.name == source.substringAfterLast("/") }

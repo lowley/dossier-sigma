@@ -50,7 +50,6 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
-
         homeItems.add(
             HomeItem(
                 title = "Filles",

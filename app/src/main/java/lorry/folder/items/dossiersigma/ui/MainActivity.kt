@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,7 +42,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,7 +51,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,7 +86,6 @@ import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.PermissionsManager
@@ -114,7 +110,6 @@ import java.io.File
 import javax.inject.Inject
 import kotlin.random.Random
 import lorry.folder.items.dossiersigma.data.dataSaver.Memo
-import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 
@@ -130,6 +125,7 @@ class MainActivity : ComponentActivity() {
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
     val settingsViewModel: SettingsViewModel by viewModels()
+
     lateinit var openTextDialog: MutableState<Boolean>
     lateinit var openYesNoDialog: MutableState<Boolean>
     lateinit var openMoveFileDialog: MutableState<Boolean>
@@ -681,7 +677,7 @@ class MainActivity : ComponentActivity() {
                             val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
                             if (isSettingsPageVisible)
-                                settingsPage()
+                                settingsPage(vm = settingsViewModel)
 
 
                             if (homePageVisible) {

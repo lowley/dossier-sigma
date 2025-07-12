@@ -131,4 +131,5 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation("com.github.pChochura:richtext-compose:1.3.2")
     implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 }

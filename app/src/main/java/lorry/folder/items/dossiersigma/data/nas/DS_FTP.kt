@@ -1,8 +1,12 @@
 package lorry.folder.items.copieurtho2.__data.NAS
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.nas.DSI_FTP
+import lorry.folder.items.dossiersigma.domain.usecases.homePage.SettingDatas
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
 import org.apache.commons.net.ftp.FTPFile
@@ -15,7 +19,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-open class DS_FTP @Inject constructor() : DSI_FTP {
+open class DS_FTP @Inject constructor(
+    val settingsManager: SettingsManager
+) : DSI_FTP {
 
     suspend fun <T : Any?> doWithNASAccess(
         parent: String,
@@ -30,7 +36,7 @@ open class DS_FTP @Inject constructor() : DSI_FTP {
         var answer: T? = null
 
         try {
-            val server = "192.168.1.20"
+            val server = settingsManager.nasAddressFlow.firstOrNull()
             withContext(Dispatchers.IO) {
                 ftp.connect(server)
             }
@@ -44,8 +50,13 @@ open class DS_FTP @Inject constructor() : DSI_FTP {
                 throw Exception("FTP server refused connection.")
             }
 
+            val login = settingsManager.nasLoginFlow.firstOrNull()
+            val password = settingsManager.nasPasswordFlow.firstOrNull()
+
+            Log.d("SIGMA DISK", "connexion: server: $server, login: $login, password: $password")
+
             val connected = withContext(Dispatchers.IO) {
-                ftp.login("admin", "37-2lematin")
+                ftp.login(login, password)
             }
             if (!connected) {
                 println("Login failed")

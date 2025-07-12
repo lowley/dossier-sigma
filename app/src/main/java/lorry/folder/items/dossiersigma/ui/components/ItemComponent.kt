@@ -234,6 +234,16 @@ fun ItemComponent(
                             viewModel.setIsDisplayingMemo(!viewModel.isDisplayingMemo.value)
                         }
                 ) {
+                    // Couche 2 (Conditionnelle) : Le maillage, dessiné par-dessus le fond
+                    if (!memoEmpty) {
+                        Image(
+                            painter = painterResource(id = R.drawable.obliques4), // Remplacez par votre fichier
+                            contentDescription = "Maillage de fond",
+                            contentScale = ContentScale.Crop, // Assure que l'image remplit l'espace
+                            modifier = Modifier.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
+                        )
+                    }
+
                     Column(
                         modifier = Modifier
                             .align(Alignment.TopStart)
@@ -242,30 +252,30 @@ fun ItemComponent(
                     ) {
                         val textHeight = 18.dp
 
-                            Text(
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(0.dp)
-                                    .height(textHeight),
-                                text = infoSup,
-                                fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight
-                                    .ExtraBold,
-                                fontSize = 10.sp,
-                                color = Color.White
-                            )
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(0.dp)
+                                .height(textHeight),
+                            text = infoSup,
+                            fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight
+                                .ExtraBold,
+                            fontSize = 10.sp,
+                            color = Color.White
+                        )
 
-                            Text(
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(
-                                        top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
-                                    )
-                                    .height(textHeight),
-                                text = infoInf,
-                                fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight.ExtraBold,
-                                fontSize = 10.sp,
-                                color = Color.White
-                            )
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(
+                                    top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
+                                )
+                                .height(textHeight),
+                            text = infoInf,
+                            fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight.ExtraBold,
+                            fontSize = 10.sp,
+                            color = Color.White
+                        )
                     }
                 }
             }
