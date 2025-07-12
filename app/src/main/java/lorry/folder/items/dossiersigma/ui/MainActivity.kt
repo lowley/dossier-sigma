@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -114,6 +115,8 @@ import javax.inject.Inject
 import kotlin.random.Random
 import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.domain.Item
+import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
+import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -126,14 +129,12 @@ class MainActivity : ComponentActivity() {
 
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
+    val settingsViewModel: SettingsViewModel by viewModels()
     lateinit var openTextDialog: MutableState<Boolean>
     lateinit var openYesNoDialog: MutableState<Boolean>
     lateinit var openMoveFileDialog: MutableState<Boolean>
     lateinit var openTagInfosDialog: MutableState<Boolean>
 
-    @OptIn(
-        ExperimentalMaterial3Api::class
-    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -548,9 +549,8 @@ class MainActivity : ComponentActivity() {
                                             .pointerInput(true) {
                                                 detectTapGestures(
                                                     onTap = {
-//                                                changePathUseCase.askInputFolder()
-                                                        homeViewModel.setHomePageVisible(!homePageVisible)
-
+                                                        mainViewModel.setIsSettingsPageVisible(false)
+                                                        homeViewModel.setHomePageVisible(true)
                                                     }
                                                 )
                                             },
@@ -583,10 +583,27 @@ class MainActivity : ComponentActivity() {
                                             .padding(end = 10.dp)
                                     )
                                     {
-                                        Text(
-                                            text = "truc",
-                                            modifier = Modifier.align(Alignment.CenterEnd),
-                                            color = Color.White
+                                        val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
+
+                                        Icon(
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .padding(
+                                                    start = 10.dp,
+                                                    end = 10.dp
+                                                )
+                                                .align(Alignment.CenterEnd)
+                                                .pointerInput(true) {
+                                                    detectTapGestures(
+                                                        onTap = {
+                                                            homeViewModel.setHomePageVisible(false)
+                                                            mainViewModel.setIsSettingsPageVisible(true)
+                                                        }
+                                                    )
+                                                },
+                                            painter = painterResource(R.drawable.settings),
+                                            tint = Color(0xFFe9c46a),
+                                            contentDescription = null
                                         )
                                     }
 
@@ -660,6 +677,12 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                             }
+
+                            val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
+
+                            if (isSettingsPageVisible)
+                                settingsPage()
+
 
                             if (homePageVisible) {
                                 LazyVerticalGrid(
@@ -788,7 +811,8 @@ class MainActivity : ComponentActivity() {
                             CustomTextDialog(
                                 text = dialogMessage.value ?: "",
                                 openDialog = openTextDialog,
-                                initialText = mainViewModel.dialogInitialText.value ?: "") { text ->
+                                initialText = mainViewModel.dialogInitialText.value ?: ""
+                            ) { text ->
                                 if (mainViewModel.dialogOnOkLambda != null) {
                                     mainViewModel.viewModelScope.launch {
                                         mainViewModel.dialogOnOkLambda?.invoke(

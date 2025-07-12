@@ -172,6 +172,16 @@ class SigmaViewModel @Inject constructor(
         _isDisplayingMemo.value = isVisible
     }
 
+    //////////////
+    // settings //
+    //////////////
+    private val _isSettingsPageVisible = MutableStateFlow<Boolean>(false)
+    val isSettingsPageVisible: StateFlow<Boolean> = _isSettingsPageVisible
+
+    fun setIsSettingsPageVisible(visible: Boolean) {
+        _isSettingsPageVisible.value = visible
+    }
+
     /////////////////
     // drag'n drop //
     /////////////////

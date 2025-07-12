@@ -2,12 +2,9 @@ package lorry.folder.items.dossiersigma.domain.usecases.homePage
 
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import java.util.UUID
@@ -17,7 +14,6 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     val homeUseCase: HomeUseCase
 ) : ViewModel() {
-
     private val _homePageVisible = MutableStateFlow<Boolean>(true)
     val homePageVisible: StateFlow<Boolean> = _homePageVisible
 
