@@ -1,12 +1,14 @@
 package lorry.folder.items.dossiersigma.ui.components
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,10 +47,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImage
 import com.github.skydoves.colorpicker.compose.ColorEnvelope
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
@@ -374,9 +378,11 @@ sealed class Tools() {
                                     )
                                     compositeMgr.save(Flag(newFlag))
 
-                                    viewModel.setFlagCacheValue(currentItem.fullPath,
-                                        newFlag)
-                                    
+                                    viewModel.setFlagCacheValue(
+                                        currentItem.fullPath,
+                                        newFlag
+                                    )
+
 //                                    if (currentItem != null && tagInfos != null) {
 //                                        currentItem.tag = newFlag
 //                                    }
@@ -438,7 +444,8 @@ sealed class Tools() {
                             if (currentItem == null)
                                 return@run
 
-                            val currentTag = viewModel.flagCache.value[viewModel.selectedItemFullPath.value]
+                            val currentTag =
+                                viewModel.flagCache.value[viewModel.selectedItemFullPath.value]
                             val tool = DEFAULT.content(viewModel)
                                 .tools.value.firstOrNull { it.id == currentTag?.id }
 
@@ -479,7 +486,8 @@ sealed class Tools() {
                     onClick = { viewModel, mainActivity ->
                         run {
                             val currentItem = viewModel.selectedItem.value ?: return@run
-                            val currentTag = viewModel.flagCache.value[viewModel.selectedItemFullPath.value]
+                            val currentTag =
+                                viewModel.flagCache.value[viewModel.selectedItemFullPath.value]
 
                             val tool = DEFAULT.content(viewModel)
                                 .tools.value.firstOrNull { it.id == currentTag?.id }
@@ -508,7 +516,7 @@ sealed class Tools() {
 
                                 val compositeMgr = CompositeManager(it.fullPath)
                                 compositeMgr.save(Flag(null))
-                                
+
                             }
 
                             //normalement toujours vrai
@@ -634,7 +642,8 @@ sealed class Tools() {
                                         "/"
                                     )
                                 ) {
-                                    Toast.makeText(mainActivity,
+                                    Toast.makeText(
+                                        mainActivity,
                                         "Le nouveau nom doît être différent de l'ancien",
                                         Toast.LENGTH_SHORT
                                     ).show()
@@ -913,12 +922,15 @@ sealed class Tools() {
                             val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
                                 putExtra(
                                     "filesToTransfer", Gson().toJson(
-                                        listOf(BottomTools.itemToMove?.fullPath ?: ""
+                                        listOf(
+                                            BottomTools.itemToMove?.fullPath ?: ""
                                         )
                                     )
                                 )
-                                putExtra("nasDirectory",
-                                    mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull())
+                                putExtra(
+                                    "nasDirectory",
+                                    mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
+                                )
                             }
                             mainActivity.startService(intent)
                         }
@@ -1121,19 +1133,19 @@ sealed class Tools() {
                         run {
                             val item = viewModel.selectedItem.value
                             var sourceBitmap: Any? = null
-                            
+
                             if (item == null)
                                 return@run
-                            
+
                             val compositeMgr = CompositeManager(item.fullPath)
                             sourceBitmap = compositeMgr.getElement(InitialPicture)
                             val test = compositeMgr.getElement(CroppedPicture)
-                            
+
                             if (sourceBitmap == null && test != null) {
                                 compositeMgr.save(InitialPicture(test, VideoInfoEmbedder()))
                                 sourceBitmap = test
                             }
-                            
+
                             if (sourceBitmap == null)
                                 return@run
 
@@ -1538,12 +1550,148 @@ fun TagInfosDialog(
     }
 }
 
+@Composable
+fun MainActivity.HomeItemDialog(
+    message: String,
+    homeItemInfos: HomeItemInfos?,
+    openDialog: MutableState<Boolean>,
+    onDatasCompleted:
+    suspend (homeItemInfos: HomeItemInfos?, viewModel: SigmaViewModel, activity: MainActivity) -> Unit,
+) {
+    var editText by remember { mutableStateOf(homeItemInfos?.oldTitle ?: "") }
+    var editPath by remember { mutableStateOf(homeItemInfos?.path ?: "") }
+    var editPicture by remember { mutableStateOf(homeItemInfos?.picture) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                color = contentColorFor(Color.White)
+                    .copy(alpha = 0.6f)
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    openDialog.value = false
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(Color.White)
+                .padding(8.dp),
+        ) {
+
+            Text(
+                modifier = Modifier,
+                text = message,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                value = editText,
+                onValueChange = { value: String -> editText = value },
+                singleLine = true,
+                label = { Text("Titre") }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TextField(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                value = editPath,
+                onValueChange = { value: String -> editPath = value },
+                singleLine = true,
+                label = { Text("Chemin") }
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            AsyncImage(
+                modifier = Modifier
+                    .size(80.dp)
+                    .padding(10.dp)
+                    .pointerInput(true) {
+                        detectTapGestures(
+                            onTap = {
+                                //changer image
+                            }
+                        )
+                    },
+                model = editPicture,
+                contentDescription = "Miniature",
+                contentScale = ContentScale.Crop,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier
+            ) {
+                Spacer(
+                    modifier = Modifier
+                        .weight(1f)
+                )
+
+                Button(
+                    modifier = Modifier,
+                    onClick = {
+                        openDialog.value = false
+                    }
+                ) {
+                    Text("Annuler")
+                }
+
+                Button(
+                    modifier = Modifier
+                        .padding(start = 5.dp),
+                    onClick = {
+                        if (editText != null && editPath != null) {
+                            mainViewModel.viewModelScope.launch {
+                                onDatasCompleted(
+                                    HomeItemInfos(
+                                        oldTitle = homeItemInfos?.oldTitle,
+                                        newTitle = editText,
+                                        path = editPath,
+                                        picture = editPicture,
+                                    ), mainViewModel, mainActivity
+                                )
+                            }
+
+                            openDialog.value = false
+                        } else
+                            Toast.makeText(
+                                mainActivity,
+                                "Veuillez renseigner au moins le titre et le chemin du raccourci",
+                                Toast.LENGTH_LONG
+                            ).show()
+                    }
+                ) {
+                    Text("Valider")
+                }
+            }
+        }
+    }
+}
+
 data class TagInfos(
     val title: String,
     val color: Color
 )
 
-
-
+data class HomeItemInfos(
+    val oldTitle: String? = null,
+    val newTitle: String? = null,
+    val path: String?,
+    val picture: Bitmap?,
+)
 
 

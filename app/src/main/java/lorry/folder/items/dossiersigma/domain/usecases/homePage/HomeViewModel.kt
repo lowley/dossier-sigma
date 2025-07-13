@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.domain.usecases.homePage
 
+import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
 import java.util.UUID
 import javax.inject.Inject
 
@@ -14,6 +16,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     val homeUseCase: HomeUseCase
 ) : ViewModel() {
+
     private val _homePageVisible = MutableStateFlow<Boolean>(true)
     val homePageVisible: StateFlow<Boolean> = _homePageVisible
 
@@ -21,18 +24,28 @@ class HomeViewModel @Inject constructor(
         _homePageVisible.value = visible
     }
 
+    ///////////////////////////////////////////
+    // envoi itemInfos à dialogHomeItemInfos //
+    ///////////////////////////////////////////
+    private val _dialogHomeItemInfos = MutableStateFlow<HomeItemInfos?>(null)
+    val dialogHomeItemInfos: StateFlow<HomeItemInfos?> = _dialogHomeItemInfos
+
+    fun setDialogHomeItemInfos(infos: HomeItemInfos?) {
+        _dialogHomeItemInfos.value = infos
+    }
+
     private val _homeItems = MutableStateFlow<List<HomeItem>>(emptyList())
     val homeItems: StateFlow<List<HomeItem>> = _homeItems
 
-    fun StateFlow<List<HomeItem>>.set(items: List<HomeItem>) {
+    fun setHomeItems(items: List<HomeItem>) {
         _homeItems.value = items
     }
 
-    fun StateFlow<List<HomeItem>>.add(item: HomeItem) {
+    fun addHomeItem(item: HomeItem) {
         _homeItems.value = homeItems.value + item
     }
 
-    fun StateFlow<List<HomeItem>>.remove(item: HomeItem) {
+    fun removeHomeItem(item: HomeItem) {
         val existings = homeItems.value.toMutableList()
         existings.remove(item)
         _homeItems.value = existings
@@ -50,156 +63,126 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "Filles",
                 icon = R.drawable.sexe,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/sexe/filles")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Movies/sexe/filles",
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "Fantasmes",
                 icon = R.drawable.sexe,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/sexe/fantasmes")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Movies/sexe/fantasmes"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "Films",
                 icon = R.drawable.film,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Movies"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "Bizarre",
                 icon = R.drawable.film,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/bizarre")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
-        
-        homeItems.add(
+                path = "/storage/emulated/0/Movies/bizarre"
+            )
+        )
+
+        addHomeItem(
             HomeItem(
                 title = "sensations fortes",
                 icon = R.drawable.film,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/sensations fortes.fort")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Movies/sensations fortes.fort"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "humour",
                 icon = R.drawable.film,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/humour")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Movies/humour"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "fantastique",
                 icon = R.drawable.film,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/fantastique")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Movies/fantastique"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "intériorité",
                 icon = R.drawable.film,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/faiblesse & intériorité")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Movies/faiblesse & intériorité"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "acteurs",
                 icon = R.drawable.acteur,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/acteurs")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Movies/acteurs"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "1DM+",
                 icon = R.drawable.sexe,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Download/1DMP/General")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Download/1DMP/General"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "Nzbs",
                 icon = R.drawable.downloads2,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Download/nzb")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
+                path = "/storage/emulated/0/Download/nzb"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
                 title = "Films/Sexe",
                 icon = R.drawable.sexe,
-                onClick = { mainVM, homeVM ->
-                    mainVM.goToFolder("/storage/emulated/0/Movies/sexe")
-                    homeVM.setHomePageVisible(false)
-                }
-            ))
-        
-        homeItems.add(
-            HomeItem(
-            title = "Stockage principal",
-            icon = R.drawable.hdd,
-            onClick = { mainVM, homeVM ->
-                mainVM.goToFolder("/storage/emulated/0")
-                homeVM.setHomePageVisible(false)
-            }
-        ))
+                path = "/storage/emulated/0/Movies/sexe"
+            )
+        )
 
-        homeItems.add(
+        addHomeItem(
             HomeItem(
-            title = "Téléchargements",
-            icon = R.drawable.downloads2,
-            onClick = { mainVM, homeVM ->
-                mainVM.goToFolder("/storage/emulated/0/Download")
-                homeVM.setHomePageVisible(false)
-            }
-        ))
+                title = "Stockage principal",
+                icon = R.drawable.hdd,
+                path = "/storage/emulated/0"
+            )
+        )
+
+        addHomeItem(
+            HomeItem(
+                title = "Téléchargements",
+                icon = R.drawable.downloads2,
+                path = "/storage/emulated/0/Download"
+            )
+        )
     }
 }
 
 data class HomeItem(
     val id: UUID = UUID.randomUUID(),
     val title: String,
-    @DrawableRes val icon: Int,
-    val onClick: suspend (
-        mainVM: SigmaViewModel,
-        homeVM: HomeViewModel
-    ) -> Unit
+    val path: String,
+    @DrawableRes val icon: Int = 0,
+    val picture: Bitmap? = null
 )
 
 

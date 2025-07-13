@@ -16,11 +16,13 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -65,6 +67,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -80,6 +83,7 @@ import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
+import coil.compose.AsyncImage
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.yalantis.ucrop.UCrop
@@ -110,6 +114,9 @@ import java.io.File
 import javax.inject.Inject
 import kotlin.random.Random
 import lorry.folder.items.dossiersigma.data.dataSaver.Memo
+import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
+import lorry.folder.items.dossiersigma.ui.components.HomeItemDialog
+import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 
@@ -130,6 +137,9 @@ class MainActivity : ComponentActivity() {
     lateinit var openYesNoDialog: MutableState<Boolean>
     lateinit var openMoveFileDialog: MutableState<Boolean>
     lateinit var openTagInfosDialog: MutableState<Boolean>
+    lateinit var openHomeItemDialog: MutableState<Boolean>
+
+    val mainActivity = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -210,6 +220,7 @@ class MainActivity : ComponentActivity() {
                     openYesNoDialog = remember { mutableStateOf(false) }
                     openMoveFileDialog = remember { mutableStateOf(false) }
                     openTagInfosDialog = remember { mutableStateOf(false) }
+                    openHomeItemDialog = remember { mutableStateOf(false) }
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
 
                     SideEffect {
@@ -579,28 +590,68 @@ class MainActivity : ComponentActivity() {
                                             .padding(end = 10.dp)
                                     )
                                     {
-                                        val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
-
-                                        Icon(
+                                        Row(
                                             modifier = Modifier
-                                                .size(50.dp)
-                                                .padding(
-                                                    start = 10.dp,
-                                                    end = 10.dp
-                                                )
-                                                .align(Alignment.CenterEnd)
-                                                .pointerInput(true) {
-                                                    detectTapGestures(
-                                                        onTap = {
-                                                            homeViewModel.setHomePageVisible(false)
-                                                            mainViewModel.setIsSettingsPageVisible(true)
-                                                        }
+                                                .width(IntrinsicSize.Min)
+                                                .align(Alignment.CenterEnd),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+
+                                            //ajouter un homeItem
+                                            Icon(
+                                                modifier = Modifier
+                                                    .size(35.dp)
+                                                    .padding(
+                                                        start = 10.dp,
+                                                        end = 5.dp
                                                     )
-                                                },
-                                            painter = painterResource(R.drawable.settings),
-                                            tint = Color(0xFFe9c46a),
-                                            contentDescription = null
-                                        )
+                                                    .pointerInput(true) {
+                                                        detectTapGestures(
+                                                            onTap = {
+                                                                homeViewModel.setDialogHomeItemInfos(
+                                                                    HomeItemInfos(
+                                                                        oldTitle = null,
+                                                                        newTitle = null,
+                                                                        picture = null,
+                                                                        path = null
+                                                                    )
+                                                                )
+                                                                openHomeItemDialog.value = true
+
+                                                            }
+                                                        )
+                                                    },
+                                                painter = painterResource(R.drawable.plus),
+                                                tint = Color(0xFFe9c46a),
+                                                contentDescription = null
+                                            )
+
+                                            val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
+
+                                            Icon(
+                                                modifier = Modifier
+                                                    .size(50.dp)
+                                                    .padding(
+                                                        start = 10.dp,
+                                                        end = 10.dp
+                                                    )
+                                                    .pointerInput(true) {
+                                                        detectTapGestures(
+                                                            onTap = {
+                                                                homeViewModel.setHomePageVisible(
+                                                                    false
+                                                                )
+                                                                mainViewModel.setIsSettingsPageVisible(
+                                                                    true
+                                                                )
+                                                            }
+                                                        )
+                                                    },
+                                                painter = painterResource(R.drawable.settings),
+                                                tint = Color(0xFFe9c46a),
+                                                contentDescription = null
+                                            )
+                                        }
                                     }
 
                                 } else
@@ -681,6 +732,8 @@ class MainActivity : ComponentActivity() {
 
 
                             if (homePageVisible) {
+                                val homeItems by homeViewModel.homeItems.collectAsState(emptyList())
+
                                 LazyVerticalGrid(
                                     columns = GridCells.Adaptive(150.dp),
                                     modifier = Modifier
@@ -693,7 +746,7 @@ class MainActivity : ComponentActivity() {
                                     val _10Color = Color(0xFF8fc0a9)
 
                                     lazyGridItems(
-                                        homeViewModel.homeItems.value,
+                                        homeItems,
                                         key = { it.id }) { item ->
                                         Card(
                                             modifier = Modifier
@@ -707,11 +760,6 @@ class MainActivity : ComponentActivity() {
                                             elevation = CardDefaults.cardElevation(
                                                 defaultElevation = 10.dp
                                             ),
-                                            onClick = {
-                                                mainViewModel.viewModelScope.launch {
-                                                    item.onClick(mainViewModel, homeViewModel)
-                                                }
-                                            },
                                             border = BorderStroke(2.dp, _10Color),
                                         ) {
                                             Box(
@@ -719,14 +767,19 @@ class MainActivity : ComponentActivity() {
                                                     .fillMaxSize()
                                                     .clip(RoundedCornerShape(13.dp))
                                             ) {
-                                                Icon(
-                                                    painter = painterResource(id = item.icon),
-                                                    contentDescription = null,
+                                                AsyncImage(
                                                     modifier = Modifier
-                                                        .size(100.dp)
+                                                        .size(120.dp)
                                                         .align(Alignment.TopCenter)
-                                                        .padding(top = 15.dp),
-                                                    tint = Color.Unspecified
+                                                        .padding(top = 27.dp)
+                                                        .clickable {
+                                                            mainViewModel.goToFolder(item.path)
+                                                            homeViewModel.setHomePageVisible(false)
+                                                        },
+                                                    model = item.picture
+                                                        ?: if (item.icon != 0) item.icon else R.drawable.dossier,
+                                                    contentDescription = "Miniature",
+                                                    contentScale = ContentScale.Fit,
                                                 )
 
                                                 Text(
@@ -734,7 +787,62 @@ class MainActivity : ComponentActivity() {
                                                     color = _30Color,
                                                     modifier = Modifier
                                                         .align(Alignment.BottomCenter)
-                                                        .padding(bottom = 15.dp)
+                                                        .padding(bottom = 5.dp)
+                                                        .clickable {
+                                                            mainViewModel.goToFolder(item.path)
+                                                            homeViewModel.setHomePageVisible(false)
+                                                        }
+                                                )
+
+                                                //icône de modification
+                                                Icon(
+                                                    modifier = Modifier
+                                                        .size(25.dp)
+                                                        .padding(
+                                                            start = 10.dp,
+                                                            top = 10.dp
+                                                        )
+                                                        .align(Alignment.TopStart)
+                                                        .pointerInput(true) {
+                                                            detectTapGestures(
+                                                                onTap = {
+                                                                    homeViewModel.setDialogHomeItemInfos(
+                                                                        HomeItemInfos(
+                                                                            oldTitle = item.title,
+                                                                            picture = null,
+                                                                            path = item.path
+                                                                        )
+                                                                    )
+                                                                    openHomeItemDialog.value = true
+                                                                }
+                                                            )
+                                                        },
+                                                    painter = painterResource(R.drawable.stylo),
+                                                    tint = Color.Gray,
+                                                    contentDescription = null
+                                                )
+
+                                                //icône de suppression
+                                                Icon(
+                                                    modifier = Modifier
+                                                        .size(25.dp)
+                                                        .padding(
+                                                            end = 10.dp,
+                                                            top = 10.dp
+                                                        )
+                                                        .align(Alignment.TopEnd)
+                                                        .pointerInput(true) {
+                                                            detectTapGestures(
+                                                                onTap = {
+                                                                    homeViewModel.removeHomeItem(
+                                                                        item
+                                                                    )
+                                                                }
+                                                            )
+                                                        },
+                                                    painter = painterResource(R.drawable.corbeille),
+                                                    tint = Color.Gray,
+                                                    contentDescription = null
                                                 )
                                             }
                                         }
@@ -922,6 +1030,47 @@ class MainActivity : ComponentActivity() {
                                 },
                                 viewModel = mainViewModel,
                                 mainActivity = this@MainActivity
+                            )
+                        }
+
+                        if (openHomeItemDialog.value) {
+                            val dialogHomeItemInfos by homeViewModel.dialogHomeItemInfos.collectAsState()
+
+                            HomeItemDialog(
+                                openDialog = openHomeItemDialog,
+                                onDatasCompleted = { infos: HomeItemInfos?, model: SigmaViewModel, activity: MainActivity ->
+                                    if (infos?.newTitle == null || infos.path == null)
+                                        return@HomeItemDialog
+                                    val items = homeViewModel.homeItems.value
+                                    if (infos.oldTitle in items.map { it.title }) {
+                                        //modifier
+                                        homeViewModel.setHomeItems(
+                                            items
+                                                .map {
+                                                    if (it.title == infos.oldTitle)
+                                                        HomeItem(
+                                                            title = infos.newTitle,
+                                                            path = infos.path
+                                                        )
+                                                    else
+                                                        it
+                                                })
+                                    } else {
+                                        //insérer
+                                        val newList = items.toMutableList()
+                                        newList.add(
+                                            HomeItem(
+                                                title = infos.newTitle,
+                                                picture = infos.picture,
+                                                path = infos.path
+                                            )
+                                        )
+
+                                        homeViewModel.setHomeItems(newList)
+                                    }
+                                },
+                                message = "Addition/Edition de raccourci",
+                                homeItemInfos = dialogHomeItemInfos,
                             )
                         }
                     }
