@@ -69,6 +69,13 @@ class BrowserUseCase @Inject constructor(
         Toast.makeText(context, "Naviguez et appuyez longuement sur l'image choisie", Toast.LENGTH_LONG)
             .show()
     }
+
+    fun openBrowserWithText(text: String) {
+        setCurrentPage("https://www.google.com/search?q=" + text)
+
+        Toast.makeText(context, "Naviguez et appuyez longuement sur l'image choisie", Toast.LENGTH_LONG)
+            .show()
+    }
 }
 
 sealed class BrowserTarget(

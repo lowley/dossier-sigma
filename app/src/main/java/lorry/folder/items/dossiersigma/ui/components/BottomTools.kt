@@ -47,7 +47,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -57,7 +56,6 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -70,10 +68,12 @@ import com.google.gson.Gson
 import com.jaiselrahman.filepicker.activity.FilePickerActivity
 import com.jaiselrahman.filepicker.model.MediaFile
 import com.yalantis.ucrop.UCrop
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
@@ -599,6 +599,17 @@ sealed class Tools() {
                              * voir BrowserOverlay et son appel par MainActivity
                              * le callback est un de ses paramètres d'appel
                              */
+                            mainActivity.onGotBrowserImage = { url ->
+                                viewModel.viewModelScope.launch {
+                                    manageImageClick(viewModel, url)
+                                    //génère des problèmes dans manageImageClick
+//                            mainViewModel.setSelectedItem(null)
+                                    BottomTools.setCurrentContent(DEFAULT)
+                                    viewModel.setSelectedItem(null, true)
+//                                        mainViewModel.refreshCurrentFolder()
+                                }
+                            }
+
                             viewModel.browserManager.openBrowser(
                                 selectedItem, BrowserTarget.GOOGLE
                             )
@@ -1567,17 +1578,18 @@ fun TagInfosDialog(
 @Composable
 fun MainActivity.HomeItemDialog(
     message: String,
-    homeItemInfos: HomeItemInfos?,
+    homeItemInfos: StateFlow<HomeItemInfos?>,
     openDialog: MutableState<Boolean>,
     onDatasCompleted: (homeItemInfos: HomeItemInfos?) -> Unit,
 ) {
-    var editText by remember { mutableStateOf(homeItemInfos?.oldTitle ?: "") }
-    var editPath by remember { mutableStateOf(homeItemInfos?.path ?: "") }
-    var editPicture by remember { mutableStateOf(homeItemInfos?.picture) }
+    var editText1 by remember { mutableStateOf(homeItemInfos.value?.oldTitle ?: "") }
+    var editPath1 by remember { mutableStateOf(homeItemInfos.value?.path ?: "") }
+    var editPicture1 by remember { mutableStateOf(homeItemInfos.value?.picture) }
+    val homeInfos by homeItemInfos.collectAsState()
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .width(600.dp)
             .background(
                 color = contentColorFor(Color.White)
                     .copy(alpha = 0.6f)
@@ -1609,8 +1621,14 @@ fun MainActivity.HomeItemDialog(
             TextField(
                 modifier = Modifier
                     .fillMaxWidth(),
-                value = editText,
-                onValueChange = { value: String -> editText = value },
+                value = if (homeInfos!!.newTitle == null) homeInfos!!.oldTitle!! else homeInfos!!.newTitle!!,
+                onValueChange = { value: String ->
+                    mainActivity.homeViewModel.setDialogHomeItemInfos(
+                        mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                            newTitle = value
+                        )
+                    )
+                                },
                 singleLine = true,
                 label = { Text("Titre") }
             )
@@ -1625,8 +1643,14 @@ fun MainActivity.HomeItemDialog(
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 5.dp),
-                    value = editPath,
-                    onValueChange = { value: String -> editPath = value },
+                    value = homeInfos!!.path!!,
+                    onValueChange = { value: String ->
+                        mainActivity.homeViewModel.setDialogHomeItemInfos(
+                            mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                                path = value
+                            )
+                        )
+                                    },
                     singleLine = true,
                     label = { Text("Chemin") }
                 )
@@ -1635,7 +1659,11 @@ fun MainActivity.HomeItemDialog(
                     onClick = {
                         mainActivity.onFolderChoosed = { path ->
                             if (path != null) {
-                                editPath = path
+                                mainActivity.homeViewModel.setDialogHomeItemInfos(
+                                    mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                                        path = path
+                                    )
+                                )
                             }
                         }
 
@@ -1649,18 +1677,42 @@ fun MainActivity.HomeItemDialog(
 
             AsyncImage(
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(100.dp)
                     .padding(10.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
                     .pointerInput(true) {
                         detectTapGestures(
                             onTap = {
-                                //changer image
+                                /**
+                                 * @see BrowserOverlay
+                                 * le Browser est un composable dans MainActivity
+                                 * voir BrowserOverlay et son appel par MainActivity
+                                 * le callback est un de ses paramètres d'appel
+                                 */
+                                mainActivity.onGotBrowserImage = { url ->
+                                    mainViewModel.viewModelScope.launch {
+                                        val bitmap = mainViewModel.changingPictureUseCase.urlToBitmap(url)
+                                            ?: return@launch
+                                        withContext(Dispatchers.Main){
+                                            openHomeItemDialog.value = true
+                                            mainActivity.homeViewModel.setDialogHomeItemInfos(
+                                                mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                                                    picture = bitmap
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+
+                                openHomeItemDialog.value = false
+                                mainViewModel.browserManager.openBrowserWithText("")
                             }
                         )
                     },
-                model = editPicture,
+                model = homeInfos!!.picture,
                 contentDescription = "Miniature",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -1686,14 +1738,14 @@ fun MainActivity.HomeItemDialog(
                     modifier = Modifier
                         .padding(start = 5.dp),
                     onClick = {
-                        if (editText != null && editPath != null) {
+                        if (homeInfos!!.newTitle != null && homeInfos!!.path != null) {
                             mainViewModel.viewModelScope.launch {
                                 onDatasCompleted(
                                     HomeItemInfos(
-                                        oldTitle = homeItemInfos?.oldTitle,
-                                        newTitle = editText,
-                                        path = editPath,
-                                        picture = editPicture,
+                                        oldTitle = homeItemInfos.value?.oldTitle,
+                                        newTitle = homeInfos!!.newTitle,
+                                        path = homeInfos!!.path,
+                                        picture = homeInfos!!.picture,
                                     )
                                 )
                             }
@@ -1760,9 +1812,7 @@ fun MainActivity.FolderChooserDialog(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        SelectedPathDisplay(
-            path = path
-        )
+        SelectedPathDisplay(path = path)
 
         Spacer(modifier = Modifier.height(8.dp))
 

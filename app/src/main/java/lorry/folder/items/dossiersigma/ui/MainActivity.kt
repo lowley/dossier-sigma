@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.ui
 
 import android.Manifest
-import android.R.attr
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
@@ -122,10 +121,8 @@ import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.components.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.components.onFilePickerResult
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
-import android.R.attr.data
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import com.jaiselrahman.filepicker.config.Configurations
@@ -164,6 +161,7 @@ class MainActivity : ComponentActivity() {
      * @see FolderChooserDialog
      */
     var onFolderChoosed: (String?) -> Unit = {}
+    var onGotBrowserImage: (String) -> Unit = {}
 
     /**
      * Appelée par la boîte de dialogue de création / modification de HomeItem
@@ -901,7 +899,7 @@ class MainActivity : ComponentActivity() {
                                                                     homeViewModel.setDialogHomeItemInfos(
                                                                         HomeItemInfos(
                                                                             oldTitle = item.title,
-                                                                            picture = null,
+                                                                            picture = item.picture,
                                                                             path = item.path
                                                                         )
                                                                     )
@@ -990,14 +988,7 @@ class MainActivity : ComponentActivity() {
                                     mainViewModel.browserManager.closeBrowser()
                                 },
                                 onImageClicked = { url ->
-                                    mainViewModel.viewModelScope.launch {
-                                        manageImageClick(mainViewModel, url)
-                                        //génère des problèmes dans manageImageClick
-//                            mainViewModel.setSelectedItem(null)
-                                        BottomTools.setCurrentContent(DEFAULT)
-                                        mainViewModel.setSelectedItem(null, true)
-//                                        mainViewModel.refreshCurrentFolder()
-                                    }
+                                    onGotBrowserImage(url)
                                 },
                                 viewmodel = mainViewModel
                             )
@@ -1142,7 +1133,8 @@ class MainActivity : ComponentActivity() {
                                                     if (it.title == infos.oldTitle)
                                                         HomeItem(
                                                             title = infos.newTitle,
-                                                            path = infos.path
+                                                            path = infos.path,
+                                                            picture = infos.picture
                                                         )
                                                     else
                                                         it
@@ -1162,7 +1154,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 message = "Addition/Edition de raccourci",
-                                homeItemInfos = dialogHomeItemInfos,
+                                homeItemInfos = homeViewModel.dialogHomeItemInfos,
                             )
                         }
 
