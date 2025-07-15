@@ -117,7 +117,6 @@ dependencies {
     implementation(files("libs/smart-exception-common-0.2.1.jar"))
     implementation(files("libs/smart-exception-java-0.2.1.jar"))
     
-    
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("org.mp4parser:isoparser:1.9.27")
     implementation("com.github.mjeanroy:exiftool-lib:2.6.0")
@@ -132,4 +131,7 @@ dependencies {
     implementation("com.github.pChochura:richtext-compose:1.3.2")
     implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("com.github.jaiselrahman:FilePicker:1.3.2")
+
+    implementation("androidx.appcompat:appcompat:1.6.1")
 }

@@ -1,11 +1,15 @@
 package lorry.folder.items.dossiersigma.ui.components
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -13,6 +17,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -23,6 +29,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -30,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -39,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -46,6 +55,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -57,6 +67,8 @@ import com.github.skydoves.colorpicker.compose.ColorEnvelope
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import com.google.gson.Gson
+import com.jaiselrahman.filepicker.activity.FilePickerActivity
+import com.jaiselrahman.filepicker.model.MediaFile
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -76,10 +88,12 @@ import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
+import lorry.folder.items.dossiersigma.ui.MainActivity.Companion.TAG
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.containsFlagAsValue
 import java.io.File
 import java.util.UUID
+
 
 object BottomTools {
     lateinit var viewModel: SigmaViewModel
@@ -1555,8 +1569,7 @@ fun MainActivity.HomeItemDialog(
     message: String,
     homeItemInfos: HomeItemInfos?,
     openDialog: MutableState<Boolean>,
-    onDatasCompleted:
-    suspend (homeItemInfos: HomeItemInfos?, viewModel: SigmaViewModel, activity: MainActivity) -> Unit,
+    onDatasCompleted: (homeItemInfos: HomeItemInfos?) -> Unit,
 ) {
     var editText by remember { mutableStateOf(homeItemInfos?.oldTitle ?: "") }
     var editPath by remember { mutableStateOf(homeItemInfos?.path ?: "") }
@@ -1604,14 +1617,33 @@ fun MainActivity.HomeItemDialog(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            TextField(
+            Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                value = editPath,
-                onValueChange = { value: String -> editPath = value },
-                singleLine = true,
-                label = { Text("Chemin") }
-            )
+                    .fillMaxWidth()
+            ) {
+                TextField(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 5.dp),
+                    value = editPath,
+                    onValueChange = { value: String -> editPath = value },
+                    singleLine = true,
+                    label = { Text("Chemin") }
+                )
+
+                Button(
+                    onClick = {
+                        mainActivity.onFolderChoosed = { path ->
+                            if (path != null) {
+                                editPath = path
+                            }
+                        }
+
+                        mainActivity.openFilePicker.value = true
+                    }) {
+                    Text("Choisir")
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -1662,7 +1694,7 @@ fun MainActivity.HomeItemDialog(
                                         newTitle = editText,
                                         path = editPath,
                                         picture = editPicture,
-                                    ), mainViewModel, mainActivity
+                                    )
                                 )
                             }
 
@@ -1681,6 +1713,245 @@ fun MainActivity.HomeItemDialog(
         }
     }
 }
+
+fun MainActivity.onFilePickerResult(result: ActivityResult) {
+    // Ce code est exécuté au retour de FilePickerActivity
+    if (result.resultCode == Activity.RESULT_OK) {
+        // La librairie retourne les chemins dans une liste
+        val files: ArrayList<MediaFile>? = result.data?.getParcelableArrayListExtra(
+            FilePickerActivity.MEDIA_FILES
+        )
+
+        if (!files.isNullOrEmpty()) {
+            val firstFilePath = files[0].path // Voici le chemin du premier fichier
+            Log.d(TAG, "Fichier choisi : $firstFilePath")
+            // Faites ce que vous voulez avec le chemin
+        }
+    }
+}
+
+@Composable
+fun MainActivity.FolderChooserDialog(
+    modifier: Modifier,
+    openDialog: MutableState<Boolean>,
+    onDatasCompleted: (path: String?) -> Unit,
+) {
+    var path = remember { mutableStateOf("/storage/emulated/0") }
+    var items = remember { mutableStateOf(listOf<Item>()) }
+
+    LaunchedEffect(path.value) {
+        mainViewModel.viewModelScope.launch {
+            items.value = mainViewModel.diskRepository.getFolderItems(
+                path.value,
+                ITEMS_ORDERING_STRATEGY.NAME_ASC
+            )
+        }
+    }
+
+    Column(
+        modifier = modifier
+            .width(600.dp)
+            .height(400.dp)
+            .background(Color.White)
+            .clip(RoundedCornerShape(8.dp))
+            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(8.dp))
+    ) {
+        FileChooserToolbox(path = path)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        SelectedPathDisplay(
+            path = path
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        FileList(
+            path = path,
+            items = items,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        BottomToolbar(
+            modifier = Modifier,
+            path = path,
+            items = items,
+            openDialog = openDialog,
+            onDatasCompleted = onDatasCompleted
+        )
+    }
+
+}
+
+@Composable
+fun ColumnScope.SelectedPathDisplay(
+    path: MutableState<String>
+) {
+    Text(
+        modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.CenterHorizontally),
+        text = path.value.substringAfterLast("/"),
+        textAlign = TextAlign.Center
+
+    )
+}
+
+@Composable
+fun ColumnScope.BottomToolbar(
+    modifier: Modifier,
+    path: MutableState<String>,
+    items: MutableState<List<Item>>,
+    openDialog: MutableState<Boolean>,
+    onDatasCompleted: (path: String?) -> Unit
+) {
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        Spacer(
+            modifier = Modifier
+                .weight(1f)
+        )
+
+        Button(
+            onClick = {
+                openDialog.value = false
+            }
+        ) {
+            Text(text = "Abandonner")
+        }
+
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 5.dp),
+            onClick = {
+                onDatasCompleted(path.value)
+                openDialog.value = false
+            }
+        ) {
+            Text(text = "Choisir ${path.value.substringAfterLast("/").takeLast(20)}")
+        }
+    }
+}
+
+@Composable
+fun FileChooserToolbox(path: MutableState<String>) {
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 10.dp)
+    ) {
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .width(IntrinsicSize.Min),
+            onClick = {
+                path.value = path.value.substringBeforeLast("/")
+            }
+        ) {
+            Text(text = "Remonter")
+        }
+
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .width(IntrinsicSize.Min),
+            onClick = {
+                path.value = "/storage/emulated/0/Download"
+            }
+        ) {
+            Text(text = "Téléchargements")
+        }
+
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .width(IntrinsicSize.Min),
+            onClick = {
+                path.value = "/storage/emulated/0"
+            }
+        ) {
+            Text(text = "Stockage principal")
+        }
+
+        Button(
+            modifier = Modifier
+                .padding(horizontal = 5.dp)
+                .width(IntrinsicSize.Min),
+            onClick = {
+                path.value = "/storage/emulated/0/Movies"
+
+            }
+        ) {
+            Text(text = "Movies")
+        }
+    }
+}
+
+@Composable
+fun ColumnScope.FileList(path: MutableState<String>, items: MutableState<List<Item>>) {
+
+    LazyColumn(
+        modifier = Modifier
+            .weight(1f)
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(8.dp))
+    ) {
+        val isEmpty = items.value.isEmpty()
+
+        if (isEmpty)
+            item {
+                Box(
+                    modifier = Modifier.fillParentMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "Le répertoire est vide")
+                }
+            }
+        else
+            items(items.value.size) { index ->
+                val item = items.value[index]
+
+                ItemRow(path = path, item = item)
+            }
+    }
+}
+
+@Composable
+fun ColumnScope.ItemRow(path: MutableState<String>, item: Item) {
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
+            .clickable {
+                if (item.isFolder())
+                    path.value = item.fullPath
+            }
+    ) {
+        AsyncImage(
+            modifier = Modifier
+                .size(50.dp)
+                .padding(end = 10.dp),
+            model = if (item.isFile()) R.drawable.file else R.drawable.folder_empty,
+            contentDescription = "Miniature",
+            contentScale = ContentScale.Fit,
+
+            )
+
+        Text(
+            modifier = Modifier
+                .align(Alignment.CenterVertically),
+            text = item.name
+        )
+    }
+}
+
 
 data class TagInfos(
     val title: String,

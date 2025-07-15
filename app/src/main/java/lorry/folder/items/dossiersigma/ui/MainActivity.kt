@@ -1,11 +1,14 @@
 package lorry.folder.items.dossiersigma.ui
 
+import android.Manifest
+import android.R.attr
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -84,6 +87,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
+import com.jaiselrahman.filepicker.activity.FilePickerActivity
+import com.jaiselrahman.filepicker.model.MediaFile
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.yalantis.ucrop.UCrop
@@ -117,11 +122,24 @@ import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.components.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.components.onFilePickerResult
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
+import android.R.attr.data
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import com.jaiselrahman.filepicker.config.Configurations
+import lorry.folder.items.dossiersigma.ui.components.FolderChooserDialog
+import java.util.ArrayList
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        val TAG = "MainActivity"
+        val FILE_REQUEST_CODE = 969
+    }
 
     @Inject
     lateinit var intentWrapper: DSI_IntentWrapper
@@ -138,6 +156,77 @@ class MainActivity : ComponentActivity() {
     lateinit var openMoveFileDialog: MutableState<Boolean>
     lateinit var openTagInfosDialog: MutableState<Boolean>
     lateinit var openHomeItemDialog: MutableState<Boolean>
+    lateinit var openFilePicker: MutableState<Boolean>
+
+    /**
+     * Appelée par la boîte de dialogue de création / modification de HomeItem
+     * @see HomeItemDialog
+     * @see FolderChooserDialog
+     */
+    var onFolderChoosed: (String?) -> Unit = {}
+
+    /**
+     * Appelée par la boîte de dialogue de création / modification de HomeItem
+     * @see HomeItemDialog
+     */
+    val filePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // La permission a été accordée, on peut maintenant lancer le sélecteur de fichiers
+            launchFilePicker()
+        } else {
+            // L'utilisateur a refusé la permission.
+            Toast.makeText(this, "Permission de lecture des fichiers refusée", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
+
+    fun launchFilePicker() {
+        val intent = Intent(this, FilePickerActivity::class.java)
+        intent.putExtra(
+            FilePickerActivity.CONFIGS,
+            Configurations.Builder()
+                .setCheckPermission(false) // On le laisse à false, car on gère nous-mêmes
+                .setShowFiles(true)
+                .setMaxSelection(1)
+                .build()
+        )
+        // Utilisez votre lanceur moderne pour le résultat du fichier
+//        filePickerLauncher.launch(intent)
+        ActivityCompat.startActivityForResult(mainActivity, intent, FILE_REQUEST_CODE, null)
+
+    }
+
+    fun checkPermissionAndLaunchPicker() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // La permission est déjà accordée
+                launchFilePicker()
+            }
+
+            else -> {
+                // La permission n'est pas accordée, on la demande
+                requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // La permission a été accordée, on peut maintenant lancer le sélecteur de fichiers
+            launchFilePicker()
+        } else {
+            // L'utilisateur a refusé la permission.
+            Toast.makeText(this, "Permission de lecture des fichiers refusée", Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
 
     val mainActivity = this
 
@@ -160,6 +249,7 @@ class MainActivity : ComponentActivity() {
                         (::openTextDialog.isInitialized && !openTextDialog.value) &&
                         (::openYesNoDialog.isInitialized && !openYesNoDialog.value) &&
                         (::openMoveFileDialog.isInitialized && !openMoveFileDialog.value) &&
+                        (::openFilePicker.isInitialized && !openFilePicker.value) &&
                         (::openTagInfosDialog.isInitialized && !openTagInfosDialog.value)
                     )
                         Button(
@@ -221,6 +311,7 @@ class MainActivity : ComponentActivity() {
                     openMoveFileDialog = remember { mutableStateOf(false) }
                     openTagInfosDialog = remember { mutableStateOf(false) }
                     openHomeItemDialog = remember { mutableStateOf(false) }
+                    openFilePicker = remember { mutableStateOf(false) }
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
 
                     SideEffect {
@@ -246,7 +337,8 @@ class MainActivity : ComponentActivity() {
                     }
 
                     Box(
-
+                        modifier = Modifier
+                            .fillMaxSize()
                     ) {
                         val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
 
@@ -1038,7 +1130,7 @@ class MainActivity : ComponentActivity() {
 
                             HomeItemDialog(
                                 openDialog = openHomeItemDialog,
-                                onDatasCompleted = { infos: HomeItemInfos?, model: SigmaViewModel, activity: MainActivity ->
+                                onDatasCompleted = { infos: HomeItemInfos? ->
                                     if (infos?.newTitle == null || infos.path == null)
                                         return@HomeItemDialog
                                     val items = homeViewModel.homeItems.value
@@ -1073,6 +1165,15 @@ class MainActivity : ComponentActivity() {
                                 homeItemInfos = dialogHomeItemInfos,
                             )
                         }
+
+                        if (openFilePicker.value) {
+                            FolderChooserDialog(
+                                modifier = Modifier
+                                    .align(Alignment.Center),
+                                openFilePicker) { path ->
+                                onFolderChoosed(path)
+                            }
+                        }
                     }
                 }
             }
@@ -1102,6 +1203,21 @@ class MainActivity : ComponentActivity() {
 
         var resultUri: Uri? = null
         var cropError: Throwable? = null
+
+        if (resultCode == FILE_REQUEST_CODE) {
+            val files: ArrayList<MediaFile>? = data?.getParcelableArrayListExtra(
+                FilePickerActivity.MEDIA_FILES,
+                MediaFile::class.java
+            )
+
+            if (files.isNullOrEmpty())
+                Log.d(TAG, "onActivityResult: rien de retourné")
+            else
+                Log.d(TAG, "onActivityResult: ${files[0].path}")
+
+            return
+        }
+
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             resultUri = UCrop.getOutput(data)
         } else if (resultCode == UCrop.RESULT_ERROR) {
