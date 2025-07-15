@@ -700,10 +700,10 @@ class MainActivity : ComponentActivity() {
                                                             onTap = {
                                                                 homeViewModel.setDialogHomeItemInfos(
                                                                     HomeItemInfos(
-                                                                        oldTitle = null,
-                                                                        newTitle = null,
+                                                                        oldTitle = "",
+                                                                        newTitle = "",
                                                                         picture = null,
-                                                                        path = null
+                                                                        path = ""
                                                                     )
                                                                 )
                                                                 openHomeItemDialog.value = true

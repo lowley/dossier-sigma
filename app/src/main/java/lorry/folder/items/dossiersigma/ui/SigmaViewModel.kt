@@ -45,7 +45,6 @@ import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.Tool
 import lorry.folder.items.dossiersigma.ui.components.Tools
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import java.io.File
 import java.net.URLDecoder
 import java.util.UUID
@@ -132,7 +131,6 @@ class SigmaViewModel @Inject constructor(
     fun clearFlagCache() {
         _flagCache.value = mutableMapOf()
         println("clearFlagCache, il y a ${_flagCache.value.size} clés")
-
     }
 
     ///////////////

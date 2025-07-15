@@ -86,6 +86,7 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
+import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.MainActivity
 import lorry.folder.items.dossiersigma.ui.MainActivity.Companion.TAG
@@ -1587,6 +1588,7 @@ fun MainActivity.HomeItemDialog(
     var editPicture1 by remember { mutableStateOf(homeItemInfos.value?.picture) }
     val homeInfos by homeItemInfos.collectAsState()
 
+    Log.d(TAG, "HomeItemDialog: $homeInfos")
     Box(
         modifier = Modifier
             .width(600.dp)
@@ -1628,7 +1630,7 @@ fun MainActivity.HomeItemDialog(
                             newTitle = value
                         )
                     )
-                                },
+                },
                 singleLine = true,
                 label = { Text("Titre") }
             )
@@ -1650,7 +1652,7 @@ fun MainActivity.HomeItemDialog(
                                 path = value
                             )
                         )
-                                    },
+                    },
                     singleLine = true,
                     label = { Text("Chemin") }
                 )
@@ -1692,9 +1694,10 @@ fun MainActivity.HomeItemDialog(
                                  */
                                 mainActivity.onGotBrowserImage = { url ->
                                     mainViewModel.viewModelScope.launch {
-                                        val bitmap = mainViewModel.changingPictureUseCase.urlToBitmap(url)
-                                            ?: return@launch
-                                        withContext(Dispatchers.Main){
+                                        val bitmap =
+                                            mainViewModel.changingPictureUseCase.urlToBitmap(url)
+                                                ?: return@launch
+                                        withContext(Dispatchers.Main) {
                                             openHomeItemDialog.value = true
                                             mainActivity.homeViewModel.setDialogHomeItemInfos(
                                                 mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
@@ -1739,15 +1742,26 @@ fun MainActivity.HomeItemDialog(
                         .padding(start = 5.dp),
                     onClick = {
                         if (homeInfos!!.newTitle != null && homeInfos!!.path != null) {
+                            val newHomeItem = HomeItemInfos(
+                                oldTitle = homeItemInfos.value?.oldTitle,
+                                newTitle = homeInfos!!.newTitle,
+                                path = homeInfos!!.path,
+                                picture = homeInfos!!.picture,
+                            )
+
                             mainViewModel.viewModelScope.launch {
-                                onDatasCompleted(
-                                    HomeItemInfos(
-                                        oldTitle = homeItemInfos.value?.oldTitle,
-                                        newTitle = homeInfos!!.newTitle,
-                                        path = homeInfos!!.path,
-                                        picture = homeInfos!!.picture,
-                                    )
-                                )
+                                onDatasCompleted(newHomeItem)
+
+                                val existingHomeItems = mainActivity.homeViewModel.homeItems.value
+                                val newHomeItems = existingHomeItems.toMutableList()
+                                    .map { if (it.title == homeInfos!!.newTitle) homeInfos!! else HomeItemInfos(
+                                        oldTitle = it.title,
+                                        newTitle = it.title,
+                                        path = it.path,
+                                        picture = it.picture,
+                                    ) }.toSet()
+
+                                mainActivity.settingsViewModel.settingsManager.saveHomeItems(newHomeItems)
                             }
 
                             openDialog.value = false
@@ -2013,6 +2027,35 @@ data class HomeItemInfos(
     val newTitle: String? = null,
     val path: String?,
     val picture: Bitmap?,
-)
+){
+    suspend fun toHomeItemInfosDTO(): HomeItemInfosDTO {
+        val videoEmbedder = VideoInfoEmbedder()
+        return HomeItemInfosDTO(
+            oldTitle = oldTitle,
+            newTitle = newTitle,
+            path = path,
+            picture = if (picture != null) videoEmbedder.bitmapToBase64(picture)
+                else null
+        )
+    }
+}
+
+data class HomeItemInfosDTO(
+    val oldTitle: String? = null,
+    val newTitle: String? = null,
+    val path: String?,
+    val picture: String?,
+){
+    suspend fun toHomeItemInfos(): HomeItemInfos {
+        val videoEmbedder = VideoInfoEmbedder()
+        return HomeItemInfos(
+            oldTitle = oldTitle,
+            newTitle = newTitle,
+            path = path,
+            picture = if (picture != null) videoEmbedder.base64ToBitmap(picture)
+            else null
+        )
+    }
+}
 
 

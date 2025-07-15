@@ -3,18 +3,30 @@ package lorry.folder.items.dossiersigma.domain.usecases.homePage
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.last
+import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    val homeUseCase: HomeUseCase
+    val homeUseCase: HomeUseCase,
+    val settingsManager: SettingsManager
 ) : ViewModel() {
 
     private val _homePageVisible = MutableStateFlow<Boolean>(true)
@@ -63,117 +75,137 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
-        addHomeItem(
-            HomeItem(
-                title = "Filles",
-                icon = R.drawable.sexe,
-                path = "/storage/emulated/0/Movies/sexe/filles",
-            )
-        )
+        viewModelScope.launch {
+            // On bascule sur un thread I/O pour la tâche longue (c'est correct).
+            val homeItemsFromSettings = withContext(Dispatchers.IO) {
+                settingsManager.homeItemsFlow.firstOrNull() ?: emptyList()
+            }
 
-        addHomeItem(
-            HomeItem(
-                title = "Fantasmes",
-                icon = R.drawable.sexe,
-                path = "/storage/emulated/0/Movies/sexe/fantasmes"
-            )
-        )
+            // De retour sur le thread principal automatiquement.
+            // On peut maintenant mettre à jour notre StateFlow en toute sécurité.
+            val homeItemsList = homeItemsFromSettings.map {
+                HomeItem(
+                    title = it.newTitle ?: "",
+                    path = it.path ?: "",
+                    icon = 0,
+                    picture = it.picture
+                )
+            }
+            setHomeItems(homeItemsList)
+        }
 
-        addHomeItem(
-            HomeItem(
-                title = "Films",
-                icon = R.drawable.film,
-                path = "/storage/emulated/0/Movies"
-            )
-        )
 
-        addHomeItem(
-            HomeItem(
-                title = "Bizarre",
-                icon = R.drawable.film,
-                path = "/storage/emulated/0/Movies/bizarre"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "sensations fortes",
-                icon = R.drawable.film,
-                path = "/storage/emulated/0/Movies/sensations fortes.fort"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "humour",
-                icon = R.drawable.film,
-                path = "/storage/emulated/0/Movies/humour"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "fantastique",
-                icon = R.drawable.film,
-                path = "/storage/emulated/0/Movies/fantastique"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "intériorité",
-                icon = R.drawable.film,
-                path = "/storage/emulated/0/Movies/faiblesse & intériorité"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "acteurs",
-                icon = R.drawable.acteur,
-                path = "/storage/emulated/0/Movies/acteurs"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "1DM+",
-                icon = R.drawable.sexe,
-                path = "/storage/emulated/0/Download/1DMP/General"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "Nzbs",
-                icon = R.drawable.downloads2,
-                path = "/storage/emulated/0/Download/nzb"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "Films/Sexe",
-                icon = R.drawable.sexe,
-                path = "/storage/emulated/0/Movies/sexe"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "Stockage principal",
-                icon = R.drawable.hdd,
-                path = "/storage/emulated/0"
-            )
-        )
-
-        addHomeItem(
-            HomeItem(
-                title = "Téléchargements",
-                icon = R.drawable.downloads2,
-                path = "/storage/emulated/0/Download"
-            )
-        )
+//        addHomeItem(
+//            HomeItem(
+//                title = "Filles",
+//                icon = R.drawable.sexe,
+//                path = "/storage/emulated/0/Movies/sexe/filles",
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "Fantasmes",
+//                icon = R.drawable.sexe,
+//                path = "/storage/emulated/0/Movies/sexe/fantasmes"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "Films",
+//                icon = R.drawable.film,
+//                path = "/storage/emulated/0/Movies"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "Bizarre",
+//                icon = R.drawable.film,
+//                path = "/storage/emulated/0/Movies/bizarre"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "sensations fortes",
+//                icon = R.drawable.film,
+//                path = "/storage/emulated/0/Movies/sensations fortes.fort"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "humour",
+//                icon = R.drawable.film,
+//                path = "/storage/emulated/0/Movies/humour"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "fantastique",
+//                icon = R.drawable.film,
+//                path = "/storage/emulated/0/Movies/fantastique"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "intériorité",
+//                icon = R.drawable.film,
+//                path = "/storage/emulated/0/Movies/faiblesse & intériorité"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "acteurs",
+//                icon = R.drawable.acteur,
+//                path = "/storage/emulated/0/Movies/acteurs"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "1DM+",
+//                icon = R.drawable.sexe,
+//                path = "/storage/emulated/0/Download/1DMP/General"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "Nzbs",
+//                icon = R.drawable.downloads2,
+//                path = "/storage/emulated/0/Download/nzb"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "Films/Sexe",
+//                icon = R.drawable.sexe,
+//                path = "/storage/emulated/0/Movies/sexe"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "Stockage principal",
+//                icon = R.drawable.hdd,
+//                path = "/storage/emulated/0"
+//            )
+//        )
+//
+//        addHomeItem(
+//            HomeItem(
+//                title = "Téléchargements",
+//                icon = R.drawable.downloads2,
+//                path = "/storage/emulated/0/Download"
+//            )
+//        )
     }
 }
 

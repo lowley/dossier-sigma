@@ -1,16 +1,21 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
 import android.content.Context
+import androidx.compose.animation.core.rememberTransition
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.components.HomeItemInfosDTO
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,6 +34,7 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
         val NAS_LOGIN_KEY = stringPreferencesKey("nas_login")
         val NAS_PASSWORD_KEY = stringPreferencesKey("nas_password")
         val NAS_FOLDER_KEY = stringPreferencesKey("nas_folder")
+        val HOMEITEMS_KEY = stringSetPreferencesKey("home_items")
     }
 
     suspend fun saveNasAddress(address: String) {
@@ -89,7 +95,26 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
             preferences[NAS_FOLDER_KEY] ?: ""
         }
 
+    suspend fun saveHomeItems(items: Set<HomeItemInfos>) {
+        withContext(Dispatchers.IO) {
+            context.dataStore.edit { settings ->
+                settings[HOMEITEMS_KEY] = items.map { Gson().toJson(it.toHomeItemInfosDTO()) }.toSet()
+            }
+        }
+    }
 
+    val homeItemsFlow: Flow<List<HomeItemInfos>> = context.dataStore.data
+        .map { preferences ->
+            // On lit la valeur associée à notre clé.
+            // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
+            val raw = preferences[HOMEITEMS_KEY] ?: return@map emptyList()
+
+            val cool = raw.map {
+                Gson().fromJson(it, HomeItemInfosDTO::class.java)
+                    .toHomeItemInfos()
+            }
+            return@map cool
+        }
 
 
 }
