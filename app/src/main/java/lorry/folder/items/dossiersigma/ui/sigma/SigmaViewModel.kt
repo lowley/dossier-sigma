@@ -173,6 +173,66 @@ class SigmaViewModel @Inject constructor(
         _isDisplayingMemo.value = isVisible
     }
 
+    /////////////////
+    // text dialog //
+    /////////////////
+    private val _isTextDialogVisible = MutableStateFlow(false)
+    val isTextDialogVisible: StateFlow<Boolean> = _isTextDialogVisible
+
+    fun setIsTextDialogVisible(isVisible: Boolean) {
+        _isTextDialogVisible.value = isVisible
+    }
+
+    ///////////////////
+    // yes/no dialog //
+    ///////////////////
+    private val _isYesNoDialogVisible = MutableStateFlow(false)
+    val isYesNoDialogVisible: StateFlow<Boolean> = _isYesNoDialogVisible
+
+    fun setIsYesNoDialogVisible(isVisible: Boolean) {
+        _isYesNoDialogVisible.value = isVisible
+    }
+
+    //////////////////////
+    // move file dialog //
+    //////////////////////
+    private val _isMoveFileDialogVisible = MutableStateFlow(false)
+    val isMoveFileDialogVisible: StateFlow<Boolean> = _isMoveFileDialogVisible
+
+    fun setIsMoveFileDialogVisible(isVisible: Boolean) {
+        _isMoveFileDialogVisible.value = isVisible
+    }
+
+    //////////////////////
+    // tag infos dialog //
+    //////////////////////
+    private val _isTagInfosDialogVisible = MutableStateFlow(false)
+    val isTagInfosDialogVisible: StateFlow<Boolean> = _isTagInfosDialogVisible
+
+    fun setIsTagInfosDialogVisible(isVisible: Boolean) {
+        _isTagInfosDialogVisible.value = isVisible
+    }
+
+    //////////////////////
+    // Home item dialog //
+    //////////////////////
+    private val _isHomeItemDialogVisible = MutableStateFlow(false)
+    val isHomeItemDialogVisible: StateFlow<Boolean> = _isHomeItemDialogVisible
+
+    fun setIsHomeItemDialogVisible(isVisible: Boolean) {
+        _isHomeItemDialogVisible.value = isVisible
+    }
+
+    /////////////////
+    // File picker //
+    /////////////////
+    private val _isFilePickerVisible = MutableStateFlow(false)
+    val isFilePickerVisible: StateFlow<Boolean> = _isFilePickerVisible
+
+    fun setIsFilePickerVisible(isVisible: Boolean) {
+        _isFilePickerVisible.value = isVisible
+    }
+
     //////////////
     // settings //
     //////////////

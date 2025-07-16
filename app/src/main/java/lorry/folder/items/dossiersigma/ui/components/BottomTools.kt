@@ -156,7 +156,6 @@ object BottomTools {
 
     @Composable
     fun BottomToolBar(
-        openDialog: MutableState<Boolean>,
         activity: SigmaActivity
     ) {
 
@@ -408,7 +407,7 @@ sealed class Tools() {
                                 viewModel.setSelectedItem(null, true)
                             }
 
-                            mainActivity.openTagInfosDialog.value = true
+                            viewModel.setIsTagInfosDialogVisible(true)
                         }
                     }
                 ),
@@ -701,7 +700,7 @@ sealed class Tools() {
                             viewModel.setSelectedItem(null, true)
                         }
 
-                        mainActivity.openTextDialog.value = true
+                        viewModel.setIsTextDialogVisible(true)
                     }
                 ),
                 /////////////////////
@@ -752,7 +751,7 @@ sealed class Tools() {
                             viewModel.setSelectedItem(null, true)
                         }
 
-                        mainActivity.openTextDialog.value = true
+                        viewModel.setIsTextDialogVisible(true)
                     }
                 ),
                 ////////////////////
@@ -814,7 +813,7 @@ sealed class Tools() {
 
                         }
 
-                        mainActivity.openTextDialog.value = true
+                        viewModel.setIsTextDialogVisible(true)
 
                     }
                 ),
@@ -867,7 +866,7 @@ sealed class Tools() {
                             BottomTools.setCurrentContent(DEFAULT)
                         }
 
-                        mainActivity.openYesNoDialog.value = true
+                        viewModel.setIsYesNoDialogVisible(true)
                     }
 
                 ),
@@ -1050,7 +1049,7 @@ sealed class Tools() {
                                 if (sourceFile.path.substringAfterLast("/")
                                     == dest.fullPath.substringAfterLast("/")
                                 ) {
-                                    mainActivity.openMoveFileDialog.value = true
+                                    viewModel.setIsMoveFileDialogVisible(true)
                                     return@run
                                 }
                             }
@@ -1063,7 +1062,7 @@ sealed class Tools() {
                                     BottomTools.movingItem!!
                                 )
                                 if (isItemExists) {
-                                    mainActivity.openMoveFileDialog.value = true
+                                    viewModel.setIsMoveFileDialogVisible(true)
                                     return@run
                                 }
                             }
@@ -1242,8 +1241,8 @@ fun changeCrop(viewModel: SigmaViewModel, scale: ContentScale) {
 fun CustomTextDialog(
     text: String,
     initialText: String,
-    openDialog: MutableState<Boolean>,
-    onOk: (String) -> Unit
+    viewModel: SigmaViewModel,
+    onOk: (String) -> Unit,
 ) {
     val editMessage = remember { mutableStateOf(initialText) }
 
@@ -1258,7 +1257,7 @@ fun CustomTextDialog(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    openDialog.value = false
+                    viewModel.setIsTextDialogVisible(false)
                 }
             ),
         contentAlignment = Alignment.Center
@@ -1291,7 +1290,7 @@ fun CustomTextDialog(
             ) {
                 Button(
                     onClick = {
-                        openDialog.value = false
+                        viewModel.setIsTextDialogVisible(false)
                     }
                 ) {
                     Text("Cancel")
@@ -1302,7 +1301,7 @@ fun CustomTextDialog(
                 Button(
                     onClick = {
                         onOk(editMessage.value)
-                        openDialog.value = false
+                        viewModel.setIsTextDialogVisible(false)
                     }
                 ) {
                     Text("OK")
@@ -1315,7 +1314,7 @@ fun CustomTextDialog(
 @Composable
 fun CustomYesNoDialog(
     text: String,
-    openDialog: MutableState<Boolean>,
+    viewModel: SigmaViewModel,
     onOk: (Boolean) -> Unit
 ) {
     val editMessage = remember { mutableStateOf("") }
@@ -1331,7 +1330,7 @@ fun CustomYesNoDialog(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    openDialog.value = false
+                    viewModel.setIsYesNoDialogVisible(false)
                 }
             ),
         contentAlignment = Alignment.Center
@@ -1356,7 +1355,7 @@ fun CustomYesNoDialog(
             ) {
                 Button(
                     onClick = {
-                        openDialog.value = false
+                        viewModel.setIsYesNoDialogVisible(false)
                         onOk(false)
                     }
                 ) {
@@ -1367,7 +1366,7 @@ fun CustomYesNoDialog(
 
                 Button(
                     onClick = {
-                        openDialog.value = false
+                        viewModel.setIsYesNoDialogVisible(false)
                         onOk(true)
                     }
                 ) {
@@ -1381,10 +1380,10 @@ fun CustomYesNoDialog(
 @Composable
 fun CustomMoveFileExistingDestinationDialog(
     text: String = "Le fichier existe déjà. Que voulez-vous faire?",
-    openDialog: MutableState<Boolean>,
     onOverwrite: () -> Unit,
     onCancel: () -> Unit,
     onCreateCopy: () -> Unit,
+    viewModel: SigmaViewModel,
 ) {
     val editMessage = remember { mutableStateOf("") }
 
@@ -1399,7 +1398,7 @@ fun CustomMoveFileExistingDestinationDialog(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    openDialog.value = false
+                    viewModel.setIsMoveFileDialogVisible(false)
                 }
             ),
         contentAlignment = Alignment.Center
@@ -1424,7 +1423,7 @@ fun CustomMoveFileExistingDestinationDialog(
             ) {
                 Button(
                     onClick = {
-                        openDialog.value = false
+                        viewModel.setIsMoveFileDialogVisible(false)
                         onCancel()
                     }
                 ) {
@@ -1435,7 +1434,7 @@ fun CustomMoveFileExistingDestinationDialog(
 
                 Button(
                     onClick = {
-                        openDialog.value = false
+                        viewModel.setIsMoveFileDialogVisible(false)
                         onCreateCopy()
                     }
                 ) {
@@ -1446,7 +1445,7 @@ fun CustomMoveFileExistingDestinationDialog(
 
                 Button(
                     onClick = {
-                        openDialog.value = false
+                        viewModel.setIsMoveFileDialogVisible(false)
                         onOverwrite()
                     }
                 ) {
@@ -1460,7 +1459,6 @@ fun CustomMoveFileExistingDestinationDialog(
 @Composable
 fun TagInfosDialog(
     text: String,
-    openDialog: MutableState<Boolean>,
     onDatasCompleted:
     suspend (tagInfos: TagInfos?, viewModel: SigmaViewModel, activity: SigmaActivity) -> Unit,
     viewModel: SigmaViewModel,
@@ -1480,7 +1478,7 @@ fun TagInfosDialog(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    openDialog.value = false
+                    viewModel.setIsTagInfosDialogVisible(false)
                 }
             ),
         contentAlignment = Alignment.Center
@@ -1543,7 +1541,7 @@ fun TagInfosDialog(
                 Button(
                     modifier = Modifier,
                     onClick = {
-                        openDialog.value = false
+                        viewModel.setIsTagInfosDialogVisible(false)
                         viewModel.viewModelScope.launch {
                             onDatasCompleted(null, viewModel, mainActivity)
                         }
@@ -1565,7 +1563,7 @@ fun TagInfosDialog(
                                 )
                             }
 
-                        openDialog.value = false
+                        viewModel.setIsTagInfosDialogVisible(false)
                     }
                 ) {
                     Text("Valider")
@@ -1579,8 +1577,8 @@ fun TagInfosDialog(
 fun SigmaActivity.HomeItemDialog(
     message: String,
     homeItemInfos: StateFlow<HomeItemInfos?>,
-    openDialog: MutableState<Boolean>,
     onDatasCompleted: (homeItemInfos: HomeItemInfos?) -> Unit,
+    viewModel: SigmaViewModel,
 ) {
     var editText1 by remember { mutableStateOf(homeItemInfos.value?.oldTitle ?: "") }
     var editPath1 by remember { mutableStateOf(homeItemInfos.value?.path ?: "") }
@@ -1599,7 +1597,7 @@ fun SigmaActivity.HomeItemDialog(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    openDialog.value = false
+                    viewModel.setIsHomeItemDialogVisible(false)
                 }
             ),
         contentAlignment = Alignment.Center
@@ -1668,7 +1666,7 @@ fun SigmaActivity.HomeItemDialog(
                             }
                         }
 
-                        mainActivity.openFilePicker.value = true
+                        mainViewModel.setIsFilePickerVisible(true)
                     }) {
                     Text("Choisir")
                 }
@@ -1697,7 +1695,7 @@ fun SigmaActivity.HomeItemDialog(
                                             mainViewModel.changingPictureUseCase.urlToBitmap(url)
                                                 ?: return@launch
                                         withContext(Dispatchers.Main) {
-                                            openHomeItemDialog.value = true
+                                            mainViewModel.setIsHomeItemDialogVisible(true)
                                             mainActivity.homeViewModel.setDialogHomeItemInfos(
                                                 mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
                                                     picture = bitmap
@@ -1707,7 +1705,7 @@ fun SigmaActivity.HomeItemDialog(
                                     }
                                 }
 
-                                openHomeItemDialog.value = false
+                                mainViewModel.setIsHomeItemDialogVisible(false)
                                 mainViewModel.browserManager.openBrowserWithText("")
                             }
                         )
@@ -1730,7 +1728,7 @@ fun SigmaActivity.HomeItemDialog(
                 Button(
                     modifier = Modifier,
                     onClick = {
-                        openDialog.value = false
+                        viewModel.setIsHomeItemDialogVisible(false)
                     }
                 ) {
                     Text("Annuler")
@@ -1763,7 +1761,7 @@ fun SigmaActivity.HomeItemDialog(
                                 mainActivity.settingsViewModel.settingsManager.saveHomeItems(newHomeItems)
                             }
 
-                            openDialog.value = false
+                            viewModel.setIsHomeItemDialogVisible(false)
                         } else
                             Toast.makeText(
                                 mainActivity,
@@ -1779,26 +1777,10 @@ fun SigmaActivity.HomeItemDialog(
     }
 }
 
-fun SigmaActivity.onFilePickerResult(result: ActivityResult) {
-    // Ce code est exécuté au retour de FilePickerActivity
-    if (result.resultCode == Activity.RESULT_OK) {
-        // La librairie retourne les chemins dans une liste
-        val files: ArrayList<MediaFile>? = result.data?.getParcelableArrayListExtra(
-            FilePickerActivity.MEDIA_FILES
-        )
-
-        if (!files.isNullOrEmpty()) {
-            val firstFilePath = files[0].path // Voici le chemin du premier fichier
-            Log.d(TAG, "Fichier choisi : $firstFilePath")
-            // Faites ce que vous voulez avec le chemin
-        }
-    }
-}
-
 @Composable
 fun SigmaActivity.FolderChooserDialog(
     modifier: Modifier,
-    openDialog: MutableState<Boolean>,
+    viewModel: SigmaViewModel,
     onDatasCompleted: (path: String?) -> Unit,
 ) {
     var path = remember { mutableStateOf("/storage/emulated/0") }
@@ -1808,7 +1790,7 @@ fun SigmaActivity.FolderChooserDialog(
         mainViewModel.viewModelScope.launch {
             items.value = mainViewModel.diskRepository.getFolderItems(
                 path.value,
-                lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY.NAME_ASC
+                ITEMS_ORDERING_STRATEGY.NAME_ASC
             )
         }
     }
@@ -1840,11 +1822,10 @@ fun SigmaActivity.FolderChooserDialog(
             modifier = Modifier,
             path = path,
             items = items,
-            openDialog = openDialog,
-            onDatasCompleted = onDatasCompleted
+            onDatasCompleted = onDatasCompleted,
+            viewModel = viewModel
         )
     }
-
 }
 
 @Composable
@@ -1866,8 +1847,8 @@ fun ColumnScope.BottomToolbar(
     modifier: Modifier,
     path: MutableState<String>,
     items: MutableState<List<Item>>,
-    openDialog: MutableState<Boolean>,
-    onDatasCompleted: (path: String?) -> Unit
+    onDatasCompleted: (path: String?) -> Unit,
+    viewModel: SigmaViewModel
 ) {
 
     Row(
@@ -1881,7 +1862,7 @@ fun ColumnScope.BottomToolbar(
 
         Button(
             onClick = {
-                openDialog.value = false
+                viewModel.setIsFilePickerVisible(false)
             }
         ) {
             Text(text = "Abandonner")
@@ -1892,7 +1873,7 @@ fun ColumnScope.BottomToolbar(
                 .padding(horizontal = 5.dp),
             onClick = {
                 onDatasCompleted(path.value)
-                openDialog.value = false
+                viewModel.setIsFilePickerVisible(false)
             }
         ) {
             Text(text = "Choisir ${path.value.substringAfterLast("/").takeLast(20)}")

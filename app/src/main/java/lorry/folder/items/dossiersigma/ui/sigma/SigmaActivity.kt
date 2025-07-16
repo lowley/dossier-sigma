@@ -3,6 +3,7 @@ package lorry.folder.items.dossiersigma.ui.sigma
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -42,8 +43,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSizeDefaults
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
@@ -53,7 +52,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -62,7 +60,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -72,8 +69,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.ParagraphStyle
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -82,11 +79,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isUnspecified
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.jaiselrahman.filepicker.activity.FilePickerActivity
+import com.jaiselrahman.filepicker.config.Configurations
 import com.jaiselrahman.filepicker.model.MediaFile
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
@@ -99,35 +98,31 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
+import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
+import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.components.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.CustomMoveFileExistingDestinationDialog
 import lorry.folder.items.dossiersigma.ui.components.CustomTextDialog
 import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
+import lorry.folder.items.dossiersigma.ui.components.FolderChooserDialog
+import lorry.folder.items.dossiersigma.ui.components.HomeItemDialog
+import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
-import java.io.File
-import javax.inject.Inject
-import kotlin.random.Random
-import lorry.folder.items.dossiersigma.data.dataSaver.Memo
-import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
-import lorry.folder.items.dossiersigma.ui.components.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
-import android.content.pm.PackageManager
-import androidx.core.app.ActivityCompat
-import com.jaiselrahman.filepicker.config.Configurations
-import lorry.folder.items.dossiersigma.ui.components.FolderChooserDialog
-import java.util.ArrayList
+import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
+import javax.inject.Inject
+import kotlin.random.Random
 
 
 @AndroidEntryPoint
@@ -147,13 +142,6 @@ class SigmaActivity : ComponentActivity() {
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
     val settingsViewModel: SettingsViewModel by viewModels()
-
-    lateinit var openTextDialog: MutableState<Boolean>
-    lateinit var openYesNoDialog: MutableState<Boolean>
-    lateinit var openMoveFileDialog: MutableState<Boolean>
-    lateinit var openTagInfosDialog: MutableState<Boolean>
-    lateinit var openHomeItemDialog: MutableState<Boolean>
-    lateinit var openFilePicker: MutableState<Boolean>
 
     /**
      * Appelée par la boîte de dialogue de création / modification de HomeItem
@@ -241,59 +229,23 @@ class SigmaActivity : ComponentActivity() {
         setContent {
             val homePageVisible by homeViewModel.homePageVisible.collectAsState()
 
+            val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
+            val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
+            val isMoveFileDialogVisible by mainViewModel.isMoveFileDialogVisible.collectAsState()
+            val isTagInfosDialogVisible by mainViewModel.isTagInfosDialogVisible.collectAsState()
+            val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
+            val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
+
             Scaffold(
                 floatingActionButton = {
-                    if (!homePageVisible &&
-                        (::openTextDialog.isInitialized && !openTextDialog.value) &&
-                        (::openYesNoDialog.isInitialized && !openYesNoDialog.value) &&
-                        (::openMoveFileDialog.isInitialized && !openMoveFileDialog.value) &&
-                        (::openFilePicker.isInitialized && !openFilePicker.value) &&
-                        (::openTagInfosDialog.isInitialized && !openTagInfosDialog.value)
+                    NewFolderFAB(
+                        homePageVisible = homePageVisible,
+                        isTextDialogVisible = isTextDialogVisible,
+                        isYesNoDialogVisible = isYesNoDialogVisible,
+                        isMoveFileDialogVisible = isMoveFileDialogVisible,
+                        isTagInfosDialogVisible = isTagInfosDialogVisible,
+                        isFilePickerVisible = isFilePickerVisible
                     )
-                        Button(
-                            onClick = {
-                                mainViewModel.setDialogMessage("Nom du dossier à créer")
-                                mainViewModel.dialogOnOkLambda =
-                                    { newName, viewModel, mainActivity ->
-                                        val currentFolderPath = viewModel.currentFolderPath.value
-                                        val newFullName = "$currentFolderPath/$newName"
-
-                                        if (!File(newFullName).exists()) {
-                                            if (File(newFullName).mkdir()) {
-                                                Toast.makeText(
-                                                    mainActivity,
-                                                    "Répertoire créé",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                                viewModel.refreshCurrentFolder()
-                                            } else
-                                                Toast.makeText(
-                                                    mainActivity,
-                                                    "Un problème est survenu",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                        }
-                                    }
-
-                                openTextDialog.value = true
-                            },
-                            shape = RoundedCornerShape(30.dp),
-                            modifier = Modifier
-                                .padding(bottom = 55.dp, end = 20.dp)
-                                .size(60.dp)
-                                .alpha(0.5f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF006d77),
-                                contentColor = Color(0xFF83c5be)
-                            )
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.plus),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(50.dp)
-                            )
-                        }
                 }
             ) { padding ->
                 DossierSigmaTheme {
@@ -304,12 +256,6 @@ class SigmaActivity : ComponentActivity() {
 //                    val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
                     val currentTool by BottomTools.currentTool.collectAsState()
 
-                    openTextDialog = remember { mutableStateOf(false) }
-                    openYesNoDialog = remember { mutableStateOf(false) }
-                    openMoveFileDialog = remember { mutableStateOf(false) }
-                    openTagInfosDialog = remember { mutableStateOf(false) }
-                    openHomeItemDialog = remember { mutableStateOf(false) }
-                    openFilePicker = remember { mutableStateOf(false) }
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
 
                     SideEffect {
@@ -706,8 +652,8 @@ class SigmaActivity : ComponentActivity() {
                                                                         path = ""
                                                                     )
                                                                 )
-                                                                openHomeItemDialog.value = true
 
+                                                                mainViewModel.setIsHomeItemDialogVisible(true)
                                                             }
                                                         )
                                                     },
@@ -835,7 +781,7 @@ class SigmaActivity : ComponentActivity() {
                                     val _30Color = Color(0xFF7ca982)
                                     val _10Color = Color(0xFF8fc0a9)
 
-                                    lazyGridItems(
+                                    lazyGridItems<HomeItem>(
                                         homeItems,
                                         key = { it.id }) { item ->
                                         Card(
@@ -903,7 +849,8 @@ class SigmaActivity : ComponentActivity() {
                                                                             path = item.path
                                                                         )
                                                                     )
-                                                                    openHomeItemDialog.value = true
+
+                                                                    mainViewModel.setIsHomeItemDialogVisible(true)
                                                                 }
                                                             )
                                                         },
@@ -975,7 +922,6 @@ class SigmaActivity : ComponentActivity() {
 
                             if (!homePageVisible) {
                                 BottomTools.BottomToolBar(
-                                    openTextDialog,
                                     activity = this@SigmaActivity
                                 )
                             }
@@ -994,10 +940,10 @@ class SigmaActivity : ComponentActivity() {
                             )
                         }
 
-                        if (openTextDialog.value)
+                        if (isTextDialogVisible)
                             CustomTextDialog(
                                 text = dialogMessage.value ?: "",
-                                openDialog = openTextDialog,
+                                viewModel = mainViewModel,
                                 initialText = mainViewModel.dialogInitialText.value ?: ""
                             ) { text ->
                                 if (mainViewModel.dialogOnOkLambda != null) {
@@ -1020,8 +966,8 @@ class SigmaActivity : ComponentActivity() {
                                     }
                             }
 
-                        if (openYesNoDialog.value) {
-                            CustomYesNoDialog(dialogMessage.value ?: "", openYesNoDialog) { yesNo ->
+                        if (isYesNoDialogVisible) {
+                            CustomYesNoDialog(dialogMessage.value ?: "", mainViewModel) { yesNo ->
                                 if (mainViewModel.dialogYesNoLambda != null) {
                                     mainViewModel.viewModelScope.launch {
                                         mainViewModel.dialogYesNoLambda?.invoke(
@@ -1043,9 +989,9 @@ class SigmaActivity : ComponentActivity() {
                             }
                         }
 
-                        if (openMoveFileDialog.value) {
+                        if (isMoveFileDialogVisible) {
                             CustomMoveFileExistingDestinationDialog(
-                                openDialog = openMoveFileDialog,
+                                viewModel = mainViewModel,
                                 onOverwrite = {
                                     val intent =
                                         Intent(
@@ -1100,10 +1046,10 @@ class SigmaActivity : ComponentActivity() {
                             )
                         }
 
-                        if (openTagInfosDialog.value) {
+                        if (isTagInfosDialogVisible) {
                             TagInfosDialog(
                                 text = dialogMessage.value ?: "",
-                                openDialog = openTagInfosDialog,
+                                viewModel = mainViewModel,
                                 onDatasCompleted = { infos: TagInfos?, model: SigmaViewModel, activity: SigmaActivity ->
                                     mainViewModel.dialogTagLambda?.invoke(
                                         infos!!,
@@ -1111,16 +1057,15 @@ class SigmaActivity : ComponentActivity() {
                                         this@SigmaActivity
                                     )
                                 },
-                                viewModel = mainViewModel,
                                 mainActivity = this@SigmaActivity
                             )
                         }
 
-                        if (openHomeItemDialog.value) {
+                        if (isHomeItemDialogVisible) {
                             val dialogHomeItemInfos by homeViewModel.dialogHomeItemInfos.collectAsState()
 
                             HomeItemDialog(
-                                openDialog = openHomeItemDialog,
+                                viewModel = mainViewModel,
                                 onDatasCompleted = { infos: HomeItemInfos? ->
                                     if (infos?.newTitle == null || infos.path == null)
                                         return@HomeItemDialog
@@ -1158,11 +1103,12 @@ class SigmaActivity : ComponentActivity() {
                             )
                         }
 
-                        if (openFilePicker.value) {
+                        if (isFilePickerVisible) {
                             FolderChooserDialog(
                                 modifier = Modifier
                                     .align(Alignment.Center),
-                                openFilePicker) { path ->
+                                viewModel = mainViewModel
+                            ) { path ->
                                 onFolderChoosed(path)
                             }
                         }
