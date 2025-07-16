@@ -34,7 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.ui.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import kotlin.apply
 import kotlin.text.trimIndent
 

@@ -86,11 +86,11 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
-import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
-import lorry.folder.items.dossiersigma.ui.SigmaActivity
-import lorry.folder.items.dossiersigma.ui.SigmaActivity.Companion.TAG
-import lorry.folder.items.dossiersigma.ui.SigmaViewModel
-import lorry.folder.items.dossiersigma.ui.containsFlagAsValue
+import lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
 import java.io.File
 import java.util.UUID
 
@@ -1808,7 +1808,7 @@ fun SigmaActivity.FolderChooserDialog(
         mainViewModel.viewModelScope.launch {
             items.value = mainViewModel.diskRepository.getFolderItems(
                 path.value,
-                ITEMS_ORDERING_STRATEGY.NAME_ASC
+                lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY.NAME_ASC
             )
         }
     }

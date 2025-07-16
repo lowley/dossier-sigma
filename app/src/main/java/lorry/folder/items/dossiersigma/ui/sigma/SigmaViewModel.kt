@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui
+package lorry.folder.items.dossiersigma.ui.sigma
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -46,7 +46,6 @@ import lorry.folder.items.dossiersigma.ui.components.Tool
 import lorry.folder.items.dossiersigma.ui.components.Tools
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
 import java.io.File
-import java.net.URLDecoder
 import java.util.UUID
 import javax.inject.Inject
 

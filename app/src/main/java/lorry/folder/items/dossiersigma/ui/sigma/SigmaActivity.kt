@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui
+package lorry.folder.items.dossiersigma.ui.sigma
 
 import android.Manifest
 import android.app.Activity

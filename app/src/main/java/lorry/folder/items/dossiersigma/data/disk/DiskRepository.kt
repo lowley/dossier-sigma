@@ -27,7 +27,7 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
+import lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.ByteArrayOutputStream

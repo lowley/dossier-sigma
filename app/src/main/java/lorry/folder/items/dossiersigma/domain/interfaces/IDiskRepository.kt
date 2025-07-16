@@ -1,11 +1,10 @@
 package lorry.folder.items.dossiersigma.domain.interfaces
 
 import androidx.compose.ui.layout.ContentScale
-import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
-import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
+import lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY
 import java.io.File
 
 interface IDiskRepository {
