@@ -1,8 +1,10 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
@@ -45,6 +47,7 @@ import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.Tool
 import lorry.folder.items.dossiersigma.ui.components.Tools
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
@@ -593,6 +596,14 @@ class SigmaViewModel @Inject constructor(
         val z = (63 - java.lang.Long.numberOfLeadingZeros(bytes)) / 10
         val value = bytes.toDouble() / (1L shl (z * 10))
         return String.format("%.1f%c", value, " KMGTPE"[z])
+    }
+
+    fun getClipboardText(context: Context): String? {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipData = clipboard.primaryClip
+        val text = clipData?.getItemAt(0)?.text?.toString()
+        Log.d(TAG, "getClipboardText: $text")
+        return text
     }
 }
 

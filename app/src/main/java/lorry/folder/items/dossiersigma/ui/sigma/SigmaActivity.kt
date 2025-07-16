@@ -520,10 +520,14 @@ class SigmaActivity : ComponentActivity() {
                                         }
 
                                         EditorAction(
-                                            iconRes = R.drawable.interrogation,
+                                            iconRes = R.drawable.paste,
                                             active = true
                                         ) {
-                                            richTextState.selection = TextRange.Zero
+                                            val clipboardContent = mainViewModel.getClipboardText(this@SigmaActivity)
+                                            if (clipboardContent == null)
+                                                return@EditorAction
+
+                                            richTextState.setHtml(clipboardContent)
                                         }
 
                                         EditorAction(R.drawable.clear, active = true) {
