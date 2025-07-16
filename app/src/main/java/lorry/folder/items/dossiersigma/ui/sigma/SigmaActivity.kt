@@ -71,6 +71,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -317,6 +318,7 @@ class SigmaActivity : ComponentActivity() {
                                 LaunchedEffect(isRichText.value, selectedItemMemo) {
                                     if (isRichText.value) {
                                         richTextState.setHtml(selectedItemMemo ?: "")
+                                        richTextState.selection = TextRange.Zero
                                     }
                                 }
 
@@ -516,6 +518,14 @@ class SigmaActivity : ComponentActivity() {
                                                 )
                                             )
                                         }
+
+                                        EditorAction(
+                                            iconRes = R.drawable.interrogation,
+                                            active = true
+                                        ) {
+                                            richTextState.selection = TextRange.Zero
+                                        }
+
                                         EditorAction(R.drawable.clear, active = true) {
 //                                            currentValue = currentValue.insertStyle(Style.ClearFormat)
                                         }
