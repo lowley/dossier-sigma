@@ -131,7 +131,7 @@ import java.util.ArrayList
 
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class SigmaActivity : ComponentActivity() {
 
     companion object {
         val TAG = "MainActivity"
@@ -976,7 +976,7 @@ class MainActivity : ComponentActivity() {
                             if (!homePageVisible) {
                                 BottomTools.BottomToolBar(
                                     openTextDialog,
-                                    activity = this@MainActivity
+                                    activity = this@SigmaActivity
                                 )
                             }
 
@@ -1005,7 +1005,7 @@ class MainActivity : ComponentActivity() {
                                         mainViewModel.dialogOnOkLambda?.invoke(
                                             text,
                                             mainViewModel,
-                                            this@MainActivity
+                                            this@SigmaActivity
                                         )
                                     }
                                     mainViewModel.dialogOnOkLambda = null
@@ -1014,7 +1014,7 @@ class MainActivity : ComponentActivity() {
                                         currentTool?.onClick?.let {
                                             it(
                                                 mainViewModel,
-                                                this@MainActivity
+                                                this@SigmaActivity
                                             )
                                         }
                                     }
@@ -1027,7 +1027,7 @@ class MainActivity : ComponentActivity() {
                                         mainViewModel.dialogYesNoLambda?.invoke(
                                             yesNo,
                                             mainViewModel,
-                                            this@MainActivity
+                                            this@SigmaActivity
                                         )
                                     }
                                     mainViewModel.dialogYesNoLambda = null
@@ -1036,7 +1036,7 @@ class MainActivity : ComponentActivity() {
                                         currentTool?.onClick?.let {
                                             it(
                                                 mainViewModel,
-                                                this@MainActivity
+                                                this@SigmaActivity
                                             )
                                         }
                                     }
@@ -1049,7 +1049,7 @@ class MainActivity : ComponentActivity() {
                                 onOverwrite = {
                                     val intent =
                                         Intent(
-                                            this@MainActivity,
+                                            this@SigmaActivity,
                                             MoveFileService::class.java
                                         ).apply {
                                             putExtra(
@@ -1081,7 +1081,7 @@ class MainActivity : ComponentActivity() {
                                 onCreateCopy = {
                                     val intent =
                                         Intent(
-                                            this@MainActivity,
+                                            this@SigmaActivity,
                                             MoveFileService::class.java
                                         ).apply {
                                             putExtra(
@@ -1104,15 +1104,15 @@ class MainActivity : ComponentActivity() {
                             TagInfosDialog(
                                 text = dialogMessage.value ?: "",
                                 openDialog = openTagInfosDialog,
-                                onDatasCompleted = { infos: TagInfos?, model: SigmaViewModel, activity: MainActivity ->
+                                onDatasCompleted = { infos: TagInfos?, model: SigmaViewModel, activity: SigmaActivity ->
                                     mainViewModel.dialogTagLambda?.invoke(
                                         infos!!,
                                         mainViewModel,
-                                        this@MainActivity
+                                        this@SigmaActivity
                                     )
                                 },
                                 viewModel = mainViewModel,
-                                mainActivity = this@MainActivity
+                                mainActivity = this@SigmaActivity
                             )
                         }
 

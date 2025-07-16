@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import androidx.annotation.IntegerRes
 import androidx.core.app.NotificationCompat
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -19,17 +18,15 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import lorry.folder.items.copieurtho2.__data.NAS.DS_FTP
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.domain.usecases.homePage.SettingDatas
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
-import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import javax.inject.Inject
 
 /**
- * Appelé par @see[lorry.folder.items.dossiersigma.ui.MainActivity.onCreate]
+ * Appelé par @see[lorry.folder.items.dossiersigma.ui.SigmaActivity.onCreate]
  * , déclaration de CustomMoveFileExistingDestinationDialog
  */
 @AndroidEntryPoint

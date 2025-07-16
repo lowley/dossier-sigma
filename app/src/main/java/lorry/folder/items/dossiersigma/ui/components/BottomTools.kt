@@ -86,10 +86,9 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
-import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.ITEMS_ORDERING_STRATEGY
-import lorry.folder.items.dossiersigma.ui.MainActivity
-import lorry.folder.items.dossiersigma.ui.MainActivity.Companion.TAG
+import lorry.folder.items.dossiersigma.ui.SigmaActivity
+import lorry.folder.items.dossiersigma.ui.SigmaActivity.Companion.TAG
 import lorry.folder.items.dossiersigma.ui.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.containsFlagAsValue
 import java.io.File
@@ -158,7 +157,7 @@ object BottomTools {
     @Composable
     fun BottomToolBar(
         openDialog: MutableState<Boolean>,
-        activity: MainActivity
+        activity: SigmaActivity
     ) {
 
         val content by currentContent.collectAsState()
@@ -319,8 +318,8 @@ data class Tool(
     val text: @Composable (vm: SigmaViewModel) -> String,
     @DrawableRes val icon: Int,
     val isColoredIcon: Boolean = false,
-    val onClick: suspend (SigmaViewModel, MainActivity) -> Unit,
-    val visible: suspend (SigmaViewModel, MainActivity) -> Boolean = { _, _ -> true },
+    val onClick: suspend (SigmaViewModel, SigmaActivity) -> Unit,
+    val visible: suspend (SigmaViewModel, SigmaActivity) -> Boolean = { _, _ -> true },
     val tint: Color? = null,
     val id: UUID = UUID.randomUUID()
 )
@@ -1463,9 +1462,9 @@ fun TagInfosDialog(
     text: String,
     openDialog: MutableState<Boolean>,
     onDatasCompleted:
-    suspend (tagInfos: TagInfos?, viewModel: SigmaViewModel, activity: MainActivity) -> Unit,
+    suspend (tagInfos: TagInfos?, viewModel: SigmaViewModel, activity: SigmaActivity) -> Unit,
     viewModel: SigmaViewModel,
-    mainActivity: MainActivity
+    mainActivity: SigmaActivity
 ) {
     val editMessage = remember { mutableStateOf("") }
     var hexColor by remember { mutableStateOf<String?>(null) }
@@ -1577,7 +1576,7 @@ fun TagInfosDialog(
 }
 
 @Composable
-fun MainActivity.HomeItemDialog(
+fun SigmaActivity.HomeItemDialog(
     message: String,
     homeItemInfos: StateFlow<HomeItemInfos?>,
     openDialog: MutableState<Boolean>,
@@ -1780,7 +1779,7 @@ fun MainActivity.HomeItemDialog(
     }
 }
 
-fun MainActivity.onFilePickerResult(result: ActivityResult) {
+fun SigmaActivity.onFilePickerResult(result: ActivityResult) {
     // Ce code est exécuté au retour de FilePickerActivity
     if (result.resultCode == Activity.RESULT_OK) {
         // La librairie retourne les chemins dans une liste
@@ -1797,7 +1796,7 @@ fun MainActivity.onFilePickerResult(result: ActivityResult) {
 }
 
 @Composable
-fun MainActivity.FolderChooserDialog(
+fun SigmaActivity.FolderChooserDialog(
     modifier: Modifier,
     openDialog: MutableState<Boolean>,
     onDatasCompleted: (path: String?) -> Unit,
