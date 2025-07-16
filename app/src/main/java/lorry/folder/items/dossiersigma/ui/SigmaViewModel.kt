@@ -70,7 +70,10 @@ class SigmaViewModel @Inject constructor(
 
     fun setImageCacheValue(key: String, image: Any?) {
         if (image != null) {
-            _imageCache.value[key] = image
+            val newMap = _imageCache.value.toMutableMap()
+            newMap[key] = image
+            _imageCache.value = newMap
+
             println("ajout de clé dans imageCache: ${key.takeLast(20)}: $image")
             println("il y a ${_imageCache.value.size} clés")
         }
@@ -482,23 +485,7 @@ class SigmaViewModel @Inject constructor(
      * callback from intent
      */
     fun onFolderSelected(pathUri: Uri?) {
-        if (pathUri != null) {
-            val nouvelle =
-                URLDecoder.decode(pathUri.toString().substringAfter("7376-B000", "^^")).drop(1)
-            val ancienne = URLDecoder.decode(
-                pathUri.toString().substringAfter(
-                    "6539-3963", "^^"
-                )
-            ).drop(1)
-
-            var valueToSave = "^^"
-            if (nouvelle != "^")
-                valueToSave = "/storage/7376-B000/" + nouvelle
-            if (ancienne != "^")
-                valueToSave = "/storage/6539-3963/" + ancienne
-            if (valueToSave != "^^")
-                goToFolder(valueToSave)
-        }
+//
     }
 
     /**

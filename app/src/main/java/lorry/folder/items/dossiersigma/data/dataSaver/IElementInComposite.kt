@@ -54,7 +54,7 @@ data class CompositeData(
                 StringToScale(gson.fromJson(scale, String::class.java))
             }catch(ex: Exception){
                 Log.d("CompositeData", "getScale: $ex")
-                ContentScale.Crop
+                ContentScale.Fit
             }
     }
 

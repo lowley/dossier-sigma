@@ -10,15 +10,7 @@ class ChangePathUseCase @Inject constructor(
 
     //callback
     fun setNewFolder(newValue: String) {
-//        val valueToSave = "/storage/7376-B000/" + URLDecoder.decode(
-//            newValue.substringAfter(
-//                "7376-B000", "le dossier doît être sur la carte SD"
-//            )
-//        ).drop(1)
-        
-        //GoToFolder
-        
-        
+
         
     }
 
