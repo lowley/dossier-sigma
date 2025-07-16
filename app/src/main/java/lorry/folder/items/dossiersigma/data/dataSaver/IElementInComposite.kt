@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.data.dataSaver
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.ui.layout.ContentScale
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -49,7 +50,12 @@ data class CompositeData(
         return if (scale == null)
             null
         else
-            gson.fromJson(scale, ContentScale::class.java)
+            try {
+                StringToScale(gson.fromJson(scale, String::class.java))
+            }catch(ex: Exception){
+                Log.d("CompositeData", "getScale: $ex")
+                ContentScale.Crop
+            }
     }
 
     fun getTheMemo(): String? {
