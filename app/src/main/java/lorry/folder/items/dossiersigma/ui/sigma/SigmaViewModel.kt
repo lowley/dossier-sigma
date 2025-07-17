@@ -6,7 +6,9 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
@@ -174,6 +176,27 @@ class SigmaViewModel @Inject constructor(
 
     fun setIsDisplayingMemo(isVisible: Boolean) {
         _isDisplayingMemo.value = isVisible
+    }
+
+    private val _isDisplayingMemoPalette = MutableStateFlow(false)
+    val isDisplayingMemoPalette: StateFlow<Boolean> = _isDisplayingMemoPalette
+
+    fun setIsDisplayingMemoPalette(isVisible: Boolean) {
+        _isDisplayingMemoPalette.value = isVisible
+    }
+
+    private val _savedSelectedRange = MutableStateFlow<TextRange?>(null)
+    val savedSelectedRange: StateFlow<TextRange?> = _savedSelectedRange
+
+    fun setSavedSelectedRange(newSelection: TextRange?) {
+        _savedSelectedRange.value = newSelection
+    }
+
+    private val _isRichTextFocused = MutableStateFlow<Boolean>(false)
+    val isRichTextFocused: StateFlow<Boolean> = _isRichTextFocused
+
+    fun setIsRichTextFocused(newValue: Boolean) {
+        _isRichTextFocused.value = newValue
     }
 
     /////////////////

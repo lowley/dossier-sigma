@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
+import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +62,8 @@ import kotlin.random.Random
 @Composable
 fun SigmaActivity.MemoEditor(
     modifier: Modifier = Modifier,
-    isRichText: State<Boolean>
+    isRichText: State<Boolean>,
+    richTextState: RichTextState,
 ) {
     val currentItemFlow = mainViewModel.selectedItem
 
@@ -78,7 +81,6 @@ fun SigmaActivity.MemoEditor(
                 focusRequester.requestFocus()
             }
 
-        val richTextState = rememberRichTextState()
         val selectedItemMemo by combine(
             currentItemFlow,
             mainViewModel.memoCache
@@ -279,11 +281,21 @@ fun SigmaActivity.MemoEditor(
                     iconRes = R.drawable.palette,
                     active = true
                 ) {
-                    richTextState.addSpanStyle(
-                        SpanStyle(
-                            color = Random.nextInt(360).hueToColor()
-                        )
+                    mainViewModel.setSavedSelectedRange(richTextState.selection)
+                    richTextState.selection = TextRange(
+                        start = richTextState.selection.start,
+                        end = richTextState.selection.start
                     )
+//                    val savedStart = mainViewModel.savedSelectedRange.value!!.start
+//                    val saveFirstCharacter =  richTextState.tex
+//                    richTextState.removeTextRange(TextRange(
+//                        start = savedStart,
+//                        end = savedStart + 1
+//                    ))
+//                    richTextState.addTextAfterSelection(" ")
+
+                    mainViewModel.setIsRichTextFocused(false)
+                    mainViewModel.setIsDisplayingMemoPalette(true)
                 }
 
                 EditorAction(

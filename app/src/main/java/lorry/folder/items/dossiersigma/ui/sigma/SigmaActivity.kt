@@ -68,6 +68,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -85,6 +86,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
+import com.elixer.palette.Presets
+import com.elixer.palette.composables.Palette
+import com.elixer.palette.constraints.HorizontalAlignment
+import com.elixer.palette.constraints.VerticalAlignment
 import com.jaiselrahman.filepicker.activity.FilePickerActivity
 import com.jaiselrahman.filepicker.config.Configurations
 import com.jaiselrahman.filepicker.model.MediaFile
@@ -284,17 +289,8 @@ class SigmaActivity : ComponentActivity() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .zIndex(20f)
                     ) {
-                        val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
-
-                        if (isRichText.value) {
-                            MemoEditor(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter),
-                                isRichText = isRichText
-                            )
-                        }
-
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -393,7 +389,9 @@ class SigmaActivity : ComponentActivity() {
                                                                     )
                                                                 )
 
-                                                                mainViewModel.setIsHomeItemDialogVisible(true)
+                                                                mainViewModel.setIsHomeItemDialogVisible(
+                                                                    true
+                                                                )
                                                             }
                                                         )
                                                     },
@@ -590,7 +588,9 @@ class SigmaActivity : ComponentActivity() {
                                                                         )
                                                                     )
 
-                                                                    mainViewModel.setIsHomeItemDialogVisible(true)
+                                                                    mainViewModel.setIsHomeItemDialogVisible(
+                                                                        true
+                                                                    )
                                                                 }
                                                             )
                                                         },
@@ -850,6 +850,75 @@ class SigmaActivity : ComponentActivity() {
                                 viewModel = mainViewModel
                             ) { path ->
                                 onFolderChoosed(path)
+                            }
+                        }
+                    }
+
+                    val richTextState = rememberRichTextState()
+                    val isRichTextFocused by mainViewModel.isRichTextFocused.collectAsState()
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .zIndex(20f)
+                    ) {
+                        val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
+                        val isDisplayingPalette =
+                            mainViewModel.isDisplayingMemoPalette.collectAsState()
+
+                        if (isRichText.value) {
+                            MemoEditor(
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .then(
+                                        if (!isRichTextFocused) Modifier.pointerInput(
+                                            Unit
+                                        ) {} else Modifier),
+                                isRichText = isRichText,
+                                richTextState = richTextState
+                            )
+                        }
+
+                        if (isRichText.value && isDisplayingPalette.value) {
+                            val keyboardController = LocalSoftwareKeyboardController.current
+                            keyboardController?.hide()
+                            mainViewModel.setIsRichTextFocused(false)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .zIndex(25f),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Palette(
+                                        defaultColor = Color.Magenta,
+                                        buttonSize = 100.dp,
+                                        swatches = Presets.material(),
+                                        innerRadius = 400f,
+                                        strokeWidth = 120f,
+                                        spacerRotation = 5f,
+                                        spacerOutward = 2f,
+                                        verticalAlignment = VerticalAlignment.Middle,
+                                        horizontalAlignment = HorizontalAlignment.Center,
+                                        onColorSelected = { color ->
+                                            mainViewModel.setIsDisplayingMemoPalette(false)
+                                            val saved =
+                                                mainViewModel.savedSelectedRange.value
+                                                    ?: return@Palette
+                                            mainViewModel.setIsRichTextFocused(true)
+                                            richTextState.selection = saved
+                                            richTextState.addSpanStyle(
+                                                SpanStyle(
+                                                    color = color
+                                                )
+                                            )
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

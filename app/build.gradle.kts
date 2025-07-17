@@ -134,4 +134,5 @@ dependencies {
     implementation("com.github.jaiselrahman:FilePicker:1.3.2")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.github.Shivamdhuria:palette:0.0.4")
 }
