@@ -119,6 +119,7 @@ import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.memoEditor.MemoEditor
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
@@ -181,7 +182,7 @@ class SigmaActivity : ComponentActivity() {
         )
         // Utilisez votre lanceur moderne pour le résultat du fichier
 //        filePickerLauncher.launch(intent)
-        ActivityCompat.startActivityForResult(mainActivity, intent, FILE_REQUEST_CODE, null)
+        ActivityCompat.startActivityForResult(sigmaActivity, intent, FILE_REQUEST_CODE, null)
 
     }
 
@@ -215,7 +216,7 @@ class SigmaActivity : ComponentActivity() {
         }
     }
 
-    val mainActivity = this
+    val sigmaActivity = this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -254,7 +255,6 @@ class SigmaActivity : ComponentActivity() {
                     val currentFolder by mainViewModel.currentFolder.collectAsState()
                     val selectedItem by mainViewModel.selectedItem.collectAsState()
                     val activity = LocalContext.current as Activity
-//                    val pictureUpdateId by mainViewModel.pictureUpdateId.collectAsState()
                     val currentTool by BottomTools.currentTool.collectAsState()
 
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
@@ -288,285 +288,11 @@ class SigmaActivity : ComponentActivity() {
                         val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
 
                         if (isRichText.value) {
-                            val currentItemFlow = mainViewModel.selectedItem
-
-                            Column(
+                            MemoEditor(
                                 modifier = Modifier
-                                    .width(500.dp)
-                                    .height(400.dp)
-                                    .align(Alignment.TopCenter)
-                                    .zIndex(15f)
-                            ) {
-                                val focusRequester = remember { FocusRequester() }
-
-                                var integerForKeyboard by remember { mutableStateOf(0) }
-                                if (integerForKeyboard != 0)
-                                    LaunchedEffect(integerForKeyboard) {
-                                        focusRequester.requestFocus()
-                                    }
-
-                                val richTextState = rememberRichTextState()
-                                val selectedItemMemo by combine(
-                                    currentItemFlow,
-                                    mainViewModel.memoCache
-                                ) { item, cache ->
-                                    if (item != null)
-                                        cache[item.fullPath]
-                                    else ""
-                                }.collectAsState(initial = "")
-
-                                LaunchedEffect(isRichText.value, selectedItemMemo) {
-                                    if (isRichText.value) {
-                                        richTextState.setHtml(selectedItemMemo ?: "")
-                                        richTextState.selection = TextRange.Zero
-                                    }
-                                }
-
-                                RichTextEditor(
-                                    state = richTextState,
-                                    modifier = Modifier
-                                        .clip(
-                                            RoundedCornerShape(
-                                                topStart = 8.dp,
-                                                topEnd = 8.dp,
-                                                bottomStart = 0.dp,
-                                                bottomEnd = 0.dp
-                                            )
-                                        )
-                                        .background(Color.White)
-                                        .height(300.dp)
-                                        .fillMaxWidth()
-                                        .focusRequester(focusRequester)
-                                        .border(
-                                            width = 1.dp,
-                                            color = Color.DarkGray,
-                                            shape = RoundedCornerShape(
-                                                topStart = 8.dp,
-                                                topEnd = 8.dp,
-                                                bottomStart = 0.dp,
-                                                bottomEnd = 0.dp
-                                            )
-                                        ),
-                                )
-
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight()
-                                            .background(Color.DarkGray)
-                                            .horizontalScroll(rememberScrollState()),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-
-                                        IconButton(onClick = {
-                                            integerForKeyboard += 1
-                                        }) {
-                                            Icon(
-                                                modifier = Modifier.size(24.dp),
-                                                painter = painterResource(id = R.drawable.clavier),
-                                                contentDescription = null
-                                            )
-                                        }
-
-                                        EditorAction(
-                                            iconRes = R.drawable.bold,
-                                            active = true
-                                        ) {
-                                            // Toggle a span style .
-                                            richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.underline,
-                                            active = true
-                                        ) {
-                                            richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.italic,
-                                            active = true
-                                        ) {
-                                            richTextState.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic))
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.strikethrough,
-                                            active = true
-                                        ) {
-                                            richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.LineThrough))
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.leftalign,
-                                            active = true
-                                        ) {
-                                            // Toggle a paragraph style.
-                                            richTextState.toggleParagraphStyle(
-                                                ParagraphStyle(
-                                                    textAlign = TextAlign.Start
-                                                )
-                                            )
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.centeralign,
-                                            active = true
-                                        ) {
-                                            // Toggle a paragraph style.
-                                            richTextState.toggleParagraphStyle(
-                                                ParagraphStyle(
-                                                    textAlign = TextAlign.Center
-                                                )
-                                            )
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.rightalign,
-                                            active = true
-                                        ) {
-                                            // Toggle a paragraph style.
-                                            richTextState.toggleParagraphStyle(
-                                                ParagraphStyle(
-                                                    textAlign = TextAlign.End
-                                                )
-                                            )
-                                        }
-                                        EditorAction(
-                                            iconRes = R.drawable.textsize,
-                                            active = true
-                                        ) {
-                                            val currentSpanStyle = richTextState.currentSpanStyle
-                                            val currentFontSize = currentSpanStyle.fontSize
-                                            val defaultFontSize = 16.sp
-
-                                            val baseSize = if (currentFontSize.isUnspecified) {
-                                                defaultFontSize
-                                            } else {
-                                                currentSpanStyle.fontSize
-                                            }
-
-//                                            val newFontSize = baseSize + 1.sp
-
-                                            richTextState.toggleSpanStyle(
-                                                spanStyle = SpanStyle(fontSize = TextAutoSizeDefaults.MaxFontSize)
-                                            )
-                                        }
-                                    }
-
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight()
-                                            .background(Color.DarkGray)
-                                            .horizontalScroll(rememberScrollState()),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
-                                    ) {
-                                        IconButton(onClick = {
-                                            val onlyBr = Regex("^<br>$")
-                                            var editorContent = richTextState.toHtml()
-                                                .replace(onlyBr, "")
-
-                                            val nothingImportant = Regex("^\\s*$")
-                                            val nothingImportant2 =
-                                                Regex("^(<br>|\\s|<p>|</p>|&Tab;)*$")
-
-                                            if (editorContent.matches(nothingImportant)
-                                                || editorContent.matches((nothingImportant2))
-                                            )
-                                                editorContent = ""
-
-                                            val currentItem =
-                                                mainViewModel.selectedItem.value
-                                                    ?: return@IconButton
-
-                                            mainViewModel.setSelectedItem(
-                                                currentItem.copy(memo = editorContent)
-                                            )
-
-                                            mainViewModel.setMemoCacheValue(
-                                                key = currentItem.fullPath,
-                                                memo = editorContent
-                                            )
-
-                                            mainViewModel.viewModelScope.launch(Dispatchers.IO) {
-                                                val compositeMgr =
-                                                    CompositeManager(currentItem.fullPath ?: "")
-                                                compositeMgr.save(Memo(editorContent))
-                                                withContext(Dispatchers.Default) {
-                                                    mainViewModel.setSelectedItem(null)
-                                                }
-                                            }
-
-                                            richTextState.clear()
-                                            mainViewModel.setIsDisplayingMemo(false)
-                                        }) {
-                                            Icon(
-                                                modifier = Modifier.size(24.dp),
-                                                painter = painterResource(id = R.drawable.enregistrer),
-                                                tint = Color(0xFFd1495b),
-                                                contentDescription = null
-                                            )
-                                        }
-
-                                        EditorAction(
-                                            iconRes = R.drawable.palette,
-                                            active = true
-                                        ) {
-                                            richTextState.addSpanStyle(
-                                                SpanStyle(
-                                                    color = Random.nextInt(360).hueToColor()
-                                                )
-                                            )
-                                        }
-
-                                        EditorAction(
-                                            iconRes = R.drawable.paste,
-                                            active = true
-                                        ) {
-                                            val clipboardContent = mainViewModel.getClipboardText(this@SigmaActivity)
-                                            if (clipboardContent == null)
-                                                return@EditorAction
-
-                                            richTextState.setHtml(clipboardContent)
-                                        }
-
-                                        EditorAction(R.drawable.clear, active = true) {
-//                                            currentValue = currentValue.insertStyle(Style.ClearFormat)
-                                        }
-
-                                        IconButton(onClick = {
-//                                            val snapshot = currentValue.getLastSnapshot()
-//
-//                                            currentValue = RichTextValue.get()
-                                            richTextState.clear()
-                                            mainViewModel.setIsDisplayingMemo(false)
-//
-//                                            val item = mainViewModel.selectedItem.value
-//                                            if (item == null)
-//                                                return@IconButton
-//
-//                                            item?.memo = snapshot
-//                                            mainViewModel.setMemoCacheValue(item?.fullPath ?: "", snapshot)
-//
-//                                            mainViewModel.viewModelScope.launch(Dispatchers.IO) {
-//                                            val compositeMgr = CompositeManager(currentItem.value?.fullPath ?: "")
-//                                            compositeMgr.save(Memo(snapshot))
-//                                                withContext(Dispatchers.Default) {
-//                                                    mainViewModel.setSelectedItem(null)
-//                                                    mainViewModel.refreshCurrentFolder()
-//                                                }
-//                                            }
-                                        }) {
-                                            Icon(
-                                                modifier = Modifier.size(24.dp),
-                                                painter = painterResource(id = R.drawable.exit),
-                                                tint = Color(0xFFd1495b),
-                                                contentDescription = null
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                                    .align(Alignment.TopCenter),
+                                isRichText = isRichText
+                            )
                         }
 
                         Column(
@@ -1192,26 +918,6 @@ class SigmaActivity : ComponentActivity() {
 //        mainViewModel.setSelectedItem(null)
 //        BottomTools.setCurrentContent(DEFAULT, mainViewModel))
     }
-
-    @Composable
-    private fun EditorAction(
-        @DrawableRes iconRes: Int,
-        active: Boolean,
-        onClick: () -> Unit,
-    ) {
-        IconButton(onClick = onClick) {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                painter = painterResource(id = iconRes),
-                tint = if (active) Color.White else Color.Black,
-                contentDescription = null
-            )
-        }
-    }
-
-    private fun Int.hueToColor(saturation: Float = 1f, value: Float = 0.5f): Color = Color(
-        ColorUtils.HSLToColor(floatArrayOf(this.toFloat(), saturation, value))
-    )
 }
 
 fun <T> LazyGridScope.lazyGridItems(

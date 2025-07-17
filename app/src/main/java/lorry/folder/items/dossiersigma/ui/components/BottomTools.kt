@@ -1622,8 +1622,8 @@ fun SigmaActivity.HomeItemDialog(
                     .fillMaxWidth(),
                 value = if (homeInfos!!.newTitle == null) homeInfos!!.oldTitle!! else homeInfos!!.newTitle!!,
                 onValueChange = { value: String ->
-                    mainActivity.homeViewModel.setDialogHomeItemInfos(
-                        mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                    sigmaActivity.homeViewModel.setDialogHomeItemInfos(
+                        sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
                             newTitle = value
                         )
                     )
@@ -1644,8 +1644,8 @@ fun SigmaActivity.HomeItemDialog(
                         .padding(end = 5.dp),
                     value = homeInfos!!.path!!,
                     onValueChange = { value: String ->
-                        mainActivity.homeViewModel.setDialogHomeItemInfos(
-                            mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                        sigmaActivity.homeViewModel.setDialogHomeItemInfos(
+                            sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
                                 path = value
                             )
                         )
@@ -1656,10 +1656,10 @@ fun SigmaActivity.HomeItemDialog(
 
                 Button(
                     onClick = {
-                        mainActivity.onFolderChoosed = { path ->
+                        sigmaActivity.onFolderChoosed = { path ->
                             if (path != null) {
-                                mainActivity.homeViewModel.setDialogHomeItemInfos(
-                                    mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                                sigmaActivity.homeViewModel.setDialogHomeItemInfos(
+                                    sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
                                         path = path
                                     )
                                 )
@@ -1689,15 +1689,15 @@ fun SigmaActivity.HomeItemDialog(
                                  * voir BrowserOverlay et son appel par MainActivity
                                  * le callback est un de ses paramètres d'appel
                                  */
-                                mainActivity.onGotBrowserImage = { url ->
+                                sigmaActivity.onGotBrowserImage = { url ->
                                     mainViewModel.viewModelScope.launch {
                                         val bitmap =
                                             mainViewModel.changingPictureUseCase.urlToBitmap(url)
                                                 ?: return@launch
                                         withContext(Dispatchers.Main) {
                                             mainViewModel.setIsHomeItemDialogVisible(true)
-                                            mainActivity.homeViewModel.setDialogHomeItemInfos(
-                                                mainActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                                            sigmaActivity.homeViewModel.setDialogHomeItemInfos(
+                                                sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
                                                     picture = bitmap
                                                 )
                                             )
@@ -1749,7 +1749,7 @@ fun SigmaActivity.HomeItemDialog(
                             mainViewModel.viewModelScope.launch {
                                 onDatasCompleted(newHomeItem)
 
-                                val existingHomeItems = mainActivity.homeViewModel.homeItems.value
+                                val existingHomeItems = sigmaActivity.homeViewModel.homeItems.value
                                 val newHomeItems = existingHomeItems.toMutableList()
                                     .map { if (it.title == homeInfos!!.newTitle) homeInfos!! else HomeItemInfos(
                                         oldTitle = it.title,
@@ -1758,13 +1758,13 @@ fun SigmaActivity.HomeItemDialog(
                                         picture = it.picture,
                                     ) }.toSet()
 
-                                mainActivity.settingsViewModel.settingsManager.saveHomeItems(newHomeItems)
+                                sigmaActivity.settingsViewModel.settingsManager.saveHomeItems(newHomeItems)
                             }
 
                             viewModel.setIsHomeItemDialogVisible(false)
                         } else
                             Toast.makeText(
-                                mainActivity,
+                                sigmaActivity,
                                 "Veuillez renseigner au moins le titre et le chemin du raccourci",
                                 Toast.LENGTH_LONG
                             ).show()
