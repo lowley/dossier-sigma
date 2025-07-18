@@ -40,6 +40,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextIndent
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isUnspecified
 import androidx.compose.ui.unit.sp
@@ -103,7 +105,6 @@ fun SigmaActivity.MemoEditor(
                 .background(Color.White)
                 .height(300.dp)
                 .fillMaxWidth()
-                .focusRequester(focusRequester)
                 .border(
                     width = 1.dp,
                     color = Color.DarkGray,
@@ -186,18 +187,32 @@ fun SigmaActivity.MemoEditor(
                         )
                     )
                 }
+
+                val fontSises = listOf(8.sp, 10.sp, 12.sp, 14.sp, 16.sp, 18.sp, 20.sp, 22.sp, 24.sp)
+                fun TextUnit.nextFontSize(): TextUnit {
+                    return when  (this){
+                        8.sp -> 10.sp
+                        10.sp -> 12.sp
+                        12.sp -> 14.sp
+                        14.sp -> 16.sp
+                        16.sp -> 18.sp
+                        18.sp -> 20.sp
+                        20.sp -> 22.sp
+                        22.sp -> 24.sp
+                        24.sp -> 8.sp
+                        else -> 16.sp
+                    }
+                }
+
                 EditorAction(
                     iconRes = R.drawable.textsize,
                     active = true
                 ) {
                     val currentSpanStyle = richTextState.currentSpanStyle
                     val currentFontSize = currentSpanStyle.fontSize
-                    val defaultFontSize = 16.sp
-
-//                                            val newFontSize = baseSize + 1.sp
 
                     richTextState.toggleSpanStyle(
-                        spanStyle = SpanStyle(fontSize = TextAutoSizeDefaults.MaxFontSize)
+                        spanStyle = SpanStyle(fontSize = currentFontSize.nextFontSize())
                     )
                 }
             }
@@ -275,7 +290,6 @@ fun SigmaActivity.MemoEditor(
 //                    ))
 //                    richTextState.addTextAfterSelection(" ")
 
-                    mainViewModel.setIsRichTextFocused(false)
                     mainViewModel.setIsDisplayingMemoPalette(true)
                 }
 
@@ -291,7 +305,12 @@ fun SigmaActivity.MemoEditor(
                 }
 
                 EditorAction(R.drawable.clear, active = true) {
-                                            richTextState.clear()
+                    richTextState.addParagraphStyle(ParagraphStyle(textAlign = TextAlign.Left))
+                    richTextState.addParagraphStyle(ParagraphStyle(textIndent = TextIndent(firstLine = 0.sp, restLine = 0.sp)))
+                    richTextState.addSpanStyle(SpanStyle(fontStyle = FontStyle.Normal))
+                    richTextState.addSpanStyle(SpanStyle(color = Color.Black))
+                    richTextState.addSpanStyle(SpanStyle(fontWeight = FontWeight.Normal))
+                    richTextState.addSpanStyle(SpanStyle(fontSize = 16.sp))
                 }
 
                 IconButton(onClick = {

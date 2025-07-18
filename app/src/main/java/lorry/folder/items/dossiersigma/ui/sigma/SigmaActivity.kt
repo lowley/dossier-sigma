@@ -855,7 +855,6 @@ class SigmaActivity : ComponentActivity() {
                     }
 
                     val richTextState = rememberRichTextState()
-                    val isRichTextFocused by mainViewModel.isRichTextFocused.collectAsState()
 
                     Box(
                         modifier = Modifier
@@ -869,11 +868,7 @@ class SigmaActivity : ComponentActivity() {
                         if (isRichText.value) {
                             MemoEditor(
                                 modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .then(
-                                        if (!isRichTextFocused) Modifier.pointerInput(
-                                            Unit
-                                        ) {} else Modifier),
+                                    .align(Alignment.TopCenter),
                                 isRichText = isRichText,
                                 richTextState = richTextState
                             )
@@ -882,7 +877,7 @@ class SigmaActivity : ComponentActivity() {
                         if (isRichText.value && isDisplayingPalette.value) {
                             val keyboardController = LocalSoftwareKeyboardController.current
                             keyboardController?.hide()
-                            mainViewModel.setIsRichTextFocused(false)
+
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -909,7 +904,6 @@ class SigmaActivity : ComponentActivity() {
                                             val saved =
                                                 mainViewModel.savedSelectedRange.value
                                                     ?: return@Palette
-                                            mainViewModel.setIsRichTextFocused(true)
                                             richTextState.selection = saved
                                             richTextState.addSpanStyle(
                                                 SpanStyle(

@@ -192,13 +192,6 @@ class SigmaViewModel @Inject constructor(
         _savedSelectedRange.value = newSelection
     }
 
-    private val _isRichTextFocused = MutableStateFlow<Boolean>(false)
-    val isRichTextFocused: StateFlow<Boolean> = _isRichTextFocused
-
-    fun setIsRichTextFocused(newValue: Boolean) {
-        _isRichTextFocused.value = newValue
-    }
-
     /////////////////
     // text dialog //
     /////////////////
