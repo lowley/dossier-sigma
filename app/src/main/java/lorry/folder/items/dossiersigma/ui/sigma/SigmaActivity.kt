@@ -90,9 +90,6 @@ import com.elixer.palette.Presets
 import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
 import com.elixer.palette.constraints.VerticalAlignment
-import com.jaiselrahman.filepicker.activity.FilePickerActivity
-import com.jaiselrahman.filepicker.config.Configurations
-import com.jaiselrahman.filepicker.model.MediaFile
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.yalantis.ucrop.UCrop
@@ -157,69 +154,6 @@ class SigmaActivity : ComponentActivity() {
      */
     var onFolderChoosed: (String?) -> Unit = {}
     var onGotBrowserImage: (String) -> Unit = {}
-
-    /**
-     * Appelée par la boîte de dialogue de création / modification de HomeItem
-     * @see HomeItemDialog
-     */
-    val filePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // La permission a été accordée, on peut maintenant lancer le sélecteur de fichiers
-            launchFilePicker()
-        } else {
-            // L'utilisateur a refusé la permission.
-            Toast.makeText(this, "Permission de lecture des fichiers refusée", Toast.LENGTH_SHORT)
-                .show()
-        }
-    }
-
-    fun launchFilePicker() {
-        val intent = Intent(this, FilePickerActivity::class.java)
-        intent.putExtra(
-            FilePickerActivity.CONFIGS,
-            Configurations.Builder()
-                .setCheckPermission(false) // On le laisse à false, car on gère nous-mêmes
-                .setShowFiles(true)
-                .setMaxSelection(1)
-                .build()
-        )
-        // Utilisez votre lanceur moderne pour le résultat du fichier
-//        filePickerLauncher.launch(intent)
-        ActivityCompat.startActivityForResult(sigmaActivity, intent, FILE_REQUEST_CODE, null)
-
-    }
-
-    fun checkPermissionAndLaunchPicker() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                // La permission est déjà accordée
-                launchFilePicker()
-            }
-
-            else -> {
-                // La permission n'est pas accordée, on la demande
-                requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-            }
-        }
-    }
-
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // La permission a été accordée, on peut maintenant lancer le sélecteur de fichiers
-            launchFilePicker()
-        } else {
-            // L'utilisateur a refusé la permission.
-            Toast.makeText(this, "Permission de lecture des fichiers refusée", Toast.LENGTH_SHORT)
-                .show()
-        }
-    }
 
     val sigmaActivity = this
 
@@ -944,20 +878,6 @@ class SigmaActivity : ComponentActivity() {
 
         var resultUri: Uri? = null
         var cropError: Throwable? = null
-
-        if (resultCode == FILE_REQUEST_CODE) {
-            val files: ArrayList<MediaFile>? = data?.getParcelableArrayListExtra(
-                FilePickerActivity.MEDIA_FILES,
-                MediaFile::class.java
-            )
-
-            if (files.isNullOrEmpty())
-                Log.d(TAG, "onActivityResult: rien de retourné")
-            else
-                Log.d(TAG, "onActivityResult: ${files[0].path}")
-
-            return
-        }
 
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             resultUri = UCrop.getOutput(data)

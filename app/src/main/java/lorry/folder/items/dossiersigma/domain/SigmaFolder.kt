@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.domain
 
 import androidx.compose.ui.layout.ContentScale
-import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
 import java.util.UUID
 

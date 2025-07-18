@@ -2,7 +2,6 @@ package lorry.folder.items.dossiersigma.data.base64
 
 import android.graphics.Bitmap
 import androidx.compose.ui.layout.ContentScale
-import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import java.io.File
 
@@ -31,6 +30,5 @@ interface IVideoInfoEmbedder {
     
     //memo
     suspend fun appendMemoToFile(filePath: String)
-    suspend fun extractMemoFromFile(filePath: String): RichTextValueSnapshot?
     suspend fun removeMemoFromFile(filePath: String): Boolean
 }

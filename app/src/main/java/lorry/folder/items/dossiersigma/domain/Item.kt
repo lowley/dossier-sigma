@@ -3,7 +3,6 @@ package lorry.folder.items.dossiersigma.domain
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

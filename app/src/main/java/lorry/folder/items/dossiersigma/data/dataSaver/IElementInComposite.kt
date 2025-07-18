@@ -5,9 +5,6 @@ import android.util.Log
 import androidx.compose.ui.layout.ContentScale
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.pointlessapps.rt_editor.model.Style
-import com.pointlessapps.rt_editor.model.Style.ParagraphStyle
-import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import kotlinx.serialization.Serializable
 import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder

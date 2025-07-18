@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.compose.ui.layout.ContentScale
 import com.google.gson.Gson
-import com.pointlessapps.rt_editor.utils.RichTextValueSnapshot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.domain.ColoredTag
@@ -359,10 +358,6 @@ class VideoInfoEmbedder @Inject constructor() : IVideoInfoEmbedder {
         
         
         
-    }
-
-    override suspend fun extractMemoFromFile(filePath: String): RichTextValueSnapshot? {
-        return null
     }
 
     override suspend fun removeMemoFromFile(filePath: String): Boolean {

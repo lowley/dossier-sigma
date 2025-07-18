@@ -2,7 +2,6 @@ package lorry.folder.items.dossiersigma.data.dataSaver
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.pointlessapps.rt_editor.model.Style
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

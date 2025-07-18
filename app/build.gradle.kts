@@ -126,13 +126,12 @@ dependencies {
     implementation("commons-net:commons-net:3.11.1")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.github.skydoves:colorpicker-compose:1.1.2")
-
     implementation(libs.kotlinx.serialization.json)
-    implementation("com.github.pChochura:richtext-compose:1.3.2")
+    implementation("com.google.android.material:material:1.12.0")
+    //memoEditor
     implementation("com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13")
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-    implementation("com.github.jaiselrahman:FilePicker:1.3.2")
-
-    implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.github.Shivamdhuria:palette:0.0.4")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.appcompat:appcompat:1.6.1")
 }
