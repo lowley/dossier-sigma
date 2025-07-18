@@ -73,14 +73,6 @@ fun SigmaActivity.MemoEditor(
             .height(400.dp)
             .zIndex(15f)
     ) {
-        val focusRequester = remember { FocusRequester() }
-
-        var integerForKeyboard by remember { mutableStateOf(0) }
-        if (integerForKeyboard != 0)
-            LaunchedEffect(integerForKeyboard) {
-                focusRequester.requestFocus()
-            }
-
         val selectedItemMemo by combine(
             currentItemFlow,
             mainViewModel.memoCache
@@ -136,17 +128,6 @@ fun SigmaActivity.MemoEditor(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-
-                IconButton(onClick = {
-                    integerForKeyboard += 1
-                }) {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(id = R.drawable.clavier),
-                        contentDescription = null
-                    )
-                }
-
                 EditorAction(
                     iconRes = R.drawable.bold,
                     active = true
