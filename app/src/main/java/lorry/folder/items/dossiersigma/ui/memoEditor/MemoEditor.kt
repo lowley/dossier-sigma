@@ -136,24 +136,28 @@ fun SigmaActivity.MemoEditor(
                     // Toggle a span style .
                     richTextState.toggleSpanStyle(SpanStyle(fontWeight = FontWeight.Bold))
                 }
+
                 EditorAction(
                     iconRes = R.drawable.underline,
                     active = true
                 ) {
                     richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.Underline))
                 }
+
                 EditorAction(
                     iconRes = R.drawable.italic,
                     active = true
                 ) {
                     richTextState.toggleSpanStyle(SpanStyle(fontStyle = FontStyle.Italic))
                 }
+
                 EditorAction(
                     iconRes = R.drawable.strikethrough,
                     active = true
                 ) {
                     richTextState.toggleSpanStyle(SpanStyle(textDecoration = TextDecoration.LineThrough))
                 }
+
                 EditorAction(
                     iconRes = R.drawable.leftalign,
                     active = true
@@ -165,6 +169,7 @@ fun SigmaActivity.MemoEditor(
                         )
                     )
                 }
+
                 EditorAction(
                     iconRes = R.drawable.centeralign,
                     active = true
@@ -176,6 +181,7 @@ fun SigmaActivity.MemoEditor(
                         )
                     )
                 }
+
                 EditorAction(
                     iconRes = R.drawable.rightalign,
                     active = true
@@ -360,7 +366,3 @@ public fun SigmaActivity.EditorAction(
         )
     }
 }
-
-fun Int.hueToColor(saturation: Float = 1f, value: Float = 0.5f): Color = Color(
-    ColorUtils.HSLToColor(floatArrayOf(this.toFloat(), saturation, value))
-)
