@@ -36,21 +36,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            sourceSets {
-                getByName("release") {
-                    jniLibs.srcDirs("src/main/jniLibs")
-
-                }
-            }
-
-            debug {
-                sourceSets {
-                    getByName("debug") {
-                        jniLibs.srcDirs("src/main/jniLibs")
-                    }
-                }
-            }
-
         }
     }
     compileOptions {
@@ -65,27 +50,12 @@ android {
     }
 
     ndkVersion = "28.0.12916984" // Mettez la version correcte de votre NDK
-
-//    externalNativeBuild {
-//        cmake {
-//            path = file("src/main/cpp/CMakeLists.txt") // Assurez-vous que ce fichier existe
-//            version = "3.31.4" // Vérifiez la version CMake installée
-//        }
-//    }
-
-    packagingOptions {
-        jniLibs {
-            useLegacyPackaging = true
-            pickFirst("lib/arm64-v8a/libbento4.so")
-        }
-    }
     
     repositories{
         flatDir {
             dirs("libs")
         }
     }
-    
 }
 
 dependencies {
@@ -111,7 +81,8 @@ dependencies {
     implementation("me.saket.cascade:cascade:2.3.0")
     implementation("me.saket.cascade:cascade-compose:2.3.0")
     implementation(libs.coil.compose)
-    
+    ksp("com.google.devtools.ksp:symbol-processing-api:2.2.0-2.0.2")
+
 //    implementation(libs.compressor)
     implementation(mapOf("name" to "ffmpeg-kit-full-gpl-6.0-2.LTS", "ext" to "aar"))
     implementation(files("libs/smart-exception-common-0.2.1.jar"))
