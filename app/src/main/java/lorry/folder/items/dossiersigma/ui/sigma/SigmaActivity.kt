@@ -35,7 +35,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -229,10 +228,11 @@ class SigmaActivity : ComponentActivity() {
                                     // Home button //
                                     /////////////////
                                     HomeButtonIcon(
-                                        icon = R.drawable.mouvement) {
-                                            mainViewModel.setIsSettingsPageVisible(false)
-                                            homeViewModel.setHomePageVisible(true)
-                                        }
+                                        icon = R.drawable.mouvement
+                                    ) {
+                                        mainViewModel.setIsSettingsPageVisible(false)
+                                        homeViewModel.setHomePageVisible(true)
+                                    }
 
                                     ////////////////
                                     // breadcrumb //
@@ -255,6 +255,10 @@ class SigmaActivity : ComponentActivity() {
                                 }
 
                                 if (homePageVisible) {
+
+                                    ///////////////////////////////////
+                                    // écran entier dédié à homePage //
+                                    ///////////////////////////////////
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -332,79 +336,29 @@ class SigmaActivity : ComponentActivity() {
                                         }
                                     }
 
-                                } else
+                                } else {
 
                                     ////////////////////////////////////////
                                     // zone de sélection du tri des items //
                                     ////////////////////////////////////////
-                                    Row(
-                                        modifier = Modifier
-                                            .align(Alignment.CenterEnd)
-                                            .width(sortingWidth),
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        val sorting by mainViewModel.sorting.collectAsState()
 
-                                        FilterChip(
-                                            label = { Text("Date") },
-                                            modifier = Modifier
-                                                .padding(end = 5.dp)
-                                                .align(Alignment.CenterVertically),
-                                            selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
-                                            leadingIcon = {
-                                                if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
-                                                    Icon(
-                                                        painterResource(id = R.drawable.trier_decroissant),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(24.dp),
-                                                        tint = Color.Red
-                                                    )
-                                                else
-                                                    Icon(
-                                                        painterResource(id = R.drawable.trier_decroissant),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(24.dp),
-                                                    )
-                                            },
-//                            enabled = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
-                                            onClick = {
-                                                mainViewModel.goToFolder(
-                                                    currentFolder.fullPath,
-                                                    ITEMS_ORDERING_STRATEGY.DATE_DESC
-                                                )
-                                            }
-                                        )
-
-                                        FilterChip(
-                                            label = { Text("Nom") },
-                                            modifier = Modifier
-                                                .align(Alignment.CenterVertically),
-                                            selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
-                                            leadingIcon = {
-                                                if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
-                                                    Icon(
-                                                        painterResource(id = R.drawable.trier_croissant),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(24.dp),
-                                                        tint = Color.Red
-                                                    )
-                                                else
-                                                    Icon(
-                                                        painterResource(id = R.drawable.trier_croissant),
-                                                        contentDescription = null,
-                                                        modifier = Modifier.size(24.dp),
-                                                    )
-                                            },
-//                            enabled = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
-                                            onClick = {
-                                                mainViewModel.goToFolder(
-                                                    currentFolder.fullPath,
-                                                    ITEMS_ORDERING_STRATEGY.NAME_ASC
-                                                )
-                                            }
-                                        )
-                                    }
+                                    //TODO pas besoin de tout recharger
+                                    SortingArea(
+                                        sortingWidth = sortingWidth,
+                                        sortingFlow = mainViewModel.sorting,
+                                        onDateSortClick = {
+                                            mainViewModel.goToFolder(
+                                                currentFolder.fullPath,
+                                                ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                            )
+                                        },
+                                        onNameSortClick = {
+                                            mainViewModel.goToFolder(
+                                                currentFolder.fullPath,
+                                                ITEMS_ORDERING_STRATEGY.NAME_ASC
+                                            )
+                                        }
+                                )
                             }
 
                             val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
