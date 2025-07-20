@@ -228,27 +228,11 @@ class SigmaActivity : ComponentActivity() {
                                     /////////////////
                                     // Home button //
                                     /////////////////
-                                    Icon(
-                                        modifier = Modifier
-                                            .size(50.dp)
-                                            .padding(
-                                                start = 15.dp,
-                                                end = 5.dp
-                                            )
-                                            .align(Alignment.CenterVertically)
-                                            .size(50.dp)
-                                            .pointerInput(true) {
-                                                detectTapGestures(
-                                                    onTap = {
-                                                        mainViewModel.setIsSettingsPageVisible(false)
-                                                        homeViewModel.setHomePageVisible(true)
-                                                    }
-                                                )
-                                            },
-                                        painter = painterResource(R.drawable.mouvement),
-                                        tint = Color(0xFFe9c46a),
-                                        contentDescription = null
-                                    )
+                                    HomeButtonIcon(
+                                        icon = R.drawable.mouvement) {
+                                            mainViewModel.setIsSettingsPageVisible(false)
+                                            homeViewModel.setHomePageVisible(true)
+                                        }
 
                                     ////////////////
                                     // breadcrumb //
