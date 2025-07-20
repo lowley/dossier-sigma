@@ -1,12 +1,10 @@
 package lorry.folder.items.dossiersigma.ui.components
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -1654,7 +1652,7 @@ fun SigmaActivity.HomeItemDialog(
 
                 Button(
                     onClick = {
-                        sigmaActivity.onFolderChoosed = { path ->
+                        sigmaActivity.onFolderChosen = { path ->
                             if (path != null) {
                                 sigmaActivity.homeViewModel.setDialogHomeItemInfos(
                                     sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(

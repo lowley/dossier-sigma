@@ -2,6 +2,7 @@ import com.android.build.api.dsl.JniLibsPackaging
 import com.android.build.api.dsl.Ndk
 import com.android.build.gradle.internal.api.artifact.SourceArtifactType
 import org.jetbrains.kotlin.gradle.utils.IMPLEMENTATION
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.android.application)
@@ -38,6 +39,19 @@ android {
             )
         }
     }
+
+    tasks.withType<KotlinCompile>().configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xcontext-receivers")
+        }
+    }
+
+//    tasks.withType<KotlinCompile>().configureEach {
+//        compilerOptions {
+//            freeCompilerArgs.add("-Xcontext-parameters")
+//        }
+//    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -81,7 +95,6 @@ dependencies {
     implementation("me.saket.cascade:cascade:2.3.0")
     implementation("me.saket.cascade:cascade-compose:2.3.0")
     implementation(libs.coil.compose)
-    ksp("com.google.devtools.ksp:symbol-processing-api:2.2.0-2.0.2")
 
 //    implementation(libs.compressor)
     implementation(mapOf("name" to "ffmpeg-kit-full-gpl-6.0-2.LTS", "ext" to "aar"))

@@ -1,27 +1,20 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,20 +27,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.TextAutoSizeDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,14 +44,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -70,20 +55,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.isUnspecified
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.elixer.palette.Presets
@@ -91,24 +66,17 @@ import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
 import com.elixer.palette.constraints.VerticalAlignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
-import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.CustomMoveFileExistingDestinationDialog
@@ -126,7 +94,6 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
-import kotlin.random.Random
 
 
 @AndroidEntryPoint
@@ -152,7 +119,7 @@ class SigmaActivity : ComponentActivity() {
      * @see HomeItemDialog
      * @see FolderChooserDialog
      */
-    var onFolderChoosed: (String?) -> Unit = {}
+    var onFolderChosen: (String?) -> Unit = {}
     var onGotBrowserImage: (String) -> Unit = {}
 
     val sigmaActivity = this
@@ -230,6 +197,10 @@ class SigmaActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .background(Color(0xFF363E4C))
                                 .pointerInput(selectedItem?.id) {
+
+                                    //////////////////////////////////
+                                    // RAZ si tap sur une zone vide //
+                                    //////////////////////////////////
                                     detectTapGestures(onTap = {
                                         if (selectedItem?.id != null) {
                                             mainViewModel.setSelectedItem(null, true)
@@ -245,11 +216,18 @@ class SigmaActivity : ComponentActivity() {
                             ) {
                                 val sortingWidth = 200.dp
 
+                                ///////////////////////////////////
+                                // zone Home button + breadcrumb //
+                                ///////////////////////////////////
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(end = sortingWidth),
                                 ) {
+
+                                    /////////////////
+                                    // Home button //
+                                    /////////////////
                                     Icon(
                                         modifier = Modifier
                                             .size(50.dp)
@@ -272,6 +250,9 @@ class SigmaActivity : ComponentActivity() {
                                         contentDescription = null
                                     )
 
+                                    ////////////////
+                                    // breadcrumb //
+                                    ////////////////
                                     if (!homePageVisible)
                                         Breadcrumb(
                                             items = currentFolder.fullPath.split("/")
@@ -303,7 +284,9 @@ class SigmaActivity : ComponentActivity() {
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
 
-                                            //ajouter un homeItem
+                                            ///////////////////////
+                                            // ajout de homeItem //
+                                            ///////////////////////
                                             Icon(
                                                 modifier = Modifier
                                                     .size(35.dp)
@@ -336,6 +319,9 @@ class SigmaActivity : ComponentActivity() {
 
                                             val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
+                                            ///////////////////////
+                                            // Icône de settings //
+                                            ///////////////////////
                                             Icon(
                                                 modifier = Modifier
                                                     .size(50.dp)
@@ -363,6 +349,10 @@ class SigmaActivity : ComponentActivity() {
                                     }
 
                                 } else
+
+                                    ////////////////////////////////////////
+                                    // zone de sélection du tri des items //
+                                    ////////////////////////////////////////
                                     Row(
                                         modifier = Modifier
                                             .align(Alignment.CenterEnd)
@@ -783,7 +773,7 @@ class SigmaActivity : ComponentActivity() {
                                     .align(Alignment.Center),
                                 viewModel = mainViewModel
                             ) { path ->
-                                onFolderChoosed(path)
+                                onFolderChosen(path)
                             }
                         }
                     }
