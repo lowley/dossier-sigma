@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -53,6 +54,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -99,6 +101,7 @@ object BottomTools {
     internal val defaultContent = BottomToolContent(emptyList(), "DEFAULT_CONTENT")
 
     fun setCurrentContent(tools: Tools) {
+        setCurrentFlagId(null)
         _bottomToolsContent.value = tools.content(viewModel)
     }
 
@@ -108,6 +111,17 @@ object BottomTools {
 
     fun setCurrentTool(tool: Tool?) {
         _currentTool.value = tool
+    }
+
+    ////////////////////////
+    // étiquette courante //
+    ////////////////////////
+
+    private val _currentFlagId = MutableStateFlow<UUID?>(null)
+    val currentFlagId: StateFlow<UUID?> = _currentFlagId
+
+    fun setCurrentFlagId(flagId: UUID?) {
+        _currentFlagId.value = flagId
     }
 
     var movingItem: Item? = null
@@ -176,37 +190,43 @@ object BottomTools {
                         .clickable {
                             setCurrentTool(tool)
                             viewModel.viewModelScope.launch {
-                                tool.onClick(viewModel, activity)
+                                tool.onClick(tool, viewModel, activity)
                             }
                         }
                 ) {
-                    Icon(
+                    //icône statique, toujours existante
+                    IconWithRing(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .padding(top = 10.dp)
-                            .size(28.dp)
+                            .padding(top = 5.dp)
                             .onGloballyPositioned {
                                 viewModel.setDraggableStartPosition(it.positionInRoot())
                             },
-                        painter = painterResource(id = tool.icon),
-                        contentDescription = null,
-                        tint = if (tool.isColoredIcon) Color.Unspecified else
-                            (tool.tint ?: Color(0xFFe9c46a))
+                        iconRes = tool.icon,
+                        iconTint = if (tool.isColoredIcon) Color.Unspecified else
+                            (tool.tint ?: Color(0xFFe9c46a)),
+                        ringColor = if (tool.isColoredIcon) Color.Unspecified else
+                            (tool.tint ?: Color(0xFFe9c46a)),
+                        ringWidth = 2.dp,
+                        iconSize = 25.dp,
+                        ringSize = 38.dp,
+                        isRingEnabled = tool.activated
                     )
 
+                    //si icône d'étiquette
+                    //2e icône, draggable
                     if (content?.name == "DEFAULT_CONTENT") {
                         val coloredTag = tool.toColoredTag(viewModel)
 
-                        Icon(
+                        IconWithRing(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
-                                .padding(top = 10.dp)
+                                .padding(top = 5.dp)
                                 .offset {
                                     IntOffset(
                                         offset?.x?.toInt() ?: 0, offset?.y?.toInt() ?: 0
                                     )
                                 }
-                                .size(iconSize)
                                 .pointerInput(Unit) {
                                     detectDragGestures(
                                         onDragStart = {
@@ -235,13 +255,19 @@ object BottomTools {
                                             viewModel.setDragOffset(Offset.Zero)
                                             viewModel.setDraggedTag(null)
                                             viewModel.setDragTargetItem(null)
-                                        },
+                                        }
                                     )
+
                                 },
-                            painter = painterResource(id = tool.icon),
-                            contentDescription = null,
-                            tint = if (tool.isColoredIcon) Color.Unspecified else
-                                (tool.tint ?: Color(0xFFe9c46a))
+                            iconRes = tool.icon,
+                            iconTint = if (tool.isColoredIcon) Color.Unspecified else
+                                (tool.tint ?: Color(0xFFe9c46a)),
+                            ringColor = if (tool.isColoredIcon) Color.Unspecified else
+                                (tool.tint ?: Color(0xFFe9c46a)),
+                            ringWidth = 2.dp,
+                            iconSize = 25.dp,
+                            ringSize = 38.dp,
+                            isRingEnabled = false
                         )
                     }
 
@@ -265,20 +291,34 @@ object BottomTools {
                     defaultContent.updateTools(emptyList())
                     return@collect
                 }
+
                 println(" BottomTools: collect de tagsMap, ${tagsMap.size}")
-                val tagsSet = tagsMap.values.toSet()
-                val newTools = tagsSet.map { tag ->
+                val currentFlagId = currentFlagId.value
+
+                val tagsSet = tagsMap.values?.toSet()
+                val newTools = tagsSet?.map { tag ->
                     Tool(
                         text = { tag.title },
                         icon = R.drawable.etiquette,
                         tint = tag.color,
                         id = tag.id ?: UUID.randomUUID(),
                         onClick = { vm, activity ->
-                            // Action au clic
-                        }
+                            //pour filtrage des fichiers
+                            if (activated)
+                                setCurrentFlagId(null)
+                            else
+                                setCurrentFlagId(this.id)
+
+                            //pour affichage tool sélectionné ou pas
+                            Tools.DEFAULT.content(BottomTools.viewModel).replaceTool(
+                                this.copy(activated = !this.activated)
+                            )
+                        },
+                        activated = currentFlagId != null && tag.id == currentFlagId
                     )
                 }
-                defaultContent.updateTools(newTools)
+                if (newTools != null)
+                    defaultContent.updateTools(newTools)
             }
         }
     }
@@ -306,6 +346,17 @@ class BottomToolContent(
     fun removeTool(tool: Tool) {
         _tools.value = _tools.value - tool
     }
+
+    fun replaceTool(tool: Tool) {
+        val oldList = _tools.value
+        val newList = oldList.toMutableList().map {
+            if (it.id == tool.id)
+                tool
+            else
+                it
+        }
+        _tools.value = newList
+    }
 }
 
 // Outil unique avec icône, texte, et un comportement.
@@ -313,17 +364,23 @@ data class Tool(
     val text: @Composable (vm: SigmaViewModel) -> String,
     @DrawableRes val icon: Int,
     val isColoredIcon: Boolean = false,
-    val onClick: suspend (SigmaViewModel, SigmaActivity) -> Unit,
+    val onClick: suspend Tool.(SigmaViewModel, SigmaActivity) -> Unit,
     val visible: suspend (SigmaViewModel, SigmaActivity) -> Boolean = { _, _ -> true },
     val tint: Color? = null,
-    val id: UUID = UUID.randomUUID()
-)
+    val id: UUID = UUID.randomUUID(),
+    val activated: Boolean = false
+) {
+    fun isActivated() = activated
+
+
+}
 
 @Composable
 fun Tool.toColoredTag(viewModel: SigmaViewModel): ColoredTag = ColoredTag(
     id = this.id,
     title = this.text(viewModel),
     color = this.tint ?: Color.Unspecified,
+    onClick = this.onClick
 )
 
 
@@ -363,9 +420,6 @@ sealed class Tools() {
                                         icon = R.drawable.etiquette,
                                         isColoredIcon = false,
                                         onClick = { viewModel, mainActivity ->
-                                            //filtre des items
-
-
                                         },
                                         visible = { viewModel, mainActivity ->
                                             true
@@ -373,7 +427,9 @@ sealed class Tools() {
                                         tint = tagInfos?.color ?: Color.Unspecified
                                     )
 
-                                    DEFAULT.content(viewModel).addTool(newTool, 0)
+                                    //attention
+                                    //le cache est lu par observeDefaultContent qui l'ajoutera
+//                                    DEFAULT.content(viewModel).addTool(newTool, 0)
 
                                     if (tagInfos == null)
                                         return@run
@@ -383,7 +439,8 @@ sealed class Tools() {
                                     val newFlag = ColoredTag(
                                         title = tagInfos.title,
                                         color = tagInfos.color,
-                                        id = newTool.id
+                                        id = newTool.id,
+                                        onClick = { vm, activity -> }
                                     )
                                     compositeMgr.save(Flag(newFlag))
 
@@ -1747,14 +1804,18 @@ fun SigmaActivity.HomeItemDialog(
 
                                 val existingHomeItems = sigmaActivity.homeViewModel.homeItems.value
                                 val newHomeItems = existingHomeItems.toMutableList()
-                                    .map { if (it.title == homeInfos!!.newTitle) homeInfos!! else HomeItemInfos(
-                                        oldTitle = it.title,
-                                        newTitle = it.title,
-                                        path = it.path,
-                                        picture = it.picture,
-                                    ) }.toSet()
+                                    .map {
+                                        if (it.title == homeInfos!!.newTitle) homeInfos!! else HomeItemInfos(
+                                            oldTitle = it.title,
+                                            newTitle = it.title,
+                                            path = it.path,
+                                            picture = it.picture,
+                                        )
+                                    }.toSet()
 
-                                sigmaActivity.settingsViewModel.settingsManager.saveHomeItems(newHomeItems)
+                                sigmaActivity.settingsViewModel.settingsManager.saveHomeItems(
+                                    newHomeItems
+                                )
                             }
 
                             viewModel.setIsHomeItemDialogVisible(false)
@@ -2003,7 +2064,7 @@ data class HomeItemInfos(
     val newTitle: String? = null,
     val path: String?,
     val picture: Bitmap?,
-){
+) {
     suspend fun toHomeItemInfosDTO(): HomeItemInfosDTO {
         val videoEmbedder = VideoInfoEmbedder()
         return HomeItemInfosDTO(
@@ -2011,7 +2072,7 @@ data class HomeItemInfos(
             newTitle = newTitle,
             path = path,
             picture = if (picture != null) videoEmbedder.bitmapToBase64(picture)
-                else null
+            else null
         )
     }
 }
@@ -2021,7 +2082,7 @@ data class HomeItemInfosDTO(
     val newTitle: String? = null,
     val path: String?,
     val picture: String?,
-){
+) {
     suspend fun toHomeItemInfos(): HomeItemInfos {
         val videoEmbedder = VideoInfoEmbedder()
         return HomeItemInfos(
@@ -2030,6 +2091,51 @@ data class HomeItemInfosDTO(
             path = path,
             picture = if (picture != null) videoEmbedder.base64ToBitmap(picture)
             else null
+        )
+    }
+}
+
+@Composable
+fun IconWithRing(
+    modifier: Modifier = Modifier,
+    iconRes: Int,
+    ringColor: Color,
+    ringWidth: Dp = 2.dp,
+    iconTint: Color = Color.Unspecified, // Permet de garder la couleur originale de l'icône
+    ringSize: Dp = 33.dp,
+    iconSize: Dp = 28.dp,
+    isRingEnabled: Boolean
+) {
+    // Le Box sert de conteneur pour dessiner la bordure autour.
+    Box(
+        modifier = if (isRingEnabled) modifier
+            // Étape 1 : Appliquer une bordure.
+            .border(
+                width = ringWidth,
+                color = ringColor,
+                shape = CircleShape // Essentiel pour que la bordure soit un anneau.
+            )
+            // Étape 2 : Ajouter un padding INTERNE égal à l'épaisseur de l'anneau.
+            // Cela "pousse" le contenu (l'icône) vers l'intérieur pour ne pas qu'il soit sous la bordure.
+            .padding(ringWidth)
+            // Étape 3 (Optionnel mais recommandé) : Donner une taille fixe au conteneur.
+            .size(ringSize)
+        else modifier
+            .border(
+                width = ringWidth,
+                color = Color.Transparent,
+                shape = CircleShape // Essentiel pour que la bordure soit un anneau.
+            )
+            .padding(ringWidth)
+            .size(ringSize),
+        contentAlignment = Alignment.Center // S'assure que l'icône est bien centrée.
+    ) {
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = "Icône avec un anneau",
+            // L'icône prend toute la place disponible à l'intérieur du padding.
+            modifier = Modifier.size(iconSize),
+            tint = iconTint
         )
     }
 }

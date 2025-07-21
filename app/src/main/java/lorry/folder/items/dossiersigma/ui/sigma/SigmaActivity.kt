@@ -507,7 +507,8 @@ class SigmaActivity : ComponentActivity() {
                                 } else
                                     mainViewModel.viewModelScope.launch {
                                         currentTool?.onClick?.let {
-                                            it(
+                                            it.invoke(
+                                                currentTool!!,
                                                 mainViewModel,
                                                 this@SigmaActivity
                                             )
@@ -532,7 +533,8 @@ class SigmaActivity : ComponentActivity() {
                                 } else
                                     mainViewModel.viewModelScope.launch {
                                         currentTool?.onClick?.let {
-                                            it(
+                                            it.invoke(
+                                                currentTool!!,
                                                 mainViewModel,
                                                 this@SigmaActivity
                                             )

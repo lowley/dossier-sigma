@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.intl.Locale
@@ -330,10 +329,11 @@ class SigmaViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentFolder: StateFlow<SigmaFolder> = combine(
         currentFolderPath,
-        reloadTrigger
-    ) { path, _ ->
-        path
-    }.mapLatest { path ->
+        reloadTrigger,
+        BottomTools.currentFlagId
+    ) { path, _, currentFlagId ->
+        Pair(path, currentFlagId)
+    }.mapLatest { (path, currentFlagId) ->
         val folder = diskRepository.getSigmaFolder(path, sorting.value)
 
         clearAllCaches()
@@ -345,7 +345,15 @@ class SigmaViewModel @Inject constructor(
             setMemoCacheValue(path, item.memo)
         }
 
-        folder
+        if (currentFlagId == null)
+            folder
+        else
+            folder.copy(
+                items = folder.items
+                    .mapNotNull { item ->
+                        if (item.tag?.id == currentFlagId) item else null
+                    }
+            )
 
     }.stateIn(
         scope = viewModelScope,
