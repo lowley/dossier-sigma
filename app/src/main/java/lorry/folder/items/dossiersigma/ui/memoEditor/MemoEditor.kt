@@ -321,6 +321,7 @@ fun SigmaActivity.MemoEditor(
 
                 IconButton(onClick = {
                     richTextState.clear()
+                    mainViewModel.setSelectedItem(null)
                     mainViewModel.setIsDisplayingMemo(false)
 //
 //                                            val item = mainViewModel.selectedItem.value

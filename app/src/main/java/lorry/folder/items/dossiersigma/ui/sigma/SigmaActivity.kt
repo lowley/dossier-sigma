@@ -11,9 +11,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,14 +25,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,14 +35,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -59,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
-import coil.compose.AsyncImage
 import com.elixer.palette.Presets
 import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
@@ -84,11 +72,13 @@ import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
 import lorry.folder.items.dossiersigma.ui.components.FolderChooserDialog
 import lorry.folder.items.dossiersigma.ui.components.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.components.TagInfos
 import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
+import lorry.folder.items.dossiersigma.ui.components.Tools
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.home.homePage
 import lorry.folder.items.dossiersigma.ui.memoEditor.MemoEditor
+import lorry.folder.items.dossiersigma.ui.normal.NormalPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
@@ -134,8 +124,6 @@ class SigmaActivity : ComponentActivity() {
         initializeFileIntentLauncher(mainViewModel)
 
         setContent {
-            val homePageVisible by homeViewModel.homePageVisible.collectAsState()
-
             val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
             val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
             val isMoveFileDialogVisible by mainViewModel.isMoveFileDialogVisible.collectAsState()
@@ -143,16 +131,20 @@ class SigmaActivity : ComponentActivity() {
             val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
             val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
 
+            val homePageVisible by homeViewModel.homePageVisible.collectAsState()
+
             Scaffold(
                 floatingActionButton = {
-                    NewFolderFAB(
-                        homePageVisible = homePageVisible,
-                        isTextDialogVisible = isTextDialogVisible,
-                        isYesNoDialogVisible = isYesNoDialogVisible,
-                        isMoveFileDialogVisible = isMoveFileDialogVisible,
-                        isTagInfosDialogVisible = isTagInfosDialogVisible,
-                        isFilePickerVisible = isFilePickerVisible
-                    )
+                    Column {
+                        NewFolderFAB(
+                            homePageVisible = homePageVisible,
+                            isTextDialogVisible = isTextDialogVisible,
+                            isYesNoDialogVisible = isYesNoDialogVisible,
+                            isMoveFileDialogVisible = isMoveFileDialogVisible,
+                            isTagInfosDialogVisible = isTagInfosDialogVisible,
+                            isFilePickerVisible = isFilePickerVisible
+                        )
+                    }
                 }
             ) { padding ->
                 DossierSigmaTheme {
@@ -161,6 +153,7 @@ class SigmaActivity : ComponentActivity() {
                     val selectedItem by mainViewModel.selectedItem.collectAsState()
                     val activity = LocalContext.current as Activity
                     val currentTool by BottomTools.currentTool.collectAsState()
+                    val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
 
@@ -188,8 +181,9 @@ class SigmaActivity : ComponentActivity() {
 
                     Box(
                         modifier = Modifier
+                            .padding(padding)
                             .fillMaxSize()
-                            .zIndex(20f)
+//                            .zIndex(20f)
                     ) {
                         Column(
                             modifier = Modifier
@@ -210,6 +204,9 @@ class SigmaActivity : ComponentActivity() {
                         ) {
                             Spacer(modifier = Modifier.height(20.dp))
 
+                            /////////////////////////////////
+                            // zone horizontale supérieure //
+                            /////////////////////////////////
                             Box(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -256,9 +253,9 @@ class SigmaActivity : ComponentActivity() {
 
                                 if (homePageVisible) {
 
-                                    ///////////////////////////////////
-                                    // écran entier dédié à homePage //
-                                    ///////////////////////////////////
+                                    ////////////////////////////////////////////////
+                                    // zone horizontale supérieure pour home page //
+                                    ////////////////////////////////////////////////
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -358,170 +355,120 @@ class SigmaActivity : ComponentActivity() {
                                                 ITEMS_ORDERING_STRATEGY.NAME_ASC
                                             )
                                         }
-                                )
+                                    )
+                                }
                             }
 
-                            val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
-
+                            ///////////////////
+                            // Settings Page //
+                            ///////////////////
                             if (isSettingsPageVisible)
                                 settingsPage(vm = settingsViewModel)
 
-
+                            ///////////////
+                            // Home page //
+                            ///////////////
                             if (homePageVisible) {
-                                val homeItems by homeViewModel.homeItems.collectAsState(emptyList())
 
-                                LazyVerticalGrid(
-                                    columns = GridCells.Adaptive(150.dp),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 10.dp, vertical = 10.dp)
-                                        .weight(1f)
-                                ) {
-                                    val _60Color = Color(0xFF243e36)
-                                    val _30Color = Color(0xFF7ca982)
-                                    val _10Color = Color(0xFF8fc0a9)
+                                homePage(
+                                    homeItemsInVM = homeViewModel.homeItems,
+                                    onItemClicked = { item: HomeItem ->
+                                        mainViewModel.goToFolder(item.path)
+                                        homeViewModel.setHomePageVisible(
+                                            false
+                                        )
+                                    },
+                                    onEditTapped = { item: HomeItem ->
+                                        homeViewModel.setDialogHomeItemInfos(
+                                            HomeItemInfos(
+                                                oldTitle = item.title,
+                                                picture = item.picture,
+                                                path = item.path
+                                            )
+                                        )
 
-                                    lazyGridItems<HomeItem>(
-                                        homeItems,
-                                        key = { it.id }) { item ->
-                                        Card(
-                                            modifier = Modifier
-                                                .padding(start = 10.dp, end = 10.dp, bottom = 20.dp)
-                                                .size(150.dp)
-                                                .clip(RoundedCornerShape(13.dp)),
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = _60Color,
-                                                contentColor = _30Color,
-                                            ),
-                                            elevation = CardDefaults.cardElevation(
-                                                defaultElevation = 10.dp
-                                            ),
-                                            border = BorderStroke(2.dp, _10Color),
-                                        ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .clip(RoundedCornerShape(13.dp))
-                                            ) {
-                                                AsyncImage(
-                                                    modifier = Modifier
-                                                        .size(120.dp)
-                                                        .align(Alignment.TopCenter)
-                                                        .padding(top = 27.dp)
-                                                        .clickable {
-                                                            mainViewModel.goToFolder(item.path)
-                                                            homeViewModel.setHomePageVisible(false)
-                                                        },
-                                                    model = item.picture
-                                                        ?: if (item.icon != 0) item.icon else R.drawable.dossier,
-                                                    contentDescription = "Miniature",
-                                                    contentScale = ContentScale.Fit,
-                                                )
-
-                                                Text(
-                                                    text = item.title,
-                                                    color = _30Color,
-                                                    modifier = Modifier
-                                                        .align(Alignment.BottomCenter)
-                                                        .padding(bottom = 5.dp)
-                                                        .clickable {
-                                                            mainViewModel.goToFolder(item.path)
-                                                            homeViewModel.setHomePageVisible(false)
-                                                        }
-                                                )
-
-                                                //icône de modification
-                                                Icon(
-                                                    modifier = Modifier
-                                                        .size(25.dp)
-                                                        .padding(
-                                                            start = 10.dp,
-                                                            top = 10.dp
-                                                        )
-                                                        .align(Alignment.TopStart)
-                                                        .pointerInput(true) {
-                                                            detectTapGestures(
-                                                                onTap = {
-                                                                    homeViewModel.setDialogHomeItemInfos(
-                                                                        HomeItemInfos(
-                                                                            oldTitle = item.title,
-                                                                            picture = item.picture,
-                                                                            path = item.path
-                                                                        )
-                                                                    )
-
-                                                                    mainViewModel.setIsHomeItemDialogVisible(
-                                                                        true
-                                                                    )
-                                                                }
-                                                            )
-                                                        },
-                                                    painter = painterResource(R.drawable.stylo),
-                                                    tint = Color.Gray,
-                                                    contentDescription = null
-                                                )
-
-                                                //icône de suppression
-                                                Icon(
-                                                    modifier = Modifier
-                                                        .size(25.dp)
-                                                        .padding(
-                                                            end = 10.dp,
-                                                            top = 10.dp
-                                                        )
-                                                        .align(Alignment.TopEnd)
-                                                        .pointerInput(true) {
-                                                            detectTapGestures(
-                                                                onTap = {
-                                                                    homeViewModel.removeHomeItem(
-                                                                        item
-                                                                    )
-                                                                }
-                                                            )
-                                                        },
-                                                    painter = painterResource(R.drawable.corbeille),
-                                                    tint = Color.Gray,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            } else {
-                                val scrollStates =
-                                    remember { mutableMapOf<String, LazyGridState>() }
-                                val currentScrollState =
-                                    scrollStates.getOrPut(currentFolder.fullPath) {
-                                        LazyGridState()
-                                    }
-
-                                LazyVerticalGrid(
-                                    columns = GridCells.Adaptive(150.dp),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 10.dp)
-                                        .weight(1f),
-                                    state = currentScrollState
-                                ) {
-                                    lazyGridItems(currentFolder.items, key = {
-                                        it.fullPath + "-" + it.id
-                                    }) { item ->
-                                        ItemComponent(
-                                            viewModel = mainViewModel,
-                                            item = item,
-                                            modifier = Modifier
-                                                .padding(horizontal = 10.dp, vertical = 6.dp),
-                                            onItemUpdated = { item ->
-//                                                mainViewModel.updateItemInList(item)
-                                            }
-//                                        onDrop = { tag: ColoredTag ->
-//                                            mainViewModel.assignColoredTagToItem(item, tag)
-//                                        }
+                                        mainViewModel.setIsHomeItemDialogVisible(
+                                            true
+                                        )
+                                    },
+                                    onDeleteTapped = { item: HomeItem ->
+                                        homeViewModel.removeHomeItem(
+                                            item
                                         )
                                     }
-                                }
+                                )
                             }
 
+                            /////////////////
+                            // Normal page //
+                            /////////////////
+                            if (!homePageVisible) {
+                                NormalPage(
+                                    currentFolderFlow = mainViewModel.currentFolder,
+                                    imageCache = mainViewModel.imageCache,
+                                    flagCache = mainViewModel.flagCache,
+                                    scaleCache = mainViewModel.scaleCache,
+                                    memoCache = mainViewModel.memoCache,
+                                    onHoveredNotHovered = { item ->
+                                        mainViewModel.setDragTargetItem(item)
+                                    },
+                                    selectedItemFullPath = mainViewModel.selectedItemFullPath,
+                                    dragOffset = mainViewModel.dragOffset,
+                                    draggableStartPosition = mainViewModel.draggableStartPosition,
+                                    onItemTapped = { item ->
+                                        run {
+
+                                            if (selectedItem != null) {
+                                                mainViewModel.setSelectedItem(null, true)
+                                                BottomTools.setCurrentContent(DEFAULT)
+                                                return@run
+                                            }
+
+                                            if (item.isFolder()) {
+                                                mainViewModel.goToFolder(item.fullPath)
+                                            }
+
+                                            if (item.isFile() &&
+                                                (item.name.endsWith(".mp4") ||
+                                                        item.name.endsWith(".mkv") ||
+                                                        item.name.endsWith(".mpg") ||
+                                                        item.name.endsWith(".iso") ||
+                                                        item.name.endsWith(".avi"))
+                                            ) {
+                                                mainViewModel.playVideoFile(item.fullPath)
+                                            }
+                                            if (item.isFile() && item.name.endsWith(".html")) {
+                                                mainViewModel.playHtmlFile(item.fullPath)
+                                            }
+                                        }
+
+                                    },
+                                    onItemLongPressed = { item ->
+                                        mainViewModel.setSelectedItem(item.copy(), true)
+                                        BottomTools.setCurrentContent(Tools.FILE)
+                                    },
+                                    onTopLeftPanelClick = { item ->
+                                        /**
+                                         * suite dans MainActivity
+                                         */
+                                        mainViewModel.setSelectedItem(item.copy())
+                                        mainViewModel.setIsDisplayingMemo(!mainViewModel.isDisplayingMemo.value)
+                                    },
+                                    getInfoSup = { item ->
+                                        mainViewModel.getInfoSup(item)
+                                    },
+                                    getInfoInf = { item ->
+                                        mainViewModel.getInfoInf(item)
+                                    }
+
+
+                                )
+
+                            }
+
+                            ////////////////////////////////////
+                            // zone inférieure si normal page //
+                            ////////////////////////////////////
                             if (!homePageVisible) {
                                 BottomTools.BottomToolBar(
                                     activity = this@SigmaActivity
@@ -569,7 +516,10 @@ class SigmaActivity : ComponentActivity() {
                             }
 
                         if (isYesNoDialogVisible) {
-                            CustomYesNoDialog(dialogMessage.value ?: "", mainViewModel) { yesNo ->
+                            CustomYesNoDialog(
+                                dialogMessage.value ?: "",
+                                mainViewModel
+                            ) { yesNo ->
                                 if (mainViewModel.dialogYesNoLambda != null) {
                                     mainViewModel.viewModelScope.launch {
                                         mainViewModel.dialogYesNoLambda?.invoke(
@@ -721,7 +671,7 @@ class SigmaActivity : ComponentActivity() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .zIndex(20f)
+//                            .zIndex(20f)
                     ) {
                         val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
                         val isDisplayingPalette =
@@ -742,8 +692,8 @@ class SigmaActivity : ComponentActivity() {
 
                             Column(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .zIndex(25f),
+                                    .fillMaxSize(),
+//                                    .zIndex(25f),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -830,6 +780,7 @@ class SigmaActivity : ComponentActivity() {
 //        BottomTools.setCurrentContent(DEFAULT, mainViewModel))
     }
 }
+
 
 fun <T> LazyGridScope.lazyGridItems(
     items: List<T>,

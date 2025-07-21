@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
@@ -55,8 +56,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
@@ -66,36 +69,47 @@ import java.io.FileOutputStream
 @Composable
 fun ItemComponent(
     modifier: Modifier,
-    viewModel: SigmaViewModel,
     item: Item,
-    onItemUpdated: (Item) -> Unit
-) {
-    val image by viewModel.imageCache
+    onItemUpdated: (Item) -> Unit,
+    imageCache: StateFlow<MutableMap<String, Any?>>,
+    flagCache: StateFlow<MutableMap<String, ColoredTag>>,
+    scaleCache: StateFlow<MutableMap<String, ContentScale>>,
+    memoCache: StateFlow<MutableMap<String, String>>,
+    dragOffset: StateFlow<Offset?>,
+    draggableStartPosition: StateFlow<Offset?>,
+    onHoveredNotHovered: (Item?) -> Unit,
+    selectedItemFullPath: StateFlow<String?>,
+    onItemTapped: ((Item) -> Unit),
+    onItemLongPressed: ((Item) -> Unit),
+    onTopLeftPanelClick: (Item) -> Unit,
+    getInfoSup: suspend (Item) -> String?,
+    getInfoInf: suspend (Item) -> String?,
+
+    ) {
+    val image by imageCache
         .map { map -> map[item.fullPath] }
         .collectAsState(initial = item.picture)
 
-    val tag by viewModel.flagCache
+    val tag by flagCache
         .map { map -> map[item.fullPath] }
         .collectAsState(initial = item.tag)
 
-    val scale by viewModel.scaleCache
+    val scale by scaleCache
         .map { map -> map[item.fullPath] }
         .collectAsState(initial = item.scale)
 
-    val memo by viewModel.memoCache
+    val memo by memoCache
         .map { map -> map[item.fullPath] }
         .collectAsState(initial = item.memo)
 
-    val memoEmpty by viewModel.memoCache
+    val memoEmpty by memoCache
         .map { map -> map[item.fullPath].isNullOrEmpty() }
         .collectAsState(initial = true)
 
-    var imageOffset by remember { mutableStateOf(DpOffset.Zero) }
-    val density = LocalDensity.current
     val imageHeight = 160.dp
 
-    val dragOffset by viewModel.dragOffset.collectAsState()
-    val draggableStartPosition by viewModel.draggableStartPosition.collectAsState()
+    val dragOffset by dragOffset.collectAsState()
+    val draggableStartPosition by draggableStartPosition.collectAsState()
     val bounds = remember { mutableStateOf<Rect?>(null) }
 
     val isHovered = remember(draggableStartPosition, dragOffset) {
@@ -108,15 +122,14 @@ fun ItemComponent(
 
     LaunchedEffect(isHovered) {
         if (isHovered)
-            viewModel.setDragTargetItem(item)
+            onHoveredNotHovered(item)
         else
-            viewModel.setDragTargetItem(null)
+            onHoveredNotHovered(null)
     }
 
     Column() {
         val shape1 = RoundedCornerShape(8.dp)
-        val selectedItemFullPathState by viewModel.selectedItemFullPath.collectAsState()
-        val isSelectedItemState by viewModel.selectedItemFullPath
+        val isSelectedItemState by selectedItemFullPath
             .map { it == item.fullPath }
             .collectAsState(false)
 
@@ -139,34 +152,10 @@ fun ItemComponent(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        if (selectedItemFullPathState != null) {
-                            viewModel.setSelectedItem(null, true)
-                            BottomTools.setCurrentContent(DEFAULT)
-                            return@detectTapGestures
-                        }
-
-                        if (item.isFolder()) {
-                            viewModel.goToFolder(item.fullPath)
-                        }
-
-                        if (item.isFile() &&
-                            (item.name.endsWith(".mp4") ||
-                                    item.name.endsWith(".mkv") ||
-                                    item.name.endsWith(".mpg") ||
-                                    item.name.endsWith(".iso") ||
-                                    item.name.endsWith(".avi"))
-                        ) {
-                            viewModel.playVideoFile(item.fullPath)
-                        }
-                        if (item.isFile() && item.name.endsWith(".html")) {
-                            viewModel.playHtmlFile(item.fullPath)
-                        }
+                        onItemTapped(item)
                     },
                     onLongPress = { offset ->
-//                                        imageOffset = DpOffset(offset.x.toInt().dp, offset.y.toInt().dp)
-//                                        viewModel.setIsContextMenuVisible(true)
-                        viewModel.setSelectedItem(item.copy(), true)
-                        BottomTools.setCurrentContent(Tools.FILE)
+                        onItemLongPressed(item)
                     })
             }
 
@@ -200,11 +189,11 @@ fun ItemComponent(
             )
 
             val infoSup = produceState<String?>(initialValue = null, item) {
-                value = viewModel.getInfoSup(item)
+                value = getInfoSup(item)
             }.value
 
             val infoInf = produceState<String?>(initialValue = null, item) {
-                value = viewModel.getInfoInf(item)
+                value = getInfoInf(item)
             }.value
 
             if (infoSup == null || infoInf == null) {
@@ -226,11 +215,7 @@ fun ItemComponent(
                         .background(tag?.color ?: Color.Gray)
                         .width(boxWidth)
                         .clickable {
-                            /**
-                             * suite dans MainActivity
-                             */
-                            viewModel.setSelectedItem(item.copy())
-                            viewModel.setIsDisplayingMemo(!viewModel.isDisplayingMemo.value)
+                            onTopLeftPanelClick(item)
                         }
                 ) {
                     // Couche 2 (Conditionnelle) : Le maillage, dessiné par-dessus le fond
