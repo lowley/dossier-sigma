@@ -69,6 +69,8 @@ import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -299,49 +301,60 @@ object BottomTools {
         }
     }
 
+    /**
+     * Observe les changements dans le cache des "flags" et met à jour la liste des outils par défaut.
+     */
     fun observeDefaultContent(viewModel: SigmaViewModel) {
+        this.viewModel = viewModel
         viewModel.viewModelScope.launch {
-            viewModel.flagCache.collect { tagsMap ->
-                if (tagsMap.isEmpty()) {
-                    defaultContent.updateTools(emptyList())
-                    return@collect
-                }
-
-                println(" BottomTools: collect de tagsMap, ${tagsMap.size}")
-                val currentFlagId = currentFlagId.value
-
-                val tagsSet = tagsMap.values?.toSet()
-
-                val initialTools = listOf(
-                    Tools.DEFAULT.content(BottomTools.viewModel)
-                        .tools.value.first()
+            // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
+            // La lambda sera appelée si l'un ou l'autre change.
+            combine(viewModel.flagCache, currentFlagId) { tagsMap, selectedId ->
+                // 1. On définit l'outil statique pour le NAS
+                val nasTool = Tool(
+                    text = {
+                        val allNasText by copyAllNASText.collectAsState()
+                        allNasText
+                    },
+                    icon = R.drawable.deplacer,
+                    onClick = { vm, mainActivity ->
+                        val files = vm.currentFolder.value.items.map { it.fullPath }
+                        val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
+                            putExtra("filesToTransfer", Gson().toJson(files))
+                            putExtra("nasDirectory", mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull())
+                        }
+                        mainActivity.startService(intent)
+                    }
                 )
 
-                val newTools = tagsSet?.map { tag ->
+                // 2. On transforme les tags du cache en outils dynamiques
+                val uniqueTags = tagsMap.values.distinctBy { it.id }
+
+                val tagTools = uniqueTags.map { tag ->
                     Tool(
                         text = { tag.title },
                         icon = R.drawable.etiquette,
                         tint = tag.color,
                         id = tag.id ?: UUID.randomUUID(),
-                        onClick = { vm, activity ->
-                            //pour filtrage des fichiers
-                            if (activated)
+                        onClick = { _, _ ->
+                            // La logique est simplifiée : on change juste l'ID sélectionné.
+                            // La recomposition se chargera de mettre à jour l'état "activated".
+                            if (this.activated) {
                                 setCurrentFlagId(null)
-                            else
+                            } else {
                                 setCurrentFlagId(this.id)
-
-                            //pour affichage tool sélectionné ou pas
-                            Tools.DEFAULT.content(BottomTools.viewModel).replaceTool(
-                                this.copy(activated = !this.activated)
-                            )
+                            }
                         },
-                        activated = currentFlagId != null && tag.id == currentFlagId
+                        // L'état "activé" est dérivé directement de la comparaison des IDs.
+                        activated = selectedId != null && tag.id == selectedId
                     )
                 }
 
-                val tools = initialTools + (newTools ?: emptyList())
-                defaultContent.updateTools(tools)
-            }
+                // 3. On combine les deux listes et on met à jour le singleton.
+                val finalTools = listOf(nasTool) + tagTools
+                defaultContent.updateTools(finalTools)
+
+            }.collect() // Démarre la collecte du Flow combiné.
         }
     }
 }
@@ -402,7 +415,6 @@ fun Tool.toColoredTag(viewModel: SigmaViewModel): ColoredTag = ColoredTag(
     id = this.id,
     title = this.text(viewModel),
     color = this.tint ?: Color.Unspecified,
-    onClick = this.onClick
 )
 
 
@@ -410,50 +422,14 @@ sealed class Tools() {
     abstract fun content(viewModel: SigmaViewModel? = null): BottomToolContent
 
     object DEFAULT : Tools() {
-        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
-            listOf(
-                //////////////////////////
-                // déplacer tous -> NAS //
-                //////////////////////////
-                Tool(
-                    text = {
-                        val allNasText by BottomTools.copyAllNASText.collectAsState()
-                        allNasText
-                    },
-                    icon = R.drawable.deplacer,
-                    onClick = { viewModel, mainActivity ->
-                        run {
-                            val files = viewModel.currentFolder.value.items.map {
-                                it.fullPath
-                            }
-
-                            //toast
-                            println("MovingItem: choisir fichier destination")
-
-                            /**
-                             * le fichier n'existe pas, on lance la copie,
-                             * le reste est effectué dans
-                             * @see MoveFileService.onStartCommand
-                             */
-
-                            //encode/decode en json
-                            val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
-                                putExtra(
-                                    "filesToTransfer", Gson().toJson(
-                                        files
-                                    )
-                                )
-                                putExtra(
-                                    "nasDirectory",
-                                    mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
-                                )
-                            }
-                            mainActivity.startService(intent)
-                        }
-                    }
-                )
-            ), name = "Tous -> NAS"
-        )
+        /**
+         * C'EST LA CORRECTION CLÉ :
+         * Cette fonction retourne maintenant toujours la même instance de `BottomToolContent`,
+         * garantissant que la UI et l'observateur travaillent sur le même objet.
+         */
+        override fun content(viewModel: SigmaViewModel?): BottomToolContent {
+            return BottomTools.defaultContent
+        }
     }
 
 
@@ -505,7 +481,6 @@ sealed class Tools() {
                                         title = tagInfos.title,
                                         color = tagInfos.color,
                                         id = newTool.id,
-                                        onClick = { vm, activity -> }
                                     )
                                     compositeMgr.save(Flag(newFlag))
 

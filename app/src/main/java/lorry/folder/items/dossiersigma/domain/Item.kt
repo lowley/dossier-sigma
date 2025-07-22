@@ -12,9 +12,6 @@ import lorry.folder.items.dossiersigma.data.dataSaver.FileCompositeManager
 import lorry.folder.items.dossiersigma.data.dataSaver.FolderCompositeManager
 import lorry.folder.items.dossiersigma.data.dataSaver.IElementInComposite
 import lorry.folder.items.dossiersigma.data.dataSaver.IElementReader
-import lorry.folder.items.dossiersigma.ui.components.Tool
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -133,7 +130,6 @@ data class ColoredTag(
     val id: UUID? = UUID.randomUUID(),
     val color: Color,
     val title: String,
-    val onClick: suspend Tool.(SigmaViewModel, SigmaActivity) -> Unit
 ){
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
