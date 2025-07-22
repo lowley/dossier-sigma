@@ -146,22 +146,37 @@ object BottomTools {
         _movePasteText.value = value
     }
 
-    private val _NASprogress = MutableStateFlow(0)
-    val nasProgress: StateFlow<Int> = _NASprogress
+    private val _NASprogress = MutableStateFlow<OverallProgress?>(null)
+    val nasProgress: StateFlow<OverallProgress?> = _NASprogress
 
     /**
      * utilisé par
      * @see MoveToNASService.copy
      */
-    fun updateNASProgress(value: Int) {
-        _NASprogress.value = value
+    fun updateNASProgress(
+        percentage: Int,
+        fileIndex: Int,
+        fileCount: Int
+    ) {
+        _NASprogress.value = OverallProgress(
+            progress = percentage,
+            fileIndex = fileIndex,
+            fileSize = fileCount
+        )
     }
 
     private val _copyNASText = MutableStateFlow("1 -> NAS")
     val copyNASText: StateFlow<String> = _copyNASText
 
-    fun updateMoveNASText(value: String) {
+    fun updateNASText(value: String) {
         _copyNASText.value = value
+    }
+
+    private val _copyAllNASText = MutableStateFlow("Tous -> NAS")
+    val copyAllNASText: StateFlow<String> = _copyAllNASText
+
+    fun updateAllNASText(value: String) {
+        _copyAllNASText.value = value
     }
 
     @Composable
@@ -296,6 +311,12 @@ object BottomTools {
                 val currentFlagId = currentFlagId.value
 
                 val tagsSet = tagsMap.values?.toSet()
+
+                val initialTools = listOf(
+                    Tools.DEFAULT.content(BottomTools.viewModel)
+                        .tools.value.first()
+                )
+
                 val newTools = tagsSet?.map { tag ->
                     Tool(
                         text = { tag.title },
@@ -317,8 +338,9 @@ object BottomTools {
                         activated = currentFlagId != null && tag.id == currentFlagId
                     )
                 }
-                if (newTools != null)
-                    defaultContent.updateTools(newTools)
+
+                val tools = initialTools + (newTools ?: emptyList())
+                defaultContent.updateTools(tools)
             }
         }
     }
@@ -388,9 +410,52 @@ sealed class Tools() {
     abstract fun content(viewModel: SigmaViewModel? = null): BottomToolContent
 
     object DEFAULT : Tools() {
-        override fun content(viewModel: SigmaViewModel?) =
-            BottomTools.defaultContent
+        override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+            listOf(
+                //////////////////////////
+                // déplacer tous -> NAS //
+                //////////////////////////
+                Tool(
+                    text = {
+                        val allNasText by BottomTools.copyAllNASText.collectAsState()
+                        allNasText
+                    },
+                    icon = R.drawable.deplacer,
+                    onClick = { viewModel, mainActivity ->
+                        run {
+                            val files = viewModel.currentFolder.value.items.map {
+                                it.fullPath
+                            }
+
+                            //toast
+                            println("MovingItem: choisir fichier destination")
+
+                            /**
+                             * le fichier n'existe pas, on lance la copie,
+                             * le reste est effectué dans
+                             * @see MoveFileService.onStartCommand
+                             */
+
+                            //encode/decode en json
+                            val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
+                                putExtra(
+                                    "filesToTransfer", Gson().toJson(
+                                        files
+                                    )
+                                )
+                                putExtra(
+                                    "nasDirectory",
+                                    mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
+                                )
+                            }
+                            mainActivity.startService(intent)
+                        }
+                    }
+                )
+            ), name = "Tous -> NAS"
+        )
     }
+
 
     object TAGS_MENU : Tools() {
         override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
@@ -563,7 +628,7 @@ sealed class Tools() {
                                 return@run
                             }
 
-                            //on fait ça parce que par lazy loading au début de l'affichage 
+                            //on fait ça parce que par lazy loading au début de l'affichage
                             //du dossier de tous les items
                             val itemsWithThisTag = viewModel.currentFolder.value.items.filter {
                                 val compositeMgr = CompositeManager(it.fullPath)
@@ -973,21 +1038,6 @@ sealed class Tools() {
 
                             //toast
                             println("MovingItem: choisir fichier destination")
-                            //1.copie
-//                            val sourceFile = File(movingItem?.fullPath ?: "")
-
-//                            if (dest?.isFolder() == true) {
-//                                if (movingItem == null)
-//                                    return@run
-//                                val isItemExists = viewModel.diskRepository.isFileOrFolderExists(
-//                                    dest.fullPath,
-//                                    movingItem!!
-//                                )
-//                                if (isItemExists) {
-//                                    mainActivity.openMoveFileDialog.value = true
-//                                    return@run
-//                                }
-//                            }
 
                             /**
                              * le fichier n'existe pas, on lance la copie,
@@ -2140,4 +2190,8 @@ fun IconWithRing(
     }
 }
 
-
+data class OverallProgress(
+    val progress: Int,
+    val fileIndex: Int,
+    val fileSize: Int
+)

@@ -57,10 +57,14 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
 
         serviceScope.launch {
             println("MoveToNASService: dans launch")
-            for (source in filesTotransfer) {
-                println("MoveToNASService: copie de ${source}")
+            filesTotransfer.forEachIndexed { index, source ->
+                println("MoveToNASService: copie de $source")
                 try {
-                    copy(source, destination)
+                    copy(
+                        source,
+                        destination,
+                        index = index,
+                        total = filesTotransfer.size)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -77,7 +81,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
         return START_NOT_STICKY
     }
 
-    private suspend fun copy(source: String, destination: String) {
+    private suspend fun copy(source: String, destination: String, index: Int, total: Int) {
         if (source == null || destination == null)
             return
 
@@ -96,7 +100,11 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
                 pathOnNAS = destination,
             ) { p ->
                 println("progression: $p%")
-                BottomTools.updateNASProgress(p)
+                BottomTools.updateNASProgress(
+                    percentage = p,
+                    fileIndex = index,
+                    fileCount = total
+                )
             }
         }
 
@@ -181,7 +189,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
             .setContentTitle("Dossier Sigma")
             .setContentText(message)
             .setSmallIcon(R.drawable.deplacer)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .build()
     }
 
@@ -190,7 +198,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
             .setContentTitle("Copie en cours")
             .setContentText("Progression : $progress%")
             .setSmallIcon(R.drawable.deplacer)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_MAX)
             .setOnlyAlertOnce(true)
             .build()
 

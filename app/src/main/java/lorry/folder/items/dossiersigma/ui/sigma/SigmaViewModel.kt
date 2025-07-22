@@ -539,11 +539,22 @@ class SigmaViewModel @Inject constructor(
         }
 
         viewModelScope.launch() {
-            BottomTools.nasProgress.collect { p ->
-                if (p == 0 || p == 100)
-                    BottomTools.updateMoveNASText("1 -> NAS")
-                else
-                    BottomTools.updateMoveNASText("$p %")
+            BottomTools.nasProgress.collect { copyProgress ->
+                if (copyProgress == null)
+                    return@collect
+
+                if (copyProgress.progress == 0 || copyProgress.progress == 100) {
+                    BottomTools.updateNASText("1 -> NAS")
+                    BottomTools.updateAllNASText("Tous -> NAS")
+                }
+                else {
+                    BottomTools.updateNASText(
+                        "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
+                    )
+                    BottomTools.updateAllNASText(
+                        "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
+                    )
+                }
             }
         }
 
