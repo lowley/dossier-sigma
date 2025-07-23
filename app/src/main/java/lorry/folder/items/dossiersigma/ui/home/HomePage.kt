@@ -163,6 +163,9 @@ fun homePage(
                             val newList = homeItems.toMutableList().apply {
                                 add(toIndex, removeAt(fromIndex))
                             }
+                                .mapIndexed { index, homeItem ->
+                                    homeItem.copy(index = index)
+                                }
                             onItemsReordered(newList)
                         }
                     }

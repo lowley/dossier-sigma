@@ -282,12 +282,15 @@ class SigmaActivity : ComponentActivity() {
                                                     .pointerInput(true) {
                                                         detectTapGestures(
                                                             onTap = {
+                                                                val homeItemCount =
+                                                                    homeViewModel.homeItems.value.size
                                                                 homeViewModel.setDialogHomeItemInfos(
                                                                     HomeItemInfos(
                                                                         oldTitle = "",
                                                                         newTitle = "",
                                                                         picture = null,
-                                                                        path = ""
+                                                                        path = "",
+                                                                        index = homeItemCount
                                                                     )
                                                                 )
 
@@ -383,7 +386,8 @@ class SigmaActivity : ComponentActivity() {
                                             HomeItemInfos(
                                                 oldTitle = item.title,
                                                 picture = item.picture,
-                                                path = item.path
+                                                path = item.path,
+                                                index = item.index
                                             )
                                         )
 
@@ -398,6 +402,21 @@ class SigmaActivity : ComponentActivity() {
                                     },
                                     onItemsReordered = { newList ->
                                         homeViewModel.setHomeItems(newList)
+                                        mainViewModel.viewModelScope.launch {
+                                            settingsViewModel.settingsManager.saveHomeItems(
+                                                newList
+                                                    .toSet()
+                                                    .map {
+                                                        HomeItemInfos(
+                                                            newTitle = it.title,
+                                                            oldTitle = it.title,
+                                                            picture = it.picture,
+                                                            path = it.path,
+                                                            index = it.index
+                                                        )
+                                                    }.toSet()
+                                            )
+                                        }
                                     }
                                 )
                             }

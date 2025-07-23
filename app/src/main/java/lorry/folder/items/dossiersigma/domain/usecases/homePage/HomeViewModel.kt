@@ -94,7 +94,8 @@ data class HomeItem(
     val title: String,
     val path: String,
     @DrawableRes val icon: Int = 0,
-    val picture: Bitmap? = null
+    val picture: Bitmap? = null,
+    val index: Int = 0
 )
 
 

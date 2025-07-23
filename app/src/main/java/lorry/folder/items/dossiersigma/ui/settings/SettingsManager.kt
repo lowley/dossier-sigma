@@ -98,7 +98,8 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
     suspend fun saveHomeItems(items: Set<HomeItemInfos>) {
         withContext(Dispatchers.IO) {
             context.dataStore.edit { settings ->
-                settings[HOMEITEMS_KEY] = items.map { Gson().toJson(it.toHomeItemInfosDTO()) }.toSet()
+                settings[HOMEITEMS_KEY] =
+                    items.map { Gson().toJson(it.toHomeItemInfosDTO()) }.toSet()
             }
         }
     }
@@ -113,6 +114,11 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
                 Gson().fromJson(it, HomeItemInfosDTO::class.java)
                     .toHomeItemInfos()
             }
+                .sortedBy { it.index }
+                .mapIndexed { index, homeItemInfos ->
+                    homeItemInfos.copy(index = index)
+                }
+
             return@map cool
         }
 

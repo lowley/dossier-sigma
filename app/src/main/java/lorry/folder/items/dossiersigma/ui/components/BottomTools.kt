@@ -1822,6 +1822,8 @@ fun SigmaActivity.HomeItemDialog(
                                 newTitle = homeInfos!!.newTitle,
                                 path = homeInfos!!.path,
                                 picture = homeInfos!!.picture,
+                                index = homeItemInfos.value?.index ?:
+                                    sigmaActivity.homeViewModel.homeItems.value.size
                             )
 
                             mainViewModel.viewModelScope.launch {
@@ -1835,6 +1837,8 @@ fun SigmaActivity.HomeItemDialog(
                                             newTitle = it.title,
                                             path = it.path,
                                             picture = it.picture,
+                                            index = homeItemInfos.value?.index ?:
+                                            sigmaActivity.homeViewModel.homeItems.value.size
                                         )
                                     }.toSet()
 
@@ -2089,6 +2093,7 @@ data class HomeItemInfos(
     val newTitle: String? = null,
     val path: String?,
     val picture: Bitmap?,
+    val index: Int
 ) {
     suspend fun toHomeItemInfosDTO(): HomeItemInfosDTO {
         val videoEmbedder = VideoInfoEmbedder()
@@ -2097,7 +2102,8 @@ data class HomeItemInfos(
             newTitle = newTitle,
             path = path,
             picture = if (picture != null) videoEmbedder.bitmapToBase64(picture)
-            else null
+            else null,
+            index = index
         )
     }
 }
@@ -2107,6 +2113,7 @@ data class HomeItemInfosDTO(
     val newTitle: String? = null,
     val path: String?,
     val picture: String?,
+    val index: Int
 ) {
     suspend fun toHomeItemInfos(): HomeItemInfos {
         val videoEmbedder = VideoInfoEmbedder()
@@ -2115,7 +2122,8 @@ data class HomeItemInfosDTO(
             newTitle = newTitle,
             path = path,
             picture = if (picture != null) videoEmbedder.base64ToBitmap(picture)
-            else null
+            else null,
+            index = index
         )
     }
 }
