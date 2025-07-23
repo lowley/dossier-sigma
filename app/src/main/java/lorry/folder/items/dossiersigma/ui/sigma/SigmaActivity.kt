@@ -395,6 +395,9 @@ class SigmaActivity : ComponentActivity() {
                                         homeViewModel.removeHomeItem(
                                             item
                                         )
+                                    },
+                                    onItemsReordered = { newList ->
+                                        homeViewModel.setHomeItems(newList)
                                     }
                                 )
                             }

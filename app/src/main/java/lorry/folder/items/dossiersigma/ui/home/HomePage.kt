@@ -1,18 +1,23 @@
 package lorry.folder.items.dossiersigma.ui.home
 
+import android.graphics.Rect
+import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -21,21 +26,34 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
-import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
-
+import kotlin.math.roundToInt
 
 @Composable
 context(ColumnScope)
@@ -43,118 +61,262 @@ fun homePage(
     homeItemsInVM: StateFlow<List<HomeItem>>,
     onItemClicked: (HomeItem) -> Unit,
     onEditTapped: (HomeItem) -> Unit,
-    onDeleteTapped: (HomeItem) -> Unit
+    onDeleteTapped: (HomeItem) -> Unit,
+    onItemsReordered: (List<HomeItem>) -> Unit
+) {
+    val homeItems by homeItemsInVM.collectAsState(emptyList())
 
-    ) {
-    val homeItems by homeItemsInVM.collectAsState(
-        emptyList()
-    )
+    // --- NOUVEAUX ÉTATS POUR LE SCROLL ---
+    val gridState = rememberLazyGridState()
+    val coroutineScope = rememberCoroutineScope()
+    var autoScrollJob by remember { mutableStateOf<Job?>(null) }
+    var gridBounds by remember { mutableStateOf<Rect?>(null) }
+    // --- FIN DES NOUVEAUX ÉTATS ---
+
+    var draggedItem by remember { mutableStateOf<HomeItem?>(null) }
+    var dragOffset by remember { mutableStateOf(Offset.Zero) }
+    var dropTarget by remember { mutableStateOf<HomeItem?>(null) }
+    val itemPositions = remember { mutableMapOf<HomeItem, Offset>() }
 
     LazyVerticalGrid(
+        state = gridState, // On lie l'état à la grille
         columns = GridCells.Adaptive(150.dp),
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 10.dp, vertical = 10.dp)
             .weight(1f)
-    ) {
-        val _60Color = Color(0xFF243e36)
-        val _30Color = Color(0xFF7ca982)
-        val _10Color = Color(0xFF8fc0a9)
-
-        lazyGridItems<HomeItem>(
-            homeItems,
-            key = { it.id }) { item ->
-            Card(
-                modifier = Modifier
-                    .padding(
-                        start = 10.dp,
-                        end = 10.dp,
-                        bottom = 20.dp
-                    )
-                    .size(150.dp)
-                    .clip(RoundedCornerShape(13.dp)),
-                colors = CardDefaults.cardColors(
-                    containerColor = _60Color,
-                    contentColor = _30Color,
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 10.dp
-                ),
-                border = BorderStroke(2.dp, _10Color),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(13.dp))
-                ) {
-                    AsyncImage(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .align(Alignment.TopCenter)
-                            .padding(top = 27.dp)
-                            .clickable {
-                                onItemClicked(item)
-                            },
-                        model = item.picture
-                            ?: if (item.icon != 0) item.icon else R.drawable.dossier,
-                        contentDescription = "Miniature",
-                        contentScale = ContentScale.Fit,
-                    )
-
-                    Text(
-                        text = item.title,
-                        color = _30Color,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 5.dp)
-                            .clickable {
-                                onItemClicked(item)
-                            }
-                    )
-
-                    //icône de modification
-                    Icon(
-                        modifier = Modifier
-                            .size(25.dp)
-                            .padding(
-                                start = 10.dp,
-                                top = 10.dp
-                            )
-                            .align(Alignment.TopStart)
-                            .pointerInput(true) {
-                                detectTapGestures(
-                                    onTap = {
-                                        onEditTapped(item)
-                                    }
-                                )
-                            },
-                        painter = painterResource(R.drawable.stylo),
-                        tint = Color.Gray,
-                        contentDescription = null
-                    )
-
-                    //icône de suppression
-                    Icon(
-                        modifier = Modifier
-                            .size(25.dp)
-                            .padding(
-                                end = 10.dp,
-                                top = 10.dp
-                            )
-                            .align(Alignment.TopEnd)
-                            .pointerInput(true) {
-                                detectTapGestures(
-                                    onTap = {
-                                        onDeleteTapped(item)
-                                    }
-                                )
-                            },
-                        painter = painterResource(R.drawable.corbeille),
-                        tint = Color.Gray,
-                        contentDescription = null
+            .onGloballyPositioned { layoutCoordinates ->
+                // On récupère les dimensions et la position de la grille à l'écran
+                val rect = layoutCoordinates.localToRoot(Offset.Zero).let {
+                    Rect(
+                        it.x.toInt(),
+                        it.y.toInt(),
+                        (it.x + layoutCoordinates.size.width).toInt(),
+                        (it.y + layoutCoordinates.size.height).toInt()
                     )
                 }
+                gridBounds = rect
             }
+    ) {
+        items(homeItems.size, key = { homeItems[it].id }) { index ->
+            val item = homeItems[index]
+            val px150 = 150.dp.convertToPx()
+
+            DraggableItem(
+                item = item,
+                isDragging = item == draggedItem,
+                isDropTarget = item == dropTarget && item != draggedItem,
+                dragOffset = dragOffset,
+                on1DragStart = {
+                    draggedItem = item
+                    dragOffset = Offset.Zero
+                },
+                on1Drag = { currentDragOffset ->
+                    dragOffset += currentDragOffset
+
+                    // --- LOGIQUE D'AUTO-SCROLL ---
+                    gridBounds?.let { bounds ->
+                        val itemCenterY = itemPositions[item]!!.y + dragOffset.y
+                        val scrollThreshold = bounds.height() * 0.1f // Zone de 10% en haut et en bas
+
+                        // Si on est près du bord inférieur
+                        if (itemCenterY > bounds.bottom - scrollThreshold) {
+                            if (autoScrollJob?.isActive != true) {
+                                autoScrollJob = coroutineScope.launch {
+                                    while (true) {
+                                        gridState.scrollBy(15f)
+                                        delay(16) // ~60fps
+                                    }
+                                }
+                            }
+                        }
+                        // Si on est près du bord supérieur
+                        else if (itemCenterY < bounds.top + scrollThreshold) {
+                            if (autoScrollJob?.isActive != true) {
+                                autoScrollJob = coroutineScope.launch {
+                                    while (true) {
+                                        gridState.scrollBy(-15f)
+                                        delay(16) // ~60fps
+                                    }
+                                }
+                            }
+                        }
+                        // Sinon, on arrête le scroll
+                        else {
+                            autoScrollJob?.cancel()
+                        }
+                    }
+                    // --- FIN DE LA LOGIQUE D'AUTO-SCROLL ---
+
+                    dropTarget = itemPositions.entries
+                        .firstOrNull { (_, position) ->
+                            val dragPosition = itemPositions[item]!! + dragOffset
+                            (dragPosition - position).getDistanceSquared() < (px150 * px150)
+                        }?.key
+                },
+                on1DragEnd = {
+                    autoScrollJob?.cancel() // On arrête le scroll à la fin du drag
+                    if (draggedItem != null && dropTarget != null) {
+                        val fromIndex = homeItems.indexOf(draggedItem)
+                        val toIndex = homeItems.indexOf(dropTarget)
+                        if (fromIndex != -1 && toIndex != -1 && fromIndex != toIndex) {
+                            val newList = homeItems.toMutableList().apply {
+                                add(toIndex, removeAt(fromIndex))
+                            }
+                            onItemsReordered(newList)
+                        }
+                    }
+                    draggedItem = null
+                    dragOffset = Offset.Zero
+                    dropTarget = null
+                },
+                onPositioned = { position ->
+                    itemPositions[item] = position
+                }
+            ) {
+                HomeItemContent(
+                    item = item,
+                    onItemClicked = onItemClicked,
+                    onEditTapped = onEditTapped,
+                    onDeleteTapped = onDeleteTapped
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun Dp.convertToPx() =
+    with(LocalDensity.current) { this@convertToPx.toPx() }
+
+@Composable
+fun DraggableItem(
+    item: HomeItem,
+    isDragging: Boolean,
+    isDropTarget: Boolean,
+    dragOffset: Offset,
+    on1DragStart: () -> Unit,
+    on1Drag: (Offset) -> Unit,
+    on1DragEnd: () -> Unit,
+    onPositioned: (Offset) -> Unit,
+    content: @Composable () -> Unit
+) {
+    val animatedOffset by animateOffsetAsState(targetValue = if (isDragging) dragOffset else Offset.Zero)
+
+    Box(
+        modifier = Modifier
+            .onGloballyPositioned { layoutCoordinates ->
+                onPositioned(layoutCoordinates.localToRoot(Offset.Zero))
+            }
+            .zIndex(if (isDragging) 1f else 0f)
+            .offset { IntOffset(animatedOffset.x.roundToInt(), animatedOffset.y.roundToInt()) }
+            .graphicsLayer {
+                scaleX = if (isDropTarget) 1.1f else 1f
+                scaleY = if (isDropTarget) 1.1f else 1f
+                shadowElevation = if (isDragging) 8.dp.toPx() else 0f
+            }
+            .pointerInput(Unit) { // Un seul pointerInput suffit !
+                detectDragGesturesAfterLongPress(
+                    onDragStart = {
+                        // On appelle on1DragStart ici, au vrai début du glissement.
+                        on1DragStart()
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        on1Drag(dragAmount) // On passe directement le déplacement.
+                    },
+                    onDragEnd = { on1DragEnd() },
+                    onDragCancel = { on1DragEnd() }
+                )
+            }
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun HomeItemContent(
+    item: HomeItem,
+    onItemClicked: (HomeItem) -> Unit,
+    onEditTapped: (HomeItem) -> Unit,
+    onDeleteTapped: (HomeItem) -> Unit
+) {
+    val _60Color = Color(0xFF243e36)
+    val _30Color = Color(0xFF7ca982)
+    val _10Color = Color(0xFF8fc0a9)
+
+    Card(
+        modifier = Modifier
+            .padding(
+                start = 10.dp,
+                end = 10.dp,
+                bottom = 20.dp
+            )
+            .size(150.dp)
+            .clip(RoundedCornerShape(13.dp)),
+        colors = CardDefaults.cardColors(
+            containerColor = _60Color,
+            contentColor = _30Color,
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 10.dp
+        ),
+        border = BorderStroke(2.dp, _10Color),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(13.dp))
+        ) {
+            AsyncImage(
+                modifier = Modifier
+                    .size(120.dp)
+                    .align(Alignment.TopCenter)
+                    .padding(top = 27.dp)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { onItemClicked(item) })
+                    },
+                model = item.picture ?: if (item.icon != 0) item.icon else R.drawable.dossier,
+                contentDescription = "Miniature",
+                contentScale = ContentScale.Fit,
+            )
+
+            Text(
+                text = item.title,
+                color = _30Color,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 5.dp)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { onItemClicked(item) })
+                    }
+            )
+
+            Icon(
+                modifier = Modifier
+                    .size(25.dp)
+                    .padding(start = 10.dp, top = 10.dp)
+                    .align(Alignment.TopStart)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { onEditTapped(item) })
+                    },
+                painter = painterResource(R.drawable.stylo),
+                tint = Color.Gray,
+                contentDescription = null
+            )
+
+            Icon(
+                modifier = Modifier
+                    .size(25.dp)
+                    .padding(end = 10.dp, top = 10.dp)
+                    .align(Alignment.TopEnd)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = { onDeleteTapped(item) })
+                    },
+                painter = painterResource(R.drawable.corbeille),
+                tint = Color.Gray,
+                contentDescription = null
+            )
         }
     }
 }
