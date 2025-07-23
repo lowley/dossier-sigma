@@ -4,8 +4,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -69,8 +71,16 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
                     e.printStackTrace()
                 }
 
-                if ((verify(source, destination)))
+                println("vérification: source=$source, destination=$destination")
+                val verify = verify(source, destination)
+                println("résultat de la vérification: $verify")
+
+                if (verify) {
+                    println("vérification positive, traitements sur le point d'être effectués")
                     delete(source)
+                    println("fichier $source supprimé")
+                    sendMessageToThoApp(this@MoveToNASService, source)
+                }
 
                 SigmaViewModel.requestRefresh()
             }
@@ -156,7 +166,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
         val destinationFiles = ds_ftp.fetchMP4Files(destination)
 
         var file = destinationFiles
-            ?.first { it.name == source.substringAfterLast("/") }
+            ?.firstOrNull { it.name == source.substringAfterLast("/") }
 
         if (file == null)
             return false
@@ -222,4 +232,28 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+}
+
+fun sendMessageToThoApp(context: Context, message: String) {
+    try {
+        val intent = Intent().apply {
+            // L'action est la même, elle cible maintenant le BroadcastReceiver
+            action = "CopieurTho2.CREATE_SHORTCUT_RECEIVE_MESSAGE"
+            putExtra("Dossiersigma.EXTRA_MESSAGE_CONTENT", message)
+
+            // Spécifier le package est une bonne pratique pour la sécurité
+            `package` = "lorry.folder.items.copieurtho2"
+        }
+
+        println("SIGMA2 envoi du broadcast...")
+        // LA CORRECTION CLÉ : On envoie un broadcast au lieu de démarrer un service.
+        // Cette action est autorisée depuis l'arrière-plan.
+        context.sendBroadcast(intent)
+        println("SIGMA2 broadcast envoyé")
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+        println("SIGMA2 envoi du broadcast en échec, ${e.message}")
+        Toast.makeText(context, "Erreur lors de l'envoi du message à CopieurTho2.", Toast.LENGTH_SHORT).show()
+    }
 }
