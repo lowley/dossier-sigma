@@ -309,7 +309,7 @@ object BottomTools {
         viewModel.viewModelScope.launch {
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
             // La lambda sera appelée si l'un ou l'autre change.
-            combine(viewModel.flagCache, currentFlagId) { tagsMap, selectedId ->
+            combine(viewModel.flagCache, currentFlagId, viewModel.currentFolderPath, viewModel.reloadTrigger) { tagsMap, selectedId, _, _ ->
                 // 1. On définit l'outil statique pour le NAS
                 val nasTool = Tool(
                     text = {

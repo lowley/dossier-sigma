@@ -324,7 +324,7 @@ class SigmaViewModel @Inject constructor(
             initialValue = "/storage/emulated/0/Movies"
         )
 
-    private val reloadTrigger = MutableStateFlow(0)
+    val reloadTrigger = MutableStateFlow(0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentFolder: StateFlow<SigmaFolder> = combine(
