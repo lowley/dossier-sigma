@@ -118,4 +118,8 @@ dependencies {
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
+
+    //pull to refresh
+    //https://github.com/MateriiApps/pullrefresh
+    implementation("dev.materii.pullrefresh:pullrefresh:1.4.0-beta03")
 }

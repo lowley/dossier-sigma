@@ -29,12 +29,14 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,7 +47,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.elixer.palette.Presets
@@ -55,6 +56,8 @@ import com.elixer.palette.constraints.VerticalAlignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
+import dev.materii.pullrefresh.PullRefreshLayout
+import dev.materii.pullrefresh.rememberPullRefreshState
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -481,9 +484,10 @@ class SigmaActivity : ComponentActivity() {
                                     },
                                     getInfoInf = { item ->
                                         mainViewModel.getInfoInf(item)
+                                    },
+                                    onRefresh = {
+                                        mainViewModel.refreshCurrentFolder()
                                     }
-
-
                                 )
 
                             }

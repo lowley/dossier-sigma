@@ -11,11 +11,15 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import dev.materii.pullrefresh.PullRefreshLayout
+import dev.materii.pullrefresh.rememberPullRefreshState
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
@@ -40,6 +44,7 @@ fun NormalPage(
     onTopLeftPanelClick: (Item) -> Unit,
     getInfoSup: suspend (Item) -> String,
     getInfoInf: suspend (Item) -> String,
+    onRefresh: () -> Unit
 ) {
     val currentFolder by currentFolderFlow.collectAsState()
 
@@ -50,41 +55,45 @@ fun NormalPage(
             LazyGridState()
         }
 
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(150.dp),
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 10.dp)
-            .weight(1f),
-        state = currentScrollState
+    PullToRefreshContainer(
+        onRefresh = onRefresh
     ) {
-        lazyGridItems(currentFolder.items, key = {
-            it.fullPath + "-" + it.id
-        }) { item ->
-            ItemComponent(
-                item = item,
-                modifier = Modifier
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                onItemUpdated = { item ->
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(150.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp)
+                .weight(1f),
+            state = currentScrollState
+        ) {
+            lazyGridItems(currentFolder.items, key = {
+                it.fullPath + "-" + it.id
+            }) { item ->
+                ItemComponent(
+                    item = item,
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    onItemUpdated = { item ->
 //                                                mainViewModel.updateItemInList(item)
-                },
+                    },
 //                                        onDrop = { tag: ColoredTag ->
 //                                            mainViewModel.assignColoredTagToItem(item, tag)
 //                                      }
-                imageCache = imageCache,
-                flagCache = flagCache,
-                scaleCache = scaleCache,
-                memoCache = memoCache,
-                onHoveredNotHovered = onHoveredNotHovered,
-                selectedItemFullPath = selectedItemFullPath,
-                dragOffset = dragOffset,
-                draggableStartPosition = draggableStartPosition,
-                onItemTapped = onItemTapped,
-                onItemLongPressed = onItemLongPressed,
-                onTopLeftPanelClick = onTopLeftPanelClick,
-                getInfoSup = getInfoSup,
-                getInfoInf = getInfoInf
-            )
+                    imageCache = imageCache,
+                    flagCache = flagCache,
+                    scaleCache = scaleCache,
+                    memoCache = memoCache,
+                    onHoveredNotHovered = onHoveredNotHovered,
+                    selectedItemFullPath = selectedItemFullPath,
+                    dragOffset = dragOffset,
+                    draggableStartPosition = draggableStartPosition,
+                    onItemTapped = onItemTapped,
+                    onItemLongPressed = onItemLongPressed,
+                    onTopLeftPanelClick = onTopLeftPanelClick,
+                    getInfoSup = getInfoSup,
+                    getInfoInf = getInfoInf
+                )
+            }
         }
     }
 }
@@ -98,3 +107,25 @@ fun <T> LazyGridScope.lazyGridItems(
         itemContent(item)
     }
 }
+
+@Composable
+fun PullToRefreshContainer(
+    onRefresh: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    var isRefreshing by remember {
+        mutableStateOf(false)
+    }
+    var pullRefreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = onRefresh
+    )
+
+    PullRefreshLayout(
+        modifier = Modifier,
+        state = pullRefreshState
+    ) {
+        content()
+    }
+}
+
