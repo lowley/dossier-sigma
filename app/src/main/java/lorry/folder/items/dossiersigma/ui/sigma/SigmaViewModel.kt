@@ -559,7 +559,6 @@ class SigmaViewModel @Inject constructor(
         }
 
         viewModel = this
-        BottomTools.observeDefaultContent(this)
         BottomTools.setCurrentContent(DEFAULT)
     }
 

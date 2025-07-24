@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +29,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomAppBar
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -131,6 +134,9 @@ class SigmaActivity : ComponentActivity() {
         window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
         initializeFileIntentLauncher(mainViewModel)
 
+        BottomTools.viewModel = mainViewModel
+        BottomTools.observeDefaultContent(mainViewModel)
+
         setContent {
             val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
             val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
@@ -144,6 +150,20 @@ class SigmaActivity : ComponentActivity() {
             val fabState = rememberSpeedDialFloatingActionButtonState()
 
             Scaffold(
+                containerColor = Color(0xFF363E4C),
+                bottomBar = {
+                    if (!homePageVisible)
+                        BottomAppBar(
+                            containerColor = Color.Transparent,
+                            contentColor = Color.Black,
+                            tonalElevation = 0.dp
+                        ) {
+                            if (!homePageVisible) {
+                                BottomTools.BottomToolBar(activity = this@SigmaActivity)
+                            }
+
+                        }
+                },
 //                bottomBar = {
 //                    BottomAppBar(
 //                        modifier = Modifier.padding(end = 15.dp)
@@ -521,15 +541,6 @@ class SigmaActivity : ComponentActivity() {
 
                             }
 
-                            ////////////////////////////////////
-                            // zone inférieure si normal page //
-                            ////////////////////////////////////
-                            if (!homePageVisible) {
-                                BottomTools.BottomToolBar(
-                                    activity = this@SigmaActivity
-                                )
-                            }
-
                             val url by mainViewModel.browserManager.currentPage.collectAsState()
 
                             BrowserOverlay(
@@ -721,35 +732,6 @@ class SigmaActivity : ComponentActivity() {
                                 onFolderChosen(path)
                             }
                         }
-
-                        ////////////////
-                        // bouton FAB //
-                        ////////////////
-//                        if (!homePageVisible &&
-//                            !isTextDialogVisible &&
-//                            !isYesNoDialogVisible &&
-//                            !isMoveFileDialogVisible &&
-//                            !isFilePickerVisible &&
-//                            !isTagInfosDialogVisible
-//                        )
-//                        BottomAppBarSpeedDialFloatingActionButton(
-//                            state = fabState,
-//                            containerColor = Color.Transparent,
-//                            modifier = Modifier
-//                                .align(Alignment.BottomEnd)
-//                                .padding(end = 30.dp, bottom = 25.dp)
-//                                .size(46.dp)
-//                                .clip(RoundedCornerShape(23.dp))
-//                                .background(Color(0xFFe9c46a))
-//                        ) {
-//                            Icon(
-//                                modifier = Modifier
-//                                    .size(30.dp),
-//                                painter = painterResource(R.drawable.dossiers),
-//                                tint = Color.Black,
-//                                contentDescription = null
-//                            )
-//                        }
                     }
 
                     val richTextState = rememberRichTextState()
