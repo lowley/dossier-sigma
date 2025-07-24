@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -56,6 +57,8 @@ import com.elixer.palette.constraints.VerticalAlignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
+import de.charlex.compose.BottomAppBarSpeedDialFloatingActionButton
+import de.charlex.compose.rememberSpeedDialFloatingActionButtonState
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
 import kotlinx.coroutines.launch
@@ -136,7 +139,30 @@ class SigmaActivity : ComponentActivity() {
 
             val homePageVisible by homeViewModel.homePageVisible.collectAsState()
 
+            val fabState = rememberSpeedDialFloatingActionButtonState()
+
             Scaffold(
+                bottomBar = {
+                    BottomAppBar(
+                        modifier = Modifier.padding(end = 15.dp)
+                    ) {
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        BottomAppBarSpeedDialFloatingActionButton(
+                            state = fabState,
+                            containerColor = Color.Transparent,
+                            modifier = Modifier
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(30.dp),
+                                painter = painterResource(R.drawable.dossiers),
+                                tint = Color.Black,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                },
                 floatingActionButton = {
                     Column {
                         NewFolderFAB(
@@ -145,7 +171,8 @@ class SigmaActivity : ComponentActivity() {
                             isYesNoDialogVisible = isYesNoDialogVisible,
                             isMoveFileDialogVisible = isMoveFileDialogVisible,
                             isTagInfosDialogVisible = isTagInfosDialogVisible,
-                            isFilePickerVisible = isFilePickerVisible
+                            isFilePickerVisible = isFilePickerVisible,
+                            fabState = fabState
                         )
                     }
                 }

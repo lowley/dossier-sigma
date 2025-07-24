@@ -310,22 +310,26 @@ object BottomTools {
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
             // La lambda sera appelée si l'un ou l'autre change.
             combine(viewModel.flagCache, currentFlagId, viewModel.currentFolderPath, viewModel.reloadTrigger) { tagsMap, selectedId, _, _ ->
+//                val currentContentNow = currentContent.value
+//                if (currentContentNow?.name != "DEFAULT_CONTENT")
+//                    return@combine
+
                 // 1. On définit l'outil statique pour le NAS
-                val nasTool = Tool(
-                    text = {
-                        val allNasText by copyAllNASText.collectAsState()
-                        allNasText
-                    },
-                    icon = R.drawable.deplacer,
-                    onClick = { vm, mainActivity ->
-                        val files = vm.currentFolder.value.items.map { it.fullPath }
-                        val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
-                            putExtra("filesToTransfer", Gson().toJson(files))
-                            putExtra("nasDirectory", mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull())
-                        }
-                        mainActivity.startService(intent)
-                    }
-                )
+//                val nasTool = Tool(
+//                    text = {
+//                        val allNasText by copyAllNASText.collectAsState()
+//                        allNasText
+//                    },
+//                    icon = R.drawable.deplacer,
+//                    onClick = { vm, mainActivity ->
+//                        val files = vm.currentFolder.value.items.map { it.fullPath }
+//                        val intent = Intent(mainActivity, MoveToNASService::class.java).apply {
+//                            putExtra("filesToTransfer", Gson().toJson(files))
+//                            putExtra("nasDirectory", mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull())
+//                        }
+//                        mainActivity.startService(intent)
+//                    }
+//                )
 
                 // 2. On transforme les tags du cache en outils dynamiques
                 val uniqueTags = tagsMap.values.distinctBy { it.id }
@@ -351,7 +355,8 @@ object BottomTools {
                 }
 
                 // 3. On combine les deux listes et on met à jour le singleton.
-                val finalTools = listOf(nasTool) + tagTools
+                val finalTools = // listOf(nasTool) +
+                        tagTools
                 defaultContent.updateTools(finalTools)
 
             }.collect() // Démarre la collecte du Flow combiné.

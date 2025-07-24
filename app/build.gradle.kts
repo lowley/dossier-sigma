@@ -122,4 +122,8 @@ dependencies {
     //pull to refresh
     //https://github.com/MateriiApps/pullrefresh
     implementation("dev.materii.pullrefresh:pullrefresh:1.4.0-beta03")
+
+    //FAB
+    //https://github.com/ch4rl3x/SpeedDialFloatingActionButton
+    implementation ("de.charlex.compose:speeddial-bottomappbar-material3:1.1.1")
 }
