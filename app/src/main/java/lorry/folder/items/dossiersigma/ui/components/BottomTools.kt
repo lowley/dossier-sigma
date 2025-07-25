@@ -655,6 +655,28 @@ sealed class Tools() {
     object FILE : Tools() {
         override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
             toolInit = listOf(
+                ///////////
+                // moves //
+                ///////////
+                Tool(
+                    text = { "Déplacements" },
+                    icon = R.drawable.move,
+                    isColoredIcon = true,
+                    onClick = { viewModel, mainActivity ->
+                        BottomTools.setCurrentContent(MOVES)
+                    }
+                ),
+                ///////////////
+                // tags menu //
+                ///////////////
+                Tool(
+                    text = { "Etiquettes" },
+                    icon = R.drawable.etiquette2,
+                    isColoredIcon = true,
+                    onClick = { viewModel, mainActivity ->
+                        BottomTools.setCurrentContent(TAGS_MENU)
+                    }
+                ),
                 //////////////////
                 // image google //
                 //////////////////
@@ -688,28 +710,6 @@ sealed class Tools() {
                                 selectedItem, BrowserTarget.GOOGLE
                             )
                         }
-                    }
-                ),
-                ///////////
-                // moves //
-                ///////////
-                Tool(
-                    text = { "Déplacements" },
-                    icon = R.drawable.move,
-                    isColoredIcon = true,
-                    onClick = { viewModel, mainActivity ->
-                        BottomTools.setCurrentContent(MOVES)
-                    }
-                ),
-                ///////////////
-                // tags menu //
-                ///////////////
-                Tool(
-                    text = { "Etiquettes" },
-                    icon = R.drawable.etiquette2,
-                    isColoredIcon = true,
-                    onClick = { viewModel, mainActivity ->
-                        BottomTools.setCurrentContent(TAGS_MENU)
                     }
                 ),
                 //////////////

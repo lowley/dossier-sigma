@@ -223,7 +223,7 @@ class SigmaActivity : ComponentActivity() {
                                     .fillMaxWidth()
                                     .height(IntrinsicSize.Min)
                                     .background(Color.Transparent)
-                                    .padding(top = 14.dp),
+                                    .padding(top = 8.dp),
                                 horizontalArrangement = Arrangement.Center,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
