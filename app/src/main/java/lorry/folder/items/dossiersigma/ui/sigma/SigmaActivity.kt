@@ -9,11 +9,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -25,12 +23,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -43,18 +38,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
-import com.elixer.palette.Presets
-import com.elixer.palette.composables.Palette
-import com.elixer.palette.constraints.HorizontalAlignment
-import com.elixer.palette.constraints.VerticalAlignment
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import de.charlex.compose.rememberSpeedDialFloatingActionButtonState
@@ -65,9 +52,8 @@ import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
-import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
-import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
+import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
@@ -75,8 +61,8 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.centralArea.Memo
-import lorry.folder.items.dossiersigma.ui.home.homePage
-import lorry.folder.items.dossiersigma.ui.memoEditor.MemoEditor
+import lorry.folder.items.dossiersigma.ui.centralArea.homePage
+import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
@@ -486,17 +472,9 @@ class SigmaActivity : ComponentActivity() {
                             /////////////////
                             if (!homePageVisible) {
                                 NormalPage(
-                                    currentFolderFlow = mainViewModel.currentFolder,
-                                    imageCache = mainViewModel.imageCache,
-                                    flagCache = mainViewModel.flagCache,
-                                    scaleCache = mainViewModel.scaleCache,
-                                    memoCache = mainViewModel.memoCache,
                                     onHoveredNotHovered = { item ->
                                         mainViewModel.setDragTargetItem(item)
                                     },
-                                    selectedItemFullPath = mainViewModel.selectedItemFullPath,
-                                    dragOffset = mainViewModel.dragOffset,
-                                    draggableStartPosition = mainViewModel.draggableStartPosition,
                                     onItemTapped = { item ->
                                         run {
 
@@ -566,21 +544,6 @@ class SigmaActivity : ComponentActivity() {
         }
     }
 
-
-    suspend fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
-        if (viewModel.selectedItem.value != null)
-            viewModel.updatePicture(imageUrl)
-    }
-
-    private fun initializeFileIntentLauncher(viewModel: SigmaViewModel) {
-        val launcher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                val pathUri = result.data?.data
-                viewModel.onFolderSelected(pathUri)
-            }
-        intentWrapper.setLauncher(launcher as Object)
-    }
-
     //callback de UCrop pour rogner manuellement l'image de l'item
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -608,19 +571,8 @@ class SigmaActivity : ComponentActivity() {
             )
 //            mainViewModel.refreshCurrentFolder()
         }
-
-//        mainViewModel.setSelectedItem(null)
-//        BottomTools.setCurrentContent(DEFAULT, mainViewModel))
     }
 }
 
 
-fun <T> LazyGridScope.lazyGridItems(
-    items: List<T>,
-    key: ((T) -> Any)? = null,
-    itemContent: @Composable (T) -> Unit
-) {
-    itemsIndexed(items, key = { index, item -> key?.invoke(item) ?: index }) { _, item ->
-        itemContent(item)
-    }
-}
+

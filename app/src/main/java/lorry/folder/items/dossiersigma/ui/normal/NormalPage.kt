@@ -38,15 +38,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.lazyGridItems
 @Composable
 context(SigmaActivity, ColumnScope)
 fun NormalPage(
-    currentFolderFlow: StateFlow<SigmaFolder>,
-    imageCache: StateFlow<MutableMap<String, Any?>>,
-    flagCache: StateFlow<MutableMap<String, ColoredTag>>,
-    scaleCache: StateFlow<MutableMap<String, ContentScale>>,
-    memoCache: StateFlow<MutableMap<String, String>>,
     onHoveredNotHovered: (Item?) -> Unit,
-    selectedItemFullPath: StateFlow<String?>,
-    dragOffset: StateFlow<Offset?>,
-    draggableStartPosition: StateFlow<Offset?>,
     onItemTapped: ((Item) -> Unit),
     onItemLongPressed: ((Item) -> Unit),
     onTopLeftPanelClick: (Item) -> Unit,
@@ -55,6 +47,16 @@ fun NormalPage(
     onRefresh: () -> Unit,
 
 ) {
+    val currentFolderFlow = mainViewModel.currentFolder
+    val imageCache = mainViewModel.imageCache
+    val flagCache = mainViewModel.flagCache
+    val scaleCache = mainViewModel.scaleCache
+    val memoCache = mainViewModel.memoCache
+
+    val selectedItemFullPath = mainViewModel.selectedItemFullPath
+    val dragOffset = mainViewModel.dragOffset
+    val draggableStartPosition = mainViewModel.draggableStartPosition
+
     val currentFolder by currentFolderFlow.collectAsState()
 
     val scrollStates =

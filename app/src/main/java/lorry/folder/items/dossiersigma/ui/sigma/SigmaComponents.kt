@@ -1,9 +1,12 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.LazyGridScope
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,4 +44,25 @@ fun HomeButtonIcon(
         tint = Color(0xFFe9c46a),
         contentDescription = null
     )
+}
+
+context(SigmaActivity, LazyGridScope)
+fun <T> lazyGridItems(
+    items: List<T>,
+    key: ((T) -> Any)? = null,
+    itemContent: @Composable (T) -> Unit
+) {
+    itemsIndexed(items, key = { index, item -> key?.invoke(item) ?: index }) { _, item ->
+        itemContent(item)
+    }
+}
+
+context(SigmaActivity)
+public fun initializeFileIntentLauncher(viewModel: SigmaViewModel) {
+    val launcher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            val pathUri = result.data?.data
+            viewModel.onFolderSelected(pathUri)
+        }
+    intentWrapper.setLauncher(launcher as Object)
 }

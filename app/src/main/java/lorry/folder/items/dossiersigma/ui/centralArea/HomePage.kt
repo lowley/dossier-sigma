@@ -1,9 +1,8 @@
-package lorry.folder.items.dossiersigma.ui.home
+package lorry.folder.items.dossiersigma.ui.centralArea
 
 import android.graphics.Rect
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
@@ -36,7 +35,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -53,6 +51,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
+import kotlin.collections.indexOf
 import kotlin.math.roundToInt
 
 @Composable
@@ -74,20 +73,20 @@ fun homePage(
     // --- FIN DES NOUVEAUX ÉTATS ---
 
     var draggedItem by remember { mutableStateOf<HomeItem?>(null) }
-    var dragOffset by remember { mutableStateOf(Offset.Zero) }
+    var dragOffset by remember { mutableStateOf(Offset.Companion.Zero) }
     var dropTarget by remember { mutableStateOf<HomeItem?>(null) }
     val itemPositions = remember { mutableMapOf<HomeItem, Offset>() }
 
     LazyVerticalGrid(
         state = gridState, // On lie l'état à la grille
         columns = GridCells.Adaptive(150.dp),
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
             .padding(horizontal = 10.dp, vertical = 10.dp)
             .weight(1f)
             .onGloballyPositioned { layoutCoordinates ->
                 // On récupère les dimensions et la position de la grille à l'écran
-                val rect = layoutCoordinates.localToRoot(Offset.Zero).let {
+                val rect = layoutCoordinates.localToRoot(Offset.Companion.Zero).let {
                     Rect(
                         it.x.toInt(),
                         it.y.toInt(),
@@ -109,7 +108,7 @@ fun homePage(
                 dragOffset = dragOffset,
                 on1DragStart = {
                     draggedItem = item
-                    dragOffset = Offset.Zero
+                    dragOffset = Offset.Companion.Zero
                 },
                 on1Drag = { currentDragOffset ->
                     dragOffset += currentDragOffset
@@ -117,7 +116,8 @@ fun homePage(
                     // --- LOGIQUE D'AUTO-SCROLL ---
                     gridBounds?.let { bounds ->
                         val itemCenterY = itemPositions[item]!!.y + dragOffset.y
-                        val scrollThreshold = bounds.height() * 0.1f // Zone de 10% en haut et en bas
+                        val scrollThreshold =
+                            bounds.height() * 0.1f // Zone de 10% en haut et en bas
 
                         // Si on est près du bord inférieur
                         if (itemCenterY > bounds.bottom - scrollThreshold) {
@@ -170,7 +170,7 @@ fun homePage(
                         }
                     }
                     draggedItem = null
-                    dragOffset = Offset.Zero
+                    dragOffset = Offset.Companion.Zero
                     dropTarget = null
                 },
                 onPositioned = { position ->
@@ -204,12 +204,12 @@ fun DraggableItem(
     onPositioned: (Offset) -> Unit,
     content: @Composable () -> Unit
 ) {
-    val animatedOffset by animateOffsetAsState(targetValue = if (isDragging) dragOffset else Offset.Zero)
+    val animatedOffset by animateOffsetAsState(targetValue = if (isDragging) dragOffset else Offset.Companion.Zero)
 
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .onGloballyPositioned { layoutCoordinates ->
-                onPositioned(layoutCoordinates.localToRoot(Offset.Zero))
+                onPositioned(layoutCoordinates.localToRoot(Offset.Companion.Zero))
             }
             .zIndex(if (isDragging) 1f else 0f)
             .offset { IntOffset(animatedOffset.x.roundToInt(), animatedOffset.y.roundToInt()) }
@@ -249,7 +249,7 @@ fun HomeItemContent(
     val _10Color = Color(0xFF8fc0a9)
 
     Card(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .padding(
                 start = 10.dp,
                 end = 10.dp,
@@ -267,28 +267,28 @@ fun HomeItemContent(
         border = BorderStroke(2.dp, _10Color),
     ) {
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
-                .clip(RoundedCornerShape(13.dp))
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(13.dp))
         ) {
             AsyncImage(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .size(120.dp)
-                    .align(Alignment.TopCenter)
+                    .align(Alignment.Companion.TopCenter)
                     .padding(top = 27.dp)
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { onItemClicked(item) })
                     },
                 model = item.picture ?: if (item.icon != 0) item.icon else R.drawable.dossier,
                 contentDescription = "Miniature",
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Companion.Fit,
             )
 
             Text(
                 text = item.title,
                 color = _30Color,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
+                modifier = Modifier.Companion
+                    .align(Alignment.Companion.BottomCenter)
                     .padding(bottom = 5.dp)
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { onItemClicked(item) })
@@ -296,28 +296,28 @@ fun HomeItemContent(
             )
 
             Icon(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .size(25.dp)
                     .padding(start = 10.dp, top = 10.dp)
-                    .align(Alignment.TopStart)
+                    .align(Alignment.Companion.TopStart)
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { onEditTapped(item) })
                     },
                 painter = painterResource(R.drawable.stylo),
-                tint = Color.Gray,
+                tint = Color.Companion.Gray,
                 contentDescription = null
             )
 
             Icon(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .size(25.dp)
                     .padding(end = 10.dp, top = 10.dp)
-                    .align(Alignment.TopEnd)
+                    .align(Alignment.Companion.TopEnd)
                     .pointerInput(Unit) {
                         detectTapGestures(onTap = { onDeleteTapped(item) })
                     },
                 painter = painterResource(R.drawable.corbeille),
-                tint = Color.Gray,
+                tint = Color.Companion.Gray,
                 contentDescription = null
             )
         }
