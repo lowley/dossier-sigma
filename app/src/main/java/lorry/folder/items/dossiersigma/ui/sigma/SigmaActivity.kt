@@ -17,9 +17,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +69,10 @@ import de.charlex.compose.BottomAppBarSpeedDialFloatingActionButton
 import de.charlex.compose.rememberSpeedDialFloatingActionButtonState
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -94,6 +101,7 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
+import kotlin.collections.distinctBy
 
 
 @AndroidEntryPoint
@@ -149,19 +157,39 @@ class SigmaActivity : ComponentActivity() {
 
             val fabState = rememberSpeedDialFloatingActionButtonState()
 
+            val test by BottomTools.currentContent.collectAsState()
+            val cache by mainViewModel.flagCache.collectAsState()
+
+            val currentContentInfos by remember {
+                derivedStateOf { Pair(test?.name, cache.values.distinctBy { it.id }) }
+            }
+
             Scaffold(
                 containerColor = Color(0xFF363E4C),
                 bottomBar = {
                     if (!homePageVisible)
-                        BottomAppBar(
-                            containerColor = Color.Transparent,
-                            contentColor = Color.Black,
-                            tonalElevation = 0.dp
+//                        && (currentContentInfos.first == "DEFAULT_CONTENT" &&
+//                                currentContentInfos.second.isNotEmpty())
+//                        || currentContentInfos.first != "DEFAULT_CONTENT")
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                                .background(Color.Transparent)
                         ) {
-                            if (!homePageVisible) {
+                            Spacer(
+                                modifier = Modifier
+                                    .padding(start = 50.dp, end = 50.dp, top = 5.dp, bottom = 0.dp)
+                                    .height(1.dp)
+                                    .fillMaxWidth()
+                                    .background(Color.LightGray)
+                            )
+
+                            BottomAppBar(
+                                containerColor = Color.Transparent,
+                                contentColor = Color.Black,
+                                tonalElevation = 0.dp
+                            ) {
                                 BottomTools.BottomToolBar(activity = this@SigmaActivity)
                             }
-
                         }
                 },
 //                bottomBar = {

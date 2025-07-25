@@ -50,6 +50,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
@@ -190,16 +191,17 @@ object BottomTools {
     ) {
         val content = currentContent.collectAsState().value
         val toolList = content?.tools?.collectAsState()?.value ?: emptyList()
+        val modifier = Modifier
+            .padding(vertical = 0.dp)
 
         Log.d(TAG, "Content: $content")
         Log.d(TAG, "BottomToolBar: ${toolList.size}")
 
         Row(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
-                .height(65.dp)
-                .background(Color.Transparent),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .height(60.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             toolList.forEach { tool ->
                 val offset by viewModel.dragOffset.collectAsState()
@@ -207,7 +209,7 @@ object BottomTools {
                 var iconYDelta = if (offset == Offset.Zero) 0f else 200f
 
                 Box(
-                    modifier = Modifier
+                    modifier = modifier
                         .width(85.dp)
                         .fillMaxHeight()
                         .clickable {
@@ -221,7 +223,7 @@ object BottomTools {
                     IconWithRing(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .padding(top = 5.dp)
+                            .padding(top = 0.dp)
                             .onGloballyPositioned {
                                 viewModel.setDraggableStartPosition(it.positionInRoot())
                             },
@@ -244,7 +246,7 @@ object BottomTools {
                         IconWithRing(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
-                                .padding(top = 5.dp)
+                                .padding(top = 0.dp)
                                 .offset {
                                     IntOffset(
                                         offset?.x?.toInt() ?: 0, offset?.y?.toInt() ?: 0
@@ -295,9 +297,8 @@ object BottomTools {
                     }
 
                     Text(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .height(24.dp),
+                        modifier = modifier
+                            .align(Alignment.BottomCenter),
                         text = tool.text(viewModel),
                         color = Color(0xFFe9c46a),
                         fontSize = 12.sp
@@ -346,52 +347,6 @@ object BottomTools {
             }.collect() // Démarre la collecte du Flow combiné.
         }
     }
-
-//    fun observeDefaultContent(viewModel: SigmaViewModel) {
-//        viewModel.viewModelScope.launch {
-//            viewModel.flagCache.collect { tagsMap ->
-//                if (tagsMap.isEmpty()) {
-//                    defaultContent.updateTools(emptyList())
-//                    return@collect
-//                }
-//
-//                println(" BottomTools: collect de tagsMap, ${tagsMap.size}")
-//                val currentFlagId = currentFlagId.value
-//
-//                val tagsSet = tagsMap.values?.toSet()
-//
-//                val initialTools = listOf(
-//                    Tools.DEFAULT.content(BottomTools.viewModel)
-//                        .tools.value.first()
-//                )
-//
-//                val newTools = tagsSet?.map { tag ->
-//                    Tool(
-//                        text = { tag.title },
-//                        icon = R.drawable.etiquette,
-//                        tint = tag.color,
-//                        id = tag.id ?: UUID.randomUUID(),
-//                        onClick = { vm, activity ->
-//                            //pour filtrage des fichiers
-//                            if (activated)
-//                                setCurrentFlagId(null)
-//                            else
-//                                setCurrentFlagId(this.id)
-//
-//                            //pour affichage tool sélectionné ou pas
-//                            Tools.DEFAULT.content(BottomTools.viewModel).replaceTool(
-//                                this.copy(activated = !this.activated)
-//                            )
-//                        },
-//                        activated = currentFlagId != null && tag.id == currentFlagId
-//                    )
-//                }
-//
-//                val tools = listOf<Tool>() + initialTools +  (newTools ?: emptyList())
-//                defaultContent.updateTools(tools)
-//            }
-//        }
-//    }
 }
 
 class BottomToolContent(

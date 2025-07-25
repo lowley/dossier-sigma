@@ -39,68 +39,70 @@ fun SigmaActivity.NewFolderFAB(
         !isTagInfosDialogVisible
     )
 
-    Box(
-        Modifier
-            .padding(bottom = 55.dp, end = 20.dp)
-    ) {
+        Box(
+            Modifier
+                .padding(bottom = 5.dp, end = 20.dp)
+        ) {
 
-        SpeedDialFloatingActionButton(
-            modifier = Modifier,
-            initialExpanded = false,
-            animationDuration = 300,
-            animationDelayPerSelection = 100,
-            showLabels = true,
-            fabBackgroundColor = Color(0xFFe9c46a),
-            fabContentColor = Color.Black,
-            speedDialBackgroundColor = Color(0xFFe9c46a),
-            speedDialContentColor = Color.Black,
-            speedDialData = listOf(
-                SpeedDialData(
-                    label = "Dossier -> NAS",
-                    painter = painterResource(id = R.drawable.ftp)
-                ) {
-                    mainViewModel.viewModelScope.launch {
-                        val files = mainViewModel.currentFolder.value.items.map { it.fullPath }
-                        val intent = Intent(this@NewFolderFAB, MoveToNASService::class.java).apply {
-                            putExtra("filesToTransfer", Gson().toJson(files))
-                            putExtra(
-                                "nasDirectory",
-                                this@NewFolderFAB.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
-                            )
+            SpeedDialFloatingActionButton(
+                modifier = Modifier,
+                initialExpanded = false,
+                animationDuration = 300,
+                animationDelayPerSelection = 100,
+                showLabels = true,
+                fabBackgroundColor = Color(0xFFe9c46a),
+                fabContentColor = Color.Black,
+                speedDialBackgroundColor = Color(0xFFe9c46a),
+                speedDialContentColor = Color.Black,
+                speedDialData = listOf(
+                    SpeedDialData(
+                        label = "Dossier -> NAS",
+                        painter = painterResource(id = R.drawable.ftp)
+                    ) {
+                        mainViewModel.viewModelScope.launch {
+                            val files = mainViewModel.currentFolder.value.items.map { it.fullPath }
+                            val intent =
+                                Intent(this@NewFolderFAB, MoveToNASService::class.java).apply {
+                                    putExtra("filesToTransfer", Gson().toJson(files))
+                                    putExtra(
+                                        "nasDirectory",
+                                        this@NewFolderFAB.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
+                                    )
+                                }
+                            this@NewFolderFAB.startService(intent)
                         }
-                        this@NewFolderFAB.startService(intent)
-                    }
-                },
-                SpeedDialData(
-                    label = "Ajouter dossier",
-                    painter = painterResource(id = R.drawable.dossier_plus)
-                ) {
-                    mainViewModel.setDialogMessage("Nom du dossier à créer")
-                    mainViewModel.dialogOnOkLambda =
-                        { newName, viewModel, mainActivity ->
-                            val currentFolderPath = viewModel.currentFolderPath.value
-                            val newFullName = "$currentFolderPath/$newName"
+                    },
+                    SpeedDialData(
+                        label = "Ajouter dossier",
+                        painter = painterResource(id = R.drawable.dossier_plus)
+                    ) {
+                        mainViewModel.setDialogMessage("Nom du dossier à créer")
+                        mainViewModel.dialogOnOkLambda =
+                            { newName, viewModel, mainActivity ->
+                                val currentFolderPath = viewModel.currentFolderPath.value
+                                val newFullName = "$currentFolderPath/$newName"
 
-                            if (!File(newFullName).exists()) {
-                                if (File(newFullName).mkdir()) {
-                                    Toast.makeText(
-                                        mainActivity,
-                                        "Répertoire créé",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    viewModel.refreshCurrentFolder()
-                                } else
-                                    Toast.makeText(
-                                        mainActivity,
-                                        "Un problème est survenu",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                if (!File(newFullName).exists()) {
+                                    if (File(newFullName).mkdir()) {
+                                        Toast.makeText(
+                                            mainActivity,
+                                            "Répertoire créé",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        viewModel.refreshCurrentFolder()
+                                    } else
+                                        Toast.makeText(
+                                            mainActivity,
+                                            "Un problème est survenu",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                }
                             }
-                        }
 
-                    mainViewModel.setIsTextDialogVisible(true)
-                },
-            ))
+                        mainViewModel.setIsTextDialogVisible(true)
+                    },
+                )
+            )
 
 //        SubSpeedDialFloatingActionButtons(
 //            state = fabState,
@@ -152,7 +154,7 @@ fun SigmaActivity.NewFolderFAB(
 //                }
 //            )
 //        )
-    }
+        }
 
 
 //        Button(

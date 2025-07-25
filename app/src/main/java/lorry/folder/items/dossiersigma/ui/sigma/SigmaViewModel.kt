@@ -19,6 +19,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -299,6 +300,14 @@ class SigmaViewModel @Inject constructor(
 
     private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
     val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
+
+    val tools = BottomTools.currentContent.map {
+        it?.tools?.value
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
 
     ////////////////////
     // maj de l'image //
