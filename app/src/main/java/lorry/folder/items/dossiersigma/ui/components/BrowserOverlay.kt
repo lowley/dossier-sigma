@@ -21,6 +21,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import kotlin.apply
@@ -47,11 +50,14 @@ fun BrowserOverlay(
     modifier: Modifier = Modifier,
     onImageClicked: (String) -> Unit,
     setCurrentPage: (String?) -> Unit,
+    webView: StateFlow<WebView?>,
+    canGoBack: StateFlow<Boolean>,
+    canGoForward: StateFlow<Boolean>,
+    setCanGoBack: (Boolean) -> Unit,
+    setCanGoForward: (Boolean) -> Unit,
+    setWebView: (WebView) -> Unit
 ) {
     val context = LocalContext.current
-    var webView by remember { mutableStateOf<WebView?>(null) }
-    var canGoBack by remember { mutableStateOf(false) }
-    var canGoForward by remember { mutableStateOf(false) }
 
     if (currentPage != null) {
         Box(
@@ -76,8 +82,8 @@ fun BrowserOverlay(
                                 webViewClient = object : WebViewClient() {
                                     override fun onPageFinished(view: WebView, url: String) {
                                         super.onPageFinished(view, url)
-                                        canGoBack = view.canGoBack()
-                                        canGoForward = view.canGoForward()
+                                        setCanGoBack(view.canGoBack())
+                                        setCanGoForward(view.canGoForward())
                                         val js = """
                             document.addEventListener('contextmenu', function(event) {
                                 event.preventDefault();
@@ -107,73 +113,14 @@ fun BrowserOverlay(
                                 )
 
                                 loadUrl(currentPage)
-                                webView = this
+                                setWebView(this)
                             }
 
                         }
                     )
                 }
 
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
-                        .background(Color.Transparent)
-                        .padding(8.dp)
-                        .drawBehind {
-                            // Dessine une ligne horizontale tout en haut
-                            val strokeWidthPx = 2.dp.toPx()
-                            drawLine(
-                                color = Color.Blue,
-                                start = Offset(0f, 0f),
-                                end = Offset(size.width, 0f),
-                                strokeWidth = strokeWidthPx
-                            )
-                        },
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Button(
-                        onClick = { webView?.goBack() }, enabled = canGoBack,
-                        modifier = Modifier.padding(horizontal = 5.dp)
-                    )
-                    {
-                        Icon(
-                            painter = painterResource(id = R.drawable.la_gauche),
-                            contentDescription = "back",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
 
-                    Button(
-                        onClick = { setCurrentPage("https://www.google.fr") },
-                        modifier = Modifier.padding(horizontal = 5.dp)
-                    )
-                    {
-                        Icon(
-                            painter = painterResource(id = R.drawable.maison),
-                            contentDescription = "home",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
-
-                    Button(
-                        onClick = onClose,
-                        modifier = Modifier.padding(horizontal = 5.dp)
-                    ) {
-                        Text("Retourner à l'application")
-                    }
-
-                    Button(
-                        onClick = { webView?.goForward() }, enabled = canGoForward,
-                        modifier = Modifier.padding(horizontal = 5.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.la_droite),
-                            contentDescription = "forward",
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                    }
-                }
             }
         }
 

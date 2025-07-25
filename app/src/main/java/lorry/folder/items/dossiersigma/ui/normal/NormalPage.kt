@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.normal
 
+import android.webkit.WebView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.unit.dp
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
@@ -54,6 +56,12 @@ fun NormalPage(
     closeBrowser: () -> Unit,
     onGotBrowserImage: (String) -> Unit,
     setCurrentBrowserPage: (String?) -> Unit,
+    webView: StateFlow<WebView?>,
+    canGoBack: StateFlow<Boolean>,
+    canGoForward: StateFlow<Boolean>,
+    setCanGoBack: (Boolean) -> Unit,
+    setCanGoForward: (Boolean) -> Unit,
+    setWebView: (WebView) -> Unit
 ) {
     val currentFolder by currentFolderFlow.collectAsState()
 
@@ -115,7 +123,13 @@ fun NormalPage(
                     currentPage = url,
                     onClose = closeBrowser,
                     onImageClicked = onGotBrowserImage,
-                    setCurrentPage = setCurrentBrowserPage
+                    setCurrentPage = setCurrentBrowserPage,
+                    webView = webView,
+                    canGoBack = canGoBack,
+                    canGoForward = canGoForward,
+                    setCanGoBack = setCanGoBack,
+                    setCanGoForward = setCanGoForward,
+                    setWebView = setWebView
                 )
         }
 

@@ -5,6 +5,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
+import android.webkit.WebView
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextRange
@@ -308,6 +311,27 @@ class SigmaViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
+
+    private val _webView = MutableStateFlow<WebView?>(null)
+    val webView: StateFlow<WebView?> = _webView
+
+    fun setWebView(webView: WebView?) {
+        _webView.value = webView
+    }
+
+    private val _canGoBack = MutableStateFlow(false)
+    val canGoBack: StateFlow<Boolean> = _canGoBack
+
+    fun setCanGoBack(value: Boolean) {
+        _canGoBack.value = value
+    }
+
+    private val _canGoForward = MutableStateFlow(false)
+    val canGoForward: StateFlow<Boolean> = _canGoForward
+
+    fun setCanGoForward(value: Boolean) {
+        _canGoForward.value = value
+    }
 
     ////////////////////
     // maj de l'image //
