@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.domain
 
 import androidx.compose.ui.layout.ContentScale
-import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
 import java.util.UUID
 
 class SigmaFolder(

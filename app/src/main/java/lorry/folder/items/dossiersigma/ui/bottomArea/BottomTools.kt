@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.components
+package lorry.folder.items.dossiersigma.ui.bottomArea
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -50,7 +50,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
@@ -87,14 +86,15 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
+import lorry.folder.items.dossiersigma.ui.components.imageAsAnyToTempUri
+import lorry.folder.items.dossiersigma.ui.components.manageImageClick
 import lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
 import java.io.File
 import java.util.UUID
-
+import kotlin.collections.get
 
 object BottomTools {
     lateinit var viewModel: SigmaViewModel
@@ -139,7 +139,7 @@ object BottomTools {
 
     /**
      * utilisé par
-     * @see MoveFileService.copy
+     * @see lorry.folder.items.dossiersigma.domain.services.MoveFileService.copy
      */
     fun updateProgress(value: Int) {
         _progress.value = value
@@ -157,7 +157,7 @@ object BottomTools {
 
     /**
      * utilisé par
-     * @see MoveToNASService.copy
+     * @see lorry.folder.items.dossiersigma.domain.services.MoveToNASService.copy
      */
     fun updateNASProgress(
         percentage: Int,
@@ -191,11 +191,11 @@ object BottomTools {
     ) {
         val content = currentContent.collectAsState().value
         val toolList = content?.tools?.collectAsState()?.value ?: emptyList()
-        val modifier = Modifier
+        val modifier = Modifier.Companion
             .padding(vertical = 0.dp)
 
-        Log.d(TAG, "Content: $content")
-        Log.d(TAG, "BottomToolBar: ${toolList.size}")
+        Log.d(SigmaActivity.Companion.TAG, "Content: $content")
+        Log.d(SigmaActivity.Companion.TAG, "BottomToolBar: ${toolList.size}")
 
         Row(
             modifier = modifier
@@ -205,8 +205,9 @@ object BottomTools {
         ) {
             toolList.forEach { tool ->
                 val offset by viewModel.dragOffset.collectAsState()
-                var iconSize = if (offset == Offset.Zero || offset == null) 28.dp else 140.dp
-                var iconYDelta = if (offset == Offset.Zero) 0f else 200f
+                var iconSize =
+                    if (offset == Offset.Companion.Zero || offset == null) 28.dp else 140.dp
+                var iconYDelta = if (offset == Offset.Companion.Zero) 0f else 200f
 
                 Box(
                     modifier = modifier
@@ -221,16 +222,16 @@ object BottomTools {
                 ) {
                     //icône statique, toujours existante
                     IconWithRing(
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
+                        modifier = Modifier.Companion
+                            .align(Alignment.Companion.TopCenter)
                             .padding(top = 0.dp)
                             .onGloballyPositioned {
                                 viewModel.setDraggableStartPosition(it.positionInRoot())
                             },
                         iconRes = tool.icon,
-                        iconTint = if (tool.isColoredIcon) Color.Unspecified else
+                        iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
                             (tool.tint ?: Color(0xFFe9c46a)),
-                        ringColor = if (tool.isColoredIcon) Color.Unspecified else
+                        ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
                             (tool.tint ?: Color(0xFFe9c46a)),
                         ringWidth = 2.dp,
                         iconSize = 25.dp,
@@ -244,8 +245,8 @@ object BottomTools {
                         val coloredTag = tool.toColoredTag(viewModel)
 
                         IconWithRing(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
+                            modifier = Modifier.Companion
+                                .align(Alignment.Companion.TopCenter)
                                 .padding(top = 0.dp)
                                 .offset {
                                     IntOffset(
@@ -277,7 +278,7 @@ object BottomTools {
 
                                             }
 
-                                            viewModel.setDragOffset(Offset.Zero)
+                                            viewModel.setDragOffset(Offset.Companion.Zero)
                                             viewModel.setDraggedTag(null)
                                             viewModel.setDragTargetItem(null)
                                         }
@@ -285,9 +286,9 @@ object BottomTools {
 
                                 },
                             iconRes = tool.icon,
-                            iconTint = if (tool.isColoredIcon) Color.Unspecified else
+                            iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
                                 (tool.tint ?: Color(0xFFe9c46a)),
-                            ringColor = if (tool.isColoredIcon) Color.Unspecified else
+                            ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
                                 (tool.tint ?: Color(0xFFe9c46a)),
                             ringWidth = 2.dp,
                             iconSize = 25.dp,
@@ -298,7 +299,7 @@ object BottomTools {
 
                     Text(
                         modifier = modifier
-                            .align(Alignment.BottomCenter),
+                            .align(Alignment.Companion.BottomCenter),
                         text = tool.text(viewModel),
                         color = Color(0xFFe9c46a),
                         fontSize = 12.sp
@@ -313,7 +314,12 @@ object BottomTools {
         viewModel.viewModelScope.launch {
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
             // La lambda sera appelée si l'un ou l'autre change.
-            combine(viewModel.flagCache, currentFlagId, viewModel.currentFolderPath, viewModel.reloadTrigger) { tagsMap, selectedId, _, _ ->
+            combine(
+                viewModel.flagCache,
+                currentFlagId,
+                viewModel.currentFolderPath,
+                viewModel.reloadTrigger
+            ) { tagsMap, selectedId, _, _ ->
 //                val currentContentNow = currentContent.value
 //                if (currentContentNow?.name != "DEFAULT_CONTENT")
 //                    return@combine
@@ -404,7 +410,7 @@ data class Tool(
 fun Tool.toColoredTag(viewModel: SigmaViewModel): ColoredTag = ColoredTag(
     id = this.id,
     title = this.text(viewModel),
-    color = this.tint ?: Color.Unspecified,
+    color = this.tint ?: Color.Companion.Unspecified,
 )
 
 
@@ -447,7 +453,7 @@ sealed class Tools() {
                                         visible = { viewModel, mainActivity ->
                                             true
                                         },
-                                        tint = tagInfos?.color ?: Color.Unspecified
+                                        tint = tagInfos?.color ?: Color.Companion.Unspecified
                                     )
 
                                     //attention
@@ -589,7 +595,7 @@ sealed class Tools() {
                             //du dossier de tous les items
                             val itemsWithThisTag = viewModel.currentFolder.value.items.filter {
                                 val compositeMgr = CompositeManager(it.fullPath)
-                                val tagFile = compositeMgr.getElement(Flag)
+                                val tagFile = compositeMgr.getElement(Flag.Companion)
                                 val tagCache = viewModel.flagCache.value[it.fullPath]
 
                                 val tagFinal = tagCache ?: tagFile
@@ -690,7 +696,7 @@ sealed class Tools() {
                                 return@run
 
                             /**
-                             * @see BrowserOverlay
+                             * @see lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
                              * le Browser est un composable dans MainActivity
                              * voir BrowserOverlay et son appel par MainActivity
                              * le callback est un de ses paramètres d'appel
@@ -999,7 +1005,7 @@ sealed class Tools() {
                             /**
                              * le fichier n'existe pas, on lance la copie,
                              * le reste est effectué dans
-                             * @see MoveFileService.onStartCommand
+                             * @see lorry.folder.items.dossiersigma.domain.services.MoveFileService.onStartCommand
                              */
 
                             //encode/decode en json
@@ -1165,7 +1171,7 @@ sealed class Tools() {
                     text = { "Aucun" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, ContentScale.None)
+                        changeCrop(viewModel, ContentScale.Companion.None)
                     }
                 ),
 
@@ -1173,7 +1179,7 @@ sealed class Tools() {
                     text = { "Rogner" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, ContentScale.Crop)
+                        changeCrop(viewModel, ContentScale.Companion.Crop)
                     }
                 ),
 
@@ -1181,7 +1187,7 @@ sealed class Tools() {
                     text = { "Remplir ⇅" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, ContentScale.FillHeight)
+                        changeCrop(viewModel, ContentScale.Companion.FillHeight)
                     }
                 ),
 
@@ -1189,7 +1195,7 @@ sealed class Tools() {
                     text = { "Remplir ⇿" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, ContentScale.FillWidth)
+                        changeCrop(viewModel, ContentScale.Companion.FillWidth)
                     }
                 ),
 
@@ -1197,7 +1203,7 @@ sealed class Tools() {
                     text = { "Etirer" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, ContentScale.Fit)
+                        changeCrop(viewModel, ContentScale.Companion.Fit)
                     }
                 ),
 
@@ -1205,7 +1211,7 @@ sealed class Tools() {
                     text = { "Dedans" },
                     icon = R.drawable.crop,
                     onClick = { viewModel, mainActivity ->
-                        changeCrop(viewModel, ContentScale.Inside)
+                        changeCrop(viewModel, ContentScale.Companion.Inside)
                     }
                 ),
 
@@ -1222,8 +1228,8 @@ sealed class Tools() {
                                 return@run
 
                             val compositeMgr = CompositeManager(item.fullPath)
-                            sourceBitmap = compositeMgr.getElement(InitialPicture)
-                            val test = compositeMgr.getElement(CroppedPicture)
+                            sourceBitmap = compositeMgr.getElement(InitialPicture.Companion)
+                            val test = compositeMgr.getElement(CroppedPicture.Companion)
 
                             if (sourceBitmap == null && test != null) {
                                 compositeMgr.save(InitialPicture(test, VideoInfoEmbedder()))
@@ -1307,10 +1313,10 @@ fun CustomTextDialog(
     val editMessage = remember { mutableStateOf(initialText) }
 
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
             .background(
-                color = contentColorFor(Color.White)
+                color = contentColorFor(Color.Companion.White)
                     .copy(alpha = 0.6f)
             )
             .clickable(
@@ -1320,22 +1326,22 @@ fun CustomTextDialog(
                     viewModel.setIsTextDialogVisible(false)
                 }
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .clip(RoundedCornerShape(4.dp))
-                .background(Color.White)
+                .background(Color.Companion.White)
                 .padding(8.dp),
         ) {
 
             Text(
-                modifier = Modifier,
+                modifier = Modifier.Companion,
                 text = text,
-                color = Color.Black
+                color = Color.Companion.Black
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             TextField(
                 value = editMessage.value,
@@ -1343,10 +1349,10 @@ fun CustomTextDialog(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             Row(
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier.Companion.align(Alignment.Companion.End)
             ) {
                 Button(
                     onClick = {
@@ -1356,7 +1362,7 @@ fun CustomTextDialog(
                     Text("Cancel")
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.Companion.width(8.dp))
 
                 Button(
                     onClick = {
@@ -1380,10 +1386,10 @@ fun CustomYesNoDialog(
     val editMessage = remember { mutableStateOf("") }
 
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
             .background(
-                color = contentColorFor(Color.White)
+                color = contentColorFor(Color.Companion.White)
                     .copy(alpha = 0.6f)
             )
             .clickable(
@@ -1393,25 +1399,25 @@ fun CustomYesNoDialog(
                     viewModel.setIsYesNoDialogVisible(false)
                 }
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.White)
+            modifier = Modifier.Companion
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                .background(Color.Companion.White)
                 .padding(8.dp),
         ) {
 
             Text(
-                modifier = Modifier,
+                modifier = Modifier.Companion,
                 text = text,
-                color = Color.Black
+                color = Color.Companion.Black
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             Row(
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier.Companion.align(Alignment.Companion.End)
             ) {
                 Button(
                     onClick = {
@@ -1422,7 +1428,7 @@ fun CustomYesNoDialog(
                     Text("Non")
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.Companion.width(8.dp))
 
                 Button(
                     onClick = {
@@ -1448,10 +1454,10 @@ fun CustomMoveFileExistingDestinationDialog(
     val editMessage = remember { mutableStateOf("") }
 
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
             .background(
-                color = contentColorFor(Color.White)
+                color = contentColorFor(Color.Companion.White)
                     .copy(alpha = 0.6f)
             )
             .clickable(
@@ -1461,25 +1467,25 @@ fun CustomMoveFileExistingDestinationDialog(
                     viewModel.setIsMoveFileDialogVisible(false)
                 }
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.White)
+            modifier = Modifier.Companion
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                .background(Color.Companion.White)
                 .padding(8.dp),
         ) {
 
             Text(
-                modifier = Modifier,
+                modifier = Modifier.Companion,
                 text = text,
-                color = Color.Black
+                color = Color.Companion.Black
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             Row(
-                modifier = Modifier.align(Alignment.End)
+                modifier = Modifier.Companion.align(Alignment.Companion.End)
             ) {
                 Button(
                     onClick = {
@@ -1490,7 +1496,7 @@ fun CustomMoveFileExistingDestinationDialog(
                     Text("Abandonner")
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.Companion.width(8.dp))
 
                 Button(
                     onClick = {
@@ -1501,7 +1507,7 @@ fun CustomMoveFileExistingDestinationDialog(
                     Text("Créer une copie")
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.Companion.width(8.dp))
 
                 Button(
                     onClick = {
@@ -1528,10 +1534,10 @@ fun TagInfosDialog(
     var hexColor by remember { mutableStateOf<String?>(null) }
 
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxSize()
             .background(
-                color = contentColorFor(Color.White)
+                color = contentColorFor(Color.Companion.White)
                     .copy(alpha = 0.6f)
             )
             .clickable(
@@ -1541,33 +1547,33 @@ fun TagInfosDialog(
                     viewModel.setIsTagInfosDialogVisible(false)
                 }
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.White)
+            modifier = Modifier.Companion
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                .background(Color.Companion.White)
                 .padding(8.dp),
         ) {
 
             Text(
-                modifier = Modifier,
+                modifier = Modifier.Companion,
                 text = text,
-                color = Color.Black
+                color = Color.Companion.Black
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             //couleur + titre
             Box(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .size(200.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .align(Alignment.Companion.CenterHorizontally)
             ) {
                 val controller = rememberColorPickerController()
 
                 HsvColorPicker(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .fillMaxSize(),
                     controller = controller,
                     onColorChanged = { colorEnvelope: ColorEnvelope ->
@@ -1577,10 +1583,10 @@ fun TagInfosDialog(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             TextField(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxWidth(),
                 value = editMessage.value,
                 onValueChange = { value: String -> editMessage.value = value },
@@ -1588,18 +1594,18 @@ fun TagInfosDialog(
                 label = { Text("Titre du drapeau") }
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             Row(
-                modifier = Modifier
+                modifier = Modifier.Companion
             ) {
                 Spacer(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .weight(1f)
                 )
 
                 Button(
-                    modifier = Modifier,
+                    modifier = Modifier.Companion,
                     onClick = {
                         viewModel.setIsTagInfosDialogVisible(false)
                         viewModel.viewModelScope.launch {
@@ -1611,7 +1617,7 @@ fun TagInfosDialog(
                 }
 
                 Button(
-                    modifier = Modifier,
+                    modifier = Modifier.Companion,
                     onClick = {
                         if (hexColor != null && editMessage.value != "")
                             viewModel.viewModelScope.launch {
@@ -1645,12 +1651,12 @@ fun SigmaActivity.HomeItemDialog(
     var editPicture1 by remember { mutableStateOf(homeItemInfos.value?.picture) }
     val homeInfos by homeItemInfos.collectAsState()
 
-    Log.d(TAG, "HomeItemDialog: $homeInfos")
+    Log.d(SigmaActivity.Companion.TAG, "HomeItemDialog: $homeInfos")
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .width(600.dp)
             .background(
-                color = contentColorFor(Color.White)
+                color = contentColorFor(Color.Companion.White)
                     .copy(alpha = 0.6f)
             )
             .clickable(
@@ -1660,25 +1666,25 @@ fun SigmaActivity.HomeItemDialog(
                     viewModel.setIsHomeItemDialogVisible(false)
                 }
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Companion.Center
     ) {
         Column(
-            modifier = Modifier
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.White)
+            modifier = Modifier.Companion
+                .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp))
+                .background(Color.Companion.White)
                 .padding(8.dp),
         ) {
 
             Text(
-                modifier = Modifier,
+                modifier = Modifier.Companion,
                 text = message,
-                color = Color.Black
+                color = Color.Companion.Black
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             TextField(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxWidth(),
                 value = if (homeInfos!!.newTitle == null) homeInfos!!.oldTitle!! else homeInfos!!.newTitle!!,
                 onValueChange = { value: String ->
@@ -1692,14 +1698,14 @@ fun SigmaActivity.HomeItemDialog(
                 label = { Text("Titre") }
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             Row(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .fillMaxWidth()
             ) {
                 TextField(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .weight(1f)
                         .padding(end = 5.dp),
                     value = homeInfos!!.path!!,
@@ -1732,19 +1738,23 @@ fun SigmaActivity.HomeItemDialog(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             AsyncImage(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .size(100.dp)
                     .padding(10.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                    .border(
+                        1.dp,
+                        Color.Companion.Black,
+                        androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                    )
                     .pointerInput(true) {
                         detectTapGestures(
                             onTap = {
                                 /**
-                                 * @see BrowserOverlay
+                                 * @see lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
                                  * le Browser est un composable dans MainActivity
                                  * voir BrowserOverlay et son appel par MainActivity
                                  * le callback est un de ses paramètres d'appel
@@ -1772,21 +1782,21 @@ fun SigmaActivity.HomeItemDialog(
                     },
                 model = homeInfos!!.picture,
                 contentDescription = "Miniature",
-                contentScale = ContentScale.Fit,
+                contentScale = ContentScale.Companion.Fit,
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.Companion.height(8.dp))
 
             Row(
-                modifier = Modifier
+                modifier = Modifier.Companion
             ) {
                 Spacer(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .weight(1f)
                 )
 
                 Button(
-                    modifier = Modifier,
+                    modifier = Modifier.Companion,
                     onClick = {
                         viewModel.setIsHomeItemDialogVisible(false)
                     }
@@ -1795,7 +1805,7 @@ fun SigmaActivity.HomeItemDialog(
                 }
 
                 Button(
-                    modifier = Modifier
+                    modifier = Modifier.Companion
                         .padding(start = 5.dp),
                     onClick = {
                         if (homeInfos!!.newTitle != null && homeInfos!!.path != null) {
@@ -1804,8 +1814,8 @@ fun SigmaActivity.HomeItemDialog(
                                 newTitle = homeInfos!!.newTitle,
                                 path = homeInfos!!.path,
                                 picture = homeInfos!!.picture,
-                                index = homeItemInfos.value?.index ?:
-                                    sigmaActivity.homeViewModel.homeItems.value.size
+                                index = homeItemInfos.value?.index
+                                    ?: sigmaActivity.homeViewModel.homeItems.value.size
                             )
 
                             mainViewModel.viewModelScope.launch {
@@ -1819,8 +1829,8 @@ fun SigmaActivity.HomeItemDialog(
                                             newTitle = it.title,
                                             path = it.path,
                                             picture = it.picture,
-                                            index = homeItemInfos.value?.index ?:
-                                            sigmaActivity.homeViewModel.homeItems.value.size
+                                            index = homeItemInfos.value?.index
+                                                ?: sigmaActivity.homeViewModel.homeItems.value.size
                                         )
                                     }.toSet()
 
@@ -1867,27 +1877,31 @@ fun SigmaActivity.FolderChooserDialog(
         modifier = modifier
             .width(600.dp)
             .height(400.dp)
-            .background(Color.White)
-            .clip(RoundedCornerShape(8.dp))
-            .border(width = 1.dp, color = Color.Black, shape = RoundedCornerShape(8.dp))
+            .background(Color.Companion.White)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+            .border(
+                width = 1.dp,
+                color = Color.Companion.Black,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+            )
     ) {
         FileChooserToolbox(path = path)
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.Companion.height(8.dp))
 
         SelectedPathDisplay(path = path)
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.Companion.height(8.dp))
 
         FileList(
             path = path,
             items = items,
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.Companion.height(8.dp))
 
         BottomToolbar2(
-            modifier = Modifier,
+            modifier = Modifier.Companion,
             path = path,
             items = items,
             onDatasCompleted = onDatasCompleted,
@@ -1901,11 +1915,11 @@ fun ColumnScope.SelectedPathDisplay(
     path: MutableState<String>
 ) {
     Text(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
-            .align(Alignment.CenterHorizontally),
+            .align(Alignment.Companion.CenterHorizontally),
         text = path.value.substringAfterLast("/"),
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Companion.Center
 
     )
 }
@@ -1924,7 +1938,7 @@ fun ColumnScope.BottomToolbar2(
             .fillMaxWidth()
     ) {
         Spacer(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .weight(1f)
         )
 
@@ -1937,7 +1951,7 @@ fun ColumnScope.BottomToolbar2(
         }
 
         Button(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(horizontal = 5.dp),
             onClick = {
                 onDatasCompleted(path.value)
@@ -1953,12 +1967,12 @@ fun ColumnScope.BottomToolbar2(
 fun FileChooserToolbox(path: MutableState<String>) {
 
     Row(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .padding(top = 10.dp)
     ) {
         Button(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
@@ -1969,7 +1983,7 @@ fun FileChooserToolbox(path: MutableState<String>) {
         }
 
         Button(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
@@ -1980,7 +1994,7 @@ fun FileChooserToolbox(path: MutableState<String>) {
         }
 
         Button(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
@@ -1991,7 +2005,7 @@ fun FileChooserToolbox(path: MutableState<String>) {
         }
 
         Button(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
@@ -2008,19 +2022,23 @@ fun FileChooserToolbox(path: MutableState<String>) {
 fun ColumnScope.FileList(path: MutableState<String>, items: MutableState<List<Item>>) {
 
     LazyColumn(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .weight(1f)
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .border(width = 1.dp, color = Color.Gray, shape = RoundedCornerShape(8.dp))
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+            .border(
+                width = 1.dp,
+                color = Color.Companion.Gray,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+            )
     ) {
         val isEmpty = items.value.isEmpty()
 
         if (isEmpty)
             item {
                 Box(
-                    modifier = Modifier.fillParentMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.Companion.fillParentMaxSize(),
+                    contentAlignment = Alignment.Companion.Center
                 ) {
                     Text(text = "Le répertoire est vide")
                 }
@@ -2038,7 +2056,7 @@ fun ColumnScope.FileList(path: MutableState<String>, items: MutableState<List<It
 fun ColumnScope.ItemRow(path: MutableState<String>, item: Item) {
 
     Row(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .padding(horizontal = 10.dp)
             .clickable {
@@ -2047,18 +2065,18 @@ fun ColumnScope.ItemRow(path: MutableState<String>, item: Item) {
             }
     ) {
         AsyncImage(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .size(50.dp)
                 .padding(end = 10.dp),
             model = if (item.isFile()) R.drawable.file else R.drawable.folder_empty,
             contentDescription = "Miniature",
-            contentScale = ContentScale.Fit,
+            contentScale = ContentScale.Companion.Fit,
 
             )
 
         Text(
-            modifier = Modifier
-                .align(Alignment.CenterVertically),
+            modifier = Modifier.Companion
+                .align(Alignment.Companion.CenterVertically),
             text = item.name
         )
     }
@@ -2112,11 +2130,11 @@ data class HomeItemInfosDTO(
 
 @Composable
 fun IconWithRing(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.Companion,
     iconRes: Int,
     ringColor: Color,
     ringWidth: Dp = 2.dp,
-    iconTint: Color = Color.Unspecified, // Permet de garder la couleur originale de l'icône
+    iconTint: Color = Color.Companion.Unspecified, // Permet de garder la couleur originale de l'icône
     ringSize: Dp = 33.dp,
     iconSize: Dp = 28.dp,
     isRingEnabled: Boolean
@@ -2138,18 +2156,18 @@ fun IconWithRing(
         else modifier
             .border(
                 width = ringWidth,
-                color = Color.Transparent,
+                color = Color.Companion.Transparent,
                 shape = CircleShape // Essentiel pour que la bordure soit un anneau.
             )
             .padding(ringWidth)
             .size(ringSize),
-        contentAlignment = Alignment.Center // S'assure que l'icône est bien centrée.
+        contentAlignment = Alignment.Companion.Center // S'assure que l'icône est bien centrée.
     ) {
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = "Icône avec un anneau",
             // L'icône prend toute la place disponible à l'intérieur du padding.
-            modifier = Modifier.size(iconSize),
+            modifier = Modifier.Companion.size(iconSize),
             tint = iconTint
         )
     }

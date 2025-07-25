@@ -28,11 +28,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -68,19 +65,20 @@ import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
-import lorry.folder.items.dossiersigma.ui.bottomAreas.BrowserBottomToolbar
-import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
+import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.components.CustomMoveFileExistingDestinationDialog
-import lorry.folder.items.dossiersigma.ui.components.CustomTextDialog
-import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
-import lorry.folder.items.dossiersigma.ui.components.FolderChooserDialog
-import lorry.folder.items.dossiersigma.ui.components.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.components.TagInfos
-import lorry.folder.items.dossiersigma.ui.components.TagInfosDialog
-import lorry.folder.items.dossiersigma.ui.components.Tools
-import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.bottomArea.CustomMoveFileExistingDestinationDialog
+import lorry.folder.items.dossiersigma.ui.bottomArea.CustomTextDialog
+import lorry.folder.items.dossiersigma.ui.bottomArea.CustomYesNoDialog
+import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog
+import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemDialog
+import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
+import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfosDialog
+import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
+import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeDialogs
 import lorry.folder.items.dossiersigma.ui.home.homePage
 import lorry.folder.items.dossiersigma.ui.memoEditor.MemoEditor
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
@@ -216,7 +214,6 @@ class SigmaActivity : ComponentActivity() {
                     val currentFolder by mainViewModel.currentFolder.collectAsState()
                     val selectedItem by mainViewModel.selectedItem.collectAsState()
                     val activity = LocalContext.current as Activity
-                    val currentTool by BottomTools.currentTool.collectAsState()
                     val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
@@ -243,6 +240,9 @@ class SigmaActivity : ComponentActivity() {
                         BottomTools.setCurrentContent(DEFAULT)
                     }
 
+                    //////////////////////////////
+                    // box de l' aire centrale  //
+                    //////////////////////////////
                     Box(
                         modifier = Modifier
                             .padding(padding)
@@ -565,183 +565,11 @@ class SigmaActivity : ComponentActivity() {
                             }
                         }
 
-                        if (isTextDialogVisible)
-                            CustomTextDialog(
-                                text = dialogMessage.value ?: "",
-                                viewModel = mainViewModel,
-                                initialText = mainViewModel.dialogInitialText.value ?: ""
-                            ) { text ->
-                                if (mainViewModel.dialogOnOkLambda != null) {
-                                    mainViewModel.viewModelScope.launch {
-                                        mainViewModel.dialogOnOkLambda?.invoke(
-                                            text,
-                                            mainViewModel,
-                                            this@SigmaActivity
-                                        )
-                                    }
-                                    mainViewModel.dialogOnOkLambda = null
-                                } else
-                                    mainViewModel.viewModelScope.launch {
-                                        currentTool?.onClick?.let {
-                                            it.invoke(
-                                                currentTool!!,
-                                                mainViewModel,
-                                                this@SigmaActivity
-                                            )
-                                        }
-                                    }
-                            }
-
-                        if (isYesNoDialogVisible) {
-                            CustomYesNoDialog(
-                                dialogMessage.value ?: "",
-                                mainViewModel
-                            ) { yesNo ->
-                                if (mainViewModel.dialogYesNoLambda != null) {
-                                    mainViewModel.viewModelScope.launch {
-                                        mainViewModel.dialogYesNoLambda?.invoke(
-                                            yesNo,
-                                            mainViewModel,
-                                            this@SigmaActivity
-                                        )
-                                    }
-                                    mainViewModel.dialogYesNoLambda = null
-                                } else
-                                    mainViewModel.viewModelScope.launch {
-                                        currentTool?.onClick?.let {
-                                            it.invoke(
-                                                currentTool!!,
-                                                mainViewModel,
-                                                this@SigmaActivity
-                                            )
-                                        }
-                                    }
-                            }
-                        }
-
-                        if (isMoveFileDialogVisible) {
-                            CustomMoveFileExistingDestinationDialog(
-                                viewModel = mainViewModel,
-                                onOverwrite = {
-                                    val intent =
-                                        Intent(
-                                            this@SigmaActivity,
-                                            MoveFileService::class.java
-                                        ).apply {
-                                            putExtra(
-                                                "source",
-                                                BottomTools.movingItem?.fullPath ?: ""
-                                            )
-                                            putExtra(
-                                                "destination",
-                                                BottomTools.movingItem?.fullPath ?: ""
-                                            )
-                                            putExtra("addSuffix", "")
-                                        }
-                                    startService(intent)
-                                    mainViewModel.refreshCurrentFolder()
-                                },
-                                onCancel = {
-                                    BottomTools.setCurrentContent(DEFAULT)
-                                    val item = BottomTools.movingItem
-                                    val movingParent = item?.fullPath?.substringBeforeLast("/")
-
-                                    if (movingParent != null)
-                                        mainViewModel.goToFolder(movingParent)
-                                    BottomTools.movingItem = null
-                                    mainViewModel.setSelectedItem(null, true)
-                                    mainViewModel.refreshCurrentFolder()
-
-
-                                },
-                                onCreateCopy = {
-                                    val intent =
-                                        Intent(
-                                            this@SigmaActivity,
-                                            MoveFileService::class.java
-                                        ).apply {
-                                            putExtra(
-                                                "source",
-                                                BottomTools.movingItem?.fullPath ?: ""
-                                            )
-                                            putExtra(
-                                                "destination",
-                                                BottomTools.itemToMove?.fullPath
-                                            )
-                                            putExtra("addSuffix", " - copie")
-                                        }
-                                    startService(intent)
-                                    mainViewModel.refreshCurrentFolder()
-                                }
-                            )
-                        }
-
-                        if (isTagInfosDialogVisible) {
-                            TagInfosDialog(
-                                text = dialogMessage.value ?: "",
-                                viewModel = mainViewModel,
-                                onDatasCompleted = { infos: TagInfos?, model: SigmaViewModel, activity: SigmaActivity ->
-                                    mainViewModel.dialogTagLambda?.invoke(
-                                        infos!!,
-                                        mainViewModel,
-                                        this@SigmaActivity
-                                    )
-                                },
-                                mainActivity = this@SigmaActivity
-                            )
-                        }
-
-                        if (isHomeItemDialogVisible) {
-                            val dialogHomeItemInfos by homeViewModel.dialogHomeItemInfos.collectAsState()
-
-                            HomeItemDialog(
-                                viewModel = mainViewModel,
-                                onDatasCompleted = { infos: HomeItemInfos? ->
-                                    if (infos?.newTitle == null || infos.path == null)
-                                        return@HomeItemDialog
-                                    val items = homeViewModel.homeItems.value
-                                    if (infos.oldTitle in items.map { it.title }) {
-                                        //modifier
-                                        homeViewModel.setHomeItems(
-                                            items
-                                                .map {
-                                                    if (it.title == infos.oldTitle)
-                                                        HomeItem(
-                                                            title = infos.newTitle,
-                                                            path = infos.path,
-                                                            picture = infos.picture
-                                                        )
-                                                    else
-                                                        it
-                                                })
-                                    } else {
-                                        //insérer
-                                        val newList = items.toMutableList()
-                                        newList.add(
-                                            HomeItem(
-                                                title = infos.newTitle,
-                                                picture = infos.picture,
-                                                path = infos.path
-                                            )
-                                        )
-
-                                        homeViewModel.setHomeItems(newList)
-                                    }
-                                },
-                                message = "Addition/Edition de raccourci",
-                                homeItemInfos = homeViewModel.dialogHomeItemInfos,
-                            )
-                        }
-
-                        if (isFilePickerVisible) {
-                            FolderChooserDialog(
-                                modifier = Modifier
-                                    .align(Alignment.Center),
-                                viewModel = mainViewModel
-                            ) { path ->
-                                onFolderChosen(path)
-                            }
-                        }
+                        ////////////////////////////////////////////////
+                        // TextDialog, YesNoDialogn MoveFileDialog,   //
+                        // TagInfosDialog, HomeItemDialog, FilePicker //
+                        ////////////////////////////////////////////////
+                        FullSizeDialogs()
                     }
 
                     val richTextState = rememberRichTextState()

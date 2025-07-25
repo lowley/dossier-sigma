@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.copieurtho2.__data.NAS.DS_FTP
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
-import lorry.folder.items.dossiersigma.ui.components.BottomTools
+import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

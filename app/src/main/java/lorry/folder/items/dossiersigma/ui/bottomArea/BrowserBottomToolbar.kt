@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.bottomAreas
+package lorry.folder.items.dossiersigma.ui.bottomArea
 
 import android.webkit.WebView
 import androidx.compose.foundation.background
@@ -23,8 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.solver.GoalRow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity

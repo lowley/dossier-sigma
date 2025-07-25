@@ -6,8 +6,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import android.webkit.WebView
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextRange
@@ -47,12 +45,12 @@ import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
-import lorry.folder.items.dossiersigma.ui.components.BottomTools
-import lorry.folder.items.dossiersigma.ui.components.BottomTools.viewModel
-import lorry.folder.items.dossiersigma.ui.components.TagInfos
-import lorry.folder.items.dossiersigma.ui.components.Tool
-import lorry.folder.items.dossiersigma.ui.components.Tools
-import lorry.folder.items.dossiersigma.ui.components.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
+import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
+import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
+import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
+import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
+import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import java.io.File
 import java.util.UUID

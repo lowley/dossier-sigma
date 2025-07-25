@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
 import android.content.Context
-import androidx.compose.animation.core.rememberTransition
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -14,8 +13,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.ui.components.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.components.HomeItemInfosDTO
+import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfosDTO
 import javax.inject.Inject
 import javax.inject.Singleton
 
