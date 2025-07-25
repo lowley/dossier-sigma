@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.elixer.palette.Presets
@@ -73,6 +74,7 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
+import lorry.folder.items.dossiersigma.ui.centralArea.Memo
 import lorry.folder.items.dossiersigma.ui.home.homePage
 import lorry.folder.items.dossiersigma.ui.memoEditor.MemoEditor
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
@@ -553,69 +555,11 @@ class SigmaActivity : ComponentActivity() {
                         // browser                                    //
                         ////////////////////////////////////////////////
                         FullSizeExtras()
-                    }
 
-                    val richTextState = rememberRichTextState()
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-//                            .zIndex(20f)
-                    ) {
-                        val isRichText = mainViewModel.isDisplayingMemo.collectAsState()
-                        val isDisplayingPalette =
-                            mainViewModel.isDisplayingMemoPalette.collectAsState()
-
-                        if (isRichText.value) {
-                            MemoEditor(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter),
-                                isRichText = isRichText,
-                                richTextState = richTextState
-                            )
-                        }
-
-                        if (isRichText.value && isDisplayingPalette.value) {
-                            val keyboardController = LocalSoftwareKeyboardController.current
-                            keyboardController?.hide()
-
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-//                                    .zIndex(25f),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Palette(
-                                        defaultColor = Color.Magenta,
-                                        buttonSize = 100.dp,
-                                        swatches = Presets.material(),
-                                        innerRadius = 400f,
-                                        strokeWidth = 120f,
-                                        spacerRotation = 5f,
-                                        spacerOutward = 2f,
-                                        verticalAlignment = VerticalAlignment.Middle,
-                                        horizontalAlignment = HorizontalAlignment.Center,
-                                        onColorSelected = { color ->
-                                            mainViewModel.setIsDisplayingMemoPalette(false)
-                                            val saved =
-                                                mainViewModel.savedSelectedRange.value
-                                                    ?: return@Palette
-                                            richTextState.selection = saved
-                                            richTextState.addSpanStyle(
-                                                SpanStyle(
-                                                    color = color
-                                                )
-                                            )
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                        ////////////////////////////////
+                        // memo + palette de couleurs //
+                        ////////////////////////////////
+                        Memo()
                     }
                 }
             }
