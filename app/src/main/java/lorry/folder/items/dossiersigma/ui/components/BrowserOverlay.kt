@@ -7,6 +7,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -45,7 +46,7 @@ fun BrowserOverlay(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     onImageClicked: (String) -> Unit,
-    viewmodel: SigmaViewModel
+    setCurrentPage: (String?) -> Unit,
 ) {
     val context = LocalContext.current
     var webView by remember { mutableStateOf<WebView?>(null) }
@@ -53,26 +54,31 @@ fun BrowserOverlay(
     var canGoForward by remember { mutableStateOf(false) }
 
     if (currentPage != null) {
-        Column(
-            modifier = modifier
+        Box(
+            modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(Color.Black.copy(alpha = 0.5f))
         ) {
-            key(currentPage) {
-                AndroidView(
-                    modifier = Modifier.weight(1f),
-                    factory = {
-                        WebView(it).apply {
-                            webChromeClient = WebChromeClient()
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled = true
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(Color.White)
+            ) {
+                key(currentPage) {
+                    AndroidView(
+                        modifier = Modifier.weight(1f),
+                        factory = {
+                            WebView(it).apply {
+                                webChromeClient = WebChromeClient()
+                                settings.javaScriptEnabled = true
+                                settings.domStorageEnabled = true
 
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageFinished(view: WebView, url: String) {
-                                    super.onPageFinished(view, url)
-                                    canGoBack = view.canGoBack()
-                                    canGoForward = view.canGoForward()
-                                    val js = """
+                                webViewClient = object : WebViewClient() {
+                                    override fun onPageFinished(view: WebView, url: String) {
+                                        super.onPageFinished(view, url)
+                                        canGoBack = view.canGoBack()
+                                        canGoForward = view.canGoForward()
+                                        val js = """
                             document.addEventListener('contextmenu', function(event) {
                                 event.preventDefault();
                                 var element = event.target;
@@ -81,93 +87,95 @@ fun BrowserOverlay(
                                 }
                             });
                         """.trimIndent()
-                                    evaluateJavascript(js, null)
-                                }
-
-                            }
-                            addJavascriptInterface(
-                                object {
-                                    var hasClicked = false
-                                    
-                                    @JavascriptInterface
-                                    fun onImageLongClick(imageUrl: String) {
-                                        if (hasClicked) return
-                                        hasClicked = true
-                                        onImageClicked(imageUrl)
-                                        onClose()
+                                        evaluateJavascript(js, null)
                                     }
-                                },
-                                "android"
-                            )
 
-                            loadUrl(currentPage)
-                            webView = this
+                                }
+                                addJavascriptInterface(
+                                    object {
+                                        var hasClicked = false
+
+                                        @JavascriptInterface
+                                        fun onImageLongClick(imageUrl: String) {
+                                            if (hasClicked) return
+                                            hasClicked = true
+                                            onImageClicked(imageUrl)
+                                            onClose()
+                                        }
+                                    },
+                                    "android"
+                                )
+
+                                loadUrl(currentPage)
+                                webView = this
+                            }
+
                         }
+                    )
+                }
 
-                    }
-                )
-            }
-
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min)
-                    .background(Color.Transparent)
-                    .padding(8.dp)
-                    .drawBehind {
-                        // Dessine une ligne horizontale tout en haut
-                        val strokeWidthPx = 2.dp.toPx()
-                        drawLine(
-                            color = Color.Blue,
-                            start = Offset(0f, 0f),
-                            end = Offset(size.width, 0f),
-                            strokeWidth = strokeWidthPx
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Min)
+                        .background(Color.Transparent)
+                        .padding(8.dp)
+                        .drawBehind {
+                            // Dessine une ligne horizontale tout en haut
+                            val strokeWidthPx = 2.dp.toPx()
+                            drawLine(
+                                color = Color.Blue,
+                                start = Offset(0f, 0f),
+                                end = Offset(size.width, 0f),
+                                strokeWidth = strokeWidthPx
+                            )
+                        },
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Button(
+                        onClick = { webView?.goBack() }, enabled = canGoBack,
+                        modifier = Modifier.padding(horizontal = 5.dp)
+                    )
+                    {
+                        Icon(
+                            painter = painterResource(id = R.drawable.la_gauche),
+                            contentDescription = "back",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
                         )
-                    },
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Button(
-                    onClick = { webView?.goBack() }, enabled = canGoBack,
-                    modifier = Modifier.padding(horizontal = 5.dp)
-                )
-                {
-                    Icon(
-                        painter = painterResource(id = R.drawable.la_gauche),
-                        contentDescription = "back",
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                }
+                    }
 
-                Button(
-                    onClick = { viewmodel.browserManager.setCurrentPage("https://www.google.fr") },
-                    modifier = Modifier.padding(horizontal = 5.dp)
-                )
-                {
-                    Icon(
-                        painter = painterResource(id = R.drawable.maison),
-                        contentDescription = "home",
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                    Button(
+                        onClick = { setCurrentPage("https://www.google.fr") },
+                        modifier = Modifier.padding(horizontal = 5.dp)
                     )
-                }
+                    {
+                        Icon(
+                            painter = painterResource(id = R.drawable.maison),
+                            contentDescription = "home",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                    }
 
-                Button(
-                    onClick = onClose,
-                    modifier = Modifier.padding(horizontal = 5.dp)
-                ) {
-                    Text("Retourner à l'application")
-                }
+                    Button(
+                        onClick = onClose,
+                        modifier = Modifier.padding(horizontal = 5.dp)
+                    ) {
+                        Text("Retourner à l'application")
+                    }
 
-                Button(
-                    onClick = { webView?.goForward() }, enabled = canGoForward,
-                    modifier = Modifier.padding(horizontal = 5.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.la_droite),
-                        contentDescription = "forward",
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
+                    Button(
+                        onClick = { webView?.goForward() }, enabled = canGoForward,
+                        modifier = Modifier.padding(horizontal = 5.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.la_droite),
+                            contentDescription = "forward",
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                    }
                 }
             }
         }
+
     }
 }

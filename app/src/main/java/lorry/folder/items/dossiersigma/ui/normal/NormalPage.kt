@@ -1,5 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.normal
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,7 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.unit.dp
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
@@ -24,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
 import lorry.folder.items.dossiersigma.ui.sigma.lazyGridItems
 
@@ -44,7 +49,11 @@ fun NormalPage(
     onTopLeftPanelClick: (Item) -> Unit,
     getInfoSup: suspend (Item) -> String,
     getInfoInf: suspend (Item) -> String,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    currentPage: StateFlow<String?>,
+    closeBrowser: () -> Unit,
+    onGotBrowserImage: (String) -> Unit,
+    setCurrentBrowserPage: (String?) -> Unit,
 ) {
     val currentFolder by currentFolderFlow.collectAsState()
 
@@ -58,43 +67,58 @@ fun NormalPage(
     PullToRefreshContainer(
         onRefresh = onRefresh
     ) {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(150.dp),
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 10.dp)
-                .weight(1f),
-            state = currentScrollState
         ) {
-            lazyGridItems(currentFolder.items, key = {
-                it.fullPath + "-" + it.id
-            }) { item ->
-                ItemComponent(
-                    item = item,
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    onItemUpdated = { item ->
+
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(150.dp),
+                modifier = Modifier
+                    .padding(horizontal = 10.dp),
+                state = currentScrollState
+            ) {
+                lazyGridItems(currentFolder.items, key = {
+                    it.fullPath + "-" + it.id
+                }) { item ->
+                    ItemComponent(
+                        item = item,
+                        modifier = Modifier
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        onItemUpdated = { item ->
 //                                                mainViewModel.updateItemInList(item)
-                    },
+                        },
 //                                        onDrop = { tag: ColoredTag ->
 //                                            mainViewModel.assignColoredTagToItem(item, tag)
 //                                      }
-                    imageCache = imageCache,
-                    flagCache = flagCache,
-                    scaleCache = scaleCache,
-                    memoCache = memoCache,
-                    onHoveredNotHovered = onHoveredNotHovered,
-                    selectedItemFullPath = selectedItemFullPath,
-                    dragOffset = dragOffset,
-                    draggableStartPosition = draggableStartPosition,
-                    onItemTapped = onItemTapped,
-                    onItemLongPressed = onItemLongPressed,
-                    onTopLeftPanelClick = onTopLeftPanelClick,
-                    getInfoSup = getInfoSup,
-                    getInfoInf = getInfoInf
-                )
+                        imageCache = imageCache,
+                        flagCache = flagCache,
+                        scaleCache = scaleCache,
+                        memoCache = memoCache,
+                        onHoveredNotHovered = onHoveredNotHovered,
+                        selectedItemFullPath = selectedItemFullPath,
+                        dragOffset = dragOffset,
+                        draggableStartPosition = draggableStartPosition,
+                        onItemTapped = onItemTapped,
+                        onItemLongPressed = onItemLongPressed,
+                        onTopLeftPanelClick = onTopLeftPanelClick,
+                        getInfoSup = getInfoSup,
+                        getInfoInf = getInfoInf
+                    )
+                }
             }
+
+            val url by currentPage.collectAsState()
+
+            if (url != null)
+                BrowserOverlay(
+                    currentPage = url,
+                    onClose = closeBrowser,
+                    onImageClicked = onGotBrowserImage,
+                    setCurrentPage = setCurrentBrowserPage
+                )
         }
+
     }
 }
 

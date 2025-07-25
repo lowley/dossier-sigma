@@ -564,23 +564,15 @@ class SigmaActivity : ComponentActivity() {
                                     },
                                     onRefresh = {
                                         mainViewModel.refreshCurrentFolder()
-                                    }
+                                    },
+                                    currentPage = mainViewModel.browserManager.currentPage,
+                                    closeBrowser = {
+                                        mainViewModel.browserManager.closeBrowser()
+                                    },
+                                    onGotBrowserImage = onGotBrowserImage,
+                                    setCurrentBrowserPage = mainViewModel.browserManager::setCurrentPage
                                 )
-
                             }
-
-                            val url by mainViewModel.browserManager.currentPage.collectAsState()
-
-                            BrowserOverlay(
-                                currentPage = url,
-                                onClose = {
-                                    mainViewModel.browserManager.closeBrowser()
-                                },
-                                onImageClicked = { url ->
-                                    onGotBrowserImage(url)
-                                },
-                                viewmodel = mainViewModel
-                            )
                         }
 
                         if (isTextDialogVisible)
