@@ -21,12 +21,13 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
 @Composable
 context(SigmaActivity, BoxScope)
-fun FullSizeDialogs(
+fun FullSizeExtras(
 
 ) {
     val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
@@ -213,4 +214,22 @@ fun FullSizeDialogs(
             onFolderChosen(path)
         }
     }
+
+    val url by mainViewModel.browserManager.currentPage.collectAsState()
+
+    if (url != null)
+        BrowserOverlay(
+            currentPage = url,
+            onClose =  {
+                mainViewModel.browserManager.closeBrowser()
+            },
+            onImageClicked = onGotBrowserImage,
+            setCurrentPage = mainViewModel.browserManager::setCurrentPage,
+            webView = mainViewModel.webView,
+            canGoBack = mainViewModel.canGoBack,
+            canGoForward = mainViewModel.canGoForward,
+            setCanGoBack = mainViewModel::setCanGoBack,
+            setCanGoForward = mainViewModel::setCanGoForward,
+            setWebView = mainViewModel::setWebView
+        )
 }

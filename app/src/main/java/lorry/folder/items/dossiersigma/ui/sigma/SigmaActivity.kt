@@ -61,24 +61,18 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.intent.DSI_IntentWrapper
-import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.bottomArea.CustomMoveFileExistingDestinationDialog
-import lorry.folder.items.dossiersigma.ui.bottomArea.CustomTextDialog
-import lorry.folder.items.dossiersigma.ui.bottomArea.CustomYesNoDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
-import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeDialogs
+import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.home.homePage
 import lorry.folder.items.dossiersigma.ui.memoEditor.MemoEditor
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
@@ -549,27 +543,16 @@ class SigmaActivity : ComponentActivity() {
                                     onRefresh = {
                                         mainViewModel.refreshCurrentFolder()
                                     },
-                                    currentPage = mainViewModel.browserManager.currentPage,
-                                    closeBrowser = {
-                                        mainViewModel.browserManager.closeBrowser()
-                                    },
-                                    onGotBrowserImage = onGotBrowserImage,
-                                    setCurrentBrowserPage = mainViewModel.browserManager::setCurrentPage,
-                                    webView = mainViewModel.webView,
-                                    canGoBack = mainViewModel.canGoBack,
-                                    canGoForward = mainViewModel.canGoForward,
-                                    setCanGoBack = mainViewModel::setCanGoBack,
-                                    setCanGoForward = mainViewModel::setCanGoForward,
-                                    setWebView = mainViewModel::setWebView
                                 )
                             }
                         }
 
                         ////////////////////////////////////////////////
-                        // TextDialog, YesNoDialogn MoveFileDialog,   //
+                        // TextDialog, YesNoDialog, MoveFileDialog,   //
                         // TagInfosDialog, HomeItemDialog, FilePicker //
+                        // browser                                    //
                         ////////////////////////////////////////////////
-                        FullSizeDialogs()
+                        FullSizeExtras()
                     }
 
                     val richTextState = rememberRichTextState()

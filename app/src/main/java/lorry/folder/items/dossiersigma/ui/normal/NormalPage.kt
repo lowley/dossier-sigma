@@ -32,10 +32,11 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.ItemComponent
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.lazyGridItems
 
 @Composable
-context(ColumnScope)
+context(SigmaActivity, ColumnScope)
 fun NormalPage(
     currentFolderFlow: StateFlow<SigmaFolder>,
     imageCache: StateFlow<MutableMap<String, Any?>>,
@@ -52,16 +53,7 @@ fun NormalPage(
     getInfoSup: suspend (Item) -> String,
     getInfoInf: suspend (Item) -> String,
     onRefresh: () -> Unit,
-    currentPage: StateFlow<String?>,
-    closeBrowser: () -> Unit,
-    onGotBrowserImage: (String) -> Unit,
-    setCurrentBrowserPage: (String?) -> Unit,
-    webView: StateFlow<WebView?>,
-    canGoBack: StateFlow<Boolean>,
-    canGoForward: StateFlow<Boolean>,
-    setCanGoBack: (Boolean) -> Unit,
-    setCanGoForward: (Boolean) -> Unit,
-    setWebView: (WebView) -> Unit
+
 ) {
     val currentFolder by currentFolderFlow.collectAsState()
 
@@ -116,21 +108,21 @@ fun NormalPage(
                 }
             }
 
-            val url by currentPage.collectAsState()
-
-            if (url != null)
-                BrowserOverlay(
-                    currentPage = url,
-                    onClose = closeBrowser,
-                    onImageClicked = onGotBrowserImage,
-                    setCurrentPage = setCurrentBrowserPage,
-                    webView = webView,
-                    canGoBack = canGoBack,
-                    canGoForward = canGoForward,
-                    setCanGoBack = setCanGoBack,
-                    setCanGoForward = setCanGoForward,
-                    setWebView = setWebView
-                )
+//            val url by mainViewModel.browserManager.currentPage.collectAsState()
+//
+//            if (url != null)
+//                BrowserOverlay(
+//                    currentPage = url,
+//                    onClose = closeBrowser,
+//                    onImageClicked = onGotBrowserImage,
+//                    setCurrentPage = setCurrentBrowserPage,
+//                    webView = webView,
+//                    canGoBack = canGoBack,
+//                    canGoForward = canGoForward,
+//                    setCanGoBack = setCanGoBack,
+//                    setCanGoForward = setCanGoForward,
+//                    setWebView = setWebView
+//                )
         }
 
     }
