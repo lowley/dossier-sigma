@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -18,11 +17,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,11 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomAppBar
-import androidx.compose.material.ButtonColors
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -47,14 +39,9 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -72,14 +59,7 @@ import com.elixer.palette.constraints.VerticalAlignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
-import de.charlex.compose.BottomAppBarSpeedDialFloatingActionButton
 import de.charlex.compose.rememberSpeedDialFloatingActionButtonState
-import dev.materii.pullrefresh.PullRefreshLayout
-import dev.materii.pullrefresh.rememberPullRefreshState
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -88,9 +68,9 @@ import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
+import lorry.folder.items.dossiersigma.ui.bottomAreas.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.components.BottomTools
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.components.CustomMoveFileExistingDestinationDialog
 import lorry.folder.items.dossiersigma.ui.components.CustomTextDialog
 import lorry.folder.items.dossiersigma.ui.components.CustomYesNoDialog
@@ -108,14 +88,13 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
-import kotlin.collections.distinctBy
 
 
 @AndroidEntryPoint
 class SigmaActivity : ComponentActivity() {
 
     companion object {
-        val TAG = "MainActivity"
+        val TAG = "SigmaActivity"
         val FILE_REQUEST_CODE = 969
     }
 
@@ -179,6 +158,9 @@ class SigmaActivity : ComponentActivity() {
             Scaffold(
                 containerColor = Color(0xFF363E4C),
                 bottomBar = {
+                    //////////////////////////
+                    // bottomAppBar normale //
+                    //////////////////////////
                     if (!homePageVisible && currentPage == null)
 //                        && (currentContentInfos.first == "DEFAULT_CONTENT" &&
 //                                currentContentInfos.second.isNotEmpty())
@@ -205,117 +187,16 @@ class SigmaActivity : ComponentActivity() {
                             }
                         }
 
+                    ///////////////////////////////
+                    // barre d'outils du browser //
+                    ///////////////////////////////
                     if (currentPage != null)
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.Transparent)
-                        ) {
-                            Spacer(
-                                modifier = Modifier
-                                    .padding(start = 50.dp, end = 50.dp, top = 5.dp, bottom = 0.dp)
-                                    .height(1.dp)
-                                    .fillMaxWidth()
-                                    .background(Color.LightGray)
-                            )
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(IntrinsicSize.Min)
-                                    .background(Color.Transparent)
-                                    .padding(top = 8.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Button(
-                                    onClick = { webView?.value?.goBack() },
-                                    enabled = canGoBack.value,
-                                    modifier = Modifier.padding(horizontal = 5.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFe9c46a),
-                                        contentColor = Color.Black
-                                    )
-                                )
-                                {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.la_gauche),
-                                        contentDescription = "back",
-                                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                                        tint = Color.Black
-                                    )
-                                }
-
-                                Button(
-                                    onClick = { mainViewModel.browserManager.setCurrentPage("https://www.google.fr") },
-                                    modifier = Modifier.padding(horizontal = 5.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFe9c46a),
-                                        contentColor = Color.Black
-                                    )
-                                )
-                                {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.maison),
-                                        contentDescription = "home",
-                                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                                        tint = Color.Black
-                                    )
-                                }
-
-                                Button(
-                                    onClick = mainViewModel.browserManager::closeBrowser,
-                                    modifier = Modifier.padding(horizontal = 5.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFe9c46a),
-                                        contentColor = Color.Black
-                                    )
-                                ) {
-                                    Text(
-                                        "Retourner à l'application",
-                                        color = Color.Black
-                                    )
-                                }
-
-                                Button(
-                                    onClick = { webView.value?.goForward() },
-                                    enabled = canGoForward.value,
-                                    modifier = Modifier.padding(horizontal = 5.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFe9c46a),
-                                        contentColor = Color.Black
-                                    )
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.la_droite),
-                                        contentDescription = "forward",
-                                        modifier = Modifier.size(ButtonDefaults.IconSize),
-                                        tint = Color.Black
-                                    )
-                                }
-                            }
-                        }
+                        BrowserBottomToolbar(
+                            webView = mainViewModel.webView,
+                            canGoBackFlow = mainViewModel.canGoBack,
+                            canGoForwardFlow = mainViewModel.canGoForward
+                        )
                 },
-//                bottomBar = {
-//                    BottomAppBar(
-//                        modifier = Modifier.padding(end = 15.dp)
-//                    ) {
-//                        Spacer(modifier = Modifier.weight(1f))
-//
-////                        BottomAppBarSpeedDialFloatingActionButton(
-////                            state = fabState,
-////                            containerColor = Color.Transparent,
-////                            modifier = Modifier
-////                        ) {
-////                            Icon(
-////                                modifier = Modifier
-////                                    .size(30.dp),
-////                                painter = painterResource(R.drawable.dossiers),
-////                                tint = Color.Black,
-////                                contentDescription = null
-////                            )
-////                        }
-//                    }
-//                },
                 floatingActionButton = {
                     Column {
                         NewFolderFAB(
