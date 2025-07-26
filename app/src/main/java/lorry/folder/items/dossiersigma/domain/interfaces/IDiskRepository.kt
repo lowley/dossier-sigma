@@ -4,14 +4,14 @@ import androidx.compose.ui.layout.ContentScale
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.Item
-import lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY
+import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 
 interface IDiskRepository {
     
-    suspend fun getFolderItems(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY) : List<Item>
+    suspend fun getFolderItems(folderPath: String, sorting: SortingCriterion) : List<Item>
     suspend fun saveUrlToTempFile(fileUrl: String) : String?
-    suspend fun getSigmaFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY, ):
+    suspend fun getSigmaFolder(folderPath: String, sorting: SortingCriterion, ):
             SigmaFolder
 
     suspend fun createFolderHtmlFile(item: Item)

@@ -27,8 +27,7 @@ abstract class Item(
     val modificationDate: Long,
     val tag: ColoredTag? = null,
     val scale: ContentScale? = null,
-    val memo: String? = null
-    
+    val memo: String? = null,
 ) {
     fun isFile(): Boolean {
         return this is SigmaFile

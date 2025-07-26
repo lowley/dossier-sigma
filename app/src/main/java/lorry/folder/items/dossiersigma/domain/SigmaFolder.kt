@@ -12,13 +12,13 @@ class SigmaFolder(
     modificationDate: Long,
     tag: ColoredTag?,
     scale: ContentScale?,
-    memo: String? = null
+    memo: String? = null,
 ) : Item(path, name, picture, id, modificationDate, tag, scale, memo) {
 
     override fun toString(): String {
         return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${
             id.take(5)
-        }, items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: $memo"
+        }, items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: $memo)"
     }
 
     constructor(
@@ -29,7 +29,7 @@ class SigmaFolder(
         modificationDate: Long,
         tag: ColoredTag?,
         scale: ContentScale?,
-        memo: String? = null
+        memo: String? = null,
     ) : this(
         path = fullPath.substringBeforeLast("/"),
         name = fullPath.substringAfterLast("/"),
@@ -39,7 +39,7 @@ class SigmaFolder(
         tag = tag,
         scale = scale,
         memo = memo,
-        items = items
+        items = items,
     )
 
     val isEmpty: Boolean
@@ -54,7 +54,7 @@ class SigmaFolder(
         modificationDate: Long = this.modificationDate,
         tag: ColoredTag? = this.tag,
         scale: ContentScale? = this.scale,
-        memo: String? = this.memo
+        memo: String? = this.memo,
     ): SigmaFolder {
         val result = SigmaFolder(
             path = path, name = name, picture = picture,
@@ -69,7 +69,7 @@ class SigmaFolder(
             modificationDate = modificationDate,
             tag = tag,
             scale = scale,
-            memo = memo
+            memo = memo,
         )
         return result
     }

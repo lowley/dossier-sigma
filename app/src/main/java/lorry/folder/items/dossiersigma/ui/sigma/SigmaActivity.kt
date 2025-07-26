@@ -148,6 +148,7 @@ class SigmaActivity : ComponentActivity() {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .height(65.dp)
                                 .background(Color.Transparent)
                         ) {
                             Spacer(
@@ -210,10 +211,10 @@ class SigmaActivity : ComponentActivity() {
                         mainViewModel.removeLastFolderPathHistory()
 
                         val newSorting = if (mainViewModel.folderPathHistory.value.isEmpty())
-                            ITEMS_ORDERING_STRATEGY.DATE_DESC
+                            SortingCriterion.ByDateDesc
                         else
                             mainViewModel.sortingCache[mainViewModel.folderPathHistory.value.last()]
-                                ?: ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                ?: SortingCriterion.ByDateDesc
                         mainViewModel.setSorting(newSorting)
 //                        mainViewModel.refreshCurrentFolder()
                     }
@@ -308,6 +309,9 @@ class SigmaActivity : ComponentActivity() {
                                             .padding(end = 10.dp)
                                     )
                                     {
+                                        ////////////////////////////
+                                        // aire de droite: outils //
+                                        ////////////////////////////
                                         Row(
                                             modifier = Modifier
                                                 .width(IntrinsicSize.Min)
@@ -384,9 +388,9 @@ class SigmaActivity : ComponentActivity() {
 
                                 } else {
 
-                                    ////////////////////////////////////////
-                                    // zone de sélection du tri des items //
-                                    ////////////////////////////////////////
+                                    ///////////////////////////
+                                    // aire de tri des items //
+                                    ///////////////////////////
 
                                     //TODO pas besoin de tout recharger
                                     SortingArea(
@@ -395,13 +399,13 @@ class SigmaActivity : ComponentActivity() {
                                         onDateSortClick = {
                                             mainViewModel.goToFolder(
                                                 currentFolder.fullPath,
-                                                ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                                SortingCriterion.ByDateDesc
                                             )
                                         },
                                         onNameSortClick = {
                                             mainViewModel.goToFolder(
                                                 currentFolder.fullPath,
-                                                ITEMS_ORDERING_STRATEGY.NAME_ASC
+                                                SortingCriterion.ByNameAsc
                                             )
                                         }
                                     )

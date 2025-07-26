@@ -27,7 +27,7 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY
+import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.ByteArrayOutputStream
@@ -46,7 +46,7 @@ class DiskRepository @Inject constructor(
 
     suspend override fun getFolderItems(
         folderPath: String,
-        sorting: ITEMS_ORDERING_STRATEGY
+        sorting: SortingCriterion
     ): List<Item> {
         return withContext(Dispatchers.IO) {
             val initialItems = withContext(Dispatchers.IO) {
@@ -127,12 +127,12 @@ class DiskRepository @Inject constructor(
             }
 
             val sorted = when (sorting) {
-                ITEMS_ORDERING_STRATEGY.NAME_ASC -> initialItems.sortedWith(
+                SortingCriterion.ByNameAsc -> initialItems.sortedWith(
                     compareBy<Item> { it.isFile() }
                         .thenBy { it.name.toLowerCase(locale = Locale.current) })
 
 
-                ITEMS_ORDERING_STRATEGY.DATE_DESC -> initialItems.sortedWith(
+                SortingCriterion.ByDateDesc -> initialItems.sortedWith(
                     compareBy<Item> { it.isFile() }
                         .thenByDescending { it.modificationDate })
             }
@@ -190,7 +190,7 @@ class DiskRepository @Inject constructor(
 
     override suspend fun getSigmaFolder(
         folderPath: String,
-        sorting: ITEMS_ORDERING_STRATEGY,
+        sorting: SortingCriterion,
     ): SigmaFolder {
         val folder = File(folderPath)
 
@@ -210,7 +210,7 @@ class DiskRepository @Inject constructor(
             modificationDate = folder.lastModified(),
             tag = newComposite?.getFlag(),
             scale = ContentScale.Crop,
-            memo = newComposite?.memo2
+            memo = newComposite?.memo2,
         )
     }
 

@@ -25,7 +25,7 @@ import lorry.folder.items.dossiersigma.R
 context(BoxScope)
 fun SortingArea(
     sortingWidth: Dp,
-    sortingFlow: StateFlow<ITEMS_ORDERING_STRATEGY>,
+    sortingFlow: StateFlow<SortingCriterion>,
     onDateSortClick: () -> Unit,
     onNameSortClick: () -> Unit,
 ) {
@@ -43,9 +43,9 @@ fun SortingArea(
             modifier = Modifier
                 .padding(end = 5.dp)
                 .align(Alignment.CenterVertically),
-            selected = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
+            selected = sorting == SortingCriterion.ByDateDesc,
             leadingIcon = {
-                if (sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC)
+                if (sorting == SortingCriterion.ByDateDesc)
                     Icon(
                         painterResource(id = R.drawable.trier_decroissant),
                         contentDescription = null,
@@ -59,7 +59,7 @@ fun SortingArea(
                         modifier = Modifier.size(24.dp),
                     )
             },
-            enabled = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
+            enabled = sorting == SortingCriterion.ByNameAsc,
             onClick = onDateSortClick
         )
 
@@ -67,9 +67,9 @@ fun SortingArea(
             label = { Text("Nom") },
             modifier = Modifier
                 .align(Alignment.CenterVertically),
-            selected = sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC,
+            selected = sorting == SortingCriterion.ByNameAsc,
             leadingIcon = {
-                if (sorting == ITEMS_ORDERING_STRATEGY.NAME_ASC)
+                if (sorting == SortingCriterion.ByNameAsc)
                     Icon(
                         painterResource(id = R.drawable.trier_croissant),
                         contentDescription = null,
@@ -83,7 +83,7 @@ fun SortingArea(
                         modifier = Modifier.size(24.dp),
                     )
             },
-            enabled = sorting == ITEMS_ORDERING_STRATEGY.DATE_DESC,
+            enabled = sorting == SortingCriterion.ByDateDesc,
             onClick = onNameSortClick
         )
     }

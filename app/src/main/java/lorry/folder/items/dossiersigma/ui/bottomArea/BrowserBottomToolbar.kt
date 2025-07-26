@@ -40,6 +40,7 @@ fun BrowserBottomToolbar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .height(65.dp)
             .background(Color.Transparent)
     ) {
         Spacer(

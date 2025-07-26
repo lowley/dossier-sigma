@@ -88,7 +88,7 @@ import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.components.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.components.manageImageClick
-import lorry.folder.items.dossiersigma.ui.sigma.ITEMS_ORDERING_STRATEGY
+import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
@@ -855,7 +855,7 @@ sealed class Tools() {
                                 children = viewModel.diskRepository
                                     .getFolderItems(
                                         selectedItemPath,
-                                        ITEMS_ORDERING_STRATEGY.DATE_DESC
+                                        SortingCriterion.ByDateDesc
                                     )
                                     .map { item -> item.fullPath }
 
@@ -1868,7 +1868,7 @@ fun SigmaActivity.FolderChooserDialog(
         mainViewModel.viewModelScope.launch {
             items.value = mainViewModel.diskRepository.getFolderItems(
                 path.value,
-                ITEMS_ORDERING_STRATEGY.NAME_ASC
+                SortingCriterion.ByNameAsc
             )
         }
     }

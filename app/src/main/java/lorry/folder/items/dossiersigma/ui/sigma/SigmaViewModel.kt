@@ -25,8 +25,10 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -114,7 +116,7 @@ class SigmaViewModel @Inject constructor(
         _scaleCache.value.clear()
     }
 
-    val sortingCache = mutableMapOf<String, ITEMS_ORDERING_STRATEGY>()
+    val sortingCache = mutableMapOf<String, SortingCriterion>()
 
     ///////////////
     // flagCache //
@@ -299,8 +301,16 @@ class SigmaViewModel @Inject constructor(
         _draggedTag.value = tag
     }
 
-    private val _sorting = MutableStateFlow(ITEMS_ORDERING_STRATEGY.DATE_DESC)
-    val sorting: StateFlow<ITEMS_ORDERING_STRATEGY> = _sorting
+    ///////////////////
+    // tri des items //
+    ///////////////////
+    private val _sorting = MutableStateFlow(SortingCriterion.ByDateDesc)
+    val sorting: StateFlow<SortingCriterion> = _sorting
+
+    fun setSorting(sorting: SortingCriterion) {
+        _sorting.value = sorting
+    }
+
 
     val tools = BottomTools.currentContent.map {
         it?.tools?.value
@@ -337,10 +347,6 @@ class SigmaViewModel @Inject constructor(
     private val _pictureUpdateId = MutableStateFlow(0)
     val pictureUpdateId: StateFlow<Int> = _pictureUpdateId
 
-//    fun notifyPictureUpdated() {
-//        _pictureUpdateId.value += 1
-//    }
-
     ///////////////////////////////
     // dossiers, dossier courant //
     ///////////////////////////////
@@ -361,11 +367,12 @@ class SigmaViewModel @Inject constructor(
     val currentFolder: StateFlow<SigmaFolder> = combine(
         currentFolderPath,
         reloadTrigger,
-        BottomTools.currentFlagId
-    ) { path, _, currentFlagId ->
-        Pair(path, currentFlagId)
-    }.mapLatest { (path, currentFlagId) ->
-        val folder = diskRepository.getSigmaFolder(path, sorting.value)
+        BottomTools.currentFlagId,
+        sorting
+    ) { path, _, currentFlagId, sorting ->
+        Triple(path, currentFlagId, sorting)
+    }.mapLatest { (path, currentFlagId, sorting) ->
+        val folder = diskRepository.getSigmaFolder(path, sorting)
 
         clearAllCaches()
         folder.items.forEach { item ->
@@ -468,10 +475,6 @@ class SigmaViewModel @Inject constructor(
         _folderPathHistory.value = currentHistory.dropLast(1)
     }
 
-    fun setSorting(sorting: ITEMS_ORDERING_STRATEGY) {
-        _sorting.value = sorting
-    }
-
     //SELECTED ITEM
     private val _selectedItem = MutableStateFlow<Item?>(null)
     val selectedItem: StateFlow<Item?> = _selectedItem
@@ -536,13 +539,13 @@ class SigmaViewModel @Inject constructor(
         setImageCacheValue(itemPath, pictureBitmap)
     }
 
-    fun goToFolder(folderPath: String, sorting: ITEMS_ORDERING_STRATEGY? = null) {
+    fun goToFolder(folderPath: String, sorting: SortingCriterion? = null) {
         sortingCache[currentFolderPath.value] = this.sorting.value
 
         if (sorting != null)
             setSorting(sorting)
         else
-            setSorting(sortingCache[folderPath] ?: ITEMS_ORDERING_STRATEGY.DATE_DESC)
+            setSorting(sortingCache[folderPath] ?: SortingCriterion.ByDateDesc)
 
         clearImageCache()
         scaleCache.value.clear()
@@ -674,9 +677,9 @@ class SigmaViewModel @Inject constructor(
     }
 }
 
-enum class ITEMS_ORDERING_STRATEGY {
-    DATE_DESC,
-    NAME_ASC
+enum class SortingCriterion {
+    ByDateDesc,
+    ByNameAsc
 }
 
 fun StateFlow<MutableMap<String, ColoredTag>>.containsFlagAsValue(valueId: UUID): Boolean {
