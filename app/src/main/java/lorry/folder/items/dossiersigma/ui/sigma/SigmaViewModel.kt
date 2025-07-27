@@ -259,7 +259,7 @@ class SigmaViewModel @Inject constructor(
     //////////////
     // settings //
     //////////////
-    private val _isSettingsPageVisible = MutableStateFlow<Boolean>(false)
+    private val _isSettingsPageVisible = MutableStateFlow(false)
     val isSettingsPageVisible: StateFlow<Boolean> = _isSettingsPageVisible
 
     fun setIsSettingsPageVisible(visible: Boolean) {
@@ -563,7 +563,7 @@ class SigmaViewModel @Inject constructor(
 
     init {
         viewModel = this
-        viewModelScope.launch() {
+        viewModelScope.launch {
             BottomTools.progress.collect { p ->
                 if (p == 0 || p == 100)
                     BottomTools.updateMovePasteText("Coller")
@@ -572,7 +572,7 @@ class SigmaViewModel @Inject constructor(
             }
         }
 
-        viewModelScope.launch() {
+        viewModelScope.launch {
             BottomTools.nasProgress.collect { copyProgress ->
                 if (copyProgress == null)
                     return@collect
@@ -628,8 +628,6 @@ class SigmaViewModel @Inject constructor(
      */
     fun assignColoredTagToItem(item: Item, tag: ColoredTag) {
 //        println("DRAG assignColoredTagToItem, item = ${item.name}, tag = ${tag.title}")
-
-        val containsTag = item.tag != null
 
         viewModelScope.launch {
             val compositeMgr = CompositeManager(item.fullPath)

@@ -95,6 +95,8 @@ import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
 import java.io.File
 import java.util.UUID
 import kotlin.collections.get
+import kotlin.math.roundToInt
+
 
 object BottomTools {
     lateinit var viewModel: SigmaViewModel
@@ -220,13 +222,22 @@ object BottomTools {
                             }
                         }
                 ) {
+                    var globalOffset: Offset? = null
                     //icône statique, toujours existante
                     IconWithRing(
-                        modifier = Modifier.Companion
+                        modifier = Modifier
                             .align(Alignment.Companion.TopCenter)
                             .padding(top = 0.dp)
-                            .onGloballyPositioned {
-                                viewModel.setDraggableStartPosition(it.positionInRoot())
+                            .onGloballyPositioned { layoutCoordinates ->
+                                val localOffset = layoutCoordinates.positionInRoot()
+                                globalOffset = layoutCoordinates.localToRoot(Offset.Zero)
+                            }
+                            .pointerInput(Unit) {
+                                detectDragGestures(
+                                    onDragStart = {
+                                        viewModel.registerFloatingTag(tool, globalOffset)
+                                    }
+                                )
                             },
                         iconRes = tool.icon,
                         iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
@@ -244,63 +255,53 @@ object BottomTools {
                     if (content?.name == "DEFAULT_CONTENT") {
                         val coloredTag = tool.toColoredTag(viewModel)
 
-                        IconWithRing(
-                            modifier = Modifier.Companion
-                                .align(Alignment.Companion.TopCenter)
-                                .padding(top = 0.dp)
-                                .offset {
-                                    IntOffset(
-                                        offset?.x?.toInt() ?: 0, offset?.y?.toInt() ?: 0
-                                    )
-                                }
-                                .pointerInput(Unit) {
-                                    detectDragGestures(
-                                        onDragStart = {
-//                                            movingItem = viewModel.selectedItem.value
-                                            viewModel.setDraggedTag(coloredTag)
-//                                            println("DRAG start, ${coloredTag.title}")
-                                            val adjustment = Offset(x = 0f, y = 0 - iconYDelta)
-                                            viewModel.addToDragOffset(adjustment)
-                                        },
-                                        onDrag = { change, dragAmount ->
-                                            change.consume()
-                                            viewModel.addToDragOffset(dragAmount)
+                        val dragState by viewModel.dragState.collectAsState()
 
-//                                            println("DRAG offset: ${currentGlobalOffset.x}, ${currentGlobalOffset.y}")
-                                        },
-                                        onDragEnd = {
-//                                            movingItem = null
-                                            val target = viewModel.dragTargetItem.value
+                        val tag: Tool = dragState.tool ?: return
+                        val offset: Offset = dragState.offset
+
+                        dragState.tool?.let { tool: Tool ->
+                            IconWithRing(
+                                modifier = Modifier
+                                    .offset {
+                                        IntOffset(
+                                            offset.x.roundToInt(), offset.y.roundToInt()
+                                        )
+                                    }
+                                    .pointerInput(Unit) {
+                                        detectDragGestures(
+                                            onDrag = { change, dragAmount ->
+                                                viewModel.addToDragOffset(dragAmount)
+                                            },
+                                            onDragEnd = {
+//                                                viewModel.dropDraggedTag()
+                                                val target = viewModel.dragTargetItem.value
 //                                            println("DRAG end, ${target?.name ?:"null"}")
 
-                                            if (target != null) {
-                                                viewModel.assignColoredTagToItem(target, coloredTag)
+                                                if (target != null) {
+                                                    viewModel.assignColoredTagToItem(target, coloredTag)
 
+                                                }
                                             }
-
-                                            viewModel.setDragOffset(Offset.Companion.Zero)
-                                            viewModel.setDraggedTag(null)
-                                            viewModel.setDragTargetItem(null)
-                                        }
-                                    )
-
-                                },
-                            iconRes = tool.icon,
-                            iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                                (tool.tint ?: Color(0xFFe9c46a)),
-                            ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                                (tool.tint ?: Color(0xFFe9c46a)),
-                            ringWidth = 2.dp,
-                            iconSize = 25.dp,
-                            ringSize = 38.dp,
-                            isRingEnabled = false
-                        )
+                                        )
+                                    },
+                                iconRes = tool.icon,
+                                iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                                    (tool.tint ?: Color(0xFFe9c46a)),
+                                ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                                    (tool.tint ?: Color(0xFFe9c46a)),
+                                ringWidth = 2.dp,
+                                iconSize = 25.dp,
+                                ringSize = 38.dp,
+                                isRingEnabled = false
+                            )
+                        }
                     }
 
                     Text(
                         modifier = modifier
                             .align(Alignment.Companion.BottomCenter),
-                        text = tool.text(viewModel),
+                        text = tool.text(),
                         color = Color(0xFFe9c46a),
                         fontSize = 12.sp
                     )
@@ -392,7 +393,7 @@ class BottomToolContent(
 
 // Outil unique avec icône, texte, et un comportement.
 data class Tool(
-    val text: @Composable (vm: SigmaViewModel) -> String,
+    val text: () -> String,
     @DrawableRes val icon: Int,
     val isColoredIcon: Boolean = false,
     val onClick: suspend Tool.(SigmaViewModel, SigmaActivity) -> Unit,
@@ -406,10 +407,9 @@ data class Tool(
 
 }
 
-@Composable
 fun Tool.toColoredTag(viewModel: SigmaViewModel): ColoredTag = ColoredTag(
     id = this.id,
-    title = this.text(viewModel),
+    title = this.text(),
     color = this.tint ?: Color.Companion.Unspecified,
 )
 
@@ -988,7 +988,7 @@ sealed class Tools() {
                 /////////////////////
                 Tool(
                     text = {
-                        val nasText by BottomTools.copyNASText.collectAsState()
+                        val nasText = BottomTools.copyNASText.value
                         nasText
                     },
                     icon = R.drawable.deplacer,
@@ -1085,8 +1085,8 @@ sealed class Tools() {
                 // coller //
                 ////////////
                 Tool(
-                    text = { vm ->
-                        val movePasteText by BottomTools.movePasteText.collectAsState()
+                    text = {
+                        val movePasteText = BottomTools.movePasteText.value
                         movePasteText
                     },
                     icon = R.drawable.coller,
