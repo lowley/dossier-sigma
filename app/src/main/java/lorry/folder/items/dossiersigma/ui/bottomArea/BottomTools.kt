@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.PageSize.Fill.calculateMainAxisPageSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -48,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -97,6 +99,10 @@ import java.util.UUID
 import kotlin.collections.get
 import kotlin.math.roundToInt
 
+val SigmaActivity.currentBTContent: StateFlow<BottomToolContent?>
+    get() = BottomTools.currentContent
+
+
 
 object BottomTools {
     lateinit var viewModel: SigmaViewModel
@@ -141,7 +147,7 @@ object BottomTools {
 
     /**
      * utilisé par
-     * @see lorry.folder.items.dossiersigma.domain.services.MoveFileService.copy
+     * @see MoveFileService.copy
      */
     fun updateProgress(value: Int) {
         _progress.value = value
@@ -159,7 +165,7 @@ object BottomTools {
 
     /**
      * utilisé par
-     * @see lorry.folder.items.dossiersigma.domain.services.MoveToNASService.copy
+     * @see MoveToNASService.copy
      */
     fun updateNASProgress(
         percentage: Int,
@@ -206,11 +212,6 @@ object BottomTools {
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             toolList.forEach { tool ->
-                val offset by viewModel.dragOffset.collectAsState()
-                var iconSize =
-                    if (offset == Offset.Companion.Zero || offset == null) 28.dp else 140.dp
-                var iconYDelta = if (offset == Offset.Companion.Zero) 0f else 200f
-
                 Box(
                     modifier = modifier
                         .width(85.dp)
@@ -222,7 +223,7 @@ object BottomTools {
                             }
                         }
                 ) {
-                    var globalOffset: Offset? = null
+                    var globalOffset: Offset = Offset.Zero
                     //icône statique, toujours existante
                     IconWithRing(
                         modifier = Modifier
@@ -235,8 +236,24 @@ object BottomTools {
                             .pointerInput(Unit) {
                                 detectDragGestures(
                                     onDragStart = {
-                                        viewModel.registerFloatingTag(tool, globalOffset)
-                                    }
+                                        viewModel.beginDrag(tool, globalOffset)
+                                    },
+                                    onDrag = { change: PointerInputChange, dragAmount: Offset ->
+                                        viewModel.addDragOffset(dragAmount)
+                                    },
+                                    onDragEnd = {
+                                        val target = viewModel.dragTargetItem.value
+
+                                        if (target != null) {
+                                            viewModel.assignColoredTagToItem(
+                                                target,
+                                                tool.toColoredTag()
+                                            )
+                                        }
+
+                                        viewModel.terminateDrag()
+                                    },
+                                    onDragCancel = {},
                                 )
                             },
                         iconRes = tool.icon,
@@ -249,54 +266,6 @@ object BottomTools {
                         ringSize = 38.dp,
                         isRingEnabled = tool.activated
                     )
-
-                    //si icône d'étiquette
-                    //2e icône, draggable
-                    if (content?.name == "DEFAULT_CONTENT") {
-                        val coloredTag = tool.toColoredTag(viewModel)
-
-                        val dragState by viewModel.dragState.collectAsState()
-
-                        val tag: Tool = dragState.tool ?: return
-                        val offset: Offset = dragState.offset
-
-                        dragState.tool?.let { tool: Tool ->
-                            IconWithRing(
-                                modifier = Modifier
-                                    .offset {
-                                        IntOffset(
-                                            offset.x.roundToInt(), offset.y.roundToInt()
-                                        )
-                                    }
-                                    .pointerInput(Unit) {
-                                        detectDragGestures(
-                                            onDrag = { change, dragAmount ->
-                                                viewModel.addToDragOffset(dragAmount)
-                                            },
-                                            onDragEnd = {
-//                                                viewModel.dropDraggedTag()
-                                                val target = viewModel.dragTargetItem.value
-//                                            println("DRAG end, ${target?.name ?:"null"}")
-
-                                                if (target != null) {
-                                                    viewModel.assignColoredTagToItem(target, coloredTag)
-
-                                                }
-                                            }
-                                        )
-                                    },
-                                iconRes = tool.icon,
-                                iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                                    (tool.tint ?: Color(0xFFe9c46a)),
-                                ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                                    (tool.tint ?: Color(0xFFe9c46a)),
-                                ringWidth = 2.dp,
-                                iconSize = 25.dp,
-                                ringSize = 38.dp,
-                                isRingEnabled = false
-                            )
-                        }
-                    }
 
                     Text(
                         modifier = modifier
@@ -407,7 +376,7 @@ data class Tool(
 
 }
 
-fun Tool.toColoredTag(viewModel: SigmaViewModel): ColoredTag = ColoredTag(
+fun Tool.toColoredTag(viewModel: SigmaViewModel? = null): ColoredTag = ColoredTag(
     id = this.id,
     title = this.text(),
     color = this.tint ?: Color.Companion.Unspecified,
@@ -1005,7 +974,7 @@ sealed class Tools() {
                             /**
                              * le fichier n'existe pas, on lance la copie,
                              * le reste est effectué dans
-                             * @see lorry.folder.items.dossiersigma.domain.services.MoveFileService.onStartCommand
+                             * @see MoveFileService.onStartCommand
                              */
 
                             //encode/decode en json

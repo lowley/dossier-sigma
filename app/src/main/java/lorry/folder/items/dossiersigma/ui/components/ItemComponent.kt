@@ -59,10 +59,12 @@ import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import java.io.File
 import java.io.FileOutputStream
 
 @Composable
+context(SigmaActivity)
 fun ItemComponent(
     modifier: Modifier,
     item: Item,
@@ -71,7 +73,6 @@ fun ItemComponent(
     flagCache: StateFlow<MutableMap<String, ColoredTag>>,
     scaleCache: StateFlow<MutableMap<String, ContentScale>>,
     memoCache: StateFlow<MutableMap<String, String>>,
-    dragOffset: StateFlow<Offset?>,
     draggableStartPosition: StateFlow<Offset?>,
     onHoveredNotHovered: (Item?) -> Unit,
     selectedItemFullPath: StateFlow<String?>,
@@ -104,17 +105,26 @@ fun ItemComponent(
 
     val imageHeight = 160.dp
 
-    val dragOffset by dragOffset.collectAsState()
-    val draggableStartPosition by draggableStartPosition.collectAsState()
-    val bounds = remember { mutableStateOf<Rect?>(null) }
+    val dragState by mainViewModel.dragState.collectAsState()
+    var bounds by remember { mutableStateOf<Rect?>(null) }
 
-    val isHovered = remember(draggableStartPosition, dragOffset) {
-        if (dragOffset == null || draggableStartPosition == null)
-            return@remember false
+    val isHovered = remember(dragState, bounds) {
+        if (dragState != null && bounds != null)
+            dragState != null && bounds?.contains(dragState!!.offset) == true
+        else false
+        }
 
-        val new = bounds.value?.contains(draggableStartPosition!! + dragOffset!!) == true
-        new
-    }
+//    val dragOffset by dragOffset.collectAsState()
+//    val draggableStartPosition by draggableStartPosition.collectAsState()
+//    val bounds = remember { mutableStateOf<Rect?>(null) }
+//
+//    val isHovered = remember(draggableStartPosition, dragOffset) {
+//        if (dragOffset == null || draggableStartPosition == null)
+//            return@remember false
+//
+//        val new = bounds.value?.contains(draggableStartPosition!! + dragOffset!!) == true
+//        new
+//    }
 
     LaunchedEffect(isHovered) {
         if (isHovered)
@@ -161,7 +171,7 @@ fun ItemComponent(
                 .height(imageHeight)
                 .onGloballyPositioned {
                     val pos = it.positionInRoot()
-                    bounds.value = Rect(
+                    bounds = Rect(
                         offset = pos,
                         size = Size(
                             it.size.width.toFloat(),

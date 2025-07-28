@@ -11,6 +11,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,11 +36,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
@@ -53,12 +57,17 @@ import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
+import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.bottomArea.IconWithRing
+import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.bottomArea.currentBTContent
+import lorry.folder.items.dossiersigma.ui.bottomArea.toColoredTag
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.centralArea.Memo
 import lorry.folder.items.dossiersigma.ui.centralArea.homePage
@@ -68,6 +77,7 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 
 @AndroidEntryPoint
@@ -542,6 +552,66 @@ class SigmaActivity : ComponentActivity() {
                         // memo + palette de couleurs //
                         ////////////////////////////////
                         Memo()
+
+                        /////////////////////////////////
+                        // étiquette mobile éventuelle //
+                        /////////////////////////////////
+                        //si icône d'étiquette
+                        //2e icône, draggable
+
+                        val dragState by viewModel.dragState.collectAsState()
+                        dragState?.let { dragState ->
+                            run {
+//                            val currentContent =
+//                                this@SigmaActivity.currentBTContent.collectAsState()
+//                            if (currentContent.value?.name == "DEFAULT_CONTENT") {
+
+                                val tool: Tool = dragState.tool
+                                val coloredTag = dragState.tool.toColoredTag(viewModel)
+                                val offset: Offset = dragState.offset
+
+                                dragState.tool?.let { tool: Tool ->
+                                    IconWithRing(
+                                        modifier = Modifier
+                                            .offset {
+                                                IntOffset(
+                                                    offset.x.roundToInt() - 60,
+                                                    offset.y.roundToInt() - 70
+                                                )
+                                            }
+                                            .pointerInput(Unit) {
+                                                detectDragGestures(
+                                                    onDrag = { change, dragAmount ->
+                                                        println("dynamique drag: ${dragAmount.x}, ${dragAmount.y}")
+//                                                        viewModel.addDragOffset(dragAmount)
+                                                    },
+                                                    onDragEnd = {
+//                                                        val target = viewModel.dragTargetItem.value
+//
+//                                                        if (target != null) {
+//                                                            viewModel.assignColoredTagToItem(
+//                                                                target,
+//                                                                coloredTag
+//                                                            )
+//                                                        }
+//
+//                                                        viewModel.terminateDrag()
+                                                    }
+                                                )
+                                            },
+                                        iconRes = tool.icon,
+                                        iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                                            (tool.tint ?: Color(0xFFe9c46a)),
+                                        ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                                            (tool.tint ?: Color(0xFFe9c46a)),
+                                        ringWidth = 2.dp,
+                                        iconSize = 70.dp,
+                                        ringSize = 85.dp,
+                                        isRingEnabled = true
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -577,6 +647,8 @@ class SigmaActivity : ComponentActivity() {
         }
     }
 }
+
+
 
 
 
