@@ -61,7 +61,7 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.bottomArea.IconWithRing
+import lorry.folder.items.dossiersigma.ui.bottomArea.Tag
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
@@ -544,6 +544,14 @@ class SigmaActivity : ComponentActivity() {
                         // TagInfosDialog, HomeItemDialog, FilePicker //
                         // browser                                    //
                         ////////////////////////////////////////////////
+
+                        /**
+                         * @startuml
+                         * class View2
+                         * class Repo2
+                         * View2 -- Repo2
+                         * @enduml
+                         */
                         FullSizeExtras()
 
                         ////////////////////////////////
@@ -557,19 +565,22 @@ class SigmaActivity : ComponentActivity() {
                         //si icône d'étiquette
                         //2e icône, draggable
 
+                        /**
+                         * @startuml
+                         * class ViewModel
+                         * class Repository
+                         * ViewModel --> Repository
+                         * @enduml
+                         */
                         val dragState by mainViewModel.dragState.collectAsState()
                         dragState?.let { dragState ->
                             run {
-//                            val currentContent =
-//                                this@SigmaActivity.currentBTContent.collectAsState()
-//                            if (currentContent.value?.name == "DEFAULT_CONTENT") {
-
                                 val tool: Tool = dragState.tool
                                 val coloredTag = dragState.tool.toColoredTag()
                                 val offset: Offset = dragState.offset
 
                                 dragState.tool?.let { tool: Tool ->
-                                    IconWithRing(
+                                    Tag(
                                         modifier = Modifier
                                             .offset {
                                                 IntOffset(

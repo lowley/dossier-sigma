@@ -23,12 +23,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.pager.PageSize.Fill.calculateMainAxisPageSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -57,7 +55,6 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -97,12 +94,6 @@ import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
 import java.io.File
 import java.util.UUID
 import kotlin.collections.get
-import kotlin.math.roundToInt
-
-val SigmaActivity.currentBTContent: StateFlow<BottomToolContent?>
-    get() = BottomTools.currentContent
-
-
 
 object BottomTools {
     lateinit var viewModel: SigmaViewModel
@@ -225,7 +216,7 @@ object BottomTools {
                 ) {
                     var globalOffset: Offset = Offset.Zero
                     //icône statique, toujours existante
-                    IconWithRing(
+                    Tag(
                         modifier = Modifier
                             .align(Alignment.Companion.TopCenter)
                             .padding(top = 0.dp)
@@ -2098,7 +2089,7 @@ data class HomeItemInfosDTO(
 }
 
 @Composable
-fun IconWithRing(
+fun Tag(
     modifier: Modifier = Modifier.Companion,
     iconRes: Int,
     ringColor: Color,
