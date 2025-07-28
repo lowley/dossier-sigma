@@ -25,10 +25,8 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -276,16 +274,33 @@ class SigmaViewModel @Inject constructor(
         _dragTargetItem.value = item
     }
 
-    private val _dragOffset = MutableStateFlow<Offset?>(null)
-    val dragOffset: StateFlow<Offset?> = _dragOffset
+    private val _dragState = MutableStateFlow<DragState?>(null)
+    val dragState: StateFlow<DragState?> = _dragState
 
-    fun setDragOffset(offset: Offset?) {
-        _dragOffset.value = offset
+    fun beginDrag(tool: Tool, startOffset: Offset) {
+        _dragState.value = DragState(tool, startOffset)
     }
 
-    fun addToDragOffset(offset: Offset) {
-        _dragOffset.value = (_dragOffset.value ?: Offset.Zero) + offset
+    fun addDragOffset(delta: Offset) {
+        _dragState.value?.let {
+            _dragState.value = it.copy(offset = it.offset + delta)
+        }
     }
+
+    fun terminateDrag() {
+        _dragState.value = null
+    }
+
+//    private val _dragOffset = MutableStateFlow<Offset?>(null)
+//    val dragOffset: StateFlow<Offset?> = _dragOffset
+//
+//    fun setDragOffset(offset: Offset?) {
+//        _dragOffset.value = offset
+//    }
+//
+//    fun addToDragOffset(offset: Offset) {
+//        _dragOffset.value = (_dragOffset.value ?: Offset.Zero) + offset
+//    }
 
     private val _draggableStartPosition = MutableStateFlow<Offset?>(null)
     val draggableStartPosition: StateFlow<Offset?> = _draggableStartPosition
@@ -294,12 +309,12 @@ class SigmaViewModel @Inject constructor(
         _draggableStartPosition.value = position
     }
 
-    private val _draggedTag = MutableStateFlow<ColoredTag?>(null)
-    val draggedTag: StateFlow<ColoredTag?> = _draggedTag
-
-    fun setDraggedTag(tag: ColoredTag?) {
-        _draggedTag.value = tag
-    }
+//    private val _draggedTag = MutableStateFlow<ColoredTag?>(null)
+//    val draggedTag: StateFlow<ColoredTag?> = _draggedTag
+//
+//    fun setDraggedTag(tag: ColoredTag?) {
+//        _draggedTag.value = tag
+//    }
 
     ///////////////////
     // tri des items //
@@ -508,7 +523,6 @@ class SigmaViewModel @Inject constructor(
             initialValue = null
         )
 
-
     suspend fun updatePicture(
         newPicture: Any?,
         onlyCropped: Boolean = false
@@ -580,8 +594,7 @@ class SigmaViewModel @Inject constructor(
                 if (copyProgress.progress == 0 || copyProgress.progress == 100) {
                     BottomTools.updateNASText("1 -> NAS")
                     BottomTools.updateAllNASText("Tous -> NAS")
-                }
-                else {
+                } else {
                     BottomTools.updateNASText(
                         "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
                     )
@@ -683,3 +696,8 @@ enum class SortingCriterion {
 fun StateFlow<MutableMap<String, ColoredTag>>.containsFlagAsValue(valueId: UUID): Boolean {
     return valueId in this.value.values.map { it.id }
 }
+
+data class DragState(
+    val tool: Tool,
+    val offset: Offset = Offset.Zero
+)

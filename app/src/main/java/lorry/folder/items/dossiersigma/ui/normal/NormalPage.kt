@@ -54,7 +54,6 @@ fun NormalPage(
     val memoCache = mainViewModel.memoCache
 
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
-    val dragOffset = mainViewModel.dragOffset
     val draggableStartPosition = mainViewModel.draggableStartPosition
 
     val currentFolder by currentFolderFlow.collectAsState()
@@ -99,7 +98,6 @@ fun NormalPage(
                         memoCache = memoCache,
                         onHoveredNotHovered = onHoveredNotHovered,
                         selectedItemFullPath = selectedItemFullPath,
-                        dragOffset = dragOffset,
                         draggableStartPosition = draggableStartPosition,
                         onItemTapped = onItemTapped,
                         onItemLongPressed = onItemLongPressed,
