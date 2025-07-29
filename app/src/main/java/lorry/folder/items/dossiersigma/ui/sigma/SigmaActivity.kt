@@ -36,7 +36,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -61,11 +60,10 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.bottomArea.Tag
+import lorry.folder.items.dossiersigma.ui.bottomArea.MobileSticker
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.ui.bottomArea.toColoredTag
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.centralArea.Memo
 import lorry.folder.items.dossiersigma.ui.centralArea.homePage
@@ -574,39 +572,11 @@ class SigmaActivity : ComponentActivity() {
                          */
                         val dragState by mainViewModel.dragState.collectAsState()
                         dragState?.let { dragState ->
-                            run {
-                                val tool: Tool = dragState.tool
-                                val coloredTag = dragState.tool.toColoredTag()
-                                val offset: Offset = dragState.offset
-
-                                dragState.tool?.let { tool: Tool ->
-                                    Tag(
-                                        modifier = Modifier
-                                            .offset {
-                                                IntOffset(
-                                                    offset.x.roundToInt() - 60,
-                                                    offset.y.roundToInt() - 70
-                                                )
-                                            }
-                                            .pointerInput(Unit) {
-                                                detectDragGestures(
-                                                    onDrag = { change, dragAmount ->
-//                                                        println("dynamique drag: ${dragAmount.x}, ${dragAmount.y}")
-                                                    },
-                                                    onDragEnd = {}
-                                                )
-                                            },
-                                        iconRes = tool.icon,
-                                        iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                                            (tool.tint ?: Color(0xFFe9c46a)),
-                                        ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                                            (tool.tint ?: Color(0xFFe9c46a)),
-                                        ringWidth = 2.dp,
-                                        iconSize = 70.dp,
-                                        ringSize = 85.dp,
-                                        isRingEnabled = true
-                                    )
-                                }
+                            dragState.tool?.let { tool: Tool ->
+                                MobileSticker(
+                                    dragState = dragState,
+                                    activity = this@SigmaActivity
+                                )
                             }
                         }
                     }

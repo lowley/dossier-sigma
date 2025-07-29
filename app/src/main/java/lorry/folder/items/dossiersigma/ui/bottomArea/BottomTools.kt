@@ -14,15 +14,18 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -55,6 +58,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
@@ -85,15 +89,37 @@ import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
+import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.setCurrentTool
+import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.components.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.components.manageImageClick
+import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
 import java.io.File
 import java.util.UUID
+import java.util.UUID.*
 import kotlin.collections.get
+import kotlin.math.roundToInt
+
+/**
+ * @startuml
+ * (*) -> "BottomTools\n<color:red>  + Sticker" as A
+ * A -> "Nouveau ColoredTag\n    dans flagCache" as B
+ * B --> [  observeDefaultContent()] "MAJ BottomToolBar" as C
+ *
+ * C --> [  observation par BToolBar\n  de currentContextTools] "affichage des tags statiques" as D
+ *
+ * D --> [  si drag étiquette] "affichage tags mobiles\n<color:red> MOBILITE PASSIVE"
+ * D --> [  filtrage\n clic sur flag] "MAJ BT.currentFlagId" as E
+ *
+ * E -> [clic = cancel] "BT.currentFlagId = null" as F
+ * F -> [clic] E
+ *
+ * @enduml
+ */
 
 object BottomTools {
     lateinit var viewModel: SigmaViewModel
@@ -196,6 +222,15 @@ object BottomTools {
         Log.d(SigmaActivity.Companion.TAG, "Content: $content")
         Log.d(SigmaActivity.Companion.TAG, "BottomToolBar: ${toolList.size}")
 
+        /*
+//        @startuml
+//        (*) -up-> "First Action"
+//        -right-> "Second Action"
+//        --> "Third Action"
+//        -left-> (*)
+        @enduml
+         */
+
         Row(
             modifier = modifier
                 .fillMaxWidth()
@@ -203,69 +238,11 @@ object BottomTools {
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             toolList.forEach { tool ->
-                Box(
-                    modifier = modifier
-                        .width(85.dp)
-                        .fillMaxHeight()
-                        .clickable {
-                            setCurrentTool(tool)
-                            viewModel.viewModelScope.launch {
-                                tool.onClick(tool, viewModel, activity)
-                            }
-                        }
-                ) {
-                    var globalOffset: Offset = Offset.Zero
-                    //icône statique, toujours existante
-                    Tag(
-                        modifier = Modifier
-                            .align(Alignment.Companion.TopCenter)
-                            .padding(top = 0.dp)
-                            .onGloballyPositioned { layoutCoordinates ->
-                                val localOffset = layoutCoordinates.positionInRoot()
-                                globalOffset = layoutCoordinates.localToRoot(Offset.Zero)
-                            }
-                            .pointerInput(Unit) {
-                                detectDragGestures(
-                                    onDragStart = {
-                                        viewModel.beginDrag(tool, globalOffset)
-                                    },
-                                    onDrag = { change: PointerInputChange, dragAmount: Offset ->
-                                        viewModel.addDragOffset(dragAmount)
-                                    },
-                                    onDragEnd = {
-                                        val target = viewModel.dragTargetItem.value
-
-                                        if (target != null) {
-                                            viewModel.assignColoredTagToItem(
-                                                target,
-                                                tool.toColoredTag()
-                                            )
-                                        }
-
-                                        viewModel.terminateDrag()
-                                    },
-                                    onDragCancel = {},
-                                )
-                            },
-                        iconRes = tool.icon,
-                        iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                            (tool.tint ?: Color(0xFFe9c46a)),
-                        ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                            (tool.tint ?: Color(0xFFe9c46a)),
-                        ringWidth = 2.dp,
-                        iconSize = 25.dp,
-                        ringSize = 38.dp,
-                        isRingEnabled = tool.activated
-                    )
-
-                    Text(
-                        modifier = modifier
-                            .align(Alignment.Companion.BottomCenter),
-                        text = tool.text(),
-                        color = Color(0xFFe9c46a),
-                        fontSize = 12.sp
-                    )
-                }
+                //icône statique, toujours existante
+                FixedSticker(
+                    tool = tool,
+                    activity = activity,
+                )
             }
         }
     }
@@ -284,7 +261,6 @@ object BottomTools {
 //                val currentContentNow = currentContent.value
 //                if (currentContentNow?.name != "DEFAULT_CONTENT")
 //                    return@combine
-
                 // 2. On transforme les tags du cache en outils dynamiques
                 val uniqueTags = tagsMap.values.distinctBy { it.id }
 
@@ -293,7 +269,7 @@ object BottomTools {
                         text = { tag.title },
                         icon = R.drawable.etiquette,
                         tint = tag.color,
-                        id = tag.id ?: UUID.randomUUID(),
+                        id = tag.id ?: randomUUID(),
                         onClick = { _, _ ->
                             // La logique est simplifiée : on change juste l'ID sélectionné.
                             // La recomposition se chargera de mettre à jour l'état "activated".
@@ -359,7 +335,7 @@ data class Tool(
     val onClick: suspend Tool.(SigmaViewModel, SigmaActivity) -> Unit,
     val visible: suspend (SigmaViewModel, SigmaActivity) -> Boolean = { _, _ -> true },
     val tint: Color? = null,
-    val id: UUID = UUID.randomUUID(),
+    val id: UUID = randomUUID(),
     val activated: Boolean = false
 ) {
     fun isActivated() = activated
@@ -403,23 +379,6 @@ sealed class Tools() {
                             viewModel.setDialogMessage("Entrez les informations du drapeau")
                             viewModel.dialogTagLambda = { tagInfos, viewModel, mainActivity ->
                                 run {
-
-                                    val newTool = Tool(
-                                        text = { tagInfos?.title ?: "" },
-                                        icon = R.drawable.etiquette,
-                                        isColoredIcon = false,
-                                        onClick = { viewModel, mainActivity ->
-                                        },
-                                        visible = { viewModel, mainActivity ->
-                                            true
-                                        },
-                                        tint = tagInfos?.color ?: Color.Companion.Unspecified
-                                    )
-
-                                    //attention
-                                    //le cache est lu par observeDefaultContent qui l'ajoutera
-//                                    DEFAULT.content(viewModel).addTool(newTool, 0)
-
                                     if (tagInfos == null)
                                         return@run
 
@@ -428,7 +387,7 @@ sealed class Tools() {
                                     val newFlag = ColoredTag(
                                         title = tagInfos.title,
                                         color = tagInfos.color,
-                                        id = newTool.id,
+                                        id = randomUUID(),
                                     )
                                     compositeMgr.save(Flag(newFlag))
 
@@ -436,12 +395,6 @@ sealed class Tools() {
                                         currentItem.fullPath,
                                         newFlag
                                     )
-
-//                                    if (currentItem != null && tagInfos != null) {
-//                                        currentItem.tag = newFlag
-//                                    }
-
-//                                    viewModel.refreshCurrentFolder()
                                 }
 
                                 BottomTools.setCurrentContent(DEFAULT)
@@ -2089,29 +2042,151 @@ data class HomeItemInfosDTO(
 }
 
 @Composable
-fun Tag(
-    modifier: Modifier = Modifier.Companion,
+context(RowScope)
+fun FixedSticker(
+    modifier: Modifier = Modifier,
+    tool: Tool,
+    activity: SigmaActivity,
+) {
+    Box(
+        modifier = modifier
+            .width(85.dp)
+            .fillMaxHeight()
+            .clickable {
+                setCurrentTool(tool)
+                viewModel.viewModelScope.launch {
+                    tool.onClick(tool, viewModel, activity)
+                }
+            }
+    ) {
+        var globalOffset: Offset = Offset.Zero
+        //icône statique, toujours existante
+        StickerIcon(
+            modifier = Modifier
+                .padding(top = 0.dp)
+                .align(Alignment.TopCenter)
+                .onGloballyPositioned { layoutCoordinates ->
+                    val localOffset = layoutCoordinates.positionInRoot()
+                    globalOffset = layoutCoordinates.localToRoot(Offset.Zero)
+                }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = {
+                            viewModel.beginDrag(tool, globalOffset)
+                        },
+                        onDrag = { change: PointerInputChange, dragAmount: Offset ->
+                            viewModel.addDragOffset(dragAmount)
+                        },
+                        onDragEnd = {
+                            val target = viewModel.dragTargetItem.value
+
+                            if (target != null) {
+                                viewModel.assignColoredTagToItem(
+                                    target,
+                                    tool.toColoredTag()
+                                )
+                            }
+
+                            viewModel.terminateDrag()
+                        },
+                        onDragCancel = {},
+                    )
+                },
+            iconRes = tool.icon,
+            iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                (tool.tint ?: Color(0xFFe9c46a)),
+            ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                (tool.tint ?: Color(0xFFe9c46a)),
+            ringWidth = 2.dp,
+            iconSize = 28.dp,
+            ringSize = 33.dp,
+            isRingEnabled = tool.activated
+        )
+
+        StickerText(
+            tool = tool
+        )
+    }
+}
+
+@Composable
+context(BoxScope)
+fun MobileSticker(
+    dragState: DragState,
+    activity: SigmaActivity,
+) {
+    val tool: Tool = dragState.tool
+    val offset: Offset = dragState.offset
+
+    Box(
+        modifier = Modifier
+            .width(85.dp)
+            .fillMaxHeight()
+            .clickable {
+                setCurrentTool(tool)
+                viewModel.viewModelScope.launch {
+                    tool.onClick(tool, viewModel, activity)
+                }
+            }
+    ) {
+        StickerIcon(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        offset.x.roundToInt() - 60,
+                        offset.y.roundToInt() - 70
+                    )
+                }
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDrag = { change, dragAmount ->
+                        },
+                        onDragEnd = {}
+                    )
+
+                },
+            iconRes = tool.icon,
+            iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                (tool.tint ?: Color(0xFFe9c46a)),
+            ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                (tool.tint ?: Color(0xFFe9c46a)),
+            ringWidth = 2.dp,
+            ringSize = 85.dp,
+            iconSize = 70.dp,
+            isRingEnabled = true,
+        )
+
+        StickerText(
+            tool = tool
+        )
+    }
+}
+
+@Composable
+fun StickerIcon(
+    modifier: Modifier = Modifier,
     iconRes: Int,
     ringColor: Color,
-    ringWidth: Dp = 2.dp,
-    iconTint: Color = Color.Companion.Unspecified, // Permet de garder la couleur originale de l'icône
-    ringSize: Dp = 33.dp,
-    iconSize: Dp = 28.dp,
-    isRingEnabled: Boolean
+    ringWidth: Dp,
+    iconTint: Color, // Permet de garder la couleur originale de l'icône
+    ringSize: Dp,
+    iconSize: Dp,
+    isRingEnabled: Boolean,
 ) {
-    // Le Box sert de conteneur pour dessiner la bordure autour.
+
+// Le Box sert de conteneur pour dessiner la bordure autour.
     Box(
         modifier = if (isRingEnabled) modifier
-            // Étape 1 : Appliquer une bordure.
+// Étape 1 : Appliquer une bordure.
             .border(
                 width = ringWidth,
                 color = ringColor,
                 shape = CircleShape // Essentiel pour que la bordure soit un anneau.
             )
-            // Étape 2 : Ajouter un padding INTERNE égal à l'épaisseur de l'anneau.
-            // Cela "pousse" le contenu (l'icône) vers l'intérieur pour ne pas qu'il soit sous la bordure.
+// Étape 2 : Ajouter un padding INTERNE égal à l'épaisseur de l'anneau.
+// Cela "pousse" le contenu (l'icône) vers l'intérieur pour ne pas qu'il soit sous la bordure.
             .padding(ringWidth)
-            // Étape 3 (Optionnel mais recommandé) : Donner une taille fixe au conteneur.
+// Étape 3 (Optionnel mais recommandé) : Donner une taille fixe au conteneur.
             .size(ringSize)
         else modifier
             .border(
@@ -2131,6 +2206,20 @@ fun Tag(
             tint = iconTint
         )
     }
+}
+
+@Composable
+context(BoxScope)
+fun StickerText(
+    tool: Tool
+){
+    Text(
+        modifier = Modifier
+            .align(Alignment.BottomCenter),
+        text = tool.text(),
+        color = Color(0xFFe9c46a),
+        fontSize = 12.sp
+    )
 }
 
 data class OverallProgress(
