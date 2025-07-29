@@ -11,8 +11,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -21,13 +21,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
@@ -73,7 +72,6 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
-import kotlin.math.roundToInt
 
 
 @AndroidEntryPoint
@@ -186,7 +184,7 @@ class SigmaActivity : ComponentActivity() {
                 },
                 floatingActionButton = {
                     Column {
-                        NewFolderFAB(
+                        SigmaFAB(
                             homePageVisible = homePageVisible,
                             isTextDialogVisible = isTextDialogVisible,
                             isYesNoDialogVisible = isYesNoDialogVisible,
@@ -260,18 +258,18 @@ class SigmaActivity : ComponentActivity() {
                             /////////////////////////////////
                             // zone horizontale supérieure //
                             /////////////////////////////////
-                            Box(
+                            Row(
                                 modifier = Modifier.fillMaxWidth()
+                                    .padding(end = 18.dp)
                             ) {
-                                val sortingWidth = 200.dp
 
                                 ///////////////////////////////////
                                 // zone Home button + breadcrumb //
                                 ///////////////////////////////////
                                 Row(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(end = sortingWidth),
+                                        .height(IntrinsicSize.Min),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
 
                                     /////////////////
@@ -394,13 +392,29 @@ class SigmaActivity : ComponentActivity() {
 
                                 } else {
 
+                                    /////////////////////////////////
+                                    // aire d'affichage des outils //
+                                    /////////////////////////////////
+
+                                    Spacer(Modifier.weight(1f))
+
+                                    //////////////////
+                                    // aire d'infos //
+                                    //////////////////
+                                    Text(
+                                        modifier = Modifier
+                                            .align(Alignment.CenterVertically)
+                                            .padding(end = 5.dp),
+                                        text = "5M bloutoks"
+                                    )
+
                                     ///////////////////////////
                                     // aire de tri des items //
                                     ///////////////////////////
-
                                     //TODO pas besoin de tout recharger
+
                                     SortingArea(
-                                        sortingWidth = sortingWidth,
+                                        modifier = Modifier,
                                         sortingFlow = mainViewModel.sorting,
                                         onDateSortClick = {
                                             mainViewModel.goToFolder(

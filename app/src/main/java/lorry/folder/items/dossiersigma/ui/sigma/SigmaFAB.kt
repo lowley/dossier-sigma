@@ -23,7 +23,7 @@ import java.io.File
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun SigmaActivity.NewFolderFAB(
+fun SigmaActivity.SigmaFAB(
     homePageVisible: Boolean,
     isTextDialogVisible: Boolean,
     isYesNoDialogVisible: Boolean,
@@ -59,19 +59,19 @@ fun SigmaActivity.NewFolderFAB(
                 speedDialData = listOf(
                     SpeedDialData(
                         label = "Dossier -> NAS",
-                        painter = painterResource(id = R.drawable.ftp)
+                        painter = painterResource(id = R.drawable.ftp),
                     ) {
                         mainViewModel.viewModelScope.launch {
                             val files = mainViewModel.currentFolder.value.items.map { it.fullPath }
                             val intent =
-                                Intent(this@NewFolderFAB, MoveToNASService::class.java).apply {
+                                Intent(this@SigmaFAB, MoveToNASService::class.java).apply {
                                     putExtra("filesToTransfer", Gson().toJson(files))
                                     putExtra(
                                         "nasDirectory",
-                                        this@NewFolderFAB.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
+                                        this@SigmaFAB.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
                                     )
                                 }
-                            this@NewFolderFAB.startService(intent)
+                            this@SigmaFAB.startService(intent)
                         }
                     },
                     SpeedDialData(

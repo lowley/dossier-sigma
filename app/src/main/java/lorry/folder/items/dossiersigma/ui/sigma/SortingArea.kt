@@ -1,11 +1,15 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
+import android.graphics.Paint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -22,69 +26,58 @@ import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
 
 @Composable
-context(BoxScope)
+context(RowScope)
 fun SortingArea(
-    sortingWidth: Dp,
+    modifier: Modifier,
     sortingFlow: StateFlow<SortingCriterion>,
     onDateSortClick: () -> Unit,
     onNameSortClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .align(Alignment.CenterEnd)
-            .width(sortingWidth),
-        horizontalArrangement = Arrangement.Center,
+        modifier = modifier
+            .padding(0.dp)
+            .wrapContentWidth()
+            .height(30.dp)
+            .align(Alignment.CenterVertically),
+        horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
     ) {
         val sorting by sortingFlow.collectAsState()
 
-        FilterChip(
-            label = { Text("Date") },
-            modifier = Modifier
-                .padding(end = 5.dp)
-                .align(Alignment.CenterVertically),
-            selected = sorting == SortingCriterion.ByDateDesc,
-            leadingIcon = {
-                if (sorting == SortingCriterion.ByDateDesc)
+        if (sorting == SortingCriterion.ByDateDesc)
+            FilterChip(
+                label = { Text("Date") },
+                modifier = Modifier,
+                leadingIcon = {
                     Icon(
                         painterResource(id = R.drawable.trier_decroissant),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                         tint = Color.Red
                     )
-                else
-                    Icon(
-                        painterResource(id = R.drawable.trier_decroissant),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                    )
-            },
-            enabled = sorting == SortingCriterion.ByNameAsc,
-            onClick = onDateSortClick
-        )
+                },
+                enabled = true,
+                onClick = onNameSortClick,
+                selected = false
+            )
 
-        FilterChip(
-            label = { Text("Nom") },
-            modifier = Modifier
-                .align(Alignment.CenterVertically),
-            selected = sorting == SortingCriterion.ByNameAsc,
-            leadingIcon = {
-                if (sorting == SortingCriterion.ByNameAsc)
+        if (sorting == SortingCriterion.ByNameAsc)
+            FilterChip(
+                label = { Text("Nom") },
+                modifier = Modifier,
+//                    .align(Alignment.CenterVertically),
+                selected = sorting == SortingCriterion.ByNameAsc,
+                leadingIcon = {
                     Icon(
                         painterResource(id = R.drawable.trier_croissant),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                         tint = Color.Red
                     )
-                else
-                    Icon(
-                        painterResource(id = R.drawable.trier_croissant),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                    )
-            },
-            enabled = sorting == SortingCriterion.ByDateDesc,
-            onClick = onNameSortClick
-        )
+
+                },
+                enabled = true,
+                onClick = onDateSortClick
+            )
     }
 }
