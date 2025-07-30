@@ -264,7 +264,8 @@ class SigmaActivity : ComponentActivity() {
                             // zone horizontale supérieure //
                             /////////////////////////////////
                             Row(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(end = 15.dp),
                             ) {
 
                                 ////////////////////////////

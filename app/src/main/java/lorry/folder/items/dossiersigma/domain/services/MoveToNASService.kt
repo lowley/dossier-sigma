@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import com.google.gson.Gson
@@ -34,6 +35,10 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MoveToNASService @Inject constructor() : Service(), CoroutineScope by MainScope() {
 
+    companion object{
+        const val TAG = "MvNasSvc"
+    }
+
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "move_nas_channel"
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -46,7 +51,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         println("dans onStartCommand")
         val filesTotransferString = intent?.getStringExtra("filesToTransfer") ?: return START_NOT_STICKY
-        nasDirectory = intent?.getStringExtra("nasDirectory") ?: return START_NOT_STICKY
+        nasDirectory = intent.getStringExtra("nasDirectory") ?: return START_NOT_STICKY
 
         val type = object : TypeToken<List<String>>() {}.type
         val filesTotransfer = Gson().fromJson<List<String>>(filesTotransferString, type)
@@ -58,7 +63,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
         val destination = "/$nasDirectory"
 
         serviceScope.launch {
-            println("MoveToNASService: dans launch")
+            Log.d(TAG, "MoveToNASService: dans launch")
             filesTotransfer.forEachIndexed { index, source ->
                 println("MoveToNASService: copie de $source")
                 try {
@@ -79,7 +84,10 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
                     println("vérification positive, traitements sur le point d'être effectués")
                     delete(source)
                     println("fichier $source supprimé")
+
+                    println("envoi du message à CopieurTho2")
                     sendMessageToThoApp(this@MoveToNASService, source)
+                    println("message envoyé")
                 }
 
                 SigmaViewModel.requestRefresh()
@@ -236,7 +244,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
 
 fun sendMessageToThoApp(context: Context, message: String) {
     try {
-        val intent = Intent().apply {
+        val intent = Intent("android.intent.action.USER_PRESENT").apply {
             // L'action est la même, elle cible maintenant le BroadcastReceiver
             action = "CopieurTho2.CREATE_SHORTCUT_RECEIVE_MESSAGE"
             putExtra("Dossiersigma.EXTRA_MESSAGE_CONTENT", message)
