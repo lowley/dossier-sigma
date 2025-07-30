@@ -71,6 +71,7 @@ import lorry.folder.items.dossiersigma.ui.normal.NormalPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.settingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
+import okhttp3.internal.notifyAll
 import javax.inject.Inject
 
 
@@ -236,6 +237,10 @@ class SigmaActivity : ComponentActivity() {
                             .fillMaxSize()
 //                            .zIndex(20f)
                     ) {
+
+                        //////////////////////////////////////////////
+                        // l'aire centrale est organisée en colonne //
+                        //////////////////////////////////////////////
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -259,49 +264,63 @@ class SigmaActivity : ComponentActivity() {
                             // zone horizontale supérieure //
                             /////////////////////////////////
                             Row(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(end = 18.dp)
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
 
-                                ///////////////////////////////////
-                                // zone Home button + breadcrumb //
-                                ///////////////////////////////////
+                                ////////////////////////////
+                                // aire gauche des outils //
+                                // normal vs home page    //
+                                ////////////////////////////
                                 Row(
                                     modifier = Modifier
-                                        .height(IntrinsicSize.Min),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .weight(1f)
                                 ) {
 
-                                    /////////////////
-                                    // Home button //
-                                    /////////////////
-                                    HomeButtonIcon(
-                                        icon = R.drawable.mouvement
+                                    ///////////////////////////////////
+                                    // zone Home button + breadcrumb //
+                                    ///////////////////////////////////
+                                    Row(
+                                        modifier = Modifier
+                                            .height(IntrinsicSize.Min)
+                                            .padding(end = 0.dp),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        mainViewModel.setIsSettingsPageVisible(false)
-                                        homeViewModel.setHomePageVisible(true)
-                                    }
 
-                                    ////////////////
-                                    // breadcrumb //
-                                    ////////////////
-                                    if (!homePageVisible)
-                                        Breadcrumb(
-                                            items = currentFolder.fullPath.split("/")
-                                                .filter { it != "" },
-                                            onPathClick = { path ->
-                                                mainViewModel.goToFolder(path)
-                                            },
-                                            modifier = Modifier
-                                                .padding(start = 10.dp)
-                                                .align(Alignment.CenterVertically),
-                                            activeColor = Color(0xFF8697CB),
-                                            inactiveColor = Color(0xFF8697CB),
-                                            arrowColor = Color.Magenta,
-                                            transitionDuration = 200,
-                                        )
+                                        /////////////////
+                                        // Home button //
+                                        /////////////////
+                                        HomeButtonIcon(
+                                            icon = R.drawable.mouvement
+                                        ) {
+                                            mainViewModel.setIsSettingsPageVisible(false)
+                                            homeViewModel.setHomePageVisible(true)
+                                        }
+
+                                        ////////////////
+                                        // breadcrumb //
+                                        ////////////////
+                                        if (!homePageVisible)
+                                            Breadcrumb(
+                                                items = currentFolder.fullPath.split("/")
+                                                    .filter { it != "" },
+                                                onPathClick = { path ->
+                                                    mainViewModel.goToFolder(path)
+                                                },
+                                                modifier = Modifier
+                                                    .padding(start = 10.dp)
+                                                    .align(Alignment.CenterVertically),
+                                                activeColor = Color(0xFF8697CB),
+                                                inactiveColor = Color(0xFF8697CB),
+                                                arrowColor = Color.Magenta,
+                                                transitionDuration = 200,
+                                            )
+                                    }
                                 }
 
+                                ////////////////////////////
+                                // aire droite des outils //
+                                // normal vs home page    //
+                                ////////////////////////////
                                 if (homePageVisible) {
 
                                     ////////////////////////////////////////////////
@@ -309,7 +328,6 @@ class SigmaActivity : ComponentActivity() {
                                     ////////////////////////////////////////////////
                                     Box(
                                         modifier = Modifier
-                                            .fillMaxWidth()
                                             .padding(end = 10.dp)
                                     )
                                     {
@@ -394,9 +412,10 @@ class SigmaActivity : ComponentActivity() {
 
                                     /////////////////////////////////
                                     // aire d'affichage des outils //
+                                    // dans page normale           //
                                     /////////////////////////////////
 
-                                    Spacer(Modifier.weight(1f))
+//                                    Spacer(Modifier.weight(1f))
 
                                     //////////////////
                                     // aire d'infos //
@@ -405,7 +424,8 @@ class SigmaActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .align(Alignment.CenterVertically)
                                             .padding(end = 5.dp),
-                                        text = "5M bloutoks"
+                                        text = "5M bloutoks",
+                                        maxLines = 1
                                     )
 
                                     ///////////////////////////
