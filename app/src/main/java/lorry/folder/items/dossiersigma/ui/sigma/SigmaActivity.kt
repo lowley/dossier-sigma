@@ -415,18 +415,32 @@ class SigmaActivity : ComponentActivity() {
                                     // dans page normale           //
                                     /////////////////////////////////
 
-//                                    Spacer(Modifier.weight(1f))
+                                    ////////////////////////////////////////////
+                                    // aire de l'avancement copie/déplacement //
+                                    ////////////////////////////////////////////
 
-                                    //////////////////
-                                    // aire d'infos //
-                                    //////////////////
-                                    Text(
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically)
-                                            .padding(end = 5.dp),
-                                        text = "5M bloutoks",
-                                        maxLines = 1
-                                    )
+                                    val nasText by BottomTools.copyNASText.collectAsState()
+                                    val allNasText by BottomTools.copyAllNASText.collectAsState()
+
+                                    if (nasText != "1 -> NAS")
+                                        Text(
+                                            modifier = Modifier
+                                                .align(Alignment.CenterVertically)
+                                                .padding(end = 5.dp),
+                                            text = nasText,
+                                            color = Color.White,
+                                            maxLines = 1
+                                        )
+                                    else
+                                        if (allNasText != "Tous -> NAS")
+                                            Text(
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterVertically)
+                                                    .padding(end = 5.dp),
+                                                text = allNasText,
+                                                color = Color.White,
+                                                maxLines = 1
+                                            )
 
                                     ///////////////////////////
                                     // aire de tri des items //

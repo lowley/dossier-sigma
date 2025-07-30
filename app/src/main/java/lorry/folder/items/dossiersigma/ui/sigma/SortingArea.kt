@@ -66,7 +66,7 @@ fun SortingArea(
                 label = { Text("Nom") },
                 modifier = Modifier,
 //                    .align(Alignment.CenterVertically),
-                selected = sorting == SortingCriterion.ByNameAsc,
+                selected = false,
                 leadingIcon = {
                     Icon(
                         painterResource(id = R.drawable.trier_croissant),
