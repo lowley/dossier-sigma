@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,15 +22,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.TextField
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,16 +38,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewModelScope
-import com.elixer.palette.Presets
 import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
 import com.elixer.palette.constraints.VerticalAlignment
 import kotlinx.coroutines.launch
-import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,27 +53,27 @@ fun SigmaActivity.SettingsPage(
 
 ) {
     val nasAddressFromDataStore by vm.settingsManager.nasAddressFlow.collectAsState("")
-    var nasAddress by remember(nasAddressFromDataStore) {
+    var nasAddress = remember(nasAddressFromDataStore) {
         mutableStateOf(nasAddressFromDataStore)
     }
 
     val nasLoginFromDataStore by vm.settingsManager.nasLoginFlow.collectAsState("")
-    var nasLogin by remember(nasLoginFromDataStore) {
+    var nasLogin = remember(nasLoginFromDataStore) {
         mutableStateOf(nasLoginFromDataStore)
     }
 
     val nasPasswordFromDataStore by vm.settingsManager.nasPasswordFlow.collectAsState("")
-    var nasPassword by remember(nasPasswordFromDataStore) {
+    var nasPassword = remember(nasPasswordFromDataStore) {
         mutableStateOf(nasPasswordFromDataStore)
     }
 
     val nasFolderFromDataStore by vm.settingsManager.nasFolderFlow.collectAsState("")
-    var nasFolder by remember(nasFolderFromDataStore) {
+    var nasFolder = remember(nasFolderFromDataStore) {
         mutableStateOf(nasFolderFromDataStore)
     }
 
     val backgroundColorFromDataStore by vm.settingsManager.backgroundColorFlow.collectAsState(Color.Black)
-    var backgroundColor by remember(backgroundColorFromDataStore) {
+    var backgroundColor = remember(backgroundColorFromDataStore) {
         mutableStateOf(backgroundColorFromDataStore)
     }
 
@@ -91,78 +87,108 @@ fun SigmaActivity.SettingsPage(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(top = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             //données
-            Row() {
-                val rowHeight = 50.dp
+            val cellHeight = 50.dp
+            val titleWidth = 170.dp
+            val inputWidth = 300.dp
 
-                //titres
-                Column(
+            //////////////////
+            // aire adresse //
+            //////////////////
+            Row(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(bottom = 10.dp)
+            ) {
+                TitleZone(
                     modifier = Modifier,
+                    text = "Adresse :",
+                    width = titleWidth,
+                    height = cellHeight
+                )
 
-                    ) {
-                    Text(
-                        modifier = Modifier.height(rowHeight),
-                        text = "Addresse",
-                        color = Color.White
-                    )
-                    Text(
-                        modifier = Modifier.height(rowHeight),
-                        text = "Login",
-                        color = Color.White
-                    )
-                    Text(
-                        modifier = Modifier.height(rowHeight),
-                        text = "Mot de passe",
-                        color = Color.White
-                    )
-                    Text(
-                        modifier = Modifier.height(rowHeight),
-                        text = "Répertoire",
-                        color = Color.White
-                    )
-                }
+                inputZone(
+                    modifier = Modifier,
+                    label = "ex: 192.168.1.26",
+                    state = nasAddress,
+                    width = inputWidth,
+                    height = cellHeight
+                )
+            }
 
-                //champs de saisie
-                Column(
-                    modifier = Modifier
+            ////////////////
+            // aire login //
+            ////////////////
+            Row(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(bottom = 10.dp)
+            ) {
+                TitleZone(
+                    modifier = Modifier,
+                    text = "Utilisateur :",
+                    width = titleWidth,
+                    height = cellHeight
+                )
 
-                ) {
-                    TextField(
-                        modifier = Modifier.height(rowHeight),
-                        value = nasAddress,
-                        onValueChange = {
-                            nasAddress = it
-                        }
+                inputZone(
+                    modifier = Modifier,
+                    label = "ex: tintin76",
+                    state = nasLogin,
+                    width = inputWidth,
+                    height = cellHeight
+                )
+            }
 
-                    )
+            ///////////////////////
+            // aire mot de passe //
+            ///////////////////////
+            Row(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(bottom = 10.dp)
+            ) {
+                TitleZone(
+                    modifier = Modifier,
+                    text = "Mot de passe :",
+                    width = titleWidth,
+                    height = cellHeight
+                )
 
-                    TextField(
-                        modifier = Modifier.height(rowHeight),
-                        value = nasLogin,
-                        onValueChange = {
-                            nasLogin = it
-                        }
+                inputZone(
+                    modifier = Modifier,
+                    label = "ex: 123456",
+                    state = nasPassword,
+                    width = inputWidth,
+                    height = cellHeight
+                )
+            }
 
-                    )
+            /////////////////////
+            // aire répertoire //
+            /////////////////////
+            Row(
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .padding(bottom = 10.dp)
+            ) {
+                TitleZone(
+                    modifier = Modifier,
+                    text = "Répertoire NAS :",
+                    width = titleWidth,
+                    height = cellHeight
+                )
 
-                    TextField(
-                        modifier = Modifier.height(rowHeight),
-                        value = nasPassword,
-                        onValueChange = {
-                            nasPassword = it
-                        }
-
-                    )
-
-                    TextField(
-                        modifier = Modifier.height(rowHeight),
-                        value = nasFolder,
-                        onValueChange = {
-                            nasFolder = it
-                        }
-                    )
-                }
+                inputZone(
+                    modifier = Modifier,
+                    label = "ex: fichiers",
+                    state = nasFolder,
+                    width = inputWidth,
+                    height = cellHeight
+                )
             }
 
             Spacer(
@@ -171,7 +197,11 @@ fun SigmaActivity.SettingsPage(
             )
 
             Row(
-                verticalAlignment = CenterVertically
+                modifier = Modifier
+                    .wrapContentWidth()
+                    .align(Alignment.CenterHorizontally),
+                verticalAlignment = CenterVertically,
+
             ) {
                 Text(
                     text = "Changer la couleur du fond",
@@ -192,7 +222,7 @@ fun SigmaActivity.SettingsPage(
                         }
                         .clip(RoundedCornerShape(8.dp))
                         .border(1.dp, Color.White, RoundedCornerShape(8.dp))
-                        .background(backgroundColor)
+                        .background(backgroundColor.value)
                 )
             }
 
@@ -200,7 +230,6 @@ fun SigmaActivity.SettingsPage(
                 modifier = Modifier
                     .weight(1f)
             )
-
 
             //boutons, en bas de la page
             Row(
@@ -236,11 +265,11 @@ fun SigmaActivity.SettingsPage(
                     ),
                     onClick = {
                         vm.viewModelScope.launch {
-                            settingsViewModel.settingsManager.saveNasAddress(nasAddress)
-                            settingsViewModel.settingsManager.saveNasLogin(nasLogin)
-                            settingsViewModel.settingsManager.saveNasPassword(nasPassword)
-                            settingsViewModel.settingsManager.saveNasFolder(nasFolder)
-                            settingsViewModel.settingsManager.saveBackgroundColor(backgroundColor)
+                            settingsViewModel.settingsManager.saveNasAddress(nasAddress.value)
+                            settingsViewModel.settingsManager.saveNasLogin(nasLogin.value)
+                            settingsViewModel.settingsManager.saveNasPassword(nasPassword.value)
+                            settingsViewModel.settingsManager.saveNasFolder(nasFolder.value)
+                            settingsViewModel.settingsManager.saveBackgroundColor(backgroundColor.value)
                         }
 
                         //sauver dans les opréférences
@@ -273,7 +302,7 @@ fun SigmaActivity.SettingsPage(
                 )
 
                 Palette(
-                    defaultColor = backgroundColor,
+                    defaultColor = backgroundColor.value,
 //                    defaultColor = Color(0xFF363E4C),
                     buttonSize = 100.dp,
                     swatches = Palettes.darkPalette,
@@ -284,7 +313,7 @@ fun SigmaActivity.SettingsPage(
                     verticalAlignment = VerticalAlignment.Bottom,
                     horizontalAlignment = HorizontalAlignment.Start,
                     onColorSelected = {
-                        backgroundColor = it
+                        backgroundColor.value = it
                         showColorPicker = false
                     }
                 )
@@ -293,6 +322,54 @@ fun SigmaActivity.SettingsPage(
         }
     }
 }
+
+@Composable
+context(RowScope)
+fun TitleZone(
+    modifier: Modifier,
+    text: String,
+    width: Dp,
+    height: Dp
+) {
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(height)
+    ) {
+        Text(
+            modifier = modifier
+                .align(Alignment.CenterStart),
+            text = text,
+            color = Color.White
+        )
+    }
+}
+
+@Composable
+context(RowScope)
+fun inputZone(
+    modifier: Modifier,
+    label: String,
+    state: MutableState<String>,
+    width: Dp,
+    height: Dp
+) {
+    Box(
+        modifier = Modifier
+            .width(width)
+            .height(height)
+    ) {
+        TextField(
+            modifier = Modifier.height(height),
+            value = state.value,
+            label = { Text(label) },
+            onValueChange = {
+                state.value = it
+            },
+        )
+    }
+}
+
 
 object Palettes {
     val darkPalette: List<List<Color>> = listOf(
