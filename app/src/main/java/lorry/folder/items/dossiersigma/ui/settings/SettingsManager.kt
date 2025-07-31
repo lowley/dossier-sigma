@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
 import android.content.Context
+import androidx.compose.ui.graphics.Color
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -34,6 +35,7 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
         val NAS_PASSWORD_KEY = stringPreferencesKey("nas_password")
         val NAS_FOLDER_KEY = stringPreferencesKey("nas_folder")
         val HOMEITEMS_KEY = stringSetPreferencesKey("home_items")
+        val BACKGROUND_COLOR_KEY = stringSetPreferencesKey("background_color")
     }
 
     suspend fun saveNasAddress(address: String) {
@@ -121,5 +123,36 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
             return@map cool
         }
 
+    suspend fun saveBackgroundColor(color: Color) {
+        withContext(Dispatchers.IO) {
+            context.dataStore.edit { settings ->
+                settings[BACKGROUND_COLOR_KEY] = setOf(
+                    "RED|${color.red.toString()}",
+                    "GREEN|${color.green.toString()}",
+                    "BLUE|${color.blue.toString()}",
+                )
+            }
+        }
+    }
 
+    val backgroundColorFlow: Flow<Color> = context.dataStore.data
+        .map { preferences ->
+            val rawColors = preferences[BACKGROUND_COLOR_KEY]
+            if (rawColors == null || rawColors.size != 3)
+                return@map Color.Unspecified
+
+            return@map Color(
+                rawColors.getColor("RED"),
+                rawColors.getColor("GREEN"),
+                rawColors.getColor("BLUE"),
+            )
+        }
+
+    fun Set<String>.getColor(key: String): Float {
+        return this.firstOrNull {
+            it.startsWith(key)
+        }?.substringAfter("|")?.toFloatOrNull()
+            ?: 0f
+    }
 }
+

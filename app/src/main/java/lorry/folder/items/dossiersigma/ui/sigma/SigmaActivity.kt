@@ -127,20 +127,12 @@ class SigmaActivity : ComponentActivity() {
 
             val fabState = rememberSpeedDialFloatingActionButtonState()
 
-            val test by BottomTools.currentContent.collectAsState()
-            val cache by mainViewModel.flagCache.collectAsState()
-
-            val currentContentInfos by remember {
-                derivedStateOf { Pair(test?.name, cache.values.distinctBy { it.id }) }
-            }
+            val backgroundColor by settingsViewModel.settingsManager.backgroundColorFlow.collectAsState(Color.Black)
 
             val currentPage by mainViewModel.browserManager.currentPage.collectAsState()
-            var webView = mainViewModel.webView.collectAsState()
-            var canGoBack = mainViewModel.canGoBack.collectAsState()
-            var canGoForward = mainViewModel.canGoForward.collectAsState()
 
             Scaffold(
-                containerColor = Color(0xFF363E4C),
+                containerColor = backgroundColor,
                 bottomBar = {
                     //////////////////////////
                     // bottomAppBar normale //
@@ -207,7 +199,7 @@ class SigmaActivity : ComponentActivity() {
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
 
                     SideEffect {
-                        activity.window.statusBarColor = Color(0xFF363E4C).toArgb()
+                        activity.window.statusBarColor = backgroundColor.toArgb()
                     }
 
                     BackHandler(enabled = true) {
@@ -244,7 +236,7 @@ class SigmaActivity : ComponentActivity() {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color(0xFF363E4C))
+                                .background(backgroundColor)
                                 .pointerInput(selectedItem?.id) {
 
                                     //////////////////////////////////

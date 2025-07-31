@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
@@ -35,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
@@ -74,13 +76,17 @@ fun SigmaActivity.SettingsPage(
         mutableStateOf(nasFolderFromDataStore)
     }
 
+    val backgroundColorFromDataStore by vm.settingsManager.backgroundColorFlow.collectAsState(Color.Black)
+    var backgroundColor by remember(backgroundColorFromDataStore) {
+        mutableStateOf(backgroundColorFromDataStore)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
     ) {
 
         var showColorPicker by remember { mutableStateOf(false) }
-        var currentBackgroundColor by remember { mutableStateOf(Color.Black) }
 
         Column(
             modifier = Modifier
@@ -97,19 +103,23 @@ fun SigmaActivity.SettingsPage(
                     ) {
                     Text(
                         modifier = Modifier.height(rowHeight),
-                        text = "Addresse"
+                        text = "Addresse",
+                        color = Color.White
                     )
                     Text(
                         modifier = Modifier.height(rowHeight),
-                        text = "Login"
+                        text = "Login",
+                        color = Color.White
                     )
                     Text(
                         modifier = Modifier.height(rowHeight),
-                        text = "Mot de passe"
+                        text = "Mot de passe",
+                        color = Color.White
                     )
                     Text(
                         modifier = Modifier.height(rowHeight),
-                        text = "Répertoire"
+                        text = "Répertoire",
+                        color = Color.White
                     )
                 }
 
@@ -166,7 +176,8 @@ fun SigmaActivity.SettingsPage(
                 Text(
                     text = "Changer la couleur du fond",
                     modifier = Modifier
-                        .padding(end = 10.dp)
+                        .padding(end = 10.dp),
+                    color = Color.White
                 )
 
                 Box(
@@ -180,15 +191,16 @@ fun SigmaActivity.SettingsPage(
                             )
                         }
                         .clip(RoundedCornerShape(8.dp))
-                        .border(1.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                        .background(currentBackgroundColor)
+                        .border(1.dp, Color.White, RoundedCornerShape(8.dp))
+                        .background(backgroundColor)
                 )
             }
 
             Spacer(
                 modifier = Modifier
-                    .height(10.dp)
+                    .weight(1f)
             )
+
 
             //boutons, en bas de la page
             Row(
@@ -228,6 +240,7 @@ fun SigmaActivity.SettingsPage(
                             settingsViewModel.settingsManager.saveNasLogin(nasLogin)
                             settingsViewModel.settingsManager.saveNasPassword(nasPassword)
                             settingsViewModel.settingsManager.saveNasFolder(nasFolder)
+                            settingsViewModel.settingsManager.saveBackgroundColor(backgroundColor)
                         }
 
                         //sauver dans les opréférences
@@ -247,11 +260,22 @@ fun SigmaActivity.SettingsPage(
                     .zIndex(35f)
                     .padding(start = 60.dp, bottom = 60.dp)
             ) {
+                Box(
+                    modifier = Modifier
+                        .offset(x = (-52).dp, y = (52).dp)
+                        .size(104.dp)
+                        .background(
+                            color = Color.White,
+                            shape = RoundedCornerShape(52.dp)
+                        )
+                        .align(Alignment.BottomStart)
+                        .shadow(8.dp, shape = RoundedCornerShape(52.dp))
+                )
+
                 Palette(
-                    defaultColor = currentBackgroundColor,
+                    defaultColor = backgroundColor,
 //                    defaultColor = Color(0xFF363E4C),
                     buttonSize = 100.dp,
-//                    swatches = Presets.material(),
                     swatches = Palettes.darkPalette,
                     innerRadius = 400f,
                     strokeWidth = 120f,
@@ -260,7 +284,7 @@ fun SigmaActivity.SettingsPage(
                     verticalAlignment = VerticalAlignment.Bottom,
                     horizontalAlignment = HorizontalAlignment.Start,
                     onColorSelected = {
-                        currentBackgroundColor = it
+                        backgroundColor = it
                         showColorPicker = false
                     }
                 )
