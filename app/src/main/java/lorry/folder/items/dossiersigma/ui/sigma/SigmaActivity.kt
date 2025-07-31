@@ -12,7 +12,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -69,9 +68,8 @@ import lorry.folder.items.dossiersigma.ui.centralArea.homePage
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
-import lorry.folder.items.dossiersigma.ui.settings.settingsPage
+import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
-import okhttp3.internal.notifyAll
 import javax.inject.Inject
 
 
@@ -125,6 +123,7 @@ class SigmaActivity : ComponentActivity() {
             val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
 
             val homePageVisible by homeViewModel.homePageVisible.collectAsState()
+            val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
             val fabState = rememberSpeedDialFloatingActionButtonState()
 
@@ -192,6 +191,7 @@ class SigmaActivity : ComponentActivity() {
                             isMoveFileDialogVisible = isMoveFileDialogVisible,
                             isTagInfosDialogVisible = isTagInfosDialogVisible,
                             isFilePickerVisible = isFilePickerVisible,
+                            isSettingsPageVisible = isSettingsPageVisible,
                             fabState = fabState
                         )
                     }
@@ -471,7 +471,7 @@ class SigmaActivity : ComponentActivity() {
                             // Settings Page //
                             ///////////////////
                             if (isSettingsPageVisible)
-                                settingsPage(vm = settingsViewModel)
+                                SettingsPage(vm = settingsViewModel)
 
                             ///////////////
                             // Home page //

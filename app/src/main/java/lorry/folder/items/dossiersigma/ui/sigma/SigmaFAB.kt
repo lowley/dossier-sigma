@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import de.charlex.compose.SpeedDialData
 import de.charlex.compose.SpeedDialFloatingActionButton
+import de.charlex.compose.SpeedDialFloatingActionButtonState
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
@@ -30,14 +31,16 @@ fun SigmaActivity.SigmaFAB(
     isMoveFileDialogVisible: Boolean,
     isFilePickerVisible: Boolean,
     isTagInfosDialogVisible: Boolean,
-    fabState: de.charlex.compose.SpeedDialFloatingActionButtonState
+    fabState: SpeedDialFloatingActionButtonState,
+    isSettingsPageVisible: Boolean
 ) {
     if (!homePageVisible &&
         !isTextDialogVisible &&
         !isYesNoDialogVisible &&
         !isMoveFileDialogVisible &&
         !isFilePickerVisible &&
-        !isTagInfosDialogVisible
+        !isTagInfosDialogVisible &&
+        !isSettingsPageVisible
     )
 
         Box(
