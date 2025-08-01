@@ -72,9 +72,9 @@ fun SigmaActivity.SettingsPage(
         mutableStateOf(nasFolderFromDataStore)
     }
 
-    val backgroundColorFromDataStore by vm.settingsManager.backgroundColorFlow.collectAsState(Color.Black)
-    var backgroundColor = remember(backgroundColorFromDataStore) {
-        mutableStateOf(backgroundColorFromDataStore)
+    val schemeFromDataStore by vm.settingsManager.colorSchemeFlow.collectAsState(null)
+    var backgroundColor = remember(schemeFromDataStore) {
+        mutableStateOf(schemeFromDataStore?.background ?: Color.Black)
     }
 
     Box(
@@ -269,10 +269,10 @@ fun SigmaActivity.SettingsPage(
                             settingsViewModel.settingsManager.saveNasLogin(nasLogin.value)
                             settingsViewModel.settingsManager.saveNasPassword(nasPassword.value)
                             settingsViewModel.settingsManager.saveNasFolder(nasFolder.value)
-                            settingsViewModel.settingsManager.saveBackgroundColor(backgroundColor.value)
-                        }
 
-                        //sauver dans les opréférences
+                            settingsViewModel.setNightAndDay(NightAndDay.DARK)
+                            settingsViewModel.settingsManager.saveColorScheme(settingsViewModel.colorScheme.value)
+                        }
 
                         mainViewModel.setIsSettingsPageVisible(false)
                     }

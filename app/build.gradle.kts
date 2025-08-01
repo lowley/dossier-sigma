@@ -131,8 +131,7 @@ dependencies {
     //https://github.com/ch4rl3x/SpeedDialFloatingActionButton
     implementation("de.charlex.compose:speeddial:1.1.1")
 
-    //Palette color picker, avec carrés en grille
+    //générer un thème
     //https://github.com/KvColorPalette/KvColorPalette-Android
-//    implementation("com.github.KvColorPalette:KvColorPicker-Android:2.1.0")
-
+    implementation("com.github.KvColorPalette:KvColorPalette-Android:3.1.0")
 }

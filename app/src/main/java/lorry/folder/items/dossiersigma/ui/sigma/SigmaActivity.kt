@@ -27,10 +27,10 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -41,7 +41,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
@@ -67,6 +66,8 @@ import lorry.folder.items.dossiersigma.ui.centralArea.Memo
 import lorry.folder.items.dossiersigma.ui.centralArea.homePage
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
+import lorry.folder.items.dossiersigma.ui.settings.GetMyAppTheme
+import lorry.folder.items.dossiersigma.ui.settings.MyColorScheme
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
@@ -108,88 +109,111 @@ class SigmaActivity : ComponentActivity() {
         if (!permissionsManager.hasExternalStoragePermission())
             permissionsManager.requestExternalStoragePermission(this)
 
-        window.navigationBarColor = ContextCompat.getColor(this, R.color.background)
         initializeFileIntentLauncher(mainViewModel)
 
         BottomTools.viewModel = mainViewModel
         BottomTools.observeDefaultContent(mainViewModel)
 
         setContent {
-            val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
-            val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
-            val isMoveFileDialogVisible by mainViewModel.isMoveFileDialogVisible.collectAsState()
-            val isTagInfosDialogVisible by mainViewModel.isTagInfosDialogVisible.collectAsState()
-            val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
-            val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
+            val myColorScheme: MyColorScheme? by settingsViewModel.settingsManager.colorSchemeFlow.collectAsState(
+                null
+            )
+            val AppTheme: @Composable ((@Composable () -> Unit) -> Unit) = {
+                val result = if (myColorScheme == null)
+                    @Composable { content: @Composable () -> Unit ->
+                        DossierSigmaTheme(content = content)
+                    }
+                else @Composable { content: @Composable () -> Unit ->
+                    GetMyAppTheme(
+                        colorScheme = myColorScheme!!
+                    )
+                }
 
-            val homePageVisible by homeViewModel.homePageVisible.collectAsState()
-            val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
+                result
+            }
 
-            val fabState = rememberSpeedDialFloatingActionButtonState()
+            AppTheme {
 
-            val backgroundColor by settingsViewModel.settingsManager.backgroundColorFlow.collectAsState(Color.Black)
+                val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
+                val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
+                val isMoveFileDialogVisible by mainViewModel.isMoveFileDialogVisible.collectAsState()
+                val isTagInfosDialogVisible by mainViewModel.isTagInfosDialogVisible.collectAsState()
+                val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
+                val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
 
-            val currentPage by mainViewModel.browserManager.currentPage.collectAsState()
+                val homePageVisible by homeViewModel.homePageVisible.collectAsState()
+                val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
-            Scaffold(
-                containerColor = backgroundColor,
-                bottomBar = {
-                    //////////////////////////
-                    // bottomAppBar normale //
-                    //////////////////////////
-                    if (!homePageVisible && currentPage == null)
+                val fabState = rememberSpeedDialFloatingActionButtonState()
+
+                val colorScheme by settingsViewModel.colorScheme.collectAsState()
+
+                val currentPage by mainViewModel.browserManager.currentPage.collectAsState()
+
+                Scaffold(
+                    containerColor = colorScheme.background,
+                    bottomBar = {
+                        //////////////////////////
+                        // bottomAppBar normale //
+                        //////////////////////////
+                        if (!homePageVisible && currentPage == null)
 //                        && (currentContentInfos.first == "DEFAULT_CONTENT" &&
 //                                currentContentInfos.second.isNotEmpty())
 //                        || currentContentInfos.first != "DEFAULT_CONTENT")
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(65.dp)
-                                .background(Color.Transparent)
-                        ) {
-                            Spacer(
+                            Column(
                                 modifier = Modifier
-                                    .padding(start = 50.dp, end = 50.dp, top = 5.dp, bottom = 0.dp)
-                                    .height(1.dp)
                                     .fillMaxWidth()
-                                    .background(Color.LightGray)
-                            )
-
-                            BottomAppBar(
-                                containerColor = Color.Transparent,
-                                contentColor = Color.Black,
-                                tonalElevation = 0.dp
+                                    .height(65.dp)
+                                    .background(Color.Transparent)
                             ) {
-                                BottomTools.BottomToolBar(activity = this@SigmaActivity)
-                            }
-                        }
+                                Spacer(
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 50.dp,
+                                            end = 50.dp,
+                                            top = 5.dp,
+                                            bottom = 0.dp
+                                        )
+                                        .height(1.dp)
+                                        .fillMaxWidth()
+                                        .background(Color.LightGray)
+                                )
 
-                    ///////////////////////////////
-                    // barre d'outils du browser //
-                    ///////////////////////////////
-                    if (currentPage != null)
-                        BrowserBottomToolbar(
-                            webView = mainViewModel.webView,
-                            canGoBackFlow = mainViewModel.canGoBack,
-                            canGoForwardFlow = mainViewModel.canGoForward
-                        )
-                },
-                floatingActionButton = {
-                    Column {
-                        SigmaFAB(
-                            homePageVisible = homePageVisible,
-                            isTextDialogVisible = isTextDialogVisible,
-                            isYesNoDialogVisible = isYesNoDialogVisible,
-                            isMoveFileDialogVisible = isMoveFileDialogVisible,
-                            isTagInfosDialogVisible = isTagInfosDialogVisible,
-                            isFilePickerVisible = isFilePickerVisible,
-                            isSettingsPageVisible = isSettingsPageVisible,
-                            fabState = fabState
-                        )
+                                BottomAppBar(
+                                    containerColor = Color.Transparent,
+                                    contentColor = Color.Black,
+                                    tonalElevation = 0.dp
+                                ) {
+                                    BottomTools.BottomToolBar(activity = this@SigmaActivity)
+                                }
+                            }
+
+                        ///////////////////////////////
+                        // barre d'outils du browser //
+                        ///////////////////////////////
+                        if (currentPage != null)
+                            BrowserBottomToolbar(
+                                webView = mainViewModel.webView,
+                                canGoBackFlow = mainViewModel.canGoBack,
+                                canGoForwardFlow = mainViewModel.canGoForward
+                            )
+                    },
+                    floatingActionButton = {
+                        Column {
+                            SigmaFAB(
+                                homePageVisible = homePageVisible,
+                                isTextDialogVisible = isTextDialogVisible,
+                                isYesNoDialogVisible = isYesNoDialogVisible,
+                                isMoveFileDialogVisible = isMoveFileDialogVisible,
+                                isTagInfosDialogVisible = isTagInfosDialogVisible,
+                                isFilePickerVisible = isFilePickerVisible,
+                                isSettingsPageVisible = isSettingsPageVisible,
+                                fabState = fabState
+                            )
+                        }
                     }
-                }
-            ) { padding ->
-                DossierSigmaTheme {
+                ) { padding ->
+
 
                     val currentFolder by mainViewModel.currentFolder.collectAsState()
                     val selectedItem by mainViewModel.selectedItem.collectAsState()
@@ -199,7 +223,7 @@ class SigmaActivity : ComponentActivity() {
                     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
 
                     SideEffect {
-                        activity.window.statusBarColor = backgroundColor.toArgb()
+                        activity.window.statusBarColor = colorScheme.background.toArgb()
                     }
 
                     BackHandler(enabled = true) {
@@ -215,6 +239,8 @@ class SigmaActivity : ComponentActivity() {
                         mainViewModel.setSorting(newSorting)
 //                        mainViewModel.refreshCurrentFolder()
                     }
+
+                    window.navigationBarColor = colorScheme.background.toArgb()
 
                     LaunchedEffect(Unit) {
                         BottomTools.setCurrentContent(DEFAULT)
@@ -236,7 +262,7 @@ class SigmaActivity : ComponentActivity() {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(backgroundColor)
+                                .background(colorScheme.background)
                                 .pointerInput(selectedItem?.id) {
 
                                     //////////////////////////////////
@@ -256,7 +282,8 @@ class SigmaActivity : ComponentActivity() {
                             // zone horizontale supérieure //
                             /////////////////////////////////
                             Row(
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .padding(end = 15.dp),
                             ) {
 
