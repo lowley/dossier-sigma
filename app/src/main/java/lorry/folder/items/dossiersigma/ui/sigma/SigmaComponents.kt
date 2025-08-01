@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +42,7 @@ fun HomeButtonIcon(
                 )
             },
         painter = painterResource(icon),
-        tint = Color(0xFFe9c46a),
+        tint = SigmaColors.current.tertiary,
         contentDescription = null
     )
 }

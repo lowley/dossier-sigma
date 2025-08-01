@@ -28,15 +28,14 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Shapes
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -70,14 +69,13 @@ import lorry.folder.items.dossiersigma.ui.centralArea.Memo
 import lorry.folder.items.dossiersigma.ui.centralArea.homePage
 import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
-import lorry.folder.items.dossiersigma.ui.settings.GetMyAppTheme
-import lorry.folder.items.dossiersigma.ui.settings.MyColorScheme
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.settings.toHex
-import lorry.folder.items.dossiersigma.ui.theme.DossierSigmaTheme
 import javax.inject.Inject
-
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 
 @AndroidEntryPoint
 class SigmaActivity : ComponentActivity() {
@@ -123,28 +121,14 @@ class SigmaActivity : ComponentActivity() {
 //            val myColorScheme by settingsViewModel.settingsManager.colorSchemeFlow.collectAsState(
 //                null
 //            )
-            val colorSchemeFlow = settingsViewModel.colorScheme
-            var myColorScheme by remember { mutableStateOf<MyColorScheme?>(null) }
+            val colorScheme by settingsViewModel.colorScheme.collectAsState()
 
-
-            LaunchedEffect(Unit) {
-                colorSchemeFlow.collect {
-                    Log.d("APP_THEME", "ColorScheme collecté : primary=${it.primary.toHex()}, background=${it.background.toHex()}")
-                    myColorScheme = it
-                }
-            }
-
-            Log.d("APP_THEME", "myColorTheme: primary=${myColorScheme?.primary?.toHex()}, background=${myColorScheme?.background?.toHex()}")
-
-            if (myColorScheme != null) {
-                GetMyAppTheme(colorScheme = myColorScheme!!) {
-                    val colors = MaterialTheme.colorScheme
-                    Log.d("APP_THEME", "background de MaterialTheme: ${colors.background.toHex()}")
-
-                    AppContent()
-                }
-            } else {
-                DossierSigmaTheme {
+            MaterialTheme(
+                colorScheme = colorScheme,
+                typography = androidx.compose.material3.Typography(),
+                shapes = Shapes(),
+            ) {
+                CompositionLocalProvider(SigmaColors provides colorScheme) {
                     AppContent()
                 }
             }
@@ -153,518 +137,523 @@ class SigmaActivity : ComponentActivity() {
 
     @Composable
     fun AppContent() {
-        val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
-        val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
-        val isMoveFileDialogVisible by mainViewModel.isMoveFileDialogVisible.collectAsState()
-        val isTagInfosDialogVisible by mainViewModel.isTagInfosDialogVisible.collectAsState()
-        val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
-        val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
+            val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
+            val isMoveFileDialogVisible by mainViewModel.isMoveFileDialogVisible.collectAsState()
+            val isTagInfosDialogVisible by mainViewModel.isTagInfosDialogVisible.collectAsState()
+            val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
+            val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
 
-        val homePageVisible by homeViewModel.homePageVisible.collectAsState()
-        val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
+            val homePageVisible by homeViewModel.homePageVisible.collectAsState()
+            val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
-        val fabState = rememberSpeedDialFloatingActionButtonState()
-        val colors = MaterialTheme.colorScheme
-        val currentPage by mainViewModel.browserManager.currentPage.collectAsState()
+            val fabState = rememberSpeedDialFloatingActionButtonState()
+            val colors = MaterialTheme.colorScheme
+            val currentPage by mainViewModel.browserManager.currentPage.collectAsState()
 
-        Scaffold(
-            containerColor = colors.background,
-            bottomBar = {
-                //////////////////////////
-                // bottomAppBar normale //
-                //////////////////////////
-                if (!homePageVisible && currentPage == null)
+            Scaffold(
+                containerColor = colors.background,
+                bottomBar = {
+                    //////////////////////////
+                    // bottomAppBar normale //
+                    //////////////////////////
+                    if (!homePageVisible && currentPage == null)
 //                        && (currentContentInfos.first == "DEFAULT_CONTENT" &&
 //                                currentContentInfos.second.isNotEmpty())
 //                        || currentContentInfos.first != "DEFAULT_CONTENT")
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(65.dp)
-                            .background(Color.Transparent)
-                    ) {
-                        Spacer(
+                        Column(
                             modifier = Modifier
-                                .padding(
-                                    start = 50.dp,
-                                    end = 50.dp,
-                                    top = 5.dp,
-                                    bottom = 0.dp
-                                )
-                                .height(1.dp)
                                 .fillMaxWidth()
-                                .background(Color.LightGray)
-                        )
-
-                        BottomAppBar(
-                            containerColor = Color.Transparent,
-                            contentColor = Color.Black,
-                            tonalElevation = 0.dp
+                                .height(65.dp)
+                                .background(Color.Transparent)
                         ) {
-                            BottomTools.BottomToolBar(activity = this@SigmaActivity)
-                        }
-                    }
-
-                ///////////////////////////////
-                // barre d'outils du browser //
-                ///////////////////////////////
-                if (currentPage != null)
-                    BrowserBottomToolbar(
-                        webView = mainViewModel.webView,
-                        canGoBackFlow = mainViewModel.canGoBack,
-                        canGoForwardFlow = mainViewModel.canGoForward
-                    )
-            },
-            floatingActionButton = {
-                Column {
-                    SigmaFAB(
-                        homePageVisible = homePageVisible,
-                        isTextDialogVisible = isTextDialogVisible,
-                        isYesNoDialogVisible = isYesNoDialogVisible,
-                        isMoveFileDialogVisible = isMoveFileDialogVisible,
-                        isTagInfosDialogVisible = isTagInfosDialogVisible,
-                        isFilePickerVisible = isFilePickerVisible,
-                        isSettingsPageVisible = isSettingsPageVisible,
-                        fabState = fabState
-                    )
-                }
-            }
-        ) { padding ->
-            val currentFolder by mainViewModel.currentFolder.collectAsState()
-            val selectedItem by mainViewModel.selectedItem.collectAsState()
-            val activity = LocalContext.current as Activity
-            val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
-
-            val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-
-            SideEffect {
-                activity.window.statusBarColor = colors.background.toArgb()
-            }
-
-            BackHandler(enabled = true) {
-                mainViewModel.sortingCache[mainViewModel.currentFolderPath.value] =
-                    mainViewModel.sorting.value
-                mainViewModel.removeLastFolderPathHistory()
-
-                val newSorting = if (mainViewModel.folderPathHistory.value.isEmpty())
-                    SortingCriterion.ByDateDesc
-                else
-                    mainViewModel.sortingCache[mainViewModel.folderPathHistory.value.last()]
-                        ?: SortingCriterion.ByDateDesc
-                mainViewModel.setSorting(newSorting)
-//                        mainViewModel.refreshCurrentFolder()
-            }
-
-            window.navigationBarColor = colors.background.toArgb()
-
-            LaunchedEffect(Unit) {
-                BottomTools.setCurrentContent(DEFAULT)
-            }
-
-            //////////////////////////////
-            // box de l' aire centrale  //
-            //////////////////////////////
-            Box(
-                modifier = Modifier
-                    .padding(padding)
-                    .fillMaxSize()
-//                            .zIndex(20f)
-            ) {
-
-                //////////////////////////////////////////////
-                // l'aire centrale est organisée en colonne //
-                //////////////////////////////////////////////
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(colors.background)
-                        .pointerInput(selectedItem?.id) {
-
-                            //////////////////////////////////
-                            // RAZ si tap sur une zone vide //
-                            //////////////////////////////////
-                            detectTapGestures(onTap = {
-                                if (selectedItem?.id != null) {
-                                    mainViewModel.setSelectedItem(null, true)
-                                    BottomTools.setCurrentContent(DEFAULT)
-                                }
-                            })
-                        }
-                ) {
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    /////////////////////////////////
-                    // zone horizontale supérieure //
-                    /////////////////////////////////
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 15.dp),
-                    ) {
-
-                        ////////////////////////////
-                        // aire gauche des outils //
-                        // normal vs home page    //
-                        ////////////////////////////
-                        Row(
-                            modifier = Modifier
-                                .weight(1f)
-                        ) {
-
-                            ///////////////////////////////////
-                            // zone Home button + breadcrumb //
-                            ///////////////////////////////////
-                            Row(
+                            Spacer(
                                 modifier = Modifier
-                                    .height(IntrinsicSize.Min)
-                                    .padding(end = 0.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-
-                                /////////////////
-                                // Home button //
-                                /////////////////
-                                HomeButtonIcon(
-                                    icon = R.drawable.mouvement
-                                ) {
-                                    mainViewModel.setIsSettingsPageVisible(false)
-                                    homeViewModel.setHomePageVisible(true)
-                                }
-
-                                ////////////////
-                                // breadcrumb //
-                                ////////////////
-                                if (!homePageVisible)
-                                    Breadcrumb(
-                                        items = currentFolder.fullPath.split("/")
-                                            .filter { it != "" },
-                                        onPathClick = { path ->
-                                            mainViewModel.goToFolder(path)
-                                        },
-                                        modifier = Modifier
-                                            .padding(start = 10.dp)
-                                            .align(Alignment.CenterVertically),
-                                        activeColor = Color(0xFF8697CB),
-                                        inactiveColor = Color(0xFF8697CB),
-                                        arrowColor = Color.Magenta,
-                                        transitionDuration = 200,
+                                    .padding(
+                                        start = 50.dp,
+                                        end = 50.dp,
+                                        top = 5.dp,
+                                        bottom = 0.dp
                                     )
+                                    .height(1.dp)
+                                    .fillMaxWidth()
+                                    .background(Color.LightGray)
+                            )
+
+                            BottomAppBar(
+                                containerColor = Color.Transparent,
+                                contentColor = Color.Black,
+                                tonalElevation = 0.dp
+                            ) {
+                                BottomTools.BottomToolBar(activity = this@SigmaActivity)
                             }
                         }
 
-                        ////////////////////////////
-                        // aire droite des outils //
-                        // normal vs home page    //
-                        ////////////////////////////
-                        if (homePageVisible) {
+                    ///////////////////////////////
+                    // barre d'outils du browser //
+                    ///////////////////////////////
+                    if (currentPage != null)
+                        BrowserBottomToolbar(
+                            webView = mainViewModel.webView,
+                            canGoBackFlow = mainViewModel.canGoBack,
+                            canGoForwardFlow = mainViewModel.canGoForward
+                        )
+                },
+                floatingActionButton = {
+                    Column {
+                        SigmaFAB(
+                            homePageVisible = homePageVisible,
+                            isTextDialogVisible = isTextDialogVisible,
+                            isYesNoDialogVisible = isYesNoDialogVisible,
+                            isMoveFileDialogVisible = isMoveFileDialogVisible,
+                            isTagInfosDialogVisible = isTagInfosDialogVisible,
+                            isFilePickerVisible = isFilePickerVisible,
+                            isSettingsPageVisible = isSettingsPageVisible,
+                            fabState = fabState
+                        )
+                    }
+                }
+            ) { padding ->
+                val currentFolder by mainViewModel.currentFolder.collectAsState()
+                val selectedItem by mainViewModel.selectedItem.collectAsState()
+                val activity = LocalContext.current as Activity
+                val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
-                            ////////////////////////////////////////////////
-                            // zone horizontale supérieure pour home page //
-                            ////////////////////////////////////////////////
-                            Box(
+                val dialogMessage = mainViewModel.dialogMessage.collectAsState()
+
+                SideEffect {
+                    activity.window.statusBarColor = colors.primary.toArgb()
+                }
+
+                BackHandler(enabled = true) {
+                    mainViewModel.sortingCache[mainViewModel.currentFolderPath.value] =
+                        mainViewModel.sorting.value
+                    mainViewModel.removeLastFolderPathHistory()
+
+                    val newSorting = if (mainViewModel.folderPathHistory.value.isEmpty())
+                        SortingCriterion.ByDateDesc
+                    else
+                        mainViewModel.sortingCache[mainViewModel.folderPathHistory.value.last()]
+                            ?: SortingCriterion.ByDateDesc
+                    mainViewModel.setSorting(newSorting)
+//                        mainViewModel.refreshCurrentFolder()
+                }
+
+                window.navigationBarColor = SigmaColors.current.primary.toArgb()
+
+                LaunchedEffect(Unit) {
+                    BottomTools.setCurrentContent(DEFAULT)
+                }
+
+                //////////////////////////////
+                // box de l' aire centrale  //
+                //////////////////////////////
+                Box(
+                    modifier = Modifier
+                        .padding(padding)
+                        .fillMaxSize()
+//                            .zIndex(20f)
+                ) {
+
+                    //////////////////////////////////////////////
+                    // l'aire centrale est organisée en colonne //
+                    //////////////////////////////////////////////
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(SigmaColors.current.primary)
+                            .pointerInput(selectedItem?.id) {
+
+                                //////////////////////////////////
+                                // RAZ si tap sur une zone vide //
+                                //////////////////////////////////
+                                detectTapGestures(onTap = {
+                                    if (selectedItem?.id != null) {
+                                        mainViewModel.setSelectedItem(null, true)
+                                        BottomTools.setCurrentContent(DEFAULT)
+                                    }
+                                })
+                            }
+                    ) {
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        /////////////////////////////////
+                        // zone horizontale supérieure //
+                        /////////////////////////////////
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 15.dp),
+                        ) {
+
+                            ////////////////////////////
+                            // aire gauche des outils //
+                            // normal vs home page    //
+                            ////////////////////////////
+                            Row(
                                 modifier = Modifier
-                                    .padding(end = 10.dp)
-                            )
-                            {
-                                ////////////////////////////
-                                // aire de droite: outils //
-                                ////////////////////////////
+                                    .weight(1f)
+                            ) {
+
+                                ///////////////////////////////////
+                                // zone Home button + breadcrumb //
+                                ///////////////////////////////////
                                 Row(
                                     modifier = Modifier
-                                        .width(IntrinsicSize.Min)
-                                        .align(Alignment.CenterEnd),
+                                        .height(IntrinsicSize.Min)
+                                        .padding(end = 0.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
 
-                                    ///////////////////////
-                                    // ajout de homeItem //
-                                    ///////////////////////
-                                    Icon(
-                                        modifier = Modifier
-                                            .size(35.dp)
-                                            .padding(
-                                                start = 10.dp,
-                                                end = 5.dp
-                                            )
-                                            .pointerInput(true) {
-                                                detectTapGestures(
-                                                    onTap = {
-                                                        val homeItemCount =
-                                                            homeViewModel.homeItems.value.size
-                                                        homeViewModel.setDialogHomeItemInfos(
-                                                            HomeItemInfos(
-                                                                oldTitle = "",
-                                                                newTitle = "",
-                                                                picture = null,
-                                                                path = "",
-                                                                index = homeItemCount
-                                                            )
-                                                        )
+                                    /////////////////
+                                    // Home button //
+                                    /////////////////
+                                    HomeButtonIcon(
+                                        icon = R.drawable.mouvement
+                                    ) {
+                                        mainViewModel.setIsSettingsPageVisible(false)
+                                        homeViewModel.setHomePageVisible(true)
+                                    }
 
-                                                        mainViewModel.setIsHomeItemDialogVisible(
-                                                            true
-                                                        )
-                                                    }
-                                                )
+                                    ////////////////
+                                    // breadcrumb //
+                                    ////////////////
+                                    if (!homePageVisible)
+                                        Breadcrumb(
+                                            items = currentFolder.fullPath.split("/")
+                                                .filter { it != "" },
+                                            onPathClick = { path ->
+                                                mainViewModel.goToFolder(path)
                                             },
-                                        painter = painterResource(R.drawable.plus),
-                                        tint = Color(0xFFe9c46a),
-                                        contentDescription = null
-                                    )
-
-                                    val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
-
-                                    ///////////////////////
-                                    // Icône de settings //
-                                    ///////////////////////
-                                    Icon(
-                                        modifier = Modifier
-                                            .size(50.dp)
-                                            .padding(
-                                                start = 10.dp,
-                                                end = 10.dp
-                                            )
-                                            .pointerInput(true) {
-                                                detectTapGestures(
-                                                    onTap = {
-                                                        homeViewModel.setHomePageVisible(
-                                                            false
-                                                        )
-                                                        mainViewModel.setIsSettingsPageVisible(
-                                                            true
-                                                        )
-                                                    }
-                                                )
-                                            },
-                                        painter = painterResource(R.drawable.settings),
-                                        tint = Color(0xFFe9c46a),
-                                        contentDescription = null
-                                    )
+                                            modifier = Modifier
+                                                .padding(start = 10.dp)
+                                                .align(Alignment.CenterVertically),
+                                            activeColor = Color(0xFF8697CB),
+                                            inactiveColor = Color(0xFF8697CB),
+                                            arrowColor = Color.Magenta,
+                                            transitionDuration = 200,
+                                        )
                                 }
                             }
 
-                        } else {
+                            ////////////////////////////
+                            // aire droite des outils //
+                            // normal vs home page    //
+                            ////////////////////////////
+                            if (homePageVisible) {
 
-                            /////////////////////////////////
-                            // aire d'affichage des outils //
-                            // dans page normale           //
-                            /////////////////////////////////
-
-                            ////////////////////////////////////////////
-                            // aire de l'avancement copie/déplacement //
-                            ////////////////////////////////////////////
-
-                            val nasText by BottomTools.copyNASText.collectAsState()
-                            val allNasText by BottomTools.copyAllNASText.collectAsState()
-
-                            if (nasText != "1 -> NAS")
-                                Text(
+                                ////////////////////////////////////////////////
+                                // zone horizontale supérieure pour home page //
+                                ////////////////////////////////////////////////
+                                Box(
                                     modifier = Modifier
-                                        .align(Alignment.CenterVertically)
-                                        .padding(end = 5.dp),
-                                    text = nasText,
-                                    color = Color.White,
-                                    maxLines = 1
+                                        .padding(end = 10.dp)
                                 )
-                            else
-                                if (allNasText != "Tous -> NAS")
+                                {
+                                    ////////////////////////////
+                                    // aire de droite: outils //
+                                    ////////////////////////////
+                                    Row(
+                                        modifier = Modifier
+                                            .width(IntrinsicSize.Min)
+                                            .align(Alignment.CenterEnd),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+
+                                        ///////////////////////
+                                        // ajout de homeItem //
+                                        ///////////////////////
+                                        Icon(
+                                            modifier = Modifier
+                                                .size(35.dp)
+                                                .padding(
+                                                    start = 10.dp,
+                                                    end = 5.dp
+                                                )
+                                                .pointerInput(true) {
+                                                    detectTapGestures(
+                                                        onTap = {
+                                                            val homeItemCount =
+                                                                homeViewModel.homeItems.value.size
+                                                            homeViewModel.setDialogHomeItemInfos(
+                                                                HomeItemInfos(
+                                                                    oldTitle = "",
+                                                                    newTitle = "",
+                                                                    picture = null,
+                                                                    path = "",
+                                                                    index = homeItemCount
+                                                                )
+                                                            )
+
+                                                            mainViewModel.setIsHomeItemDialogVisible(
+                                                                true
+                                                            )
+                                                        }
+                                                    )
+                                                },
+                                            painter = painterResource(R.drawable.plus),
+                                            tint = Color(0xFFe9c46a),
+                                            contentDescription = null
+                                        )
+
+                                        val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
+
+                                        ///////////////////////
+                                        // Icône de settings //
+                                        ///////////////////////
+                                        Icon(
+                                            modifier = Modifier
+                                                .size(50.dp)
+                                                .padding(
+                                                    start = 10.dp,
+                                                    end = 10.dp
+                                                )
+                                                .pointerInput(true) {
+                                                    detectTapGestures(
+                                                        onTap = {
+                                                            homeViewModel.setHomePageVisible(
+                                                                false
+                                                            )
+                                                            mainViewModel.setIsSettingsPageVisible(
+                                                                true
+                                                            )
+                                                        }
+                                                    )
+                                                },
+                                            painter = painterResource(R.drawable.settings),
+                                            tint = Color(0xFFe9c46a),
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+
+                            } else {
+
+                                /////////////////////////////////
+                                // aire d'affichage des outils //
+                                // dans page normale           //
+                                /////////////////////////////////
+
+                                ////////////////////////////////////////////
+                                // aire de l'avancement copie/déplacement //
+                                ////////////////////////////////////////////
+
+                                val nasText by BottomTools.copyNASText.collectAsState()
+                                val allNasText by BottomTools.copyAllNASText.collectAsState()
+
+                                if (nasText != "1 -> NAS")
                                     Text(
                                         modifier = Modifier
                                             .align(Alignment.CenterVertically)
                                             .padding(end = 5.dp),
-                                        text = allNasText,
+                                        text = nasText,
                                         color = Color.White,
                                         maxLines = 1
                                     )
+                                else
+                                    if (allNasText != "Tous -> NAS")
+                                        Text(
+                                            modifier = Modifier
+                                                .align(Alignment.CenterVertically)
+                                                .padding(end = 5.dp),
+                                            text = allNasText,
+                                            color = Color.White,
+                                            maxLines = 1
+                                        )
 
-                            ///////////////////////////
-                            // aire de tri des items //
-                            ///////////////////////////
-                            //TODO pas besoin de tout recharger
+                                ///////////////////////////
+                                // aire de tri des items //
+                                ///////////////////////////
+                                //TODO pas besoin de tout recharger
 
-                            SortingArea(
-                                modifier = Modifier,
-                                sortingFlow = mainViewModel.sorting,
-                                onDateSortClick = {
-                                    mainViewModel.goToFolder(
-                                        currentFolder.fullPath,
-                                        SortingCriterion.ByDateDesc
+                                SortingArea(
+                                    modifier = Modifier,
+                                    sortingFlow = mainViewModel.sorting,
+                                    onDateSortClick = {
+                                        mainViewModel.goToFolder(
+                                            currentFolder.fullPath,
+                                            SortingCriterion.ByDateDesc
+                                        )
+                                    },
+                                    onNameSortClick = {
+                                        mainViewModel.goToFolder(
+                                            currentFolder.fullPath,
+                                            SortingCriterion.ByNameAsc
+                                        )
+                                    }
+                                )
+                            }
+                        }
+
+                        ///////////////////
+                        // Settings Page //
+                        ///////////////////
+                        if (isSettingsPageVisible)
+                            SettingsPage(vm = settingsViewModel)
+
+                        ///////////////
+                        // Home page //
+                        ///////////////
+                        if (homePageVisible) {
+
+                            homePage(
+                                homeItemsInVM = homeViewModel.homeItems,
+                                onItemClicked = { item: HomeItem ->
+                                    mainViewModel.goToFolder(item.path)
+                                    homeViewModel.setHomePageVisible(
+                                        false
                                     )
                                 },
-                                onNameSortClick = {
-                                    mainViewModel.goToFolder(
-                                        currentFolder.fullPath,
-                                        SortingCriterion.ByNameAsc
+                                onEditTapped = { item: HomeItem ->
+                                    homeViewModel.setDialogHomeItemInfos(
+                                        HomeItemInfos(
+                                            oldTitle = item.title,
+                                            picture = item.picture,
+                                            path = item.path,
+                                            index = item.index
+                                        )
                                     )
+
+                                    mainViewModel.setIsHomeItemDialogVisible(
+                                        true
+                                    )
+                                },
+                                onDeleteTapped = { item: HomeItem ->
+                                    homeViewModel.removeHomeItem(
+                                        item
+                                    )
+                                },
+                                onItemsReordered = { newList ->
+                                    homeViewModel.setHomeItems(newList)
+                                    mainViewModel.viewModelScope.launch {
+                                        settingsViewModel.settingsManager.saveHomeItems(
+                                            newList
+                                                .toSet()
+                                                .map {
+                                                    HomeItemInfos(
+                                                        newTitle = it.title,
+                                                        oldTitle = it.title,
+                                                        picture = it.picture,
+                                                        path = it.path,
+                                                        index = it.index
+                                                    )
+                                                }.toSet()
+                                        )
+                                    }
                                 }
+                            )
+                        }
+
+                        /////////////////
+                        // Normal page //
+                        /////////////////
+                        if (!homePageVisible) {
+                            NormalPage(
+                                onHoveredNotHovered = { item ->
+                                    mainViewModel.setDragTargetItem(item)
+                                },
+                                onItemTapped = { item ->
+                                    run {
+
+                                        if (selectedItem != null) {
+                                            mainViewModel.setSelectedItem(null, true)
+                                            BottomTools.setCurrentContent(DEFAULT)
+                                            return@run
+                                        }
+
+                                        if (item.isFolder()) {
+                                            mainViewModel.goToFolder(item.fullPath)
+                                        }
+
+                                        if (item.isFile() &&
+                                            (item.name.endsWith(".mp4") ||
+                                                    item.name.endsWith(".mkv") ||
+                                                    item.name.endsWith(".mpg") ||
+                                                    item.name.endsWith(".iso") ||
+                                                    item.name.endsWith(".avi"))
+                                        ) {
+                                            mainViewModel.playVideoFile(item.fullPath)
+                                        }
+                                        if (item.isFile() && item.name.endsWith(".html")) {
+                                            mainViewModel.playHtmlFile(item.fullPath)
+                                        }
+                                    }
+
+                                },
+                                onItemLongPressed = { item ->
+                                    mainViewModel.setSelectedItem(item.copy(), true)
+                                    BottomTools.setCurrentContent(Tools.FILE)
+                                },
+                                onTopLeftPanelClick = { item ->
+                                    /**
+                                     * suite dans MainActivity
+                                     */
+                                    mainViewModel.setSelectedItem(item.copy())
+                                    mainViewModel.setIsDisplayingMemo(!mainViewModel.isDisplayingMemo.value)
+                                },
+                                getInfoSup = { item ->
+                                    mainViewModel.getInfoSup(item)
+                                },
+                                getInfoInf = { item ->
+                                    mainViewModel.getInfoInf(item)
+                                },
+                                onRefresh = {
+                                    mainViewModel.refreshCurrentFolder()
+                                },
                             )
                         }
                     }
 
-                    ///////////////////
-                    // Settings Page //
-                    ///////////////////
-                    if (isSettingsPageVisible)
-                        SettingsPage(vm = settingsViewModel)
+                    ////////////////////////////////////////////////
+                    // TextDialog, YesNoDialog, MoveFileDialog,   //
+                    // TagInfosDialog, HomeItemDialog, FilePicker //
+                    // browser                                    //
+                    ////////////////////////////////////////////////
 
-                    ///////////////
-                    // Home page //
-                    ///////////////
-                    if (homePageVisible) {
+                    /**
+                     * @startuml
+                     * class View2
+                     * class Repo2
+                     * View2 -- Repo2
+                     * @enduml
+                     */
+                    FullSizeExtras()
 
-                        homePage(
-                            homeItemsInVM = homeViewModel.homeItems,
-                            onItemClicked = { item: HomeItem ->
-                                mainViewModel.goToFolder(item.path)
-                                homeViewModel.setHomePageVisible(
-                                    false
-                                )
-                            },
-                            onEditTapped = { item: HomeItem ->
-                                homeViewModel.setDialogHomeItemInfos(
-                                    HomeItemInfos(
-                                        oldTitle = item.title,
-                                        picture = item.picture,
-                                        path = item.path,
-                                        index = item.index
-                                    )
-                                )
+                    ////////////////////////////////
+                    // memo + palette de couleurs //
+                    ////////////////////////////////
+                    Memo()
 
-                                mainViewModel.setIsHomeItemDialogVisible(
-                                    true
-                                )
-                            },
-                            onDeleteTapped = { item: HomeItem ->
-                                homeViewModel.removeHomeItem(
-                                    item
-                                )
-                            },
-                            onItemsReordered = { newList ->
-                                homeViewModel.setHomeItems(newList)
-                                mainViewModel.viewModelScope.launch {
-                                    settingsViewModel.settingsManager.saveHomeItems(
-                                        newList
-                                            .toSet()
-                                            .map {
-                                                HomeItemInfos(
-                                                    newTitle = it.title,
-                                                    oldTitle = it.title,
-                                                    picture = it.picture,
-                                                    path = it.path,
-                                                    index = it.index
-                                                )
-                                            }.toSet()
-                                    )
-                                }
-                            }
-                        )
-                    }
+                    /////////////////////////////////
+                    // étiquette mobile éventuelle //
+                    /////////////////////////////////
+                    //si icône d'étiquette
+                    //2e icône, draggable
 
-                    /////////////////
-                    // Normal page //
-                    /////////////////
-                    if (!homePageVisible) {
-                        NormalPage(
-                            onHoveredNotHovered = { item ->
-                                mainViewModel.setDragTargetItem(item)
-                            },
-                            onItemTapped = { item ->
-                                run {
-
-                                    if (selectedItem != null) {
-                                        mainViewModel.setSelectedItem(null, true)
-                                        BottomTools.setCurrentContent(DEFAULT)
-                                        return@run
-                                    }
-
-                                    if (item.isFolder()) {
-                                        mainViewModel.goToFolder(item.fullPath)
-                                    }
-
-                                    if (item.isFile() &&
-                                        (item.name.endsWith(".mp4") ||
-                                                item.name.endsWith(".mkv") ||
-                                                item.name.endsWith(".mpg") ||
-                                                item.name.endsWith(".iso") ||
-                                                item.name.endsWith(".avi"))
-                                    ) {
-                                        mainViewModel.playVideoFile(item.fullPath)
-                                    }
-                                    if (item.isFile() && item.name.endsWith(".html")) {
-                                        mainViewModel.playHtmlFile(item.fullPath)
-                                    }
-                                }
-
-                            },
-                            onItemLongPressed = { item ->
-                                mainViewModel.setSelectedItem(item.copy(), true)
-                                BottomTools.setCurrentContent(Tools.FILE)
-                            },
-                            onTopLeftPanelClick = { item ->
-                                /**
-                                 * suite dans MainActivity
-                                 */
-                                mainViewModel.setSelectedItem(item.copy())
-                                mainViewModel.setIsDisplayingMemo(!mainViewModel.isDisplayingMemo.value)
-                            },
-                            getInfoSup = { item ->
-                                mainViewModel.getInfoSup(item)
-                            },
-                            getInfoInf = { item ->
-                                mainViewModel.getInfoInf(item)
-                            },
-                            onRefresh = {
-                                mainViewModel.refreshCurrentFolder()
-                            },
-                        )
-                    }
-                }
-
-                ////////////////////////////////////////////////
-                // TextDialog, YesNoDialog, MoveFileDialog,   //
-                // TagInfosDialog, HomeItemDialog, FilePicker //
-                // browser                                    //
-                ////////////////////////////////////////////////
-
-                /**
-                 * @startuml
-                 * class View2
-                 * class Repo2
-                 * View2 -- Repo2
-                 * @enduml
-                 */
-                FullSizeExtras()
-
-                ////////////////////////////////
-                // memo + palette de couleurs //
-                ////////////////////////////////
-                Memo()
-
-                /////////////////////////////////
-                // étiquette mobile éventuelle //
-                /////////////////////////////////
-                //si icône d'étiquette
-                //2e icône, draggable
-
-                /**
-                 * @startuml
-                 * class ViewModel
-                 * class Repository
-                 * ViewModel --> Repository
-                 * @enduml
-                 */
-                val dragState by mainViewModel.dragState.collectAsState()
-                dragState?.let { dragState ->
-                    dragState.tool?.let { tool: Tool ->
-                        MobileSticker(
-                            dragState = dragState,
-                            activity = this@SigmaActivity
-                        )
+                    /**
+                     * @startuml
+                     * class ViewModel
+                     * class Repository
+                     * ViewModel --> Repository
+                     * @enduml
+                     */
+                    val dragState by mainViewModel.dragState.collectAsState()
+                    dragState?.let { dragState ->
+                        dragState.tool?.let { tool: Tool ->
+                            MobileSticker(
+                                dragState = dragState,
+                                activity = this@SigmaActivity
+                            )
+                        }
                     }
                 }
             }
-        }
 
+        }
     }
 
 

@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
+import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,45 +24,40 @@ import javax.inject.Inject
  */
 class SettingsViewModel @Inject constructor(
     val settingsManager: SettingsManager
-): ViewModel() {
+) : ViewModel() {
 
-    /////////////////////////
-    // palette de couleurs //
-    /////////////////////////
-
-    //utilisation:
-    //init: setBaseColor + setNightAndDay, indépendants
-    //resultat: getPrimaryPair(), getSecondaryPair(), getTertiaryPair()
-
-    //base color
     private val _baseColor = MutableStateFlow(Color.Green)
     val baseColor: StateFlow<Color> = _baseColor
 
-    fun setBaseColor(color: Color){
+    fun setBaseColor(color: Color) {
         _baseColor.value = color
     }
 
-    //night and day
     private val _nightAndDay = MutableStateFlow(NightAndDay.LIGHT)
     val nightAndDay: StateFlow<NightAndDay> = _nightAndDay
 
-    fun setNightAndDay(nightAndDay: NightAndDay){
+    fun setNightAndDay(nightAndDay: NightAndDay) {
         _nightAndDay.value = nightAndDay
     }
 
-    //colorScheme
-    val colorScheme = combine(nightAndDay, baseColor){nightAndDay, baseColor ->
-        KvColorPalette.initialize(baseColor = baseColor)
-
-        if (nightAndDay == NightAndDay.LIGHT)
-            KvColorPalette.colorSchemeThemePalette.lightColorScheme
-        else
-            KvColorPalette.colorSchemeThemePalette.darkColorScheme
+    val colorScheme: StateFlow<ColorScheme> = combine(
+        baseColor,
+        nightAndDay
+    ) { baseColor, nightAndDay ->
+        generateKvColorScheme(baseColor, nightAndDay)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = KvColorPalette.colorSchemeThemePalette.lightColorScheme
+        initialValue = generateKvColorScheme(Color.Green, NightAndDay.LIGHT)
     )
+
+    private fun generateKvColorScheme(baseColor: Color, nightAndDay: NightAndDay): ColorScheme {
+        KvColorPalette.initialize(baseColor = baseColor)
+        return if (nightAndDay == NightAndDay.LIGHT)
+            KvColorPalette.colorSchemeThemePalette.lightColorScheme
+        else
+            KvColorPalette.colorSchemeThemePalette.darkColorScheme
+    }
 
     fun getPrimaryPair(): ColorPair = ColorPair(
         foreground = colorScheme.value.primary,
@@ -79,8 +75,8 @@ class SettingsViewModel @Inject constructor(
     )
 
     fun getBackgroundColor(): Color = colorScheme.value.background
-
 }
+
 
 enum class NightAndDay {
     LIGHT,
