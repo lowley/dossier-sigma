@@ -1,9 +1,11 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -34,6 +36,8 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
     // On définit les clés pour chaque valeur que l'on veut stocker.
     // C'est une bonne pratique de les déclarer comme des objets compagnons.
     companion object {
+        const val TAG = "SgMgr"
+
         val NAS_ADDRESS_KEY = stringPreferencesKey("nas_address")
         val NAS_LOGIN_KEY = stringPreferencesKey("nas_login")
         val NAS_PASSWORD_KEY = stringPreferencesKey("nas_password")
@@ -142,23 +146,29 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
         }
     }
 
-    val colorSchemeFlow: Flow<MyColorScheme> = context.dataStore.data
-        .map { preferences ->
-            val rawColors = preferences[THEME_KEY]
-            if (rawColors == null)
-                return@map MyColorScheme()
-
-            return@map MyColorScheme(
-                primary = rawColors.getColor("primary"),
-                onPrimary = rawColors.getColor("onprimary"),
-                secondary = rawColors.getColor("secondary"),
-                onSecondary = rawColors.getColor("onsecondary"),
-                tertiary = rawColors.getColor("terciary"),
-                onTertiary = rawColors.getColor("onterciary"),
-                background = rawColors.getColor("background"),
-                base = rawColors.getColor("base"),
-            )
-        }
+//    val colorSchemeFlow: Flow<MyColorScheme> = context.dataStore.data
+//        .map { preferences ->
+//            Log.d(TAG, "colorSchemeFlow: DataStore émis → parsing…")
+//            val rawColors = preferences[THEME_KEY]
+//            Log.d(TAG, "colorSchemeFlow: rawColors : $rawColors")
+//
+//            if (rawColors == null)
+//                return@map MyColorScheme()
+//
+//            Log.d(TAG, "colorSchemeFlow: émission des nouvelles couleurs: ")
+//            Log.d(TAG, "primary=${rawColors.getColor("primary").toHex()}, background=${rawColors.getColor("background").toHex()}")
+//
+//            return@map MyColorScheme(
+//                primary = rawColors.getColor("primary"),
+//                onPrimary = rawColors.getColor("onprimary"),
+//                secondary = rawColors.getColor("secondary"),
+//                onSecondary = rawColors.getColor("onsecondary"),
+//                tertiary = rawColors.getColor("terciary"),
+//                onTertiary = rawColors.getColor("onterciary"),
+//                background = rawColors.getColor("background"),
+//                base = rawColors.getColor("base"),
+//            )
+//        }
 
     fun Set<String>.getColor(key: String): Color {
         val result = this.firstOrNull {
@@ -218,8 +228,8 @@ fun MyColorScheme.toColorScheme(): ColorScheme {
         tertiaryContainer = tertiary.copy(alpha = 0.85f),
         onTertiaryContainer = onTertiary,
 
-        background = primary, // principe 60% : couleur de fond
-        onBackground = background, // texte sur fond principal
+        background = this.background,
+        onBackground = this.onPrimary,
 
         surface = secondary.copy(alpha = 0.9f), // zones sur fond
         onSurface = onSecondary,
@@ -255,16 +265,17 @@ fun MyColorScheme.toColorScheme(): ColorScheme {
 fun Color.toPersistableString(colorName: String) =
     "$colorName|${this.toHex().take(10)}"
 
-fun Color.toHex(): String = "0x%08X".format(this.value.toLong())
+fun Color.toHex(): String = "0x%08X".format(this.value.toLong()).take(10)
 
 @Composable
 fun GetMyAppTheme(
-    colorScheme: MyColorScheme
-): @Composable ((@Composable () -> Unit) -> Unit) {
-    return { content ->
-        MaterialTheme(
-            colorScheme = colorScheme.toColorScheme(),
-            content = content
-        )
-    }
+    colorScheme: MyColorScheme,
+    content: @Composable () -> Unit
+) {
+    MaterialTheme(
+        colorScheme = colorScheme.toColorScheme(), // ta méthode
+//        typography = Typography,
+//        shapes = Shapes,
+        content = content
+    )
 }
