@@ -1,10 +1,12 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
+import android.util.Log
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kavi.droid.color.palette.KvColorPalette
+import com.kavi.droid.color.palette.model.ThemeGenMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,7 +28,11 @@ class SettingsViewModel @Inject constructor(
     val settingsManager: SettingsManager
 ) : ViewModel() {
 
-    private val _baseColor = MutableStateFlow(Color.Green)
+    companion object{
+        const val TAG = " SgsVM"
+    }
+
+    private val _baseColor = MutableStateFlow(Color.Blue)
     val baseColor: StateFlow<Color> = _baseColor
 
     fun setBaseColor(color: Color) {
@@ -48,15 +54,20 @@ class SettingsViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = generateKvColorScheme(Color.Green, NightAndDay.LIGHT)
+        initialValue = generateKvColorScheme(Color.Blue, NightAndDay.LIGHT)
     )
 
     private fun generateKvColorScheme(baseColor: Color, nightAndDay: NightAndDay): ColorScheme {
-        KvColorPalette.initialize(baseColor = baseColor)
-        return if (nightAndDay == NightAndDay.LIGHT)
+        KvColorPalette.initialize(
+            baseColor = baseColor,
+        )
+        val result = if (nightAndDay == NightAndDay.LIGHT)
             KvColorPalette.colorSchemeThemePalette.lightColorScheme
         else
             KvColorPalette.colorSchemeThemePalette.darkColorScheme
+
+        Log.d(TAG, "generateKvColorScheme: onPrimary=${result.onPrimary.toHex()}")
+        return result
     }
 
     fun getPrimaryPair(): ColorPair = ColorPair(

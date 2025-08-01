@@ -96,6 +96,7 @@ import lorry.folder.items.dossiersigma.ui.components.manageImageClick
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
 import java.io.File
@@ -234,7 +235,8 @@ object BottomTools {
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .height(60.dp),
+                .height(60.dp)
+                .background(SigmaColors.current.primary),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             toolList.forEach { tool ->
@@ -2217,7 +2219,7 @@ fun StickerText(
         modifier = Modifier
             .align(Alignment.BottomCenter),
         text = tool.text(),
-        color = Color(0xFFe9c46a),
+        color = SigmaColors.current.onPrimary,
         fontSize = 12.sp
     )
 }

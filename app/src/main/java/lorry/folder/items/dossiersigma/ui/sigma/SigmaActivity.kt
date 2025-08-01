@@ -120,8 +120,10 @@ class SigmaActivity : ComponentActivity() {
         setContent {
 //            val myColorScheme by settingsViewModel.settingsManager.colorSchemeFlow.collectAsState(
 //                null
-//            )
+//            ) onCreate
             val colorScheme by settingsViewModel.colorScheme.collectAsState()
+            Log.d(TAG, "onCreate: onPrimary=${colorScheme.onPrimary.toHex()}")
+            Log.d(TAG, "onCreate: primary=${colorScheme.primary.toHex()}")
 
             MaterialTheme(
                 colorScheme = colorScheme,
@@ -169,7 +171,7 @@ class SigmaActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(65.dp)
-                                .background(Color.Transparent)
+                                .background(SigmaColors.current.primary)
                         ) {
                             Spacer(
                                 modifier = Modifier
@@ -181,7 +183,7 @@ class SigmaActivity : ComponentActivity() {
                                     )
                                     .height(1.dp)
                                     .fillMaxWidth()
-                                    .background(Color.LightGray)
+                                    .background(SigmaColors.current.tertiary)
                             )
 
                             BottomAppBar(

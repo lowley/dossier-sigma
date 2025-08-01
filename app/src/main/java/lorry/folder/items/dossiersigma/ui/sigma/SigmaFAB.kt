@@ -55,10 +55,10 @@ fun SigmaActivity.SigmaFAB(
                 animationDuration = 300,
                 animationDelayPerSelection = 100,
                 showLabels = true,
-                fabBackgroundColor = Color(0xFFe9c46a),
-                fabContentColor = Color.Black,
-                speedDialBackgroundColor = Color(0xFFe9c46a),
-                speedDialContentColor = Color.Black,
+                fabBackgroundColor = SigmaColors.current.secondary,
+                fabContentColor = SigmaColors.current.onSecondary,
+                speedDialBackgroundColor = SigmaColors.current.secondary,
+                speedDialContentColor = SigmaColors.current.onSecondary,
                 speedDialData = listOf(
                     SpeedDialData(
                         label = "Dossier -> NAS",
