@@ -77,6 +77,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 
+val SigmaColors = staticCompositionLocalOf { DefaultColorScheme() }
+
 @AndroidEntryPoint
 class SigmaActivity : ComponentActivity() {
 
@@ -688,6 +690,3 @@ class SigmaActivity : ComponentActivity() {
         }
     }
 }
-
-
-
