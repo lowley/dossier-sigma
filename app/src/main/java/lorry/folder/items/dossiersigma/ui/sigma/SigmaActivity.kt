@@ -398,7 +398,7 @@ class SigmaActivity : ComponentActivity() {
                                                     )
                                                 },
                                             painter = painterResource(R.drawable.plus),
-                                            tint = Color(0xFFe9c46a),
+                                            tint = SigmaColors.current.tertiary,
                                             contentDescription = null
                                         )
 
@@ -427,7 +427,7 @@ class SigmaActivity : ComponentActivity() {
                                                     )
                                                 },
                                             painter = painterResource(R.drawable.settings),
-                                            tint = Color(0xFFe9c46a),
+                                            tint = SigmaColors.current.tertiary,
                                             contentDescription = null
                                         )
                                     }
@@ -453,7 +453,7 @@ class SigmaActivity : ComponentActivity() {
                                             .align(Alignment.CenterVertically)
                                             .padding(end = 5.dp),
                                         text = nasText,
-                                        color = Color.White,
+                                        color = SigmaColors.current.onPrimary,
                                         maxLines = 1
                                     )
                                 else
@@ -463,7 +463,7 @@ class SigmaActivity : ComponentActivity() {
                                                 .align(Alignment.CenterVertically)
                                                 .padding(end = 5.dp),
                                             text = allNasText,
-                                            color = Color.White,
+                                            color = SigmaColors.current.onPrimary,
                                             maxLines = 1
                                         )
 

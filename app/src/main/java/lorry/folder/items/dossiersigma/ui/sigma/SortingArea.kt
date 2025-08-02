@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +47,10 @@ fun SortingArea(
 
         if (sorting == SortingCriterion.ByDateDesc)
             FilterChip(
+                colors = FilterChipDefaults.filterChipColors().copy(
+                    containerColor = SigmaColors.current.primary,
+                    labelColor = SigmaColors.current.tertiary,
+                ),
                 label = { Text("Date") },
                 modifier = Modifier,
                 leadingIcon = {
@@ -53,7 +58,7 @@ fun SortingArea(
                         painterResource(id = R.drawable.trier_decroissant),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = Color.Red
+                        tint = SigmaColors.current.tertiary
                     )
                 },
                 enabled = true,
@@ -63,6 +68,10 @@ fun SortingArea(
 
         if (sorting == SortingCriterion.ByNameAsc)
             FilterChip(
+                colors = FilterChipDefaults.filterChipColors().copy(
+                    containerColor = SigmaColors.current.primary,
+                    labelColor = SigmaColors.current.tertiary,
+                ),
                 label = { Text("Nom") },
                 modifier = Modifier,
 //                    .align(Alignment.CenterVertically),
@@ -72,7 +81,7 @@ fun SortingArea(
                         painterResource(id = R.drawable.trier_croissant),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        tint = Color.Red
+                        tint = SigmaColors.current.tertiary
                     )
 
                 },

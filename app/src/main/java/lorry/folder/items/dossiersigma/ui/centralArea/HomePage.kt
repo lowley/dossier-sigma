@@ -51,6 +51,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import kotlin.collections.indexOf
 import kotlin.math.roundToInt
 
@@ -207,7 +208,7 @@ fun DraggableItem(
     val animatedOffset by animateOffsetAsState(targetValue = if (isDragging) dragOffset else Offset.Companion.Zero)
 
     Box(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .onGloballyPositioned { layoutCoordinates ->
                 onPositioned(layoutCoordinates.localToRoot(Offset.Companion.Zero))
             }
@@ -244,12 +245,12 @@ fun HomeItemContent(
     onEditTapped: (HomeItem) -> Unit,
     onDeleteTapped: (HomeItem) -> Unit
 ) {
-    val _60Color = Color(0xFF243e36)
-    val _30Color = Color(0xFF7ca982)
-    val _10Color = Color(0xFF8fc0a9)
+    val _60Color = SigmaColors.current.secondary
+    val _30Color = SigmaColors.current.onSecondary
+    val _10Color = SigmaColors.current.tertiary
 
     Card(
-        modifier = Modifier.Companion
+        modifier = Modifier
             .padding(
                 start = 10.dp,
                 end = 10.dp,
@@ -267,7 +268,7 @@ fun HomeItemContent(
         border = BorderStroke(2.dp, _10Color),
     ) {
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
                 .clip(androidx.compose.foundation.shape.RoundedCornerShape(13.dp))
         ) {
