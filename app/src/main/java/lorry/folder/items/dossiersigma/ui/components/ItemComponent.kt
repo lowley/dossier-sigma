@@ -388,7 +388,7 @@ fun ImageSection(
                     contentDescription = "Miniature",
                     contentScale = scale ?: ContentScale.Crop,
                     modifier = Modifier.matchParentSize(),
-                    colorFilter = if (image is Int) ColorFilter.tint(SigmaColors.current.background) else null
+                    colorFilter = if (image is Int && image != R.drawable.file) ColorFilter.tint(SigmaColors.current.tertiary) else null
                 )
             },
             error = {
