@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -32,13 +35,6 @@ class SettingsViewModel @Inject constructor(
         const val TAG = " SgsVM"
     }
 
-    private val _baseColor = MutableStateFlow(Color.Blue)
-    val baseColor: StateFlow<Color> = _baseColor
-
-    fun setBaseColor(color: Color) {
-        _baseColor.value = color
-    }
-
     private val _nightAndDay = MutableStateFlow(NightAndDay.LIGHT)
     val nightAndDay: StateFlow<NightAndDay> = _nightAndDay
 
@@ -46,15 +42,16 @@ class SettingsViewModel @Inject constructor(
         _nightAndDay.value = nightAndDay
     }
 
+
     val colorScheme: StateFlow<ColorScheme> = combine(
-        baseColor,
+        settingsManager.baseColorFlow,
         nightAndDay
     ) { baseColor, nightAndDay ->
         generateKvColorScheme(baseColor, nightAndDay)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
-        initialValue = generateKvColorScheme(Color.Blue, NightAndDay.LIGHT)
+        initialValue = generateKvColorScheme(Color.Green, NightAndDay.LIGHT)
     )
 
     private fun generateKvColorScheme(baseColor: Color, nightAndDay: NightAndDay): ColorScheme {

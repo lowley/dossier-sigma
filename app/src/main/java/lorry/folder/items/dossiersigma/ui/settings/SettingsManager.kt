@@ -24,6 +24,10 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfosDTO
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.graphics.toColorInt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.stateIn
 
 // On déclare la classe comme un Singleton pour n'avoir qu'une seule instance dans toute l'app
 @Singleton
@@ -43,7 +47,7 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
         val NAS_PASSWORD_KEY = stringPreferencesKey("nas_password")
         val NAS_FOLDER_KEY = stringPreferencesKey("nas_folder")
         val HOMEITEMS_KEY = stringSetPreferencesKey("home_items")
-        val THEME_KEY = stringSetPreferencesKey("theme_colors")
+        val THEME_BASE_COLOR_KEY = stringPreferencesKey("theme_basecolor")
     }
 
     suspend fun saveNasAddress(address: String) {
@@ -129,56 +133,40 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
             return@map cool
         }
 
-    suspend fun saveColorScheme(scheme: ColorScheme) {
+    suspend fun saveBaseColor(color: Color) {
         withContext(Dispatchers.IO) {
             context.dataStore.edit { settings ->
-                settings[THEME_KEY] = setOf(
-                    scheme.primary.toPersistableString("primary"),
-                    scheme.onPrimary.toPersistableString("onprimary"),
-                    scheme.secondary.toPersistableString("secondary"),
-                    scheme.onSecondary.toPersistableString("onsecondary"),
-                    scheme.tertiary.toPersistableString("terciary"),
-                    scheme.onTertiary.toPersistableString("onterciary"),
-                    scheme.background.toPersistableString("background"),
-                    scheme.base.toPersistableString("base"),
-                ).toSet()
+                settings[THEME_BASE_COLOR_KEY] = color.toHex()
             }
         }
     }
 
-//    val colorSchemeFlow: Flow<MyColorScheme> = context.dataStore.data
-//        .map { preferences ->
-//            Log.d(TAG, "colorSchemeFlow: DataStore émis → parsing…")
-//            val rawColors = preferences[THEME_KEY]
-//            Log.d(TAG, "colorSchemeFlow: rawColors : $rawColors")
-//
-//            if (rawColors == null)
-//                return@map MyColorScheme()
-//
-//            Log.d(TAG, "colorSchemeFlow: émission des nouvelles couleurs: ")
-//            Log.d(TAG, "primary=${rawColors.getColor("primary").toHex()}, background=${rawColors.getColor("background").toHex()}")
-//
-//            return@map MyColorScheme(
-//                primary = rawColors.getColor("primary"),
-//                onPrimary = rawColors.getColor("onprimary"),
-//                secondary = rawColors.getColor("secondary"),
-//                onSecondary = rawColors.getColor("onsecondary"),
-//                tertiary = rawColors.getColor("terciary"),
-//                onTertiary = rawColors.getColor("onterciary"),
-//                background = rawColors.getColor("background"),
-//                base = rawColors.getColor("base"),
-//            )
-//        }
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    fun Set<String>.getColor(key: String): Color {
-        val result = this.firstOrNull {
-            it.startsWith(key)
-        }?.substringAfter("|")?.let {
-            Color(it.removePrefix("0x").toULong(16))
-        }?: Color.Black
+    val baseColorFlow: Flow<Color> = context.dataStore.data
+        .map { preferences ->
+            try {
+                val raw = preferences[THEME_BASE_COLOR_KEY]
+                val intForm = raw?.replace("0x", "#")?.toColorInt()
+                Log.d(TAG, "intForm: $intForm")
 
-        return result
-    }
+                val result = intForm?.let { color ->
+                    Log.d(TAG, "color: $color")
+                    Color(color)
+                } ?: Color.Black
+
+                result
+            }
+            catch(ex: Exception){
+                Log.e(TAG, "baseColorFlow: erreur ${ex.message}")
+                Color.Black
+            }
+
+        }.stateIn(
+            scope = scope,
+            started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
+            initialValue = Color.Black
+        )
 }
 
 data class MyColorScheme(
