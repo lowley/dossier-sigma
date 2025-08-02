@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.components
+package lorry.folder.items.dossiersigma.ui.normal
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -8,9 +8,7 @@ import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,15 +46,15 @@ import kotlinx.coroutines.delay
 fun Breadcrumb(
     items: List<String>,
     onPathClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    activeColor: Color = Color.Blue,
-    inactiveColor: Color = Color.Gray,
-    arrowColor: Color = Color.Gray,
+    modifier: Modifier = Modifier.Companion,
+    activeColor: Color = Color.Companion.Blue,
+    inactiveColor: Color = Color.Companion.Gray,
+    arrowColor: Color = Color.Companion.Gray,
     transitionDuration: Int = 600
 ) {
     val displayedItems = run {
         val newItems = mutableListOf<String>()
-        
+
         when {
             items.size >= 3 && items[0] == "storage" && items[1] == "emulated" && items[2] == "0" -> {
                 newItems += "Local"
@@ -102,8 +100,10 @@ fun Breadcrumb(
                             item == "Local" -> "storage/emulated/0"
                             item == "Carte SD" -> "storage/${items.getOrNull(1) ?: ""}"
                             else -> items.take(
-                                actualIndex + 1 + if (items.isNotEmpty() && (items[0] == "Local" || items[0] == 
-                                    "Carte SD")) 1 else 0)
+                                actualIndex + 1 + if (items.isNotEmpty() && (items[0] == "Local" || items[0] ==
+                                            "Carte SD")
+                                ) 1 else 0
+                            )
                                 .joinToString("/")
                         }
                         onPathClick(path)
@@ -158,8 +158,8 @@ fun BreadcrumbItem(
     }
 
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        verticalAlignment = Alignment.Companion.CenterVertically,
+        modifier = Modifier.Companion
             .clipToBounds()
             .drawWithContent {
                 val width = size.width
@@ -184,20 +184,20 @@ fun BreadcrumbItem(
         Surface(
             shape = ParallelogramShape(),
             color = Color(0xFFF3F4E3),
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .border(2.dp, Color(0xFF8697CB), ParallelogramShape())
         ) {
             Text(
                 text = text,
-                modifier = Modifier.padding(horizontal = 15.dp),
+                modifier = Modifier.Companion.padding(horizontal = 15.dp),
                 fontSize = 16.sp,
                 //fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
                 color = if (isActive) activeColor else inactiveColor,
-                fontFamily = FontFamily.Monospace, // ou custom comme JetBrainsMono
-                fontWeight = FontWeight.Medium,
+                fontFamily = FontFamily.Companion.Monospace, // ou custom comme JetBrainsMono
+                fontWeight = FontWeight.Companion.Medium,
                 //fontSize = 14.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Companion.Ellipsis
             )
         }
     }

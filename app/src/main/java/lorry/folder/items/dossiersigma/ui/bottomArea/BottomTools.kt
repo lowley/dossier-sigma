@@ -91,8 +91,8 @@ import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.setCurrentTool
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
-import lorry.folder.items.dossiersigma.ui.components.imageAsAnyToTempUri
-import lorry.folder.items.dossiersigma.ui.components.manageImageClick
+import lorry.folder.items.dossiersigma.ui.normal.imageAsAnyToTempUri
+import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -611,7 +611,7 @@ sealed class Tools() {
                                 return@run
 
                             /**
-                             * @see lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
+                             * @see lorry.folder.items.dossiersigma.ui.browser.BrowserOverlay
                              * le Browser est un composable dans MainActivity
                              * voir BrowserOverlay et son appel par MainActivity
                              * le callback est un de ses paramètres d'appel
@@ -1669,7 +1669,7 @@ fun SigmaActivity.HomeItemDialog(
                         detectTapGestures(
                             onTap = {
                                 /**
-                                 * @see lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
+                                 * @see lorry.folder.items.dossiersigma.ui.browser.BrowserOverlay
                                  * le Browser est un composable dans MainActivity
                                  * voir BrowserOverlay et son appel par MainActivity
                                  * le callback est un de ses paramètres d'appel

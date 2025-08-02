@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.components
+package lorry.folder.items.dossiersigma.ui.normal
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,8 +56,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
@@ -121,7 +118,7 @@ fun ItemComponent(
         if (dragState != null && bounds != null)
             dragState != null && bounds?.contains(dragState!!.offset) == true
         else false
-        }
+    }
 
 //    val dragOffset by dragOffset.collectAsState()
 //    val draggableStartPosition by draggableStartPosition.collectAsState()
@@ -150,7 +147,7 @@ fun ItemComponent(
 
         val modifierWithBorder = Modifier
             .clip(shape1)
-            .background(Color.Transparent)
+            .background(Color.Companion.Transparent)
             .then(
                 if (isSelectedItemState)
                     Modifier.dashedBorder(
@@ -189,16 +186,20 @@ fun ItemComponent(
                     )
                 }
                 .then(
-                    if (isHovered) Modifier.border(2.dp, Color.Black)
-                    else Modifier
+                    if (isHovered) Modifier.Companion.border(2.dp, Color.Companion.Black)
+                    else Modifier.Companion
                 )
         ) {
             ImageSection(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
+                modifier = Modifier.Companion
+                    .align(Alignment.Companion.BottomCenter)
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(8.dp))
-                    .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp)),
+                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                    .border(
+                        1.dp,
+                        Color.Companion.Transparent,
+                        androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                    ),
                 image = image,
                 scale = scale
             )
@@ -217,8 +218,8 @@ fun ItemComponent(
                 val boxWidth = 45.dp
 
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.TopStart)
                         .graphicsLayer {
                             shape = RoundedCornerShape(
                                 topStart = 8.dp,
@@ -238,40 +239,40 @@ fun ItemComponent(
                         Image(
                             painter = painterResource(id = R.drawable.obliques4), // Remplacez par votre fichier
                             contentDescription = "Maillage de fond",
-                            contentScale = ContentScale.Crop, // Assure que l'image remplit l'espace
-                            modifier = Modifier.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
+                            contentScale = ContentScale.Companion.Crop, // Assure que l'image remplit l'espace
+                            modifier = Modifier.Companion.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
                         )
                     }
 
                     Column(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
+                        modifier = Modifier.Companion
+                            .align(Alignment.Companion.TopStart)
                             .padding(start = 0.dp, top = 0.dp)
                             .width(boxWidth)
                     ) {
                         val textHeight = 18.dp
 
                         Text(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
+                            modifier = Modifier.Companion
+                                .align(Alignment.Companion.CenterHorizontally)
                                 .padding(0.dp)
                                 .height(textHeight),
                             text = infoSup,
-                            fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight
+                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion
                                 .ExtraBold,
                             fontSize = 10.sp,
                             color = SigmaColors.current.tertiary
                         )
 
                         Text(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
+                            modifier = Modifier.Companion
+                                .align(Alignment.Companion.CenterHorizontally)
                                 .padding(
                                     top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
                                 )
                                 .height(textHeight),
                             text = infoInf,
-                            fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight.ExtraBold,
+                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion.ExtraBold,
                             fontSize = 10.sp,
                             color = SigmaColors.current.tertiary
                         )
@@ -281,18 +282,18 @@ fun ItemComponent(
 
             if (item.isFolder())
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.BottomEnd)
                         .padding(end = 6.dp, bottom = 20.dp)
                         .graphicsLayer {
                             rotationZ = -15f
                             shadowElevation = 4f
-                            shape = RoundedCornerShape(4.dp)
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
                             clip = true
                         }
                         .background(
                             color = Color(0xFFCCFF00), // rouge tampons administratifs
-                            shape = RoundedCornerShape(4.dp)
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
                         )
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
@@ -307,9 +308,9 @@ fun ItemComponent(
         }
 
         TextSection(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .height(52.dp)
-                .align(Alignment.CenterHorizontally),
+                .align(Alignment.Companion.CenterHorizontally),
             name = if (item.isFile())
                 item.name.substringBeforeLast(".")
             else item.name
@@ -326,7 +327,7 @@ fun TextSection(name: String, modifier: Modifier) {
             .height(52.dp)
             .padding(top = 5.dp),
         softWrap = true,
-        textAlign = TextAlign.Center,
+        textAlign = TextAlign.Companion.Center,
         lineHeight = 13.sp,
         maxLines = 3,
         fontSize = 12.sp,
@@ -352,7 +353,7 @@ fun ImageSection(
                 containerHeight = containerSize.height,
                 imageWidth = size.width,
                 imageHeight = size.height,
-                contentScale = scale ?: ContentScale.Crop
+                contentScale = scale ?: ContentScale.Companion.Crop
             )
         } else {
             false // On ne montre pas le maillage avant de connaître la taille
@@ -366,7 +367,7 @@ fun ImageSection(
             Icon(
                 painter = painterResource(id = R.drawable.diagos),
                 contentDescription = null,
-                modifier = Modifier.matchParentSize(),
+                modifier = Modifier.Companion.matchParentSize(),
                 tint = SigmaColors.current.tertiary
             )
         }
@@ -377,8 +378,8 @@ fun ImageSection(
                 .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
                 .build(),
             contentDescription = "Miniature",
-            contentScale = scale ?: ContentScale.Crop,
-            modifier = Modifier.matchParentSize(),
+            contentScale = scale ?: ContentScale.Companion.Crop,
+            modifier = Modifier.Companion.matchParentSize(),
             loading = { /* Affiche un loader */ },
             success = { successState ->
                 val drawable = successState.result.drawable
@@ -386,9 +387,11 @@ fun ImageSection(
                 Image(
                     painter = successState.painter,
                     contentDescription = "Miniature",
-                    contentScale = scale ?: ContentScale.Crop,
-                    modifier = Modifier.matchParentSize(),
-                    colorFilter = if (image is Int && image != R.drawable.file) ColorFilter.tint(SigmaColors.current.tertiary) else null
+                    contentScale = scale ?: ContentScale.Companion.Crop,
+                    modifier = Modifier.Companion.matchParentSize(),
+                    colorFilter = if (image is Int && image != R.drawable.file) ColorFilter.Companion.tint(
+                        SigmaColors.current.tertiary
+                    ) else null
                 )
             },
             error = {
@@ -427,11 +430,11 @@ fun doesImageFillBox(
     val imageRatio = imageWidth.toFloat() / imageHeight
 
     return when (contentScale) {
-        ContentScale.Crop,
-        ContentScale.FillBounds -> true
+        ContentScale.Companion.Crop,
+        ContentScale.Companion.FillBounds -> true
 
-        ContentScale.Fit,
-        ContentScale.Inside -> {
+        ContentScale.Companion.Fit,
+        ContentScale.Companion.Inside -> {
             if (imageRatio > containerRatio) {
                 (containerWidth / imageRatio) >= containerHeight
             } else {
@@ -439,9 +442,9 @@ fun doesImageFillBox(
             }
         }
 
-        ContentScale.FillWidth -> imageRatio <= containerRatio
-        ContentScale.FillHeight -> imageRatio >= containerRatio
-        ContentScale.None -> false
+        ContentScale.Companion.FillWidth -> imageRatio <= containerRatio
+        ContentScale.Companion.FillHeight -> imageRatio >= containerRatio
+        ContentScale.Companion.None -> false
         else -> false
     }
 }
@@ -501,7 +504,7 @@ fun Modifier.dashedBorder(
         color = color,
         style = Stroke(
             width = stroke,
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, gap), 0f)
+            pathEffect = PathEffect.Companion.dashPathEffect(floatArrayOf(dash, gap), 0f)
         )
     )
 }

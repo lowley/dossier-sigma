@@ -21,7 +21,7 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.ui.components.BrowserOverlay
+import lorry.folder.items.dossiersigma.ui.browser.BrowserOverlay
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 

@@ -67,7 +67,7 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.centralArea.Memo
 import lorry.folder.items.dossiersigma.ui.centralArea.homePage
-import lorry.folder.items.dossiersigma.ui.components.Breadcrumb
+import lorry.folder.items.dossiersigma.ui.normal.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
@@ -151,6 +151,7 @@ class SigmaActivity : ComponentActivity() {
             val isTagInfosDialogVisible by mainViewModel.isTagInfosDialogVisible.collectAsState()
             val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
             val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
+            val isDisplayingMemo by mainViewModel.isDisplayingMemo.collectAsState()
 
             val homePageVisible by homeViewModel.homePageVisible.collectAsState()
             val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
@@ -165,7 +166,10 @@ class SigmaActivity : ComponentActivity() {
                     //////////////////////////
                     // bottomAppBar normale //
                     //////////////////////////
-                    if (!homePageVisible && currentPage == null)
+                    if (
+                        !homePageVisible &&
+                        currentPage == null &&
+                        !isDisplayingMemo)
 //                        && (currentContentInfos.first == "DEFAULT_CONTENT" &&
 //                                currentContentInfos.second.isNotEmpty())
 //                        || currentContentInfos.first != "DEFAULT_CONTENT")

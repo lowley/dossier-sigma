@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.components
+package lorry.folder.items.dossiersigma.ui.browser
 
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
