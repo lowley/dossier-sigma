@@ -272,7 +272,7 @@ fun SigmaActivity.SettingsPage(
 
                             settingsViewModel.setNightAndDay(NightAndDay.DARK)
                             settingsViewModel.setBaseColor(backgroundColor.value)
-//                            settingsViewModel.settingsManager.saveColorScheme(settingsViewModel.colorScheme.value)
+                            settingsViewModel.settingsManager.saveColorScheme(settingsViewModel.colorScheme.value)
                         }
 
                         mainViewModel.setIsSettingsPageVisible(false)
