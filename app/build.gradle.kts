@@ -136,5 +136,8 @@ dependencies {
     implementation("com.github.KvColorPalette:KvColorPalette-Android:3.1.0")
 
     //https://github.com/T8RIN/DynamicTheme
-    implementation("com.github.t8rin:dynamictheme:1.0.3")
+    //que 3 couleurs, sans onxxx
+//    implementation("com.github.t8rin:dynamictheme:1.0.3")
+
+
 }

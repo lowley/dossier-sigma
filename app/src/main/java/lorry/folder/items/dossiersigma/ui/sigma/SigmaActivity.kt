@@ -125,6 +125,9 @@ class SigmaActivity : ComponentActivity() {
             Log.d(TAG, "onCreate: onPrimary=${colorScheme.onPrimary.toHex()}")
             Log.d(TAG, "onCreate: primary=${colorScheme.primary.toHex()}")
 
+            val baseColor = settingsViewModel.baseColor.collectAsState()
+            val theme = ColorThemeGenerator.generateTheme(baseColor.value)
+            
             MaterialTheme(
                 colorScheme = colorScheme,
                 typography = androidx.compose.material3.Typography(),
