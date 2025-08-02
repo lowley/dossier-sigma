@@ -3,6 +3,8 @@ package lorry.folder.items.dossiersigma.ui.centralArea
 import android.graphics.Rect
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
@@ -31,9 +33,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -57,7 +61,7 @@ import kotlin.math.roundToInt
 
 @Composable
 context(ColumnScope)
-fun homePage(
+fun HomePage(
     homeItemsInVM: StateFlow<List<HomeItem>>,
     onItemClicked: (HomeItem) -> Unit,
     onEditTapped: (HomeItem) -> Unit,
@@ -78,115 +82,131 @@ fun homePage(
     var dropTarget by remember { mutableStateOf<HomeItem?>(null) }
     val itemPositions = remember { mutableMapOf<HomeItem, Offset>() }
 
-    LazyVerticalGrid(
-        state = gridState, // On lie l'état à la grille
-        columns = GridCells.Adaptive(150.dp),
-        modifier = Modifier.Companion
+    Box(
+        modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 10.dp, vertical = 10.dp)
-            .weight(1f)
-            .onGloballyPositioned { layoutCoordinates ->
-                // On récupère les dimensions et la position de la grille à l'écran
-                val rect = layoutCoordinates.localToRoot(Offset.Companion.Zero).let {
-                    Rect(
-                        it.x.toInt(),
-                        it.y.toInt(),
-                        (it.x + layoutCoordinates.size.width).toInt(),
-                        (it.y + layoutCoordinates.size.height).toInt()
+    ) {
+        Image(
+            modifier = Modifier
+                .fillMaxSize()
+                .align(Alignment.Center)
+                .alpha(0.2f),
+            painter = painterResource(R.drawable.mesh_homepage),
+            contentDescription = "",
+            colorFilter = ColorFilter.tint(SigmaColors.current.tertiary)
+        )
+
+        LazyVerticalGrid(
+            state = gridState, // On lie l'état à la grille
+            columns = GridCells.Adaptive(150.dp),
+            modifier = Modifier.Companion
+                .fillMaxSize()
+                .padding(horizontal = 10.dp, vertical = 10.dp)
+                .background(Color.Transparent)
+                .onGloballyPositioned { layoutCoordinates ->
+                    // On récupère les dimensions et la position de la grille à l'écran
+                    val rect = layoutCoordinates.localToRoot(Offset.Companion.Zero).let {
+                        Rect(
+                            it.x.toInt(),
+                            it.y.toInt(),
+                            (it.x + layoutCoordinates.size.width).toInt(),
+                            (it.y + layoutCoordinates.size.height).toInt()
+                        )
+                    }
+                    gridBounds = rect
+                }
+        ) {
+            items(homeItems.size, key = { homeItems[it].id }) { index ->
+                val item = homeItems[index]
+                val px150 = 150.dp.convertToPx()
+
+                DraggableItem(
+                    item = item,
+                    isDragging = item == draggedItem,
+                    isDropTarget = item == dropTarget && item != draggedItem,
+                    dragOffset = dragOffset,
+                    on1DragStart = {
+                        draggedItem = item
+                        dragOffset = Offset.Companion.Zero
+                    },
+                    on1Drag = { currentDragOffset ->
+                        dragOffset += currentDragOffset
+
+                        // --- LOGIQUE D'AUTO-SCROLL ---
+                        gridBounds?.let { bounds ->
+                            val itemCenterY = itemPositions[item]!!.y + dragOffset.y
+                            val scrollThreshold =
+                                bounds.height() * 0.1f // Zone de 10% en haut et en bas
+
+                            // Si on est près du bord inférieur
+                            if (itemCenterY > bounds.bottom - scrollThreshold) {
+                                if (autoScrollJob?.isActive != true) {
+                                    autoScrollJob = coroutineScope.launch {
+                                        while (true) {
+                                            gridState.scrollBy(15f)
+                                            delay(16) // ~60fps
+                                        }
+                                    }
+                                }
+                            }
+                            // Si on est près du bord supérieur
+                            else if (itemCenterY < bounds.top + scrollThreshold) {
+                                if (autoScrollJob?.isActive != true) {
+                                    autoScrollJob = coroutineScope.launch {
+                                        while (true) {
+                                            gridState.scrollBy(-15f)
+                                            delay(16) // ~60fps
+                                        }
+                                    }
+                                }
+                            }
+                            // Sinon, on arrête le scroll
+                            else {
+                                autoScrollJob?.cancel()
+                            }
+                        }
+                        // --- FIN DE LA LOGIQUE D'AUTO-SCROLL ---
+
+                        dropTarget = itemPositions.entries
+                            .firstOrNull { (_, position) ->
+                                val dragPosition = itemPositions[item]!! + dragOffset
+                                (dragPosition - position).getDistanceSquared() < (px150 * px150)
+                            }?.key
+                    },
+                    on1DragEnd = {
+                        autoScrollJob?.cancel() // On arrête le scroll à la fin du drag
+                        if (draggedItem != null && dropTarget != null) {
+                            val fromIndex = homeItems.indexOf(draggedItem)
+                            val toIndex = homeItems.indexOf(dropTarget)
+                            if (fromIndex != -1 && toIndex != -1 && fromIndex != toIndex) {
+                                val newList = homeItems.toMutableList().apply {
+                                    add(toIndex, removeAt(fromIndex))
+                                }
+                                    .mapIndexed { index, homeItem ->
+                                        homeItem.copy(index = index)
+                                    }
+                                onItemsReordered(newList)
+                            }
+                        }
+                        draggedItem = null
+                        dragOffset = Offset.Companion.Zero
+                        dropTarget = null
+                    },
+                    onPositioned = { position ->
+                        itemPositions[item] = position
+                    }
+                ) {
+                    HomeItemContent(
+                        item = item,
+                        onItemClicked = onItemClicked,
+                        onEditTapped = onEditTapped,
+                        onDeleteTapped = onDeleteTapped
                     )
                 }
-                gridBounds = rect
-            }
-    ) {
-        items(homeItems.size, key = { homeItems[it].id }) { index ->
-            val item = homeItems[index]
-            val px150 = 150.dp.convertToPx()
-
-            DraggableItem(
-                item = item,
-                isDragging = item == draggedItem,
-                isDropTarget = item == dropTarget && item != draggedItem,
-                dragOffset = dragOffset,
-                on1DragStart = {
-                    draggedItem = item
-                    dragOffset = Offset.Companion.Zero
-                },
-                on1Drag = { currentDragOffset ->
-                    dragOffset += currentDragOffset
-
-                    // --- LOGIQUE D'AUTO-SCROLL ---
-                    gridBounds?.let { bounds ->
-                        val itemCenterY = itemPositions[item]!!.y + dragOffset.y
-                        val scrollThreshold =
-                            bounds.height() * 0.1f // Zone de 10% en haut et en bas
-
-                        // Si on est près du bord inférieur
-                        if (itemCenterY > bounds.bottom - scrollThreshold) {
-                            if (autoScrollJob?.isActive != true) {
-                                autoScrollJob = coroutineScope.launch {
-                                    while (true) {
-                                        gridState.scrollBy(15f)
-                                        delay(16) // ~60fps
-                                    }
-                                }
-                            }
-                        }
-                        // Si on est près du bord supérieur
-                        else if (itemCenterY < bounds.top + scrollThreshold) {
-                            if (autoScrollJob?.isActive != true) {
-                                autoScrollJob = coroutineScope.launch {
-                                    while (true) {
-                                        gridState.scrollBy(-15f)
-                                        delay(16) // ~60fps
-                                    }
-                                }
-                            }
-                        }
-                        // Sinon, on arrête le scroll
-                        else {
-                            autoScrollJob?.cancel()
-                        }
-                    }
-                    // --- FIN DE LA LOGIQUE D'AUTO-SCROLL ---
-
-                    dropTarget = itemPositions.entries
-                        .firstOrNull { (_, position) ->
-                            val dragPosition = itemPositions[item]!! + dragOffset
-                            (dragPosition - position).getDistanceSquared() < (px150 * px150)
-                        }?.key
-                },
-                on1DragEnd = {
-                    autoScrollJob?.cancel() // On arrête le scroll à la fin du drag
-                    if (draggedItem != null && dropTarget != null) {
-                        val fromIndex = homeItems.indexOf(draggedItem)
-                        val toIndex = homeItems.indexOf(dropTarget)
-                        if (fromIndex != -1 && toIndex != -1 && fromIndex != toIndex) {
-                            val newList = homeItems.toMutableList().apply {
-                                add(toIndex, removeAt(fromIndex))
-                            }
-                                .mapIndexed { index, homeItem ->
-                                    homeItem.copy(index = index)
-                                }
-                            onItemsReordered(newList)
-                        }
-                    }
-                    draggedItem = null
-                    dragOffset = Offset.Companion.Zero
-                    dropTarget = null
-                },
-                onPositioned = { position ->
-                    itemPositions[item] = position
-                }
-            ) {
-                HomeItemContent(
-                    item = item,
-                    onItemClicked = onItemClicked,
-                    onEditTapped = onEditTapped,
-                    onDeleteTapped = onDeleteTapped
-                )
             }
         }
     }
+
 }
 
 @Composable

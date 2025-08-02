@@ -66,7 +66,7 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.memo.MemoArea
-import lorry.folder.items.dossiersigma.ui.centralArea.homePage
+import lorry.folder.items.dossiersigma.ui.centralArea.HomePage
 import lorry.folder.items.dossiersigma.ui.normal.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
@@ -512,7 +512,7 @@ class SigmaActivity : ComponentActivity() {
                         ///////////////
                         if (homePageVisible) {
 
-                            homePage(
+                            HomePage(
                                 homeItemsInVM = homeViewModel.homeItems,
                                 onItemClicked = { item: HomeItem ->
                                     mainViewModel.goToFolder(item.path)
