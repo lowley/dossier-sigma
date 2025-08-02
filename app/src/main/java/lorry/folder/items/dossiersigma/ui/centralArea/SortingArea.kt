@@ -1,14 +1,11 @@
-package lorry.folder.items.dossiersigma.ui.sigma
+package lorry.folder.items.dossiersigma.ui.centralArea
 
-import android.graphics.Paint
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -19,12 +16,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
+import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 
 @Composable
 context(RowScope)
@@ -39,9 +36,9 @@ fun SortingArea(
             .padding(0.dp)
             .wrapContentWidth()
             .height(30.dp)
-            .align(Alignment.CenterVertically),
+            .align(Alignment.Companion.CenterVertically),
         horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Companion.CenterVertically
     ) {
         val sorting by sortingFlow.collectAsState()
 
@@ -52,12 +49,12 @@ fun SortingArea(
                     labelColor = SigmaColors.current.tertiary,
                 ),
                 label = { Text("Date") },
-                modifier = Modifier,
+                modifier = Modifier.Companion,
                 leadingIcon = {
                     Icon(
                         painterResource(id = R.drawable.trier_decroissant),
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.Companion.size(24.dp),
                         tint = SigmaColors.current.tertiary
                     )
                 },
@@ -73,14 +70,14 @@ fun SortingArea(
                     labelColor = SigmaColors.current.tertiary,
                 ),
                 label = { Text("Nom") },
-                modifier = Modifier,
+                modifier = Modifier.Companion,
 //                    .align(Alignment.CenterVertically),
                 selected = false,
                 leadingIcon = {
                     Icon(
                         painterResource(id = R.drawable.trier_croissant),
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.Companion.size(24.dp),
                         tint = SigmaColors.current.tertiary
                     )
 

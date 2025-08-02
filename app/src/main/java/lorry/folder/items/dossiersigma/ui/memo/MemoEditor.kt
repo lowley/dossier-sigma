@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.memoEditor
+package lorry.folder.items.dossiersigma.ui.memo
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.TextAutoSizeDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -22,16 +21,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -43,13 +36,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.isUnspecified
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
 import com.mohamedrejeb.richeditor.model.RichTextState
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -59,7 +49,6 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
 import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
-import kotlin.random.Random
 
 @Composable
 fun SigmaActivity.MemoEditor(

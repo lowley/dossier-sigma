@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.sigma
+package lorry.folder.items.dossiersigma.ui.centralArea
 
 import android.content.Intent
 import android.widget.Toast
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
@@ -20,6 +19,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.io.File
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -44,13 +45,13 @@ fun SigmaActivity.SigmaFAB(
     )
 
         Box(
-            Modifier
+            Modifier.Companion
                 .padding(bottom = 5.dp, end = 20.dp)
                 .height(65.dp)
         ) {
 
             SpeedDialFloatingActionButton(
-                modifier = Modifier,
+                modifier = Modifier.Companion,
                 initialExpanded = false,
                 animationDuration = 300,
                 animationDelayPerSelection = 100,

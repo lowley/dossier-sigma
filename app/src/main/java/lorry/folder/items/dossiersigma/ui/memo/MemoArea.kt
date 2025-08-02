@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.centralArea
+package lorry.folder.items.dossiersigma.ui.memo
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
@@ -19,12 +19,14 @@ import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
 import com.elixer.palette.constraints.VerticalAlignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import lorry.folder.items.dossiersigma.ui.memoEditor.MemoEditor
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
+/**
+ * memo + palette
+ */
 @Composable
 context(SigmaActivity, BoxScope)
-fun Memo() {
+fun MemoArea() {
 
     val richTextState = rememberRichTextState()
 
@@ -34,8 +36,8 @@ fun Memo() {
 
     if (isRichText.value) {
         MemoEditor(
-            modifier = Modifier
-                .align(Alignment.TopCenter),
+            modifier = Modifier.Companion
+                .align(Alignment.Companion.TopCenter),
             isRichText = isRichText,
             richTextState = richTextState
         )
@@ -46,20 +48,20 @@ fun Memo() {
         keyboardController?.hide()
 
         Column(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .zIndex(25f),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.Companion.CenterHorizontally
         ) {
             Row(
                 horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Companion.CenterVertically
             ) {
                 Palette(
-                    defaultColor = Color.Magenta,
+                    defaultColor = Color.Companion.Magenta,
                     buttonSize = 100.dp,
-                    swatches = Presets.material(),
+                    swatches = Presets.Companion.material(),
                     innerRadius = 400f,
                     strokeWidth = 120f,
                     spacerRotation = 5f,

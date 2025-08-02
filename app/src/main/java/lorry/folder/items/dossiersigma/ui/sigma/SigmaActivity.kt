@@ -65,7 +65,7 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
-import lorry.folder.items.dossiersigma.ui.centralArea.Memo
+import lorry.folder.items.dossiersigma.ui.memo.MemoArea
 import lorry.folder.items.dossiersigma.ui.centralArea.homePage
 import lorry.folder.items.dossiersigma.ui.normal.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.normal.NormalPage
@@ -75,6 +75,10 @@ import lorry.folder.items.dossiersigma.ui.settings.toHex
 import javax.inject.Inject
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
+import lorry.folder.items.dossiersigma.ui.centralArea.HomeButtonIcon
+import lorry.folder.items.dossiersigma.ui.centralArea.SigmaFAB
+import lorry.folder.items.dossiersigma.ui.centralArea.SortingArea
+import lorry.folder.items.dossiersigma.ui.centralArea.initializeFileIntentLauncher
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 
 val SigmaColors = staticCompositionLocalOf { DefaultColorScheme() }
@@ -634,7 +638,7 @@ class SigmaActivity : ComponentActivity() {
                     ////////////////////////////////
                     // memo + palette de couleurs //
                     ////////////////////////////////
-                    Memo()
+                    MemoArea()
 
                     /////////////////////////////////
                     // étiquette mobile éventuelle //
