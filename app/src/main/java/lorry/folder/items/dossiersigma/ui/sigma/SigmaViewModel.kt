@@ -265,6 +265,10 @@ class SigmaViewModel @Inject constructor(
         _isSettingsPageVisible.value = visible
     }
 
+    fun toggleSettingsPageVisible() {
+        _isSettingsPageVisible.value = !_isSettingsPageVisible.value
+    }
+
     /////////////////
     // drag'n drop //
     /////////////////

@@ -318,7 +318,7 @@ class SigmaActivity : ComponentActivity() {
                                         icon = R.drawable.mouvement
                                     ) {
                                         mainViewModel.setIsSettingsPageVisible(false)
-                                        homeViewModel.setHomePageVisible(true)
+                                        homeViewModel.toggleHomePageVisible()
                                     }
 
                                     ////////////////

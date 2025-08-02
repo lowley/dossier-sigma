@@ -29,6 +29,10 @@ class HomeViewModel @Inject constructor(
         _homePageVisible.value = visible
     }
 
+    fun toggleHomePageVisible() {
+        _homePageVisible.value = !homePageVisible.value
+    }
+
     ///////////////////////////////////////////
     // envoi itemInfos à dialogHomeItemInfos //
     ///////////////////////////////////////////
