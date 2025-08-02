@@ -95,6 +95,7 @@ dependencies {
     implementation("me.saket.cascade:cascade:2.3.0")
     implementation("me.saket.cascade:cascade-compose:2.3.0")
     implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
 
 //    implementation(libs.compressor)
     implementation(mapOf("name" to "ffmpeg-kit-full-gpl-6.0-2.LTS", "ext" to "aar"))

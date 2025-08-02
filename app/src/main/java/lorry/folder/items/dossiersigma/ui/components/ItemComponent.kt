@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +36,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -43,6 +46,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,12 +58,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.decode.SvgDecoder
+import coil.request.ImageRequest
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.io.File
 import java.io.FileOutputStream
 
@@ -218,7 +227,7 @@ fun ItemComponent(
                             clip = true
                             shadowElevation = 0f
                         }
-                        .background(tag?.color ?: Color.Gray)
+                        .background(SigmaColors.current.secondary)
                         .width(boxWidth)
                         .clickable {
                             onTopLeftPanelClick(item)
@@ -251,7 +260,7 @@ fun ItemComponent(
                             fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight
                                 .ExtraBold,
                             fontSize = 10.sp,
-                            color = Color.White
+                            color = SigmaColors.current.tertiary
                         )
 
                         Text(
@@ -264,7 +273,7 @@ fun ItemComponent(
                             text = infoInf,
                             fontWeight = if (memoEmpty) FontWeight.ExtraLight else FontWeight.ExtraBold,
                             fontSize = 10.sp,
-                            color = Color.White
+                            color = SigmaColors.current.tertiary
                         )
                     }
                 }
@@ -321,7 +330,7 @@ fun TextSection(name: String, modifier: Modifier) {
         lineHeight = 13.sp,
         maxLines = 3,
         fontSize = 12.sp,
-        color = Color(0xFFDBBC00),
+        color = SigmaColors.current.onPrimary,
     )
 }
 
@@ -354,24 +363,53 @@ fun ImageSection(
         modifier = modifier.onSizeChanged { containerSize = it }
     ) {
         if (shouldShowMesh) {
-            Image(
-                painter = painterResource(R.drawable.maillage1),
+            Icon(
+                painter = painterResource(id = R.drawable.diagos),
                 contentDescription = null,
-                modifier = Modifier.matchParentSize()
+                modifier = Modifier.matchParentSize(),
+                tint = SigmaColors.current.tertiary
             )
         }
 
-        AsyncImage(
-            model = image,
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(image)
+                .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
+                .build(),
             contentDescription = "Miniature",
             contentScale = scale ?: ContentScale.Crop,
-            // Callback pour récupérer la taille de l'image une fois chargée
-            onSuccess = { successState ->
+            modifier = Modifier.matchParentSize(),
+            loading = { /* Affiche un loader */ },
+            success = { successState ->
                 val drawable = successState.result.drawable
                 imageSize = IntSize(drawable.intrinsicWidth, drawable.intrinsicHeight)
+                Image(
+                    painter = successState.painter,
+                    contentDescription = "Miniature",
+                    contentScale = scale ?: ContentScale.Crop,
+                    modifier = Modifier.matchParentSize(),
+                    colorFilter = if (image is Int) ColorFilter.tint(SigmaColors.current.background) else null
+                )
             },
-            modifier = Modifier.matchParentSize()
+            error = {
+                // Fallback en cas d’erreur
+            }
         )
+
+
+//        AsyncImage(
+//            model = image,
+//            contentDescription = "Miniature",
+//            contentScale = scale ?: ContentScale.Crop,
+//            // Callback pour récupérer la taille de l'image une fois chargée
+//            onSuccess = { successState ->
+//                val drawable = successState.result.drawable
+//                imageSize = IntSize(drawable.intrinsicWidth, drawable.intrinsicHeight)
+//            },
+//            modifier = Modifier.matchParentSize(),
+//            colorFilter = if (image is Int) ColorFilter.tint(SigmaColors.current.background)
+//                else null
+//        )
     }
 }
 

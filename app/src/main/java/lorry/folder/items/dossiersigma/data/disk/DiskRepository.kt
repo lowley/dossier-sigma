@@ -331,8 +331,8 @@ class DiskRepository @Inject constructor(
                     println("non trouvé")
                     val isPopulated = isFolderPopulated(path)
                     image = if (isPopulated)
-                        R.drawable.folder_full
-                    else R.drawable.folder_empty
+                        R.drawable.dossier123full
+                    else R.drawable.dossier123empty
                 }
 
                 image
