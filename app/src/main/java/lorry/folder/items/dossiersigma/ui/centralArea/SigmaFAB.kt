@@ -1,6 +1,5 @@
 package lorry.folder.items.dossiersigma.ui.centralArea
 
-
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
