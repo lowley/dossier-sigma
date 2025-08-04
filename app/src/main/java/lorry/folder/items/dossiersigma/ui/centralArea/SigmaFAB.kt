@@ -57,7 +57,7 @@ fun SigmaActivity.SigmaFAB(
                 animationDelayPerSelection = 100,
                 showLabels = true,
                 fabBackgroundColor = SigmaColors.current.secondary,
-                fabContentColor = SigmaColors.current.tertiary,
+                fabContentColor = SigmaColors.current.onPrimary,
                 speedDialBackgroundColor = SigmaColors.current.secondary,
                 speedDialContentColor = SigmaColors.current.tertiary,
                 speedDialData = listOf(

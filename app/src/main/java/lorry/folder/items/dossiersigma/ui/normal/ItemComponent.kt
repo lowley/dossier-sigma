@@ -261,7 +261,7 @@ fun ItemComponent(
                             fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion
                                 .ExtraBold,
                             fontSize = 10.sp,
-                            color = SigmaColors.current.tertiary
+                            color = SigmaColors.current.onSecondary
                         )
 
                         Text(
@@ -274,7 +274,7 @@ fun ItemComponent(
                             text = infoInf,
                             fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion.ExtraBold,
                             fontSize = 10.sp,
-                            color = SigmaColors.current.tertiary
+                            color = SigmaColors.current.onSecondary
                         )
                     }
                 }
