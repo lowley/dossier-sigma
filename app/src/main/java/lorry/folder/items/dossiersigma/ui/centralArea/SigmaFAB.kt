@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.centralArea
 
+
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
@@ -57,7 +58,7 @@ fun SigmaActivity.SigmaFAB(
                 animationDelayPerSelection = 100,
                 showLabels = true,
                 fabBackgroundColor = SigmaColors.current.secondary,
-                fabContentColor = SigmaColors.current.tertiary,
+                fabContentColor = SigmaColors.current.onPrimary,
                 speedDialBackgroundColor = SigmaColors.current.secondary,
                 speedDialContentColor = SigmaColors.current.tertiary,
                 speedDialData = listOf(

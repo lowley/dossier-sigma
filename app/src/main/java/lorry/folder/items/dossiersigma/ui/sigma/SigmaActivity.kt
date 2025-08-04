@@ -128,8 +128,6 @@ class SigmaActivity : ComponentActivity() {
 //                null
 //            ) onCreate
             val colorScheme by settingsViewModel.colorScheme.collectAsState()
-            Log.d(TAG, "onCreate: onPrimary=${colorScheme.onPrimary.toHex()}")
-            Log.d(TAG, "onCreate: primary=${colorScheme.primary.toHex()}")
 
             MaterialTheme(
                 colorScheme = colorScheme,

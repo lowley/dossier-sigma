@@ -135,4 +135,11 @@ dependencies {
     //générer un thème
     //https://github.com/KvColorPalette/KvColorPalette-Android
     implementation("com.github.KvColorPalette:KvColorPalette-Android:3.1.0")
+
+    implementation("com.arkivanov.decompose:decompose:2.1.1")
+    implementation("com.arkivanov.decompose:extensions-compose-jetbrains:2.1.1")
+
+
+
+
 }

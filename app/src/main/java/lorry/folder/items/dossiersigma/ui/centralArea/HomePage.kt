@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.centralArea
 
+import android.R.attr.alpha
 import android.graphics.Rect
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.BorderStroke
@@ -39,6 +40,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -58,6 +60,7 @@ import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import kotlin.collections.indexOf
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.lerp
 
 @Composable
 context(ColumnScope)
@@ -279,7 +282,7 @@ fun HomeItemContent(
             .size(150.dp)
             .clip(RoundedCornerShape(13.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = _60Color,
+            containerColor = lerp(_60Color, SigmaColors.current.primary, 0.6f),
             contentColor = _30Color,
         ),
         elevation = CardDefaults.cardElevation(

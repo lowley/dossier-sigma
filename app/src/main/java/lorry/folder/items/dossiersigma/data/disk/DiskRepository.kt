@@ -276,10 +276,7 @@ class DiskRepository @Inject constructor(
                     }
                 }
 
-                if (image == null)
-                    println("pas trouvé, utilisation de R.drawable.file")
-
-                image = image ?: R.drawable.file
+                image = image ?: R.drawable.document
                 image
             }
 
