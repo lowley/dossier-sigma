@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,13 +15,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -171,6 +176,9 @@ fun ItemComponent(
                     })
             }
 
+        var isStartInLittleBox by remember { mutableStateOf(false) }
+        var areShortcutsDisplayed = remember { mutableStateOf(false) }
+
         Box(
             modifier = modifierWithBorder
                 .width(imageHeight)
@@ -189,6 +197,40 @@ fun ItemComponent(
                     if (isHovered) Modifier.Companion.border(2.dp, Color.Companion.Black)
                     else Modifier.Companion
                 )
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { offset ->
+                            // Vérifie si le point de départ est dans l'encart
+                            val density = this@pointerInput
+                            val boxWidthPx = with(density) { 45.dp.toPx() }
+                            val boxHeightPx = with(density) { (18.dp * 2 + 5.dp).toPx() }
+                            val width = this@pointerInput.size.width
+
+                            if (offset.x <= width / 3
+//                                offset.x <= boxWidthPx
+//                                && offset.y <= boxHeightPx
+                            ) {
+                                println("Swipe DÉMARRÉ dans l’encart")
+                                isStartInLittleBox = true
+                            }
+                        },
+                        onHorizontalDrag = { change, dragAmount ->
+                            if (isStartInLittleBox) {
+                                val density = this@pointerInput
+                                val boxWidthPx = with(density) { 45.dp.toPx() }
+                                val width = this@pointerInput.size.width
+
+                                if (change.position.x > width / 3 * 2) {
+                                    isStartInLittleBox = false
+                                    areShortcutsDisplayed.value = !areShortcutsDisplayed.value
+                                }
+                            }
+                        },
+                        onDragEnd = {
+                            isStartInLittleBox = false
+                        }
+                    )
+                }
         ) {
             ImageSection(
                 modifier = Modifier.Companion
@@ -201,7 +243,9 @@ fun ItemComponent(
                         androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                     ),
                 image = image,
-                scale = scale
+                scale = scale,
+                name = item.name,
+                areShortcutsDisplayed = areShortcutsDisplayed
             )
 
             val infoSup = produceState<String?>(initialValue = null, item) {
@@ -312,7 +356,7 @@ fun ItemComponent(
                 .height(52.dp)
                 .align(Alignment.Companion.CenterHorizontally),
             name = if (item.isFile())
-                item.name.substringBeforeLast(".")
+                item.name.substringBefore(".")
             else item.name
         )
     }
@@ -340,6 +384,8 @@ fun ImageSection(
     modifier: Modifier,
     image: Any?,
     scale: ContentScale?,
+    name: String,
+    areShortcutsDisplayed: MutableState<Boolean>,
 ) {
     var imageSize by remember { mutableStateOf<IntSize?>(null) }
     var containerSize = IntSize(175, 175)
@@ -372,47 +418,71 @@ fun ImageSection(
             )
         }
 
-        SubcomposeAsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(image)
-                .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
-                .build(),
-            contentDescription = "Miniature",
-            contentScale = scale ?: ContentScale.Companion.Crop,
-            modifier = Modifier.Companion.matchParentSize(),
-            loading = { /* Affiche un loader */ },
-            success = { successState ->
-                val drawable = successState.result.drawable
-                imageSize = IntSize(drawable.intrinsicWidth, drawable.intrinsicHeight)
-                Image(
-                    painter = successState.painter,
-                    contentDescription = "Miniature",
-                    contentScale = scale ?: ContentScale.Companion.Crop,
-                    modifier = Modifier.Companion.matchParentSize(),
-                    colorFilter = if (image is Int && image != R.drawable.file) ColorFilter.Companion.tint(
-                        SigmaColors.current.tertiary
-                    ) else null
-                )
-            },
-            error = {
-                // Fallback en cas d’erreur
-            }
-        )
+        key(areShortcutsDisplayed.value) {
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(image)
+                    .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
+                    .build(),
+                contentDescription = "Miniature",
+                contentScale = scale ?: ContentScale.Companion.Crop,
+                modifier = Modifier.Companion.matchParentSize(),
+                loading = { /* Affiche un loader */ },
+                success = { successState ->
+                    val drawable = successState.result.drawable
+                    imageSize = IntSize(drawable.intrinsicWidth, drawable.intrinsicHeight)
 
+                    Box(
+                        modifier = Modifier.Companion.matchParentSize()
 
-//        AsyncImage(
-//            model = image,
-//            contentDescription = "Miniature",
-//            contentScale = scale ?: ContentScale.Crop,
-//            // Callback pour récupérer la taille de l'image une fois chargée
-//            onSuccess = { successState ->
-//                val drawable = successState.result.drawable
-//                imageSize = IntSize(drawable.intrinsicWidth, drawable.intrinsicHeight)
-//            },
-//            modifier = Modifier.matchParentSize(),
-//            colorFilter = if (image is Int) ColorFilter.tint(SigmaColors.current.background)
-//                else null
-//        )
+                    ) {
+                        Image(
+                            painter = successState.painter,
+                            contentDescription = "Miniature",
+                            contentScale = scale ?: ContentScale.Companion.Crop,
+                            modifier = Modifier.Companion
+                                .matchParentSize(),
+                            colorFilter = if (image is Int && image != R.drawable.file) ColorFilter.Companion.tint(
+                                SigmaColors.current.tertiary
+                            ) else null
+                        )
+
+                        if (areShortcutsDisplayed.value) {
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
+                            )
+
+                            Column(
+                                modifier = Modifier.Companion
+                                    .matchParentSize()
+                                    .padding(top = 45.dp)
+                                    .verticalScroll(rememberScrollState()),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+
+                                val shortcuts = name
+                                    .substringAfter(".")
+                                    .substringBeforeLast(".")
+                                    .split(".")
+
+                                for (shortcut in shortcuts) {
+                                    Text(
+                                        text = shortcut,
+                                        color = SigmaColors.current.onPrimary,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                error = {
+                    // Fallback en cas d’erreur
+                }
+            )
+        }
     }
 }
 
