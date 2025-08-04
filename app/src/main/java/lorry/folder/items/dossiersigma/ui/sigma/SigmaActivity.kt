@@ -1,12 +1,12 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
+//region imports
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -32,10 +32,12 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -65,21 +67,20 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
-import lorry.folder.items.dossiersigma.ui.memo.MemoArea
-import lorry.folder.items.dossiersigma.ui.centralArea.HomePage
-import lorry.folder.items.dossiersigma.ui.normal.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.normal.NormalPage
-import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
-import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
-import lorry.folder.items.dossiersigma.ui.settings.toHex
-import javax.inject.Inject
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.staticCompositionLocalOf
 import lorry.folder.items.dossiersigma.ui.centralArea.HomeButtonIcon
+import lorry.folder.items.dossiersigma.ui.centralArea.HomePage
 import lorry.folder.items.dossiersigma.ui.centralArea.SigmaFAB
 import lorry.folder.items.dossiersigma.ui.centralArea.SortingArea
 import lorry.folder.items.dossiersigma.ui.centralArea.initializeFileIntentLauncher
+import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
+import lorry.folder.items.dossiersigma.ui.normal.Breadcrumb
+import lorry.folder.items.dossiersigma.ui.normal.NormalPage
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
+import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
+import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
+import javax.inject.Inject
+
+//endregion
 
 val SigmaColors = staticCompositionLocalOf { DefaultColorScheme() }
 
@@ -96,6 +97,9 @@ class SigmaActivity : ComponentActivity() {
 
     @Inject
     lateinit var changePathUseCase: ChangePathUseCase
+
+    @Inject
+    lateinit var memo: IMemoComponent
 
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
@@ -153,7 +157,6 @@ class SigmaActivity : ComponentActivity() {
             val isTagInfosDialogVisible by mainViewModel.isTagInfosDialogVisible.collectAsState()
             val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
             val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
-            val isDisplayingMemo by mainViewModel.isDisplayingMemo.collectAsState()
 
             val homePageVisible by homeViewModel.homePageVisible.collectAsState()
             val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
@@ -171,7 +174,7 @@ class SigmaActivity : ComponentActivity() {
                     if (
                         !homePageVisible &&
                         currentPage == null &&
-                        !isDisplayingMemo)
+                        !memo.isDisplayed())
 //                        && (currentContentInfos.first == "DEFAULT_CONTENT" &&
 //                                currentContentInfos.second.isNotEmpty())
 //                        || currentContentInfos.first != "DEFAULT_CONTENT")
@@ -603,7 +606,7 @@ class SigmaActivity : ComponentActivity() {
                                      * suite dans MainActivity
                                      */
                                     mainViewModel.setSelectedItem(item.copy())
-                                    mainViewModel.setIsDisplayingMemo(!mainViewModel.isDisplayingMemo.value)
+                                    memo.toggleIsDisplayed()
                                 },
                                 getInfoSup = { item ->
                                     mainViewModel.getInfoSup(item)
@@ -636,7 +639,7 @@ class SigmaActivity : ComponentActivity() {
                     ////////////////////////////////
                     // memo + palette de couleurs //
                     ////////////////////////////////
-                    MemoArea()
+                    memo.Render()
 
                     /////////////////////////////////
                     // étiquette mobile éventuelle //

@@ -14,7 +14,6 @@ import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.charlex.compose.BottomAppBarSpeedDialFloatingActionButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -174,13 +173,6 @@ class SigmaViewModel @Inject constructor(
     ///////////////////////
     // affichage du mémo //
     ///////////////////////
-    private val _isDisplayingMemo = MutableStateFlow(false)
-    val isDisplayingMemo: StateFlow<Boolean> = _isDisplayingMemo
-
-    fun setIsDisplayingMemo(isVisible: Boolean) {
-        _isDisplayingMemo.value = isVisible
-    }
-
     private val _isDisplayingMemoPalette = MutableStateFlow(false)
     val isDisplayingMemoPalette: StateFlow<Boolean> = _isDisplayingMemoPalette
 

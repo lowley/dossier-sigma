@@ -10,8 +10,10 @@ import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
 import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUseCase
-import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
+import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
+import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
+import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -45,5 +47,10 @@ class UseCasesModule {
         @ApplicationContext context: Context,
     ): BrowserUseCase {
         return BrowserUseCase(context)
+    }
+
+    @Provides
+    fun provideMemo(): IMemoComponent{
+        return MemoComponent()
     }
 }

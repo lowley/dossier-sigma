@@ -55,6 +55,7 @@ fun SigmaActivity.MemoEditor(
     modifier: Modifier = Modifier,
     isRichText: State<Boolean>,
     richTextState: RichTextState,
+    closeMemo: () -> Unit,
 ) {
     val currentItemFlow = mainViewModel.selectedItem
 
@@ -258,7 +259,7 @@ fun SigmaActivity.MemoEditor(
                     }
 
                     richTextState.clear()
-                    mainViewModel.setIsDisplayingMemo(false)
+                    closeMemo()
                 }) {
                     Icon(
                         modifier = Modifier.size(24.dp),
@@ -311,7 +312,7 @@ fun SigmaActivity.MemoEditor(
                 IconButton(onClick = {
                     richTextState.clear()
                     mainViewModel.setSelectedItem(null)
-                    mainViewModel.setIsDisplayingMemo(false)
+                    closeMemo()
 //
 //                                            val item = mainViewModel.selectedItem.value
 //                                            if (item == null)
