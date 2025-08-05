@@ -1,7 +1,3 @@
-import com.android.build.api.dsl.JniLibsPackaging
-import com.android.build.api.dsl.Ndk
-import com.android.build.gradle.internal.api.artifact.SourceArtifactType
-import org.jetbrains.kotlin.gradle.utils.IMPLEMENTATION
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -24,10 +20,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ndk {
-            abiFilters += listOf("arm64-v8a") // Cible uniquement l'architecture ARM64
-        }
     }
 
     buildTypes {
@@ -62,14 +54,6 @@ android {
     buildFeatures {
         compose = true
     }
-
-    ndkVersion = "28.0.12916984" // Mettez la version correcte de votre NDK
-    
-    repositories{
-        flatDir {
-            dirs("libs")
-        }
-    }
 }
 
 dependencies {
@@ -98,10 +82,7 @@ dependencies {
     implementation(libs.coil.svg)
 
 //    implementation(libs.compressor)
-    implementation(mapOf("name" to "ffmpeg-kit-full-gpl-6.0-2.LTS", "ext" to "aar"))
-    implementation(files("libs/smart-exception-common-0.2.1.jar"))
-    implementation(files("libs/smart-exception-java-0.2.1.jar"))
-    
+
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("org.mp4parser:isoparser:1.9.27")
     implementation("com.github.mjeanroy:exiftool-lib:2.6.0")
@@ -138,8 +119,4 @@ dependencies {
 
     implementation("com.arkivanov.decompose:decompose:2.1.1")
     implementation("com.arkivanov.decompose:extensions-compose-jetbrains:2.1.1")
-
-
-
-
 }

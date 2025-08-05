@@ -30,10 +30,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
-import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
-import lorry.folder.items.dossiersigma.data.bento.BentoRepository
-import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
@@ -41,10 +37,13 @@ import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
-import lorry.folder.items.dossiersigma.serviceComponents.CapsuleComponent
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.CroppedPicture
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.Flag
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.InitialPicture
+import lorry.folder.items.dossiersigma.exposure.base64.IBase64DataSource
+import lorry.folder.items.dossiersigma.exposure.base64.IVideoInfoEmbedder
+import lorry.folder.items.dossiersigma.exposure.capsule.CapsuleComponent
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.CroppedPicture
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.Flag
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.InitialPicture
+import lorry.folder.items.dossiersigma.exposure.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
@@ -62,7 +61,6 @@ class SigmaViewModel @Inject constructor(
     val changingPictureUseCase: ChangingPictureUseCase,
     val changePathUseCase: ChangePathUseCase,
     val browserManager: BrowserUseCase,
-    val ffmpegRepository: BentoRepository,
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,

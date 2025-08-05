@@ -7,11 +7,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.CapsuleData
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.FileCapsuleManager
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.FolderCapsuleManager
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementInCapsule
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementReader
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.CapsuleData
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.FileCapsuleManager
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.FolderCapsuleManager
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.IElementInCapsule
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.IElementReader
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
