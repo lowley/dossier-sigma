@@ -46,8 +46,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.serviceComponents.CapsuleComponent
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.Memo
+import lorry.folder.items.dossiersigma.exposure.capsule.CapsuleComponent
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.Memo
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable

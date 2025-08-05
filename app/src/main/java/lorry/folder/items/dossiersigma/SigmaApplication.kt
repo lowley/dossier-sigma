@@ -7,7 +7,7 @@ import android.content.Context
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.AppContextProvider
+import lorry.folder.items.dossiersigma.exposure.capsule.utilities.AppContextProvider
 
 @HiltAndroidApp
 class SigmaApplication : Application() {

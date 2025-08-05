@@ -7,12 +7,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
-import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
-import lorry.folder.items.dossiersigma.data.clipboard.ClipboardRepository
-import lorry.folder.items.dossiersigma.data.disk.DiskRepository
-import lorry.folder.items.dossiersigma.data.bento.BentoRepository
-import lorry.folder.items.dossiersigma.data.ffmpeg.FfmpegReporitory
+import lorry.folder.items.dossiersigma.exposure.base64.IVideoInfoEmbedder
+import lorry.folder.items.dossiersigma.exposure.base64.VideoInfoEmbedder
+import lorry.folder.items.dossiersigma.exposure.clipboard.ClipboardRepository
+import lorry.folder.items.dossiersigma.exposure.disk.DiskRepository
 import javax.inject.Singleton
 
 
@@ -29,16 +27,6 @@ abstract class RepositoriesModule {
     abstract fun bindClipboardRepository(
         clipboardRepository: ClipboardRepository
     ): IClipboardRepository
-
-    @Binds
-    abstract fun bindFfmpegRepository(
-        ffmpegRepository: FfmpegReporitory
-    ): IFfmpegRepository
-    
-    @Binds
-    abstract fun bindBentoRepository(
-        bentoRepository: BentoRepository
-    ): IBentoRepository
 
     @Binds
     abstract fun bindMp4Base64Embedder(
