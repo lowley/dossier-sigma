@@ -1,12 +1,12 @@
 package lorry.folder.items.dossiersigma.serviceComponents
 
-import lorry.folder.items.dossiersigma.data.dataSaver.CompositeData
-import lorry.folder.items.dossiersigma.data.dataSaver.IElementInComposite
-import lorry.folder.items.dossiersigma.data.dataSaver.IElementReader
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.CapsuleData
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementInComposite
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementReader
 
 interface ICapsuleComponent {
     suspend fun save(element: IElementInComposite)
-    suspend fun getComposite(): CompositeData?
+    suspend fun getComposite(): CapsuleData?
 
     /**
      * lecture à chaque fois de l'info dans le fichier/dossier

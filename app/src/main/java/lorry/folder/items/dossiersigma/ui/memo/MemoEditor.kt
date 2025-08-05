@@ -46,8 +46,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
-import lorry.folder.items.dossiersigma.data.dataSaver.Memo
+import lorry.folder.items.dossiersigma.serviceComponents.CapsuleComponent
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.Memo
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
@@ -252,7 +252,7 @@ fun SigmaActivity.MemoEditor(
 
                     mainViewModel.viewModelScope.launch(Dispatchers.IO) {
                         val compositeMgr =
-                            CompositeManager(currentItem.fullPath ?: "")
+                            CapsuleComponent(currentItem.fullPath)
                         compositeMgr.save(Memo(editorContent))
                         withContext(Dispatchers.Default) {
                             mainViewModel.setSelectedItem(null)
