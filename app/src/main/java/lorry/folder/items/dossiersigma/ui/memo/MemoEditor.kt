@@ -65,6 +65,7 @@ fun SigmaActivity.MemoEditor(
             .height(400.dp)
             .zIndex(15f)
     ) {
+
         val selectedItemMemo by combine(
             currentItemFlow,
             mainViewModel.memoCache
