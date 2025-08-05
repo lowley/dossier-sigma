@@ -33,10 +33,6 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.data.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.data.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.data.bento.BentoRepository
-import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
-import lorry.folder.items.dossiersigma.data.dataSaver.CroppedPicture
-import lorry.folder.items.dossiersigma.data.dataSaver.Flag
-import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
 import lorry.folder.items.dossiersigma.data.interfaces.IPlayingDataSource
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
@@ -45,6 +41,10 @@ import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
+import lorry.folder.items.dossiersigma.serviceComponents.CapsuleComponent
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.CroppedPicture
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.Flag
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
@@ -541,11 +541,16 @@ class SigmaViewModel @Inject constructor(
         //s'assure que les refreshs ci-dessous verront bien la nouvelle image
         removeImageFromCache(itemPath!!)
 
-        val compositeMgr = CompositeManager(itemPath)
-        compositeMgr.save(CroppedPicture(pictureBitmap, base64Embedder))
+        val capsuleMgr = CapsuleComponent()
+        capsuleMgr.save(
+            CroppedPicture(pictureBitmap, base64Embedder),
+            itemPath
+        )
 
         if (!onlyCropped)
-            compositeMgr.save(InitialPicture(pictureBitmap, base64Embedder))
+            capsuleMgr.save(
+                InitialPicture(pictureBitmap, base64Embedder),
+                itemPath)
 
         setImageCacheValue(itemPath, pictureBitmap)
     }
@@ -642,8 +647,10 @@ class SigmaViewModel @Inject constructor(
 //        println("DRAG assignColoredTagToItem, item = ${item.name}, tag = ${tag.title}")
 
         viewModelScope.launch {
-            val compositeMgr = CompositeManager(item.fullPath)
-            compositeMgr.save(Flag(tag))
+            val capsuleMgr = CapsuleComponent()
+            capsuleMgr.save(
+                Flag(tag),
+                item.fullPath)
 
             removeFlagCacheForKey(item.fullPath)
             refreshCurrentFolder()

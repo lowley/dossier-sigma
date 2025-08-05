@@ -10,11 +10,13 @@ import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementReade
 import java.io.File
 import javax.inject.Inject
 
-class CapsuleComponent @Inject constructor(
-    private val targetPath: String,
-    private val useOld: Boolean = false
-): ICapsuleComponent {
-    override suspend fun save(element: IElementInCapsule) {
+class CapsuleComponent @Inject constructor(): ICapsuleComponent {
+
+    override suspend fun save(
+        element: IElementInCapsule,
+        targetPath: String,
+        useOld: Boolean
+    ) {
         val file = File(targetPath)
         if (!file.exists())
             return
@@ -26,7 +28,10 @@ class CapsuleComponent @Inject constructor(
         }
     }
 
-    override suspend fun getComposite(): CapsuleData? {
+    override suspend fun getCapsule(
+        targetPath: String,
+        useOld: Boolean
+    ): CapsuleData? {
         val file = File(targetPath)
         if (!file.exists())
             return null
@@ -41,7 +46,10 @@ class CapsuleComponent @Inject constructor(
     /**
      * lecture à chaque fois de l'info dans le fichier/dossier
      */
-    override suspend fun <T> getElement(reader: IElementReader<T>): T? {
+    override suspend fun <T> getElement(
+        reader: IElementReader<T>,
+        targetPath: String
+        ): T? {
         return withContext(Dispatchers.IO) {
             val file = File(targetPath)
             if (!file.exists())

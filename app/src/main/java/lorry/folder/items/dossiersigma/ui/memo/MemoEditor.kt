@@ -251,9 +251,11 @@ fun SigmaActivity.MemoEditor(
                     )
 
                     mainViewModel.viewModelScope.launch(Dispatchers.IO) {
-                        val compositeMgr =
-                            CapsuleComponent(currentItem.fullPath)
-                        compositeMgr.save(Memo(editorContent))
+
+                        val capsuleMgr = CapsuleComponent()
+                        capsuleMgr.save(
+                            Memo(editorContent),
+                            currentItem.fullPath)
                         withContext(Dispatchers.Default) {
                             mainViewModel.setSelectedItem(null)
                         }

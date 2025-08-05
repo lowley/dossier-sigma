@@ -79,30 +79,29 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.data.base64.VideoInfoEmbedder
-import lorry.folder.items.dossiersigma.data.dataSaver.CompositeManager
-import lorry.folder.items.dossiersigma.data.dataSaver.CroppedPicture
-import lorry.folder.items.dossiersigma.data.dataSaver.Flag
-import lorry.folder.items.dossiersigma.data.dataSaver.InitialPicture
-import lorry.folder.items.dossiersigma.data.dataSaver.Scale
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.services.MoveFileService
 import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserTarget
+import lorry.folder.items.dossiersigma.serviceComponents.CapsuleComponent
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.CroppedPicture
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.Flag
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.InitialPicture
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.Scale
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.setCurrentTool
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
-import lorry.folder.items.dossiersigma.ui.normal.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
+import lorry.folder.items.dossiersigma.ui.normal.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
-import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
 import java.io.File
 import java.util.UUID
-import java.util.UUID.*
-import kotlin.collections.get
+import java.util.UUID.randomUUID
 import kotlin.math.roundToInt
 
 /**
@@ -342,7 +341,6 @@ data class Tool(
 ) {
     fun isActivated() = activated
 
-
 }
 
 fun Tool.toColoredTag(viewModel: SigmaViewModel? = null): ColoredTag = ColoredTag(
@@ -384,14 +382,16 @@ sealed class Tools() {
                                     if (tagInfos == null)
                                         return@run
 
-                                    val compositeMgr = CompositeManager(currentItem.fullPath)
+                                    val capsuleMgr = CapsuleComponent()
 
                                     val newFlag = ColoredTag(
                                         title = tagInfos.title,
                                         color = tagInfos.color,
                                         id = randomUUID(),
                                     )
-                                    compositeMgr.save(Flag(newFlag))
+                                    capsuleMgr.save(
+                                        Flag(newFlag),
+                                        currentItem.fullPath)
 
                                     viewModel.setFlagCacheValue(
                                         currentItem.fullPath,
@@ -468,8 +468,10 @@ sealed class Tools() {
                                 return@run
                             }
 
-                            val compositeMgr = CompositeManager(currentItem.fullPath)
-                            compositeMgr.save(Flag(null))
+                            val capsuleMgr = CapsuleComponent()
+                            capsuleMgr.save(
+                                Flag(null),
+                                currentItem.fullPath)
 
                             if (!viewModel.flagCache.containsFlagAsValue(tool.id))
                                 DEFAULT.content(viewModel).removeTool(tool)
@@ -509,8 +511,11 @@ sealed class Tools() {
                             //on fait ça parce que par lazy loading au début de l'affichage
                             //du dossier de tous les items
                             val itemsWithThisTag = viewModel.currentFolder.value.items.filter {
-                                val compositeMgr = CompositeManager(it.fullPath)
-                                val tagFile = compositeMgr.getElement(Flag.Companion)
+                                val capsuleMgr = CapsuleComponent()
+                                val tagFile = capsuleMgr.getElement(
+                                    Flag.Companion,
+                                    it.fullPath)
+
                                 val tagCache = viewModel.flagCache.value[it.fullPath]
 
                                 val tagFinal = tagCache ?: tagFile
@@ -523,9 +528,10 @@ sealed class Tools() {
                                     return@run
                                 }
 
-                                val compositeMgr = CompositeManager(it.fullPath)
-                                compositeMgr.save(Flag(null))
-
+                                val capsuleMgr = CapsuleComponent()
+                                capsuleMgr.save(
+                                    Flag(null),
+                                    it.fullPath)
                             }
 
                             //normalement toujours vrai
@@ -555,8 +561,10 @@ sealed class Tools() {
                                 val files = viewModel.currentFolder.value.items
 
                                 files.forEach {
-                                    val compositeMgr = CompositeManager(it.fullPath)
-                                    compositeMgr.save(Flag(null))
+                                    val capsuleMgr = CapsuleComponent()
+                                    capsuleMgr.save(
+                                        Flag(null),
+                                        it.fullPath)
                                 }
 
                                 viewModel.clearFlagCache()
@@ -1142,12 +1150,18 @@ sealed class Tools() {
                             if (item == null)
                                 return@run
 
-                            val compositeMgr = CompositeManager(item.fullPath)
-                            sourceBitmap = compositeMgr.getElement(InitialPicture.Companion)
-                            val test = compositeMgr.getElement(CroppedPicture.Companion)
+                            val capsuleMgr = CapsuleComponent()
+                            sourceBitmap = capsuleMgr.getElement(
+                                InitialPicture.Companion,
+                                item.fullPath)
+                            val test = capsuleMgr.getElement(
+                                CroppedPicture.Companion,
+                                item.fullPath)
 
                             if (sourceBitmap == null && test != null) {
-                                compositeMgr.save(InitialPicture(test, VideoInfoEmbedder()))
+                                capsuleMgr.save(
+                                    InitialPicture(test, VideoInfoEmbedder()),
+                                    item.fullPath)
                                 sourceBitmap = test
                             }
 
@@ -1196,8 +1210,10 @@ fun changeCrop(viewModel: SigmaViewModel, scale: ContentScale) {
         item.fullPath.endsWith(".mkv")
     ) {
         viewModel.viewModelScope.launch {
-            val compositeMgr = CompositeManager(item.fullPath)
-            compositeMgr.save(Scale(scale))
+            val capsuleMgr = CapsuleComponent()
+            capsuleMgr.save(
+                Scale(scale),
+                item.fullPath)
         }
     }
 
@@ -1207,8 +1223,10 @@ fun changeCrop(viewModel: SigmaViewModel, scale: ContentScale) {
             if (!file.exists())
                 viewModel.diskRepository.createFolderHtmlFile(item)
 
-            val compositeMgr = CompositeManager(item.fullPath)
-            compositeMgr.save(Scale(scale))
+            val capsuleMgr = CapsuleComponent()
+            capsuleMgr.save(
+                Scale(scale),
+                item.fullPath)
 //            viewModel.refreshCurrentFolder()
         }
     }
@@ -1283,6 +1301,7 @@ fun CustomTextDialog(
                     onClick = {
                         onOk(editMessage.value)
                         viewModel.setIsTextDialogVisible(false)
+                        viewModel.setDialogInitialText("")
                     }
                 ) {
                     Text("OK")
