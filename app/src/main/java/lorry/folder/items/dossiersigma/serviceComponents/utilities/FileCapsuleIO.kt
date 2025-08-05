@@ -12,15 +12,15 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
 
     private val CHARSET = "UTF-8"
 
-    private val START_COMPOSITE = "##SIGMA-COMPOSITE-START##"
+    private val START_CAPSULE = "##SIGMA-COMPOSITE-START##"
 
     //ici il y aura le composite
-    private val END_COMPOSITE = "##SIGMA-COMPOSITE-END##"
+    private val END_CAPSULE = "##SIGMA-COMPOSITE-END##"
     private val START_LENGTH = "##SIGMA-LENGTH-START##"
     private val END_LENGTH = "##SIGMA-LENGTH-END##"
 
     
-    override suspend fun getComposite(filePath: String): CapsuleData? {
+    override suspend fun getCapsule(filePath: String): CapsuleData? {
 
         val file = File(filePath)
         val charset = Charset.forName(CHARSET)
@@ -49,13 +49,13 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
         if (extractedText == null)
             return null
 
-        val extractedComposite =
+        val extractedCapsule =
             Gson().fromJson<CapsuleData>(extractedText, CapsuleData::class.java)
 
-        return extractedComposite
+        return extractedCapsule
     }
 
-    override suspend fun replaceComposite(filePath: String, composite: CapsuleData?
+    override suspend fun replaceCapsule(filePath: String, capsule: CapsuleData?
     ): Boolean {
         val file = File(filePath)
         if (!file.exists()) {
@@ -67,14 +67,14 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
 //        if (getComposite(filePath) != null)
 //            removeCompositeAndDatas(filePath)
 
-        val data = Gson().toJson(composite)
-        saveData(filePath, data = data, START_COMPOSITE, END_COMPOSITE)
+        val data = Gson().toJson(capsule)
+        saveData(filePath, data = data, START_CAPSULE, END_CAPSULE)
 
         val dataLength = data.length.toString()
         saveData(filePath, data = dataLength, START_LENGTH, END_LENGTH)
 
-        val verification = getComposite(filePath)
-        return verification == composite
+        val verification = getCapsule(filePath)
+        return verification == capsule
     }
 
     /**
@@ -92,7 +92,7 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
         }
     }
 
-    suspend fun removeCompositeAndDatas(
+    suspend fun removeCapsuleAndDatas(
         filePath: String,
     ) {
         ///////////////////////
@@ -129,9 +129,9 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
             //////////////////////////
             val firstSeekSTART_LENGTHtoEnd = firstSeekLength - firstSeekStartIndex
             val secondSeekEnd = length - firstSeekSTART_LENGTHtoEnd - 1
-            //longueurs des contenus des variables START_COMPOSITE + END_COMPOSITE = 48
+            //longueurs des contenus des variables START_CAPSULE + END_CAPSULE = 48
             val addition = 2
-            val secondSeekStart = secondSeekEnd - firstSeekResult - START_COMPOSITE.length - END_COMPOSITE
+            val secondSeekStart = secondSeekEnd - firstSeekResult - START_CAPSULE.length - END_CAPSULE
                 .length - addition
             
             //position de départ
@@ -143,8 +143,8 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
 
             //lecture des bytes et recherche
 //            val secondSeekTail = String(secondSeekBytes, charset)
-//            val secondSeekStartIndex = secondSeekTail.lastIndexOf(START_COMPOSITE)
-//            val secondSeekEndIndex = secondSeekTail.lastIndexOf(END_COMPOSITE)
+//            val secondSeekStartIndex = secondSeekTail.lastIndexOf(START_CAPSULE)
+//            val secondSeekEndIndex = secondSeekTail.lastIndexOf(END_CAPSULE)
 //
 //            val cutIndex = length - secondSeekBytes.size + secondSeekStartIndex
 
@@ -154,7 +154,7 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
         }
     }
 
-    suspend private fun tryToExtract(
+    private fun tryToExtract(
         length: Long,
         raf: RandomAccessFile,
         charset: Charset,
@@ -185,12 +185,12 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
             else 0L
         println("FICHIER ${filePath.substringAfterLast("/")}\t(${File(filePath).length()})\tcomposite $firstSeekResult")
 
-        //////////////////////////
-        // lecture du composite //
-        //////////////////////////
+        ////////////////////////
+        // lecture du capsule //
+        ////////////////////////
         val firstSeekSTART_LENGTHtoEnd = firstSeekLength - firstSeekStartIndex
         val secondSeekEnd = length - firstSeekSTART_LENGTHtoEnd
-        //longueurs des contenus des variables START_COMPOSITE + END_COMPOSITE = 48
+        //longueurs des contenus des variables START_CAPSULE + END_CAPSULE = 48
         val secondSeekStart = maxOf(secondSeekEnd - firstSeekResult - 100, 0)
         //position de départ
         raf.seek(secondSeekStart)
@@ -201,12 +201,12 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
 
         //lecture des bytes et recherche
         val secondSeekTail = String(secondSeekBytes, charset)
-        val secondSeekStartIndex = secondSeekTail.lastIndexOf(START_COMPOSITE)
-        val secondSeekEndIndex = secondSeekTail.lastIndexOf(END_COMPOSITE)
+        val secondSeekStartIndex = secondSeekTail.lastIndexOf(START_CAPSULE)
+        val secondSeekEndIndex = secondSeekTail.lastIndexOf(END_CAPSULE)
 
         val result =
             if (secondSeekStartIndex != -1 && secondSeekEndIndex != -1 && secondSeekEndIndex > secondSeekStartIndex)
-                secondSeekTail.substring(secondSeekStartIndex + START_COMPOSITE.length, secondSeekEndIndex)
+                secondSeekTail.substring(secondSeekStartIndex + START_CAPSULE.length, secondSeekEndIndex)
                     .trim()
             else null
 

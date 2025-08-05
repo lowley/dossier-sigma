@@ -1,11 +1,11 @@
 package lorry.folder.items.dossiersigma.serviceComponents
 
 import lorry.folder.items.dossiersigma.serviceComponents.utilities.CapsuleData
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementInComposite
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementInCapsule
 import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementReader
 
 interface ICapsuleComponent {
-    suspend fun save(element: IElementInComposite)
+    suspend fun save(element: IElementInCapsule)
     suspend fun getComposite(): CapsuleData?
 
     /**

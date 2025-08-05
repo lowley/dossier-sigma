@@ -67,7 +67,7 @@ data class CapsuleData(
     }
 }
 
-interface IElementInComposite {
+interface IElementInCapsule {
 
     suspend fun update(composite: CapsuleData): CapsuleData
 }
@@ -75,7 +75,7 @@ interface IElementInComposite {
 data class InitialPicture @Inject constructor(
     val initialPicture: Any?,
     val videoInfoEmbedder: IVideoInfoEmbedder,
-) : IElementInComposite {
+) : IElementInCapsule {
     override suspend fun update(composite: CapsuleData): CapsuleData {
         if (initialPicture == null)
             return composite.copy(initialPicture = null)
@@ -99,7 +99,7 @@ data class InitialPicture @Inject constructor(
 
         override suspend fun fileGet(filePath: String, useOld: Boolean): Any? {
             val fileCompositeManager = FileCapsuleManager(filePath, useOld)
-            val composite = fileCompositeManager.getComposite()
+            val composite = fileCompositeManager.getCapsule()
             val initialData = composite.initialPicture ?: return null
 
             val initialInt = initialData.toIntOrNull()
@@ -122,7 +122,7 @@ data class InitialPicture @Inject constructor(
 data class CroppedPicture @Inject constructor(
     val croppedPicture: Any?,
     val videoInfoEmbedder: IVideoInfoEmbedder,
-) : IElementInComposite {
+) : IElementInCapsule {
     override suspend fun update(composite: CapsuleData): CapsuleData {
         if (croppedPicture == null)
             return composite.copy(croppedPicture = null)
@@ -146,7 +146,7 @@ data class CroppedPicture @Inject constructor(
 
         override suspend fun fileGet(filePath: String, useOld: Boolean): Any? {
             val fileCompositeManager = FileCapsuleManager(filePath, useOld)
-            val composite = fileCompositeManager.getComposite()
+            val composite = fileCompositeManager.getCapsule()
             val initialData = composite.croppedPicture ?: return null
 
             val initialInt = initialData.toIntOrNull()
@@ -168,7 +168,7 @@ data class CroppedPicture @Inject constructor(
 
 data class Flag @Inject constructor(
     val flag: ColoredTag?
-) : IElementInComposite {
+) : IElementInCapsule {
     val gson: Gson = Gson()
 
     override suspend fun update(composite: CapsuleData): CapsuleData {
@@ -182,7 +182,7 @@ data class Flag @Inject constructor(
 
         override suspend fun fileGet(filePath: String, useOld: Boolean): ColoredTag? {
             val fileCompositeManager = FileCapsuleManager(filePath, useOld)
-            val composite = fileCompositeManager.getComposite()
+            val composite = fileCompositeManager.getCapsule()
             if (composite.flag == null)
                 return null
 
@@ -198,7 +198,7 @@ data class Flag @Inject constructor(
 
 data class Scale @Inject constructor(
     val scale: ContentScale?
-) : IElementInComposite {
+) : IElementInCapsule {
     override suspend fun update(composite: CapsuleData): CapsuleData {
         val scaleAsString = scaleToString(scale)
         return composite.copy(scale = scaleAsString)
@@ -211,7 +211,7 @@ data class Scale @Inject constructor(
 
         override suspend fun fileGet(filePath: String, useOld: Boolean): ContentScale? {
             val fileCompositeManager = FileCapsuleManager(filePath, useOld)
-            val composite = fileCompositeManager.getComposite()
+            val composite = fileCompositeManager.getCapsule()
             if (composite.scale == null)
                 return null
 
@@ -230,13 +230,13 @@ data class Scale @Inject constructor(
 
 data class Memo @Inject constructor(
     val memo: String?
-) : IElementInComposite {
+) : IElementInCapsule {
     val gson: Gson = Gson()
 
-    override suspend fun update(composite: CapsuleData): CapsuleData {
+    override suspend fun update(capsule: CapsuleData): CapsuleData {
 //        val memoAsString = gson.toJson(memo)
         val memoAsString = if (memo.isNullOrEmpty()) null else memo
-        return composite.copy(memo2 = memoAsString)
+        return capsule.copy(memo2 = memoAsString)
     }
 
     companion object : IElementReader<String> {
@@ -244,13 +244,13 @@ data class Memo @Inject constructor(
         val gson: Gson = Gson()
 
         override suspend fun fileGet(filePath: String, useOld: Boolean): String? {
-            val fileCompositeManager = FileCapsuleManager(filePath, useOld)
-            val composite = fileCompositeManager.getComposite()
-            if (composite.memo2 == null)
+            val fileCapsuleManager = FileCapsuleManager(filePath, useOld)
+            val capsule = fileCapsuleManager.getCapsule()
+            if (capsule.memo2 == null)
                 return null
 
 //            return gson.fromJson(composite.memo2, String::class.java)
-            return composite.memo2
+            return capsule.memo2
         }
 
         override suspend fun folderGet(folderPath: String, useOld: Boolean): String? {

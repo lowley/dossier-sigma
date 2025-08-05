@@ -7,14 +7,14 @@ class FolderCapsuleManager(
     private val targetPath: String,
     private val useOld: Boolean = false
 ) {
-    suspend fun save(element: IElementInComposite) {
+    suspend fun save(element: IElementInCapsule) {
         val targetHtmlPath = "$targetPath/.folderPicture.html"
         FileCapsuleManager(targetHtmlPath).save(element)
     }
 
-    suspend fun getComposite(): CapsuleData? {
+    suspend fun getCapsule(): CapsuleData? {
         val targetHtmlPath = "$targetPath/.folderPicture.html"
-        return FileCapsuleManager(targetHtmlPath).getComposite()
+        return FileCapsuleManager(targetHtmlPath).getCapsule()
     }
 
     suspend fun <T> getElement(reader: IElementReader<T>): T? {

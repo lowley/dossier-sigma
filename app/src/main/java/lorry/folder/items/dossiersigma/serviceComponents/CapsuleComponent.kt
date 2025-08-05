@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.serviceComponents.utilities.CapsuleData
 import lorry.folder.items.dossiersigma.serviceComponents.utilities.FileCapsuleManager
 import lorry.folder.items.dossiersigma.serviceComponents.utilities.FolderCapsuleManager
-import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementInComposite
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementInCapsule
 import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementReader
 import java.io.File
 import javax.inject.Inject
@@ -14,7 +14,7 @@ class CapsuleComponent @Inject constructor(
     private val targetPath: String,
     private val useOld: Boolean = false
 ): ICapsuleComponent {
-    override suspend fun save(element: IElementInComposite) {
+    override suspend fun save(element: IElementInCapsule) {
         val file = File(targetPath)
         if (!file.exists())
             return
@@ -32,9 +32,9 @@ class CapsuleComponent @Inject constructor(
             return null
 
         return if (file.isFile) {
-            FileCapsuleManager(targetPath, useOld).getComposite()
+            FileCapsuleManager(targetPath, useOld).getCapsule()
         } else {
-            FolderCapsuleManager(targetPath, useOld).getComposite()
+            FolderCapsuleManager(targetPath, useOld).getCapsule()
         }
     }
 

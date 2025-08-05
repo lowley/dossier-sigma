@@ -10,33 +10,32 @@ class FileCapsuleManager @Inject constructor(
     private val targetPath: String,
     private val useOld: Boolean = false
 ) {
-    suspend fun save(element: IElementInComposite) {
-        
-        val compositeIO = if (useOld)
+    suspend fun save(element: IElementInCapsule) {
+
+        val capsuleIO = if (useOld)
             FileCapsuleIO()
         else FileMetadataManager()
 
         val target = File(targetPath)
-        val existingComposite = if (target.exists()) {
-            compositeIO.getComposite(targetPath) ?: CapsuleData()
+        val existingCapsule = if (target.exists()) {
+            capsuleIO.getCapsule(targetPath) ?: CapsuleData()
         } else {
             CapsuleData()
         }
 
-        val updatedComposite = element.update(existingComposite)
-        compositeIO.replaceComposite(targetPath, updatedComposite)
+        val updatedCapsule = element.update(existingCapsule)
+        capsuleIO.replaceCapsule(targetPath, updatedCapsule)
     }
 
-    suspend fun getComposite(): CapsuleData {
+    suspend fun getCapsule(): CapsuleData {
         val compositeIO = FileMetadataManager()
 
         val target = File(targetPath)
         return withContext(Dispatchers.IO) {
             if (target.exists()) {
-                compositeIO.getComposite(targetPath) ?: CapsuleData()
-            } else {
+                compositeIO.getCapsule(targetPath) ?: CapsuleData()
+            } else
                 CapsuleData()
-            }
         }
     }
 

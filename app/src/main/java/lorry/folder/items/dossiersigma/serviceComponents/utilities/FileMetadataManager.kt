@@ -13,8 +13,8 @@ class FileMetadataManager() : ICapsuleIO {
     private val CHARSET_NAME = "UTF-8"
     private val CHARSET = Charset.forName(CHARSET_NAME)
 
-    private val START_COMPOSITE_TAG_BYTES = "##SIGMA-METADATA-START##\n".toByteArray(CHARSET)
-    private val END_COMPOSITE_TAG_BYTES = "\n##SIGMA-METADATA-END##\n".toByteArray(CHARSET)
+    private val START_CAPSULE_TAG_BYTES = "##SIGMA-METADATA-START##\n".toByteArray(CHARSET)
+    private val END_CAPSULE_TAG_BYTES = "\n##SIGMA-METADATA-END##\n".toByteArray(CHARSET)
     // Notez les \n inclus pour un calcul plus précis de la taille totale.
 
     private val START_METADATA_LENGTH_TAG = "##SIGMA-METADATA-LENGTH-START##"
@@ -29,7 +29,7 @@ class FileMetadataManager() : ICapsuleIO {
      * Contient les informations lues sur les métadonnées.
      */
     private data class ParsedMetadata(
-        val compositeData: CapsuleData?,
+        val capsuleData: CapsuleData?,
         val totalMetadataBlockByteLength: Long, // Longueur en octets de tout le bloc (composite + ses balises)
         val metadataBlockStartOffsetInFile: Long // Offset où commence le START_COMPOSITE_TAG
     )
@@ -72,30 +72,30 @@ class FileMetadataManager() : ICapsuleIO {
             "$START_METADATA_LENGTH_TAG\n$actualLengthBlockStringContent\n$END_METADATA_LENGTH_TAG\n"
         val actualLengthBlockBytesSize = actualLengthBlockFullString.toByteArray(CHARSET).size.toLong()
         
-        val actualCompositeBlockStartOffset =
+        val actualCapsuleBlockStartOffset =
             fileLength - actualLengthBlockBytesSize - totalMetadataByteLength
 
-        if (actualCompositeBlockStartOffset < 0 || totalMetadataByteLength > fileLength) {
+        if (actualCapsuleBlockStartOffset < 0 || totalMetadataByteLength > fileLength) {
             println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Calcul d'offset de métadonnées " +
                     "invalide.")
             return null
         }
 
-        val compositeBlockBuffer = ByteArray(totalMetadataByteLength.toInt())
-        raf.seek(actualCompositeBlockStartOffset)
-        raf.readFully(compositeBlockBuffer)
+        val capsuleBlockBuffer = ByteArray(totalMetadataByteLength.toInt())
+        raf.seek(actualCapsuleBlockStartOffset)
+        raf.readFully(capsuleBlockBuffer)
 
         // Extraire le JSON du composite du compositeBlockBuffer
         // On doit retirer les START_COMPOSITE_TAG_BYTES et END_COMPOSITE_TAG_BYTES
-        val jsonStartOffset = START_COMPOSITE_TAG_BYTES.size
-        val jsonEndOffset = compositeBlockBuffer.size - END_COMPOSITE_TAG_BYTES.size
+        val jsonStartOffset = START_CAPSULE_TAG_BYTES.size
+        val jsonEndOffset = capsuleBlockBuffer.size - END_CAPSULE_TAG_BYTES.size
 
-        if (jsonStartOffset >= jsonEndOffset || !compositeBlockBuffer.copyOfRange(
+        if (jsonStartOffset >= jsonEndOffset || !capsuleBlockBuffer.copyOfRange(
                 0,
-                START_COMPOSITE_TAG_BYTES.size
-            ).contentEquals(START_COMPOSITE_TAG_BYTES) ||
-            !compositeBlockBuffer.copyOfRange(jsonEndOffset, compositeBlockBuffer.size)
-                .contentEquals(END_COMPOSITE_TAG_BYTES)
+                START_CAPSULE_TAG_BYTES.size
+            ).contentEquals(START_CAPSULE_TAG_BYTES) ||
+            !capsuleBlockBuffer.copyOfRange(jsonEndOffset, capsuleBlockBuffer.size)
+                .contentEquals(END_CAPSULE_TAG_BYTES)
         ) {
             println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Balises de composite non " +
                     "trouvées ou " +
@@ -104,27 +104,27 @@ class FileMetadataManager() : ICapsuleIO {
             return null
         }
 
-        val compositeJsonBytes = compositeBlockBuffer.copyOfRange(jsonStartOffset, jsonEndOffset)
-        val compositeJsonString = String(compositeJsonBytes, CHARSET).trim() // trim() au cas où
+        val capsuleJsonBytes = capsuleBlockBuffer.copyOfRange(jsonStartOffset, jsonEndOffset)
+        val capsuleJsonString = String(capsuleJsonBytes, CHARSET).trim() // trim() au cas où
 
-        val compositeData = try {
-            gson.fromJson(compositeJsonString, CapsuleData::class.java)
+        val capsuleData = try {
+            gson.fromJson(capsuleJsonString, CapsuleData::class.java)
         } catch (e: Exception) {
             println("SIGMALOG fichier $fileName readExistingMetadataInfo:  Erreur de désérialisation du " +
-                    "JSON $compositeJsonString: ${e
+                    "JSON $capsuleJsonString: ${e
                 .message}")
             null
         }
 
         return ParsedMetadata(
-            compositeData = compositeData,
+            capsuleData = capsuleData,
             totalMetadataBlockByteLength = totalMetadataByteLength, // C'est la longueur du bloc composite (avec ses balises)
-            metadataBlockStartOffsetInFile = actualCompositeBlockStartOffset
+            metadataBlockStartOffsetInFile = actualCapsuleBlockStartOffset
         )
     }
 
 
-    override suspend fun getComposite(filePath: String): CapsuleData? {
+    override suspend fun getCapsule(filePath: String): CapsuleData? {
         val file = File(filePath)
         if (!file.exists() || !file.isFile) return null
 
@@ -134,7 +134,7 @@ class FileMetadataManager() : ICapsuleIO {
                 if (fileLength == 0L) return@use null
                 val composite = readExistingMetadataInfo(
                     raf, fileLength, filePath
-                )?.compositeData
+                )?.capsuleData
 
                 println(
                     "SIGMALOG fichier ${
@@ -159,7 +159,7 @@ class FileMetadataManager() : ICapsuleIO {
         return null
     }
 
-    override suspend fun replaceComposite(filePath: String, newComposite: CapsuleData?): Boolean {
+    override suspend fun replaceCapsule(filePath: String, newCapsule: CapsuleData?): Boolean {
         val file = File(filePath)
         if (!file.exists() && !filePath.endsWith(".html", ignoreCase = true)) {
             println("SIGMA fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Fichier " +
@@ -224,22 +224,22 @@ class FileMetadataManager() : ICapsuleIO {
             raf = RandomAccessFile(file, "rw")
             raf.seek(positionToTruncate) // Se positionner à la (nouvelle) fin
 
-            if (newComposite != null) {
-                val compositeJsonString = gson.toJson(newComposite)
-                val compositeJsonBytes = compositeJsonString.toByteArray(CHARSET)
+            if (newCapsule != null) {
+                val capsuleJsonString = gson.toJson(newCapsule)
+                val capsuleJsonBytes = capsuleJsonString.toByteArray(CHARSET)
                 
-                val compositeBlockToWrite =
-                    START_COMPOSITE_TAG_BYTES + compositeJsonBytes + END_COMPOSITE_TAG_BYTES
-                val totalCompositeBlockByteLength = compositeBlockToWrite.size.toLong()
+                val capsuleBlockToWrite =
+                    START_CAPSULE_TAG_BYTES + capsuleJsonBytes + END_CAPSULE_TAG_BYTES
+                val totalCapsuleBlockByteLength = capsuleBlockToWrite.size.toLong()
 
                 // Écrire le bloc composite
-                raf.write(compositeBlockToWrite)
+                raf.write(capsuleBlockToWrite)
 
                 println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
-                        "Ecrit composite #1: $compositeJsonString")
+                        "Ecrit composite #1: $capsuleJsonString")
                 
                 // Préparer et écrire le bloc de longueur
-                val lengthValueString = totalCompositeBlockByteLength.toString()
+                val lengthValueString = totalCapsuleBlockByteLength.toString()
                 val lengthBlockString =
                     "$START_METADATA_LENGTH_TAG\n$lengthValueString\n$END_METADATA_LENGTH_TAG\n"
                 val lengthBlockBytes = lengthBlockString.toByteArray(CHARSET)
@@ -252,9 +252,9 @@ class FileMetadataManager() : ICapsuleIO {
 
 
             // Vérification
-            if (newComposite != null) {
-                val verification = getComposite(filePath)
-                val result = verification == newComposite
+            if (newCapsule != null) {
+                val verification = getCapsule(filePath)
+                val result = verification == newCapsule
                 
                 println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
                         "Vérification: $result")
