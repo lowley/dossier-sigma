@@ -144,11 +144,14 @@ fun ItemComponent(
             onHoveredNotHovered(null)
     }
 
-    Column() {
+    Column {
         val shape1 = RoundedCornerShape(8.dp)
         val isSelectedItemState by selectedItemFullPath
             .map { it == item.fullPath }
             .collectAsState(false)
+
+        var isStartInLittleBox by remember { mutableStateOf(false) }
+        var areShortcutsDisplayed = remember { mutableStateOf(false) }
 
         val modifierWithBorder = Modifier
             .clip(shape1)
@@ -170,14 +173,13 @@ fun ItemComponent(
                 detectTapGestures(
                     onTap = {
                         onItemTapped(item)
+                        if (areShortcutsDisplayed.value)
+                            areShortcutsDisplayed.value = false
                     },
                     onLongPress = { offset ->
                         onItemLongPressed(item)
                     })
             }
-
-        var isStartInLittleBox by remember { mutableStateOf(false) }
-        var areShortcutsDisplayed = remember { mutableStateOf(false) }
 
         Box(
             modifier = modifierWithBorder
@@ -448,33 +450,38 @@ fun ImageSection(
                         )
 
                         if (areShortcutsDisplayed.value) {
-                            Box(
-                                modifier = Modifier
-                                    .matchParentSize()
-                                    .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
+
+                            val shortcuts = name
+                                .substringBeforeLast(".")
+                                .substringAfter(".")
+                                .split(".")
+
+                            if (shortcuts.size != 1
+                                || shortcuts[0] == name
                             )
+                                Box(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
+                                ) {
 
-                            Column(
-                                modifier = Modifier.Companion
-                                    .matchParentSize()
-                                    .padding(top = 45.dp)
-                                    .verticalScroll(rememberScrollState()),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
+                                    Column(
+                                        modifier = Modifier.Companion
+                                            .matchParentSize()
+                                            .padding(top = 45.dp)
+                                            .verticalScroll(rememberScrollState()),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
 
-                                val shortcuts = name
-                                    .substringAfter(".")
-                                    .substringBeforeLast(".")
-                                    .split(".")
-
-                                for (shortcut in shortcuts) {
-                                    Text(
-                                        text = shortcut,
-                                        color = SigmaColors.current.onPrimary,
-                                        fontSize = 12.sp
-                                    )
+                                        for (shortcut in shortcuts) {
+                                            Text(
+                                                text = shortcut,
+                                                color = SigmaColors.current.onPrimary,
+                                                fontSize = 12.sp
+                                            )
+                                        }
+                                    }
                                 }
-                            }
                         }
                     }
                 },
