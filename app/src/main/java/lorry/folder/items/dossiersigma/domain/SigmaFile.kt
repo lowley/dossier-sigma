@@ -1,9 +1,6 @@
 package lorry.folder.items.dossiersigma.domain
 
-import android.graphics.Bitmap
-import androidx.annotation.ReturnThis
 import androidx.compose.ui.layout.ContentScale
-import lorry.folder.items.dossiersigma.data.dataSaver.Memo
 import java.util.UUID
 
 class SigmaFile(

@@ -7,11 +7,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import lorry.folder.items.dossiersigma.data.dataSaver.CompositeData
-import lorry.folder.items.dossiersigma.data.dataSaver.FileCompositeManager
-import lorry.folder.items.dossiersigma.data.dataSaver.FolderCompositeManager
-import lorry.folder.items.dossiersigma.data.dataSaver.IElementInComposite
-import lorry.folder.items.dossiersigma.data.dataSaver.IElementReader
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.CapsuleData
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.FileCapsuleManager
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.FolderCapsuleManager
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementInCapsule
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.IElementReader
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -43,8 +43,8 @@ abstract class Item(
             false -> "$path/$name"
         }
 
-    val fileCompositeManager = FileCompositeManager(this.fullPath)
-    val folderCompositeManager = FolderCompositeManager(this.fullPath)
+    val fileCapsuleManager = FileCapsuleManager(this.fullPath)
+    val folderCapsuleManager = FolderCapsuleManager(this.fullPath)
     
     fun copy(
         path: String = this.path,
@@ -80,30 +80,30 @@ abstract class Item(
         }
     }
 
-    fun save(element: IElementInComposite) {
+    fun save(element: IElementInCapsule) {
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             if (this@Item is SigmaFolder) {
-                folderCompositeManager.save(element)
+                folderCapsuleManager.save(element)
             } else {
-                fileCompositeManager.save(element)
+                fileCapsuleManager.save(element)
             }
         }
     }
 
-    suspend fun getComposite(): CompositeData? {
+    suspend fun getComposite(): CapsuleData? {
         return if (this is SigmaFolder) {
-            folderCompositeManager.getComposite()
+            folderCapsuleManager.getCapsule()
         } else {
-            fileCompositeManager.getComposite()
+            fileCapsuleManager.getCapsule()
         }
     }
 
     suspend fun <T> getElement(reader: IElementReader<T>): T? {
         return if (this is SigmaFolder) {
-            folderCompositeManager.getElement<T>(reader)
+            folderCapsuleManager.getElement<T>(reader)
         } else {
-            fileCompositeManager.getElement<T>(reader)
+            fileCapsuleManager.getElement<T>(reader)
         }
     }
 

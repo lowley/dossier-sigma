@@ -7,8 +7,7 @@ import android.content.Context
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
-import lorry.folder.items.dossiersigma.data.dataSaver.AppContextProvider
-import lorry.folder.items.dossiersigma.data.dataSaver.FileCompositeManager
+import lorry.folder.items.dossiersigma.serviceComponents.utilities.AppContextProvider
 
 @HiltAndroidApp
 class SigmaApplication : Application() {
@@ -36,7 +35,7 @@ class SigmaApplication : Application() {
 
         fun getContext(): Context{
             return EntryPointAccessors.fromApplication(
-                SigmaApplication.instance, AppContextProvider::class.java
+                instance, AppContextProvider::class.java
             ).getContext()
         }
     }
