@@ -172,9 +172,9 @@ fun ItemComponent(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
-                        onItemTapped(item)
                         if (areShortcutsDisplayed.value)
                             areShortcutsDisplayed.value = false
+                        else onItemTapped(item)
                     },
                     onLongPress = { offset ->
                         onItemLongPressed(item)

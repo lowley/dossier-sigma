@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -15,6 +16,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,10 +35,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,8 +50,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.viewModelScope
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
@@ -145,6 +154,7 @@ class SigmaActivity : ComponentActivity() {
         }
     }
 
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun AppContent() {
         Surface(
@@ -164,6 +174,8 @@ class SigmaActivity : ComponentActivity() {
             val fabState = rememberSpeedDialFloatingActionButtonState()
             val colors = MaterialTheme.colorScheme
             val currentPage by mainViewModel.browserManager.currentPage.collectAsState()
+            val isDisplayingMemo by memo.isDisplayingMemo.collectAsState()
+            val isKeyboardVisible by keyboardAsState()
 
             Scaffold(
                 containerColor = colors.background,
@@ -171,10 +183,12 @@ class SigmaActivity : ComponentActivity() {
                     //////////////////////////
                     // bottomAppBar normale //
                     //////////////////////////
-                    if (
-                        !homePageVisible &&
-                        currentPage == null &&
-                        !memo.isDisplayed())
+
+                    val hidden = homePageVisible ||
+                            currentPage != null ||
+                            (isDisplayingMemo && isKeyboardVisible)
+
+                    if (!hidden)
 //                        && (currentContentInfos.first == "DEFAULT_CONTENT" &&
 //                                currentContentInfos.second.isNotEmpty())
 //                        || currentContentInfos.first != "DEFAULT_CONTENT")
@@ -697,5 +711,28 @@ class SigmaActivity : ComponentActivity() {
             )
 //            mainViewModel.refreshCurrentFolder()
         }
+    }
+
+    @Composable
+    fun keyboardAsState(): MutableState<Boolean> {
+        val view = LocalView.current
+        val imeState = remember { mutableStateOf(false) }
+
+        DisposableEffect(view) {
+            val listener = ViewTreeObserver.OnPreDrawListener {
+                val isVisible = ViewCompat.getRootWindowInsets(view)
+                    ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+                imeState.value = isVisible
+                true
+            }
+
+            view.viewTreeObserver.addOnPreDrawListener(listener)
+
+            onDispose {
+                view.viewTreeObserver.removeOnPreDrawListener(listener)
+            }
+        }
+
+        return imeState
     }
 }

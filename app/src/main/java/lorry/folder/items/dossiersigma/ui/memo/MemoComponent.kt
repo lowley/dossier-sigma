@@ -30,7 +30,7 @@ class MemoComponent @Inject constructor(): IMemoComponent {
     // isDisplayingMemo //
     //////////////////////
     val _isDisplayingMemo = MutableStateFlow(false)
-    val isDisplayingMemo: StateFlow<Boolean> = _isDisplayingMemo
+    override val isDisplayingMemo: StateFlow<Boolean> = _isDisplayingMemo
 
     fun setIsDisplayingMemo(isVisible: Boolean) {
         _isDisplayingMemo.value = isVisible

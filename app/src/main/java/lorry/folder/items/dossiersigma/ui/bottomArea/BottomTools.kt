@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.bottomArea
 
+//region
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -104,6 +105,7 @@ import java.util.UUID
 import java.util.UUID.randomUUID
 import kotlin.math.roundToInt
 
+//endregion
 /**
  * @startuml
  * (*) -> "BottomTools\n<color:red>  + Sticker" as A
