@@ -9,10 +9,8 @@ import lorry.folder.items.dossiersigma.exposure.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
-import org.apache.commons.net.ftp.FTPFile
 import org.apache.commons.net.ftp.FTPReply
 import java.nio.file.Paths
-import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -128,109 +126,6 @@ open class DS_FTP @Inject constructor(
         }
     }
 
-    override suspend fun fetchMP4File(parent: String): List<ThoFile>? {
-        return doWithNASAccess(parent) { ftp ->
-            val liste = withContext(Dispatchers.IO) {
-                ftp.listFiles(parent)
-                    ?.filter { file -> file.name.endsWith(".mp4") }
-                    ?.map { file ->
-                        ThoFile(
-                            name = file.name,
-                            timestamp = file.timestamp,
-                            size = file.size,
-                            fullPath = Paths.get(parent, file.name).toString(),
-                            isVideoFile = true,
-                            isHtmlFile = false,
-                            null
-                        )
-                    }
-            }
-
-            Result.success(liste)
-        }
-    }
-
-    override suspend fun fetchHtmlFiles(
-        parent: String,
-        display: (suspend (String) -> Unit)?
-    ): List<ThoFile>? {
-        val liste0 = doWithNASAccess<List<FTPFile>?>(parent) { ftp ->
-            val files = withContext(Dispatchers.IO) {
-                ftp.listFiles(parent)
-            }
-                ?.filter { file ->
-                    file.name.endsWith(".html")
-                }
-            Result.success(files)
-        }
-
-        val total = liste0?.size ?: 0
-        val liste = liste0?.mapIndexed { n, file ->
-            display?.invoke("image de fichier ${n + 1}/$total: ${file.name}")
-            ThoFile(
-                name = file.name,
-                timestamp = file.timestamp,
-                size = file.size,
-                fullPath = Paths.get(parent, file.name).toString(),
-                isVideoFile = false,
-                isHtmlFile = true,
-                pictureBase64 = getBase64InHtml(parent, file)
-            )
-        }
-
-        return liste
-    }
-
-
-    suspend fun getBase64InHtml(parent: String, htmlFile: FTPFile): String? {
-        var htmlContent = doWithNASAccess<String?>(parent) { ftp ->
-            var htmlResult: String? = null
-            val changed = ftp.changeWorkingDirectory(parent)
-
-            if (changed != true) {
-                println("❌ Impossible de se positionner sur le dossier : $parent")
-                return@doWithNASAccess Result.failure<String?>(Exception("Impossible de se positionner sur le dossier : $parent"))
-            }
-
-            val inputStream = ftp.retrieveFileStream(htmlFile.name)
-
-            if (inputStream == null) {
-                println("❌ Impossible de récupérer le fichier : ${htmlFile.name}")
-                return@doWithNASAccess Result.failure<String?>(Exception("Impossible de récupérer le fichier : ${htmlFile.name}"))
-            }
-            val html = inputStream.bufferedReader().use { reader ->
-                reader.readText()
-            }
-
-            // 🔥 Très important : on complète la commande
-            val success = ftp.completePendingCommand()
-
-
-            if (success == true) {
-                htmlResult = html
-            } else {
-                println("FTP: Échec de la lecture de ${htmlFile.name}")
-                println("Lecture incomplète du fichier FTP")
-                return@doWithNASAccess Result.failure<String?>(Exception("Lecture incomplète du fichier FTP"))
-            }
-
-            return@doWithNASAccess Result.success(htmlResult)
-        }
-
-
-        //htmlFile.readText()
-
-        if (htmlContent == null)
-            return ""
-
-        // Regex pour trouver le contenu de src="data:image/...;base64,..."
-        val regex = Regex("""<img\s+[^>]*src\s*=\s*"data:image/[^;]+;base64,([^"]+)"""")
-        val match = regex.find(htmlContent) ?: return null
-        val base64Image = match.groupValues[1]
-
-        return base64Image
-    }
-
     override suspend fun copy(
         localFilePath: String,
         pathOnNAS: String,
@@ -285,19 +180,4 @@ open class DS_FTP @Inject constructor(
         } == true
     }
 
-}
-
-data class ThoFile(
-    val name: String,
-    val timestamp: Calendar,
-    val size: Long,
-    val fullPath: String,
-    val isVideoFile: Boolean,
-    val isHtmlFile: Boolean,
-    val pictureBase64: String?
-) {
-    companion object {
-        val EMPTY = ThoFile("", Calendar.getInstance(), 0, "", false, false, null)
-
-    }
 }
