@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
-import lorry.folder.items.dossiersigma.exposure.interfaces.IClipboardDataSource
 import java.io.InputStream
 import javax.inject.Inject
 

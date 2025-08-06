@@ -3,8 +3,6 @@ package lorry.folder.items.dossiersigma.exposure.nas
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 
 interface DSI_FTP {
-
-    //remplacement de tous les shortcuts
     suspend fun fetchFiles(parent: String): List<SigmaFile>?
 
     suspend fun fetchDirectories(parent: String): List<String>?
@@ -14,7 +12,4 @@ interface DSI_FTP {
         pathOnNAS: String,
         progressCallback: (Int) -> Unit
     ): Boolean
-
-    //suspend fun createPath(path: String): Boolean
-
 }

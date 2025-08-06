@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.exposure.interfaces
+package lorry.folder.items.dossiersigma.domain
 
 data class ItemDTO(
     val path: String,

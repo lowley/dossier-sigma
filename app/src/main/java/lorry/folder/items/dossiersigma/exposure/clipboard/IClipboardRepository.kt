@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.domain.interfaces
+package lorry.folder.items.dossiersigma.exposure.clipboard
 
 import android.content.Context
 import android.graphics.Bitmap

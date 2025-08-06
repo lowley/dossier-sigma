@@ -6,12 +6,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
-import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
+import lorry.folder.items.dossiersigma.exposure.clipboard.IClipboardRepository
+import lorry.folder.items.dossiersigma.exposure.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
 import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 

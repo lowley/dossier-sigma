@@ -2,8 +2,6 @@ package lorry.folder.items.dossiersigma.exposure.clipboard
 
 import android.content.Context
 import android.graphics.Bitmap
-import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
-import lorry.folder.items.dossiersigma.exposure.interfaces.IClipboardDataSource
 import javax.inject.Inject
 
 class ClipboardRepository @Inject constructor(val datasource: IClipboardDataSource) : IClipboardRepository{

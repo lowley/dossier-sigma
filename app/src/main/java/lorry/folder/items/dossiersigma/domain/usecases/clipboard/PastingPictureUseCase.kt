@@ -2,7 +2,7 @@ package lorry.folder.items.dossiersigma.domain.usecases.clipboard
 
 import android.content.Context
 import android.graphics.Bitmap
-import lorry.folder.items.dossiersigma.domain.interfaces.IClipboardRepository
+import lorry.folder.items.dossiersigma.exposure.clipboard.IClipboardRepository
 import javax.inject.Inject
 
 class PastingPictureUseCase @Inject constructor(

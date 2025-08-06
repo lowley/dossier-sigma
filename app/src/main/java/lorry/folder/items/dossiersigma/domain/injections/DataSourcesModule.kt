@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.exposure.interfaces
+package lorry.folder.items.dossiersigma.domain.injections
 
 import dagger.Binds
 import dagger.Module
@@ -7,13 +7,16 @@ import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.exposure.base64.Base64DataSource
 import lorry.folder.items.dossiersigma.exposure.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.exposure.clipboard.ClipboardDataSource
+import lorry.folder.items.dossiersigma.exposure.clipboard.IClipboardDataSource
 import lorry.folder.items.dossiersigma.exposure.disk.DiskDataSource
+import lorry.folder.items.dossiersigma.exposure.disk.IDiskDataSource
 import lorry.folder.items.dossiersigma.exposure.disk.ITempFileDataSource
 import lorry.folder.items.dossiersigma.exposure.disk.TempFileDataSource
 import lorry.folder.items.dossiersigma.exposure.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.exposure.intent.DS_IntentWrapper
 import lorry.folder.items.dossiersigma.exposure.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.exposure.nas.DS_FTP
+import lorry.folder.items.dossiersigma.exposure.playing.IPlayingDataSource
 import lorry.folder.items.dossiersigma.exposure.playing.PlayingDataSource
 
 @Module

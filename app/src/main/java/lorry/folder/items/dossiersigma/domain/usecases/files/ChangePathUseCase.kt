@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.domain.usecases.files
 
-import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
-import java.net.URLDecoder
+import lorry.folder.items.dossiersigma.exposure.disk.IDiskRepository
 import javax.inject.Inject
 
 class ChangePathUseCase @Inject constructor(

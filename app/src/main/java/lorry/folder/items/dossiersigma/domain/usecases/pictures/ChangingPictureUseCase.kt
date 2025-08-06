@@ -5,11 +5,11 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.domain.Item
-import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.clipboard.PastingPictureUseCase
+import lorry.folder.items.dossiersigma.exposure.disk.IDiskRepository
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL

@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.domain.interfaces
+package lorry.folder.items.dossiersigma.domain.injections
 
 import android.content.Context
 import dagger.Binds
@@ -10,7 +10,9 @@ import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.exposure.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.exposure.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.exposure.clipboard.ClipboardRepository
+import lorry.folder.items.dossiersigma.exposure.clipboard.IClipboardRepository
 import lorry.folder.items.dossiersigma.exposure.disk.DiskRepository
+import lorry.folder.items.dossiersigma.exposure.disk.IDiskRepository
 import javax.inject.Singleton
 
 

@@ -33,7 +33,6 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.domain.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.domain.usecases.pictures.ChangingPictureUseCase
@@ -43,7 +42,8 @@ import lorry.folder.items.dossiersigma.exposure.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.exposure.capsule.utilities.CroppedPicture
 import lorry.folder.items.dossiersigma.exposure.capsule.utilities.Flag
 import lorry.folder.items.dossiersigma.exposure.capsule.utilities.InitialPicture
-import lorry.folder.items.dossiersigma.exposure.interfaces.IPlayingDataSource
+import lorry.folder.items.dossiersigma.exposure.disk.IDiskRepository
+import lorry.folder.items.dossiersigma.exposure.playing.IPlayingDataSource
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos

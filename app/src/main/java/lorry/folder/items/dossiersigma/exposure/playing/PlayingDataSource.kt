@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
-import lorry.folder.items.dossiersigma.exposure.interfaces.IPlayingDataSource
 import java.io.File
 import javax.inject.Inject
 

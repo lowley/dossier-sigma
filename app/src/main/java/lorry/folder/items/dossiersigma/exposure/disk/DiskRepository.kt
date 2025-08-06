@@ -17,7 +17,6 @@ import lorry.folder.items.dossiersigma.domain.ColoredTag
 import lorry.folder.items.dossiersigma.domain.Item
 import lorry.folder.items.dossiersigma.domain.SigmaFile
 import lorry.folder.items.dossiersigma.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.domain.interfaces.IDiskRepository
 import lorry.folder.items.dossiersigma.exposure.base64.Base64DataSource
 import lorry.folder.items.dossiersigma.exposure.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.exposure.base64.Tags
@@ -26,7 +25,6 @@ import lorry.folder.items.dossiersigma.exposure.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.exposure.capsule.utilities.CapsuleData
 import lorry.folder.items.dossiersigma.exposure.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.exposure.intent.DSI_IntentWrapper
-import lorry.folder.items.dossiersigma.exposure.interfaces.IDiskDataSource
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import okhttp3.OkHttpClient
 import okhttp3.Request

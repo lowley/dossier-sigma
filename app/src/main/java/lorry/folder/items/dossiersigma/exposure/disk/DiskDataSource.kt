@@ -4,8 +4,7 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.SigmaApplication
-import lorry.folder.items.dossiersigma.exposure.interfaces.IDiskDataSource
-import lorry.folder.items.dossiersigma.exposure.interfaces.ItemDTO
+import lorry.folder.items.dossiersigma.domain.ItemDTO
 import java.io.File
 import javax.inject.Inject
 
