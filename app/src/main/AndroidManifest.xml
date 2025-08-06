@@ -51,11 +51,11 @@
                     android:resource="@xml/file_paths" />
         </provider>
         <service
-            android:name=".domain.services.MoveFileService"
+            android:name=".headless.services.MoveFileService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
         <service
-            android:name=".domain.services.MoveToNASService"
+            android:name=".headless.services.MoveToNASService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
     </application>

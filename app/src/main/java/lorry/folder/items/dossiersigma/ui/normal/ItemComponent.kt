@@ -67,8 +67,8 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.domain.ColoredTag
-import lorry.folder.items.dossiersigma.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
+import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.io.File

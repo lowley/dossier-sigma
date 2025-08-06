@@ -18,7 +18,7 @@ import de.charlex.compose.SpeedDialFloatingActionButtonState
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.domain.services.MoveToNASService
+import lorry.folder.items.dossiersigma.headless.services.MoveToNASService
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.io.File

@@ -1,0 +1,15 @@
+package lorry.folder.items.dossiersigma.headless.usecases.clipboard
+
+import android.content.Context
+import android.graphics.Bitmap
+import lorry.folder.items.dossiersigma.external.clipboard.IClipboardRepository
+import javax.inject.Inject
+
+class PastingPictureUseCase @Inject constructor(
+    val context: Context,
+    val clipboardRepository: IClipboardRepository){
+    
+    fun getImageFromClipboard() : Bitmap? {
+        return clipboardRepository.getImageFromClipboard(context)
+    }
+}

@@ -1,6 +1,5 @@
 package lorry.folder.items.dossiersigma.ui.centralArea
 
-import android.R.attr.alpha
 import android.graphics.Rect
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.BorderStroke
@@ -40,7 +39,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -56,11 +55,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
+import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
-import kotlin.collections.indexOf
 import kotlin.math.roundToInt
-import androidx.compose.ui.graphics.lerp
 
 @Composable
 context(ColumnScope)

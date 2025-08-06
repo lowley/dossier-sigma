@@ -62,10 +62,10 @@ import de.charlex.compose.rememberSpeedDialFloatingActionButtonState
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.domain.usecases.files.ChangePathUseCase
-import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeItem
-import lorry.folder.items.dossiersigma.domain.usecases.homePage.HomeViewModel
-import lorry.folder.items.dossiersigma.exposure.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
+import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
+import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog

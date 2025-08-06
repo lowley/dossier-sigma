@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
-import lorry.folder.items.dossiersigma.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
