@@ -21,8 +21,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import lorry.folder.items.copieurtho2.__data.NAS.DS_FTP
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -171,7 +171,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
     private suspend fun verify(source: String, destination: String): Boolean {
         val sourceFile = File(source)
 
-        val destinationFiles = ds_ftp.fetchMP4Files(destination)
+        val destinationFiles = ds_ftp.fetchFiles(destination)
 
         var file = destinationFiles
             ?.firstOrNull { it.name == source.substringAfterLast("/") }
