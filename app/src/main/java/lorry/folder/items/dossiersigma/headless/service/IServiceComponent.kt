@@ -1,14 +1,18 @@
 package lorry.folder.items.dossiersigma.headless.service
 
+import android.content.Context
 import lorry.folder.items.dossiersigma.headless.service.utilities.ParameterDelegate
 import lorry.folder.items.dossiersigma.headless.service.utilities.SigmaNotification
 
 interface IServiceComponent {
 
-    val delegates: MutableMap<String, ParameterDelegate<*>>
-    val notificationInfos: List<SigmaNotification>?
-    val coreContent: suspend () -> Unit
-
+    fun startService(
+        params: Map<String, ParameterDelegate<*>>,
+        values: Map<String, String>,
+        notificationInfos: List<SigmaNotification>?,
+        context: Context,
+        coreContent: suspend () -> Unit,
+    )
 }
 
 /*
