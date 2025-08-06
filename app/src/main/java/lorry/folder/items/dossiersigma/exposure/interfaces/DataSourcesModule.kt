@@ -4,7 +4,6 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import lorry.folder.items.copieurtho2.__data.NAS.DS_FTP
 import lorry.folder.items.dossiersigma.exposure.base64.Base64DataSource
 import lorry.folder.items.dossiersigma.exposure.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.exposure.clipboard.ClipboardDataSource
@@ -14,6 +13,7 @@ import lorry.folder.items.dossiersigma.exposure.disk.TempFileDataSource
 import lorry.folder.items.dossiersigma.exposure.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.exposure.intent.DS_IntentWrapper
 import lorry.folder.items.dossiersigma.exposure.nas.DSI_FTP
+import lorry.folder.items.dossiersigma.exposure.nas.DS_FTP
 import lorry.folder.items.dossiersigma.exposure.playing.PlayingDataSource
 
 @Module

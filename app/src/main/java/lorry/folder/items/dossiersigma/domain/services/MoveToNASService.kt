@@ -19,8 +19,8 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import lorry.folder.items.copieurtho2.__data.NAS.DS_FTP
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.exposure.nas.DS_FTP
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File

@@ -1,15 +1,15 @@
-package lorry.folder.items.copieurtho2.__data.NAS
+package lorry.folder.items.dossiersigma.exposure.nas
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.domain.SigmaFile
-import lorry.folder.items.dossiersigma.exposure.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
 import org.apache.commons.net.ftp.FTPReply
+import java.io.File
 import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -146,7 +146,7 @@ open class DS_FTP @Inject constructor(
                     return@doWithNASAccess Result.failure<Boolean>(Exception("Répertoire introuvable sur le NAS"))
                 }
 
-                val fileToUpload = java.io.File(localFilePath)
+                val fileToUpload = File(localFilePath)
                 val fileSize = fileToUpload.length() // Taille totale du fichier
                 val buffer = ByteArray(4096) // Taille du buffer
                 var uploadedSize = 0L
