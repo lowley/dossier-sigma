@@ -142,7 +142,7 @@ class SigmaActivity : ComponentActivity() {
 //            ) onCreate
             val colorScheme by settingsViewModel.colorScheme.collectAsState()
 
-            val baseColor = settingsViewModel.baseColor.collectAsState()
+            val baseColor = settingsViewModel.settingsManager.baseColorFlow.collectAsState(Color.Black)
             val theme = ColorThemeGenerator.generateTheme(baseColor.value)
             
             MaterialTheme(

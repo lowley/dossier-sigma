@@ -6,15 +6,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kavi.droid.color.palette.KvColorPalette
-import com.kavi.droid.color.palette.model.ThemeGenMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -32,7 +28,7 @@ class SettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     companion object{
-        const val TAG = " SgsVM"
+        const val TAG = "SgsVM"
     }
 
     private val _nightAndDay = MutableStateFlow(NightAndDay.LIGHT)
@@ -41,7 +37,6 @@ class SettingsViewModel @Inject constructor(
     fun setNightAndDay(nightAndDay: NightAndDay) {
         _nightAndDay.value = nightAndDay
     }
-
 
     val colorScheme: StateFlow<ColorScheme> = combine(
         settingsManager.baseColorFlow,
