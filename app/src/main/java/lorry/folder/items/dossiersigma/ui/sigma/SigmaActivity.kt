@@ -142,6 +142,9 @@ class SigmaActivity : ComponentActivity() {
 //            ) onCreate
             val colorScheme by settingsViewModel.colorScheme.collectAsState()
 
+            val baseColor = settingsViewModel.baseColor.collectAsState()
+            val theme = ColorThemeGenerator.generateTheme(baseColor.value)
+            
             MaterialTheme(
                 colorScheme = colorScheme,
                 typography = androidx.compose.material3.Typography(),
