@@ -4,7 +4,6 @@ import androidx.datastore.preferences.protobuf.Timestamp
 
 data class SigmaNotification(
     val notificationId: Int,
-    val channelId: String,
     val title: String,
     val text: String,
     val smallIconRes: Int,

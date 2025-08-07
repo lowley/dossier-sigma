@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.headless.service
 
 import android.content.Context
+import lorry.folder.items.dossiersigma.headless.service.utilities.CoreContent
 import lorry.folder.items.dossiersigma.headless.service.utilities.ParameterDelegate
 import lorry.folder.items.dossiersigma.headless.service.utilities.SigmaNotification
 
@@ -11,7 +12,7 @@ interface IServiceComponent {
         values: Map<String, String>,
         notificationInfos: List<SigmaNotification>?,
         context: Context,
-        coreContent: suspend () -> Unit,
+        coreContent: CoreContent,
     )
 }
 
