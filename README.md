@@ -4,7 +4,7 @@
 This application is for android devices only for the moment.
 
 It has been tested only for a __Samsung Galaxy Fold 4__ foldable phone.
-Nevertheless, it is not guaranteed from bugs, and often I fix this or that bug.
+Nevertheless, it is not guaranteed free of bugs, and often I fix this or that bug.
 
 ### Features of Sigma Folder
 
