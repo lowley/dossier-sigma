@@ -4,4 +4,4 @@ interface INotificationScope {
     fun showNotificationById(notificationId: Int)
 }
 
-typealias CoreContent = suspend INotificationScope.() -> Unit
+typealias CoreContent = suspend INotificationScope.() -> Int?

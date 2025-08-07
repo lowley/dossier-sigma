@@ -10,14 +10,17 @@ import lorry.folder.items.dossiersigma.headless.service.utilities.NucleusService
 import lorry.folder.items.dossiersigma.headless.service.utilities.ParameterDelegate
 import lorry.folder.items.dossiersigma.headless.service.utilities.SigmaNotification
 import java.util.UUID
+import javax.inject.Inject
 
 /** USAGE
  *
+ * ```
  * val source by parameter<Int>()
  * val debug by parameter<Boolean>()
  *
  * val delegates = mapOf("source" to source, "debug" to debug)
  * val component = ServiceComponent()
+ *
  * component.startService(
  *     delegates = delegates,
  *     notificationInfos = listOf(
@@ -30,9 +33,10 @@ import java.util.UUID
  *      val d by debug
  *      if (d) println("Debug: source=$s")
  *      showNotificationById(1, "En cours…")
- *  }
+ * }
+ * ```
  */
-class ServiceComponent() : IServiceComponent {
+class ServiceComponent @Inject constructor() : IServiceComponent {
 
     var service: Service? = null
 
@@ -59,6 +63,10 @@ class ServiceComponent() : IServiceComponent {
         }
 
         context.startService(intent)
+    }
+
+    override fun stopSelf() {
+        service?.stopSelf()
     }
 }
 

@@ -23,14 +23,15 @@ class NucleusService : Service(), INotificationScope {
         val id = intent?.getStringExtra("execution_id") ?: return START_NOT_STICKY
         val coreContent = CoreExecutionRegistry.consume(id)
 
+        var result: Int? = null
         if (coreContent != null) {
             CoroutineScope(Dispatchers.Default).launch {
-                (this@NucleusService as INotificationScope).coreContent()
+                result = (this@NucleusService as INotificationScope).coreContent()
                 stopSelf(startId)
             }
         }
 
-        return START_STICKY
+        return result ?: START_STICKY
     }
 
 

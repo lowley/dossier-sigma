@@ -1,5 +1,7 @@
 package lorry.folder.items.dossiersigma.headless.service.utilities
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -7,7 +9,7 @@ import kotlin.reflect.KProperty
 class ParameterDelegate<T : Any>(
     val type: KClass<T>
 ) : ReadWriteProperty<Any?, T> {
-    private var value: T? = null
+    var value: T? = null
 
     fun assignFromString(raw: String) {
         @Suppress("UNCHECKED_CAST")
@@ -15,6 +17,10 @@ class ParameterDelegate<T : Any>(
             Int::class -> raw.toInt() as T
             Boolean::class -> raw.toBoolean() as T
             String::class -> raw as T
+            List::class -> {
+                val typeToken = object : TypeToken<List<String>>() {}.type
+                Gson().fromJson<List<String>>(raw, typeToken) as T
+            }
             else -> error("Unsupported type: $type")
         }
     }
