@@ -18,14 +18,15 @@ import javax.inject.Inject
 class MoveToNASComponent @Inject constructor(
     val context: Context,
     val service: IServiceComponent,
-    val fileUtilities: FileUtilities
+    val nasUtilities: NasUtilities,
 ): IMoveToNASComponent {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun startService(
         filesToTransfer: List<String>,
-        nasDirectory: String
+        nasDirectory: String,
+        changeBottomTools: (progress: Int, index: Int, total: Int) -> Unit,
     ) {
         val filesToTransferDataDelegate = parameter<List<String>>()
         val filesToTransferData by filesToTransferDataDelegate
@@ -47,6 +48,10 @@ class MoveToNASComponent @Inject constructor(
             notificationInfos = listOf(),
             context = context
         ){
+
+            //////////////////
+            // core content //
+            //////////////////
             val filesToTransferData = delegates["filesToTransferData"]?.value as? List<String>
             val nasDirectoryData = delegates["nasDirectoryDataDelegate"]?.value as? String
 
@@ -60,22 +65,24 @@ class MoveToNASComponent @Inject constructor(
                 filesToTransferData!!.forEachIndexed { index, source ->
                     println("MoveToNASService: copie de $source")
                     try {
-                        fileUtilities.copy(
+                        nasUtilities.copy(
                             source,
                             destination,
                             index = index,
-                            total = filesToTransferData.size)
+                            total = filesToTransferData.size,
+                            changeBottomTools = changeBottomTools
+                        )
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
 
                     println("vérification: source=$source, destination=$destination")
-                    val verify = fileUtilities.verify(source, destination)
+                    val verify = nasUtilities.verify(source, destination)
                     println("résultat de la vérification: $verify")
 
                     if (verify) {
                         println("vérification positive, traitements sur le point d'être effectués")
-                        fileUtilities.delete(source)
+                        nasUtilities.delete(source)
                         println("fichier $source supprimé")
 
                         println("envoi du message à CopieurTho2")

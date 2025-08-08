@@ -118,7 +118,8 @@ open class DS_FTP @Inject constructor(
                             picture = null,
                             tag = null,
                             scale = null,
-                            memo = null
+                            memo = null,
+                            size = file.size,
                         )
                     }
             }

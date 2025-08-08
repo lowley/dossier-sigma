@@ -11,7 +11,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
-import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.bottomArea.CustomMoveFileExistingDestinationDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.CustomTextDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.CustomYesNoDialog
@@ -37,7 +36,7 @@ fun FullSizeExtras(
     val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
     val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-    val currentTool by BottomTools.currentTool.collectAsState()
+    val currentTool by bottomTools.currentTool.collectAsState()
 
     if (isTextDialogVisible)
         CustomTextDialog(
@@ -104,11 +103,11 @@ fun FullSizeExtras(
                     ).apply {
                         putExtra(
                             "source",
-                            BottomTools.movingItem?.fullPath ?: ""
+                            bottomTools.movingItem?.fullPath ?: ""
                         )
                         putExtra(
                             "destination",
-                            BottomTools.movingItem?.fullPath ?: ""
+                            bottomTools.movingItem?.fullPath ?: ""
                         )
                         putExtra("addSuffix", "")
                     }
@@ -116,13 +115,13 @@ fun FullSizeExtras(
                 mainViewModel.refreshCurrentFolder()
             },
             onCancel = {
-                BottomTools.setCurrentContent(DEFAULT)
-                val item = BottomTools.movingItem
+                bottomTools.setCurrentContent(DEFAULT)
+                val item = bottomTools.movingItem
                 val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                 if (movingParent != null)
                     mainViewModel.goToFolder(movingParent)
-                BottomTools.movingItem = null
+                bottomTools.movingItem = null
                 mainViewModel.setSelectedItem(null, true)
                 mainViewModel.refreshCurrentFolder()
             },
@@ -134,11 +133,11 @@ fun FullSizeExtras(
                     ).apply {
                         putExtra(
                             "source",
-                            BottomTools.movingItem?.fullPath ?: ""
+                            bottomTools.movingItem?.fullPath ?: ""
                         )
                         putExtra(
                             "destination",
-                            BottomTools.itemToMove?.fullPath
+                            bottomTools.itemToMove?.fullPath
                         )
                         putExtra("addSuffix", " - copie")
                     }

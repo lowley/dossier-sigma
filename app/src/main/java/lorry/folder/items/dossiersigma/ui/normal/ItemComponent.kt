@@ -208,7 +208,7 @@ fun ItemComponent(
                             val boxHeightPx = with(density) { (18.dp * 2 + 5.dp).toPx() }
                             val width = this@pointerInput.size.width
 
-                            if (offset.x <= width / 3
+                            if (offset.x <= width / 2
 //                                offset.x <= boxWidthPx
 //                                && offset.y <= boxHeightPx
                             ) {
@@ -222,7 +222,7 @@ fun ItemComponent(
                                 val boxWidthPx = with(density) { 45.dp.toPx() }
                                 val width = this@pointerInput.size.width
 
-                                if (change.position.x > width / 3 * 2) {
+                                if (change.position.x > width / 2) {
                                     isStartInLittleBox = false
                                     areShortcutsDisplayed.value = !areShortcutsDisplayed.value
                                 }
@@ -450,6 +450,7 @@ fun ImageSection(
                         )
 
                         if (areShortcutsDisplayed.value) {
+                            val baseName = name.substringBefore(".")
 
                             val shortcuts = name
                                 .substringBeforeLast(".")
@@ -457,7 +458,7 @@ fun ImageSection(
                                 .split(".")
 
                             if (shortcuts.size != 1
-                                || shortcuts[0] == name
+                                || shortcuts[0] != baseName
                             )
                                 Box(
                                     modifier = Modifier

@@ -4,8 +4,7 @@ interface IMoveToNASComponent {
 
     fun startService(
         filesToTransfer: List<String>,
-        nasDirectory: String
+        nasDirectory: String,
+        changeBottomTools: (progress: Int, index: Int, total: Int) -> Unit,
     )
-
-
 }

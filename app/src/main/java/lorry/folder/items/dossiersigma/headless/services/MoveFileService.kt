@@ -7,19 +7,25 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import javax.inject.Inject
 import kotlin.system.measureTimeMillis
+
 
 /**
  * Appelé par @see[lorry.folder.items.dossiersigma.ui.SigmaActivity.onCreate]
  * , déclaration de CustomMoveFileExistingDestinationDialog
  */
-class MoveFileService : Service() {
+@AndroidEntryPoint
+class MoveFileService @Inject constructor(
+    val bottomTools: BottomTools
+) : Service() {
 
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "move_file_channel"
@@ -47,7 +53,7 @@ class MoveFileService : Service() {
                 delete(source)
 
             SigmaViewModel.requestRefresh()
-            BottomTools.setCurrentContent(DEFAULT)
+            bottomTools.setCurrentContent(DEFAULT)
             stopSelf()
         }.start()
 
@@ -69,7 +75,7 @@ class MoveFileService : Service() {
                 if (sourceFile.isFile)
                     copyFileWithProgress(sourceFile, destinationFile) { p ->
                         println("progression: $p%")
-                        BottomTools.updateProgress(p)
+                        bottomTools.updateProgress(p)
                     }
 //                    sourceFile.copyTo(destinationFile, overwrite = true)
                 else

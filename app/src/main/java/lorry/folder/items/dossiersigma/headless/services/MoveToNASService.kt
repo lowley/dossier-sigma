@@ -33,7 +33,9 @@ import javax.inject.Inject
  * , déclaration de CustomMoveFileExistingDestinationDialog
  */
 @AndroidEntryPoint
-class MoveToNASService @Inject constructor() : Service(), CoroutineScope by MainScope() {
+class MoveToNASService @Inject constructor(
+    val bottomTools: BottomTools
+) : Service(), CoroutineScope by MainScope() {
 
     companion object{
         const val TAG = "MvNasSvc"
@@ -118,7 +120,7 @@ class MoveToNASService @Inject constructor() : Service(), CoroutineScope by Main
                 pathOnNAS = destination,
             ) { p ->
                 println("progression: $p%")
-                BottomTools.updateNASProgress(
+                bottomTools.updateNASProgress(
                     percentage = p,
                     fileIndex = index,
                     fileCount = total

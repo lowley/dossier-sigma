@@ -13,6 +13,10 @@ import lorry.folder.items.dossiersigma.external.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.external.clipboard.IClipboardRepository
 import lorry.folder.items.dossiersigma.external.disk.DiskRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
+import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
+import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
+import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveToNASComponent
+import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
 import javax.inject.Singleton
 
 
@@ -44,5 +48,14 @@ object AppModule {
     @Singleton
     fun provideContext(@ApplicationContext context: Context): Context {
         return context
+    }
+
+    @Provides
+    fun provideIMoveToNASComponent(
+        @ApplicationContext context: Context?,
+        service: ServiceComponent,
+        nasUtilities: NasUtilities,
+    ): IMoveToNASComponent {
+        return MoveToNASComponent(context!!, service, nasUtilities)
     }
 }

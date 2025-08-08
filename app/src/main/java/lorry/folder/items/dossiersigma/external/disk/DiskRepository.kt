@@ -276,12 +276,11 @@ class DiskRepository @Inject constructor(
                                     repo),
                                 path)
                             println("trouvé n-2 Initial")
-
                         }
                     }
                 }
 
-                image = image ?: R.drawable.document
+                image = image ?: R.drawable.document2
                 image
             }
 

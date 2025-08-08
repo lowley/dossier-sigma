@@ -110,6 +110,9 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var memo: IMemoComponent
 
+    @Inject
+    lateinit var bottomTools: BottomTools
+
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
     val settingsViewModel: SettingsViewModel by viewModels()
@@ -133,8 +136,8 @@ class SigmaActivity : ComponentActivity() {
 
         initializeFileIntentLauncher(mainViewModel)
 
-        BottomTools.viewModel = mainViewModel
-        BottomTools.observeDefaultContent(mainViewModel)
+        bottomTools.viewModel = mainViewModel
+        bottomTools.observeDefaultContent(mainViewModel)
 
         setContent {
 //            val myColorScheme by settingsViewModel.settingsManager.colorSchemeFlow.collectAsState(
@@ -219,7 +222,7 @@ class SigmaActivity : ComponentActivity() {
                                 contentColor = Color.Black,
                                 tonalElevation = 0.dp
                             ) {
-                                BottomTools.BottomToolBar(activity = this@SigmaActivity)
+                                bottomTools.BottomToolBar(activity = this@SigmaActivity)
                             }
                         }
 
@@ -276,7 +279,7 @@ class SigmaActivity : ComponentActivity() {
                 window.navigationBarColor = SigmaColors.current.primary.toArgb()
 
                 LaunchedEffect(Unit) {
-                    BottomTools.setCurrentContent(DEFAULT)
+                    bottomTools.setCurrentContent(DEFAULT)
                 }
 
                 //////////////////////////////
@@ -304,7 +307,7 @@ class SigmaActivity : ComponentActivity() {
                                 detectTapGestures(onTap = {
                                     if (selectedItem?.id != null) {
                                         mainViewModel.setSelectedItem(null, true)
-                                        BottomTools.setCurrentContent(DEFAULT)
+                                        bottomTools.setCurrentContent(DEFAULT)
                                     }
                                 })
                             }
@@ -472,8 +475,8 @@ class SigmaActivity : ComponentActivity() {
                                 // aire de l'avancement copie/déplacement //
                                 ////////////////////////////////////////////
 
-                                val nasText by BottomTools.copyNASText.collectAsState()
-                                val allNasText by BottomTools.copyAllNASText.collectAsState()
+                                val nasText by bottomTools.copyNASText.collectAsState()
+                                val allNasText by bottomTools.copyAllNASText.collectAsState()
 
                                 if (nasText != "1 -> NAS")
                                     Text(
@@ -591,7 +594,7 @@ class SigmaActivity : ComponentActivity() {
 
                                         if (selectedItem != null) {
                                             mainViewModel.setSelectedItem(null, true)
-                                            BottomTools.setCurrentContent(DEFAULT)
+                                            bottomTools.setCurrentContent(DEFAULT)
                                             return@run
                                         }
 
@@ -616,7 +619,7 @@ class SigmaActivity : ComponentActivity() {
                                 },
                                 onItemLongPressed = { item ->
                                     mainViewModel.setSelectedItem(item.copy(), true)
-                                    BottomTools.setCurrentContent(Tools.FILE)
+                                    bottomTools.setCurrentContent(Tools.FILE)
                                 },
                                 onTopLeftPanelClick = { item ->
                                     /**
@@ -674,10 +677,12 @@ class SigmaActivity : ComponentActivity() {
                     val dragState by mainViewModel.dragState.collectAsState()
                     dragState?.let { dragState ->
                         dragState.tool?.let { tool: Tool ->
-                            MobileSticker(
-                                dragState = dragState,
-                                activity = this@SigmaActivity
-                            )
+                            with(bottomTools){
+                                MobileSticker(
+                                    dragState = dragState,
+                                    activity = this@SigmaActivity
+                                )
+                            }
                         }
                     }
                 }

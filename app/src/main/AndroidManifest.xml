@@ -58,6 +58,13 @@
             android:name=".headless.services.MoveToNASService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+        <service
+            android:name=".headless.service.utilities.NucleusService"
+            android:exported="false"/>
+            <!-- android:foregroundServiceType="dataSync|connectedDevice"
+                android:exported="false" : le service n’est pas accessible depuis d’autres apps
+                android:foregroundServiceType : optionnel, précise le type pour Android 9+
+                (dataSync, location, mediaPlayback, etc.)
+            -->
     </application>
-
 </manifest>

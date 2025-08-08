@@ -45,7 +45,6 @@ import lorry.folder.items.dossiersigma.headless.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
-import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools.viewModel
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
@@ -64,7 +63,9 @@ class SigmaViewModel @Inject constructor(
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
+    val bottomTools: BottomTools
 ) : ViewModel() {
+
 
     ////////////////
     // imageCache //
@@ -322,7 +323,7 @@ class SigmaViewModel @Inject constructor(
     }
 
 
-    val tools = BottomTools.currentContent.map {
+    val tools = bottomTools.currentContent.map {
         it?.tools?.value
     }.stateIn(
         scope = viewModelScope,
@@ -377,7 +378,7 @@ class SigmaViewModel @Inject constructor(
     val currentFolder: StateFlow<SigmaFolder> = combine(
         currentFolderPath,
         reloadTrigger,
-        BottomTools.currentFlagId,
+        bottomTools.currentFlagId,
         sorting
     ) { path, _, currentFlagId, sorting ->
         Triple(path, currentFlagId, sorting)
@@ -497,9 +498,9 @@ class SigmaViewModel @Inject constructor(
 
         if (!keepBottomToolsAsIs) {
             if (item != null)
-                BottomTools.setCurrentContent(Tools.FILE)
+                bottomTools.setCurrentContent(Tools.FILE)
             else
-                BottomTools.setCurrentContent(DEFAULT)
+                bottomTools.setCurrentContent(DEFAULT)
         }
     }
 
@@ -573,42 +574,41 @@ class SigmaViewModel @Inject constructor(
             else
                 addFolderPathToHistory(folderPath)
 
-            BottomTools.setCurrentFlagId(null)
+            bottomTools.setCurrentFlagId(null)
         }
     }
 
     init {
-        viewModel = this
+        bottomTools.viewModel = this
         viewModelScope.launch {
-            BottomTools.progress.collect { p ->
+            bottomTools.progress.collect { p ->
                 if (p == 0 || p == 100)
-                    BottomTools.updateMovePasteText("Coller")
+                    bottomTools.updateMovePasteText("Coller")
                 else
-                    BottomTools.updateMovePasteText("$p %")
+                    bottomTools.updateMovePasteText("$p %")
             }
         }
 
         viewModelScope.launch {
-            BottomTools.nasProgress.collect { copyProgress ->
+            bottomTools.nasProgress.collect { copyProgress ->
                 if (copyProgress == null)
                     return@collect
 
                 if (copyProgress.progress == 0 || copyProgress.progress == 100) {
-                    BottomTools.updateNASText("1 -> NAS")
-                    BottomTools.updateAllNASText("Tous -> NAS")
+                    bottomTools.updateNASText("1 -> NAS")
+                    bottomTools.updateAllNASText("Tous -> NAS")
                 } else {
-                    BottomTools.updateNASText(
+                    bottomTools.updateNASText(
                         "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
                     )
-                    BottomTools.updateAllNASText(
+                    bottomTools.updateAllNASText(
                         "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
                     )
                 }
             }
         }
 
-        viewModel = this
-        BottomTools.setCurrentContent(DEFAULT)
+        bottomTools.setCurrentContent(DEFAULT)
     }
 
 //    init {
@@ -668,9 +668,9 @@ class SigmaViewModel @Inject constructor(
     suspend fun getInfoInf(item: Item): String {
         return withContext(Dispatchers.IO) {
             val infos = if (item is SigmaFolder)
-                viewModel.diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
+                diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
                     .toString()
-            else formatFileSizeShort(viewModel.diskRepository.getSize(File(item.fullPath)))
+            else formatFileSizeShort(diskRepository.getSize(File(item.fullPath)))
 
             infos
         }

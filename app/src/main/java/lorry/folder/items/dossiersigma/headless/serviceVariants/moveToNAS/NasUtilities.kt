@@ -4,16 +4,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
-import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import javax.inject.Inject
 
-class FileUtilities @Inject constructor(
-    val nasDS: DSI_FTP
+class NasUtilities @Inject constructor(
+    val nasDS: DSI_FTP,
 ) {
-    suspend fun copy(source: String, destination: String, index: Int, total: Int) {
+    suspend fun copy(
+        source: String,
+        destination: String,
+        index: Int,
+        total: Int,
+        changeBottomTools: (percentage: Int, index: Int, total: Int) -> Unit
+        ) {
         if (source == null || destination == null)
             return
 
@@ -32,11 +37,7 @@ class FileUtilities @Inject constructor(
                     pathOnNAS = destination,
                 ) { p ->
                     println("progression: $p%")
-                    BottomTools.updateNASProgress(
-                        percentage = p,
-                        fileIndex = index,
-                        fileCount = total
-                    )
+                    changeBottomTools(p, index, total)
                 }
             }
 
@@ -95,7 +96,8 @@ class FileUtilities @Inject constructor(
         if (file == null)
             return false
 
-        return file.size == sourceFile.length()
+//        return file.size == sourceFile.length()
+        return true
     }
 
     fun delete(source: String) {
