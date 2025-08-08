@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -25,7 +26,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -64,6 +64,7 @@ import androidx.core.graphics.drawable.toBitmap
 import coil.compose.SubcomposeAsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.R
@@ -382,6 +383,7 @@ fun TextSection(name: String, modifier: Modifier) {
 }
 
 @Composable
+context(SigmaActivity)
 fun ImageSection(
     modifier: Modifier,
     image: Any?,
@@ -420,76 +422,96 @@ fun ImageSection(
             )
         }
 
-        key(areShortcutsDisplayed.value) {
-            SubcomposeAsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(image)
-                    .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
-                    .build(),
-                contentDescription = "Miniature",
-                contentScale = scale ?: ContentScale.Companion.Crop,
-                modifier = Modifier.Companion.matchParentSize(),
-                loading = { /* Affiche un loader */ },
-                success = { successState ->
-                    val drawable = successState.result.drawable
-                    imageSize = IntSize(drawable.intrinsicWidth, drawable.intrinsicHeight)
 
-                    Box(
-                        modifier = Modifier.Companion.matchParentSize()
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(image)
+                .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
+                .build(),
+            contentDescription = "Miniature",
+            contentScale = scale ?: ContentScale.Companion.Crop,
+            modifier = Modifier.Companion.matchParentSize(),
+            loading = { /* Affiche un loader */ },
+            success = { successState ->
+                val drawable = successState.result.drawable
+                imageSize = IntSize(drawable.intrinsicWidth, drawable.intrinsicHeight)
 
+                Box(
+                    modifier = Modifier.Companion.matchParentSize()
+
+                ) {
+                    Image(
+                        painter = successState.painter,
+                        contentDescription = "Miniature",
+                        contentScale = scale ?: ContentScale.Companion.Crop,
+                        modifier = Modifier.Companion
+                            .matchParentSize(),
+                        colorFilter = if (image is Int && image != R.drawable.file) ColorFilter.Companion.tint(
+                            SigmaColors.current.tertiary
+                        ) else null
+                    )
+
+                    Shortcuts(
+                        modifier = Modifier,
+                        areShortcutsDisplayed = areShortcutsDisplayed,
+                        name = name
+                    )
+                }
+            },
+            error = {
+                // Fallback en cas d’erreur
+            }
+        )
+
+    }
+}
+
+@Composable
+context(BoxScope)
+fun Shortcuts(
+    modifier: Modifier,
+    areShortcutsDisplayed: MutableState<Boolean>,
+    name: String
+) {
+    if (areShortcutsDisplayed.value) {
+
+        LaunchedEffect(Unit) {
+            delay(3_000)
+            areShortcutsDisplayed.value = false
+        }
+
+        if (areShortcutsDisplayed.value) {
+            val shortcuts = name
+                .substringBeforeLast(".")
+                .substringAfter(".")
+                .split(".")
+
+            if (shortcuts.size != 1
+                || shortcuts[0] == name
+            )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
+                ) {
+
+                    Column(
+                        modifier = Modifier.Companion
+                            .matchParentSize()
+                            .padding(top = 45.dp)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Image(
-                            painter = successState.painter,
-                            contentDescription = "Miniature",
-                            contentScale = scale ?: ContentScale.Companion.Crop,
-                            modifier = Modifier.Companion
-                                .matchParentSize(),
-                            colorFilter = if (image is Int && image != R.drawable.file) ColorFilter.Companion.tint(
-                                SigmaColors.current.tertiary
-                            ) else null
-                        )
 
-                        if (areShortcutsDisplayed.value) {
-                            val baseName = name.substringBefore(".")
-
-                            val shortcuts = name
-                                .substringBeforeLast(".")
-                                .substringAfter(".")
-                                .split(".")
-
-                            if (shortcuts.size != 1
-                                || shortcuts[0] != baseName
+                        for (shortcut in shortcuts) {
+                            Text(
+                                text = shortcut,
+                                color = SigmaColors.current.onPrimary,
+                                fontSize = 12.sp
                             )
-                                Box(
-                                    modifier = Modifier
-                                        .matchParentSize()
-                                        .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
-                                ) {
-
-                                    Column(
-                                        modifier = Modifier.Companion
-                                            .matchParentSize()
-                                            .padding(top = 45.dp)
-                                            .verticalScroll(rememberScrollState()),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-
-                                        for (shortcut in shortcuts) {
-                                            Text(
-                                                text = shortcut,
-                                                color = SigmaColors.current.onPrimary,
-                                                fontSize = 12.sp
-                                            )
-                                        }
-                                    }
-                                }
                         }
                     }
-                },
-                error = {
-                    // Fallback en cas d’erreur
                 }
-            )
         }
     }
 }
