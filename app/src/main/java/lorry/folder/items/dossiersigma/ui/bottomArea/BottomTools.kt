@@ -126,7 +126,7 @@ import kotlin.math.roundToInt
 class BottomTools @Inject constructor(
     val moveToNASComponent: IMoveToNASComponent,
 ) {
-    init{
+    init {
         Tools.DEFAULT.bottomTools = this
         Tools.TAGS_MENU.bottomTools = this
         Tools.FILE.bottomTools = this
@@ -363,7 +363,7 @@ fun Tool.toColoredTag(viewModel: SigmaViewModel? = null): ColoredTag = ColoredTa
     color = this.tint ?: Color.Companion.Unspecified,
 )
 
-sealed class Tools{
+sealed class Tools {
 
     abstract fun content(viewModel: SigmaViewModel? = null): BottomToolContent
     lateinit var bottomTools: BottomTools
@@ -959,12 +959,13 @@ sealed class Tools{
                             // current //
                             /////////////
 
-                            val filesToTransfer = bottomTools.itemToMove?.fullPath?.let{
+                            val filesToTransfer = bottomTools.itemToMove?.fullPath?.let {
                                 listOf(it)
                             } ?: emptyList()
 
-                            val nasDirectory = mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
-                                ?: ""
+                            val nasDirectory =
+                                mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
+                                    ?: ""
 
                             bottomTools.moveToNASComponent.startService(
                                 filesToTransfer = filesToTransfer,
@@ -1856,9 +1857,8 @@ fun SigmaActivity.FolderChooserDialog(
     LaunchedEffect(path.value) {
         mainViewModel.viewModelScope.launch {
             items.value = mainViewModel.diskRepository.getFolderItems(
-                path.value,
-                SortingCriterion.ByNameAsc
-            )
+                    path.value,
+                    SortingCriterion.ByNameAsc)
         }
     }
 
@@ -1874,7 +1874,9 @@ fun SigmaActivity.FolderChooserDialog(
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
             )
     ) {
-        FileChooserToolbox(path = path)
+        FileChooserToolbox(
+            path = path,
+        )
 
         Spacer(modifier = Modifier.Companion.height(8.dp))
 
@@ -1953,7 +1955,9 @@ fun ColumnScope.BottomToolbar2(
 }
 
 @Composable
-fun FileChooserToolbox(path: MutableState<String>) {
+fun FileChooserToolbox(
+    path: MutableState<String>,
+) {
 
     Row(
         modifier = Modifier.Companion
@@ -1999,7 +2003,6 @@ fun FileChooserToolbox(path: MutableState<String>) {
                 .width(IntrinsicSize.Min),
             onClick = {
                 path.value = "/storage/emulated/0/Movies"
-
             }
         ) {
             Text(text = "Movies")
@@ -2008,7 +2011,10 @@ fun FileChooserToolbox(path: MutableState<String>) {
 }
 
 @Composable
-fun ColumnScope.FileList(path: MutableState<String>, items: MutableState<List<Item>>) {
+fun ColumnScope.FileList(
+    path: MutableState<String>,
+    items: MutableState<List<Item>>
+) {
 
     LazyColumn(
         modifier = Modifier.Companion
@@ -2042,7 +2048,10 @@ fun ColumnScope.FileList(path: MutableState<String>, items: MutableState<List<It
 }
 
 @Composable
-fun ColumnScope.ItemRow(path: MutableState<String>, item: Item) {
+fun ColumnScope.ItemRow(
+    path: MutableState<String>,
+    item: Item
+) {
 
     Row(
         modifier = Modifier.Companion

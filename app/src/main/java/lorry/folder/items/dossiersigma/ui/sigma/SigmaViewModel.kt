@@ -63,9 +63,8 @@ class SigmaViewModel @Inject constructor(
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
-    val bottomTools: BottomTools
+    val bottomTools: BottomTools,
 ) : ViewModel() {
-
 
     ////////////////
     // imageCache //
@@ -384,6 +383,7 @@ class SigmaViewModel @Inject constructor(
         Triple(path, currentFlagId, sorting)
     }.mapLatest { (path, currentFlagId, sorting) ->
         val folder = diskRepository.getSigmaFolder(path, sorting)
+
 
         clearAllCaches()
         folder.items.forEach { item ->

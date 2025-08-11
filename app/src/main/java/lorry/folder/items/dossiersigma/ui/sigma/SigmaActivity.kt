@@ -556,9 +556,22 @@ class SigmaActivity : ComponentActivity() {
                                     )
                                 },
                                 onDeleteTapped = { item: HomeItem ->
-                                    homeViewModel.removeHomeItem(
-                                        item
-                                    )
+                                    homeViewModel.removeHomeItem(item)
+                                    mainViewModel.viewModelScope.launch {
+                                        settingsViewModel.settingsManager.saveHomeItems(
+                                            homeViewModel.homeItems.value
+                                                .toSet()
+                                                .map {
+                                                    HomeItemInfos(
+                                                        newTitle = it.title,
+                                                        oldTitle = it.title,
+                                                        picture = it.picture,
+                                                        path = it.path,
+                                                        index = it.index
+                                                    )
+                                                }.toSet()
+                                        )
+                                    }
                                 },
                                 onItemsReordered = { newList ->
                                     homeViewModel.setHomeItems(newList)

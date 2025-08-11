@@ -4,7 +4,9 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
+import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
@@ -84,6 +86,54 @@ open class DS_FTP @Inject constructor(
         }
 
         return answer
+    }
+
+    override suspend fun getSigmaFolder(parent: String): SigmaFolder? {
+        return doWithNASAccess(parent) { ftp ->
+            val dirList = withContext(Dispatchers.IO) {
+                ftp.listDirectories(parent)
+                    .map { file ->
+                            SigmaFolder(
+                                fullPath = Paths.get(parent, file.name).toString(),
+                                items = emptyList(),
+                                modificationDate = file.timestamp.timeInMillis,
+                                picture = null,
+                                tag = null,
+                                scale = null,
+                                memo = null
+                            )
+                    }
+            }
+
+            val fileList = withContext(Dispatchers.IO) {
+                ftp.listFiles(parent)
+                    .map { file ->
+                            SigmaFile(
+                                name = file.name,
+                                modificationDate = file.timestamp.timeInMillis,
+                                path = parent,
+                                picture = null,
+                                tag = null,
+                                scale = null,
+                                memo = null,
+                            )
+                    }
+            }
+
+            val itemList: List<Item> = dirList + fileList
+
+            val result = SigmaFolder(
+                fullPath = parent,
+                items = itemList,
+                modificationDate = 0,
+                picture = null,
+                tag = null,
+                scale = null,
+                memo = null
+            )
+
+            Result.success(result)
+        }
     }
 
     override suspend fun fetchDirectories(parent: String): List<String>? {

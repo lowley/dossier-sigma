@@ -173,6 +173,8 @@ fun ItemComponent(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {
+                        // * tap sur un item
+
                         if (areShortcutsDisplayed.value)
                             areShortcutsDisplayed.value = false
                         else onItemTapped(item)
@@ -425,7 +427,7 @@ fun ImageSection(
 
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(image)
+                .data(image ?: R.drawable.document2)
                 .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
                 .build(),
             contentDescription = "Miniature",
@@ -446,7 +448,7 @@ fun ImageSection(
                         contentScale = scale ?: ContentScale.Companion.Crop,
                         modifier = Modifier.Companion
                             .matchParentSize(),
-                        colorFilter = if (image is Int && image != R.drawable.file) ColorFilter.Companion.tint(
+                        colorFilter = if (image == null || image is Int) ColorFilter.tint(
                             SigmaColors.current.tertiary
                         ) else null
                     )
