@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.centralArea
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -66,7 +67,14 @@ fun SigmaActivity.SigmaFAB(
                         painter = painterResource(id = R.drawable.ftp),
                     ) {
                         mainViewModel.viewModelScope.launch {
-                            val files = mainViewModel.currentFolder.value.items.map { it.fullPath }
+                            val files = mainViewModel.currentFolder.value.items.map {
+                                val picture = mainViewModel.imageCache.value[it.fullPath]
+                                val picture64 = if (picture != null)
+                                    mainViewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
+                                else null
+
+                                it.fullPath to picture64
+                            }
                             val intent =
                                 Intent(this@SigmaFAB, MoveToNASService::class.java).apply {
                                     putExtra("filesToTransfer", Gson().toJson(files))
