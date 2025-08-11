@@ -959,8 +959,14 @@ sealed class Tools {
                             // current //
                             /////////////
 
+                            val picture =
+                                viewModel.imageCache.value[viewModel.selectedItemFullPath.value]
+                            val picture64 = if (picture != null)
+                                viewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
+                            else null
+
                             val filesToTransfer = bottomTools.itemToMove?.fullPath?.let {
-                                listOf(it)
+                                listOf(it to picture64)
                             } ?: emptyList()
 
                             val nasDirectory =
@@ -1857,8 +1863,9 @@ fun SigmaActivity.FolderChooserDialog(
     LaunchedEffect(path.value) {
         mainViewModel.viewModelScope.launch {
             items.value = mainViewModel.diskRepository.getFolderItems(
-                    path.value,
-                    SortingCriterion.ByNameAsc)
+                path.value,
+                SortingCriterion.ByNameAsc
+            )
         }
     }
 

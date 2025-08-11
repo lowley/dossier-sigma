@@ -24,11 +24,11 @@ class MoveToNASComponent @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     override fun startService(
-        filesToTransfer: List<String>,
+        filesToTransfer: List<Pair<String, String?>>,
         nasDirectory: String,
         changeBottomTools: (progress: Int, index: Int, total: Int) -> Unit,
     ) {
-        val filesToTransferDataDelegate = parameter<List<String>>()
+        val filesToTransferDataDelegate = parameter<List<Pair<String, String?>>>()
         val filesToTransferData by filesToTransferDataDelegate
 
         val nasDirectoryDataDelegate = parameter<String>()
@@ -52,8 +52,12 @@ class MoveToNASComponent @Inject constructor(
             //////////////////
             // core content //
             //////////////////
-            val filesToTransferData = delegates["filesToTransferData"]?.value as? List<String>
+            val filesToTransferData = delegates["filesToTransferData"]?.value as? List<Pair<String, String?>>
             val nasDirectoryData = delegates["nasDirectoryDataDelegate"]?.value as? String
+
+            Log.d(TAG, "MoveToNASService: filesToTransferData: ${filesToTransferData?.size} éléments")
+            Log.d(TAG, "MoveToNASService: premier: ${filesToTransferData?.get(0)?.first?.takeLast(20)}, " +
+                    "dernier: ${if (filesToTransferData?.get(filesToTransferData.size - 1)?.second == null) "null" else filesToTransferData?.get(filesToTransferData.size - 1)?.second?.take(20)}")
 
             if (filesToTransferData == null || nasDirectoryData == null)
                 START_NOT_STICKY
@@ -66,7 +70,7 @@ class MoveToNASComponent @Inject constructor(
                     println("MoveToNASService: copie de $source")
                     try {
                         nasUtilities.copy(
-                            source,
+                            source.first,
                             destination,
                             index = index,
                             total = filesToTransferData.size,
@@ -77,16 +81,16 @@ class MoveToNASComponent @Inject constructor(
                     }
 
                     println("vérification: source=$source, destination=$destination")
-                    val verify = nasUtilities.verify(source, destination)
+                    val verify = nasUtilities.verify(source.first, destination)
                     println("résultat de la vérification: $verify")
 
                     if (verify) {
                         println("vérification positive, traitements sur le point d'être effectués")
-                        nasUtilities.delete(source)
+                        nasUtilities.delete(source.first)
                         println("fichier $source supprimé")
 
                         println("envoi du message à CopieurTho2")
-                        sendMessageToThoApp(context, source)
+                        sendMessageToThoApp(context, Gson().toJson(source))
                         println("message envoyé")
                     }
 

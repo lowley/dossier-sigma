@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.headless.service.utilities
 
+import android.graphics.Bitmap
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlin.properties.ReadWriteProperty
@@ -18,8 +19,8 @@ class ParameterDelegate<T : Any>(
             Boolean::class -> raw.toBoolean() as T
             String::class -> raw as T
             List::class -> {
-                val typeToken = object : TypeToken<List<String>>() {}.type
-                Gson().fromJson<List<String>>(raw, typeToken) as T
+                val typeToken = object : TypeToken<List<Pair<String, Bitmap>>>() {}.type
+                Gson().fromJson<List<Pair<String, Bitmap>>>(raw, typeToken) as T
             }
             else -> error("Unsupported type: $type")
         }
