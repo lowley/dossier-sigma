@@ -17,6 +17,8 @@ import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
+import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
+import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
 import javax.inject.Singleton
 
 
@@ -38,6 +40,11 @@ abstract class RepositoriesModule {
     abstract fun bindMp4Base64Embedder(
         mp4Base64Embedder: VideoInfoEmbedder
     ): IVideoInfoEmbedder
+
+    @Binds
+    abstract fun bindIndexBar(
+        indexBar: IndexBar
+    ): IIndexBar
 }
 
 @Module

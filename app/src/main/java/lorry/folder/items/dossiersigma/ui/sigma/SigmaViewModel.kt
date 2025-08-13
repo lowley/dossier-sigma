@@ -44,6 +44,7 @@ import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
+import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.toIndexBarItemInfoList
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
@@ -427,6 +428,17 @@ class SigmaViewModel @Inject constructor(
         scope = viewModelScope,
         started = Eagerly,
         initialValue = ""
+    )
+
+    val modelFlow = combine(
+        currentFolder,
+        sorting
+    ) { folder, sorting ->
+        folder.items.toIndexBarItemInfoList(this)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyList()
     )
 
     companion object {

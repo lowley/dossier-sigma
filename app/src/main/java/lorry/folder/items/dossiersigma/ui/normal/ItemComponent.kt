@@ -74,6 +74,9 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.io.File
 import java.io.FileOutputStream
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 context(SigmaActivity)
@@ -347,7 +350,9 @@ fun ItemComponent(
                         .padding(horizontal = 8.dp, vertical = 3.dp)
                 ) {
                     Text(
-                        text = "DOSSIER",
+//                        text = "DOSSIER",
+                        text = Instant.ofEpochMilli(item.modificationDate).atZone(ZoneId.systemDefault()).format(
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy")),
                         fontSize = 11.sp,
                         color = Color(0xFF0047AB),
                         letterSpacing = 1.sp,

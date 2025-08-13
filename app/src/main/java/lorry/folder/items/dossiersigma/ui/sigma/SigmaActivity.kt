@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -66,6 +67,7 @@ import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
+import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog
@@ -127,6 +129,9 @@ class SigmaActivity : ComponentActivity() {
 
     val sigmaActivity = this
 
+    @Inject
+    lateinit var indexBar: IIndexBar
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -182,6 +187,15 @@ class SigmaActivity : ComponentActivity() {
             val currentPage by mainViewModel.browserManager.currentPage.collectAsState()
             val isDisplayingMemo by memo.isDisplayingMemo.collectAsState()
             val isKeyboardVisible by keyboardAsState()
+
+            val currentFolder by mainViewModel.currentFolder.collectAsState()
+
+            val scrollStates =
+                remember { mutableMapOf<String, LazyGridState>() }
+            val currentScrollState =
+                scrollStates.getOrPut(currentFolder.fullPath) {
+                    LazyGridState()
+                }
 
             Scaffold(
                 containerColor = colors.background,
@@ -287,9 +301,13 @@ class SigmaActivity : ComponentActivity() {
                 //////////////////////////////
                 Box(
                     modifier = Modifier
-                        .padding(padding)
                         .fillMaxSize()
-//                            .zIndex(20f)
+                        .padding(
+                            start = 0.dp,
+                            end = 0.dp,
+                            top = padding.calculateTopPadding(),
+                            bottom = padding.calculateBottomPadding()
+                        )
                 ) {
 
                     //////////////////////////////////////////////
@@ -298,6 +316,7 @@ class SigmaActivity : ComponentActivity() {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(horizontal = 0.dp)
                             .background(SigmaColors.current.primary)
                             .pointerInput(selectedItem?.id) {
 
@@ -650,6 +669,9 @@ class SigmaActivity : ComponentActivity() {
                                 onRefresh = {
                                     mainViewModel.refreshCurrentFolder()
                                 },
+                                indexBar = indexBar,
+                                currentScrollState = currentScrollState,
+                                currentFolder = currentFolder
                             )
                         }
                     }

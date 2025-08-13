@@ -2,24 +2,28 @@ package lorry.folder.items.dossiersigma.ui.normal
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
@@ -32,8 +36,11 @@ fun NormalPage(
     getInfoSup: suspend (Item) -> String,
     getInfoInf: suspend (Item) -> String,
     onRefresh: () -> Unit,
+    indexBar: IIndexBar,
+    currentScrollState: LazyGridState,
+    currentFolder: SigmaFolder,
 
-) {
+    ) {
     val currentFolderFlow = mainViewModel.currentFolder
     val imageCache = mainViewModel.imageCache
     val flagCache = mainViewModel.flagCache
@@ -43,27 +50,23 @@ fun NormalPage(
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
     val draggableStartPosition = mainViewModel.draggableStartPosition
 
-    val currentFolder by currentFolderFlow.collectAsState()
-
-    val scrollStates =
-        remember { mutableMapOf<String, LazyGridState>() }
-    val currentScrollState =
-        scrollStates.getOrPut(currentFolder.fullPath) {
-            LazyGridState()
-        }
-
     PullToRefreshContainer(
         onRefresh = onRefresh
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(
+                    start = 0.dp,
+                    end = 0.dp,
+                    top = 0.dp,
+                    bottom = 0.dp)
         ) {
 
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
                 modifier = Modifier
-                    .padding(horizontal = 10.dp),
+                    .padding(start = 25.dp, end = 0.dp),
                 state = currentScrollState
             ) {
                 lazyGridItems(currentFolder.items, key = {
@@ -95,21 +98,15 @@ fun NormalPage(
                 }
             }
 
-//            val url by mainViewModel.browserManager.currentPage.collectAsState()
-//
-//            if (url != null)
-//                BrowserOverlay(
-//                    currentPage = url,
-//                    onClose = closeBrowser,
-//                    onImageClicked = onGotBrowserImage,
-//                    setCurrentPage = setCurrentBrowserPage,
-//                    webView = webView,
-//                    canGoBack = canGoBack,
-//                    canGoForward = canGoForward,
-//                    setCanGoBack = setCanGoBack,
-//                    setCanGoForward = setCanGoForward,
-//                    setWebView = setWebView
-//                )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 4.dp)
+                    .fillMaxHeight().width(20.dp)
+            ){
+
+                indexBar.display(currentScrollState = currentScrollState)
+            }
         }
 
     }
