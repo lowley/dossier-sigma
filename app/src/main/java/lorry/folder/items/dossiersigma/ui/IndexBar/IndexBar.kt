@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.IndexBar
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
@@ -54,6 +55,7 @@ class IndexBar @Inject constructor() : IIndexBar {
             model.forEach { info ->
                 when (val c = info.content) {
                     is Content.Text -> {
+                        var tooltipVisible = remember { mutableStateOf(false) }
 
                         TooltipBox(
                             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
@@ -64,11 +66,38 @@ class IndexBar @Inject constructor() : IIndexBar {
                             },
                             state = rememberTooltipState(isPersistent = false)
                         ) {
+                            val coroutineScope = rememberCoroutineScope()
+                            val currentFolder = mainViewModel.currentFolder.collectAsState()
+
                             Text(
-                                modifier = Modifier,
+                                modifier = Modifier
+                                    .clickable{
+                                                tooltipVisible.value = !tooltipVisible.value
+
+                                                val items = currentFolder.value.items
+                                                    .sortedBy { it.name }
+
+                                                val zone = ZoneId.systemDefault()
+
+                                                items.forEachIndexed { index, item ->
+                                                    val itemFirstCharacter = item.name.first().uppercase()
+
+                                                    if (itemFirstCharacter.equals(info.content.text)) {
+                                                        coroutineScope.launch {
+                                                            currentScrollState.animateScrollToItem(
+                                                                index
+                                                            )
+                                                        }
+
+                                                        return@clickable
+                                                    }
+                                                }
+                                            }
+                                    ,
                                 text = info.content.text,
                                 color = if (info.infoType == InfoType.MAJOR) SigmaColors.current.tertiary else SigmaColors.current.secondary
                             )
+
                         }
                     }
 
