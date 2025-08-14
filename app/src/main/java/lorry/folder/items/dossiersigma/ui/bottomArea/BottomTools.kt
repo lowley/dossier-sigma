@@ -89,7 +89,7 @@ import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.services.MoveToNASService
-import lorry.folder.items.dossiersigma.headless.usecases.browser.BrowserTarget
+import lorry.folder.items.dossiersigma.ui.browser.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.normal.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
@@ -640,20 +640,19 @@ sealed class Tools {
                             if (selectedItem == null)
                                 return@run
 
+                            bottomTools.setCurrentContent(DEFAULT)
+                            viewModel.setSelectedItem(null, true)
+
                             /**
                              * @see lorry.folder.items.dossiersigma.ui.browser.BrowserOverlay
                              * le Browser est un composable dans MainActivity
                              * voir BrowserOverlay et son appel par MainActivity
                              * le callback est un de ses paramètres d'appel
                              */
-                            mainActivity.onGotBrowserImage = { url ->
+                            viewModel.browser.onGotBrowserImage = { url ->
+
                                 viewModel.viewModelScope.launch {
                                     manageImageClick(viewModel, url)
-                                    //génère des problèmes dans manageImageClick
-//                            mainViewModel.setSelectedItem(null)
-                                    bottomTools.setCurrentContent(DEFAULT)
-                                    viewModel.setSelectedItem(null, true)
-//                                        mainViewModel.refreshCurrentFolder()
                                 }
                             }
 

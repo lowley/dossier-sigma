@@ -8,7 +8,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.external.clipboard.IClipboardRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
-import lorry.folder.items.dossiersigma.headless.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.clipboard.PastingPictureUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase

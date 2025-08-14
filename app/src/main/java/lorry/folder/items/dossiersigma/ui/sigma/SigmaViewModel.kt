@@ -41,7 +41,6 @@ import lorry.folder.items.dossiersigma.external.playing.IPlayingDataSource
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.headless.usecases.browser.BrowserUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.toIndexBarItemInfoList
@@ -50,6 +49,7 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import java.io.File
 import java.util.UUID
@@ -65,6 +65,7 @@ class SigmaViewModel @Inject constructor(
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
     val bottomTools: BottomTools,
+    val browser: IBrowser
 ) : ViewModel() {
 
     ////////////////

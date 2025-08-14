@@ -69,7 +69,6 @@ import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
-import lorry.folder.items.dossiersigma.ui.bottomArea.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.bottomArea.FolderChooserDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
@@ -77,6 +76,8 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.MobileSticker
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.browser.IBrowser
+import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.centralArea.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.centralArea.HomeButtonIcon
 import lorry.folder.items.dossiersigma.ui.centralArea.HomePage
@@ -115,6 +116,9 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var bottomTools: BottomTools
 
+    @Inject
+    lateinit var browser: IBrowser
+
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
     val settingsViewModel: SettingsViewModel by viewModels()
@@ -125,7 +129,7 @@ class SigmaActivity : ComponentActivity() {
      * @see FolderChooserDialog
      */
     var onFolderChosen: (String?) -> Unit = {}
-    var onGotBrowserImage: (String) -> Unit = {}
+
 
     val sigmaActivity = this
 

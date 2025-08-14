@@ -71,29 +71,28 @@ class IndexBar @Inject constructor() : IIndexBar {
 
                             Text(
                                 modifier = Modifier
-                                    .clickable{
-                                                tooltipVisible.value = !tooltipVisible.value
+                                    .clickable {
+                                        tooltipVisible.value = !tooltipVisible.value
 
-                                                val items = currentFolder.value.items
-                                                    .sortedBy { it.name }
+                                        val items = currentFolder.value.items
+                                            .sortedBy { it.name }
 
-                                                val zone = ZoneId.systemDefault()
+                                        val zone = ZoneId.systemDefault()
 
-                                                items.forEachIndexed { index, item ->
-                                                    val itemFirstCharacter = item.name.first().uppercase()
+                                        items.forEachIndexed { index, item ->
+                                            val itemFirstCharacter = item.name.first().uppercase()
 
-                                                    if (itemFirstCharacter.equals(info.content.text)) {
-                                                        coroutineScope.launch {
-                                                            currentScrollState.animateScrollToItem(
-                                                                index
-                                                            )
-                                                        }
-
-                                                        return@clickable
-                                                    }
+                                            if (itemFirstCharacter.equals(info.content.text)) {
+                                                coroutineScope.launch {
+                                                    currentScrollState.animateScrollToItem(
+                                                        index
+                                                    )
                                                 }
+
+                                                return@clickable
                                             }
-                                    ,
+                                        }
+                                    },
                                 text = info.content.text,
                                 color = if (info.infoType == InfoType.MAJOR) SigmaColors.current.tertiary else SigmaColors.current.secondary
                             )

@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.bottomArea
+package lorry.folder.items.dossiersigma.ui.browser.ui
 
 import android.webkit.WebView
 import androidx.compose.foundation.background
@@ -38,90 +38,90 @@ fun BrowserBottomToolbar(
     val canGoBack by canGoBackFlow.collectAsState()
 
     Column(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .fillMaxWidth()
             .height(65.dp)
-            .background(Color.Transparent)
+            .background(Color.Companion.Transparent)
     ) {
         Spacer(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(start = 50.dp, end = 50.dp, top = 5.dp, bottom = 0.dp)
                 .height(1.dp)
                 .fillMaxWidth()
-                .background(Color.LightGray)
+                .background(Color.Companion.LightGray)
         )
         Row(
-            Modifier
+            Modifier.Companion
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
-                .background(Color.Transparent)
+                .background(Color.Companion.Transparent)
                 .padding(top = 8.dp),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Companion.CenterVertically
         ) {
             Button(
                 onClick = { webView?.value?.goBack() },
                 enabled = canGoBack,
-                modifier = Modifier.padding(horizontal = 5.dp),
+                modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),
-                    contentColor = Color.Black
+                    contentColor = Color.Companion.Black
                 )
             )
             {
                 Icon(
                     painter = painterResource(id = R.drawable.la_gauche),
                     contentDescription = "back",
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                    tint = Color.Black
+                    modifier = Modifier.Companion.size(ButtonDefaults.IconSize),
+                    tint = Color.Companion.Black
                 )
             }
 
             Button(
                 onClick = { mainViewModel.browserManager.setCurrentPage("https://www.google.fr") },
-                modifier = Modifier.padding(horizontal = 5.dp),
+                modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),
-                    contentColor = Color.Black
+                    contentColor = Color.Companion.Black
                 )
             )
             {
                 Icon(
                     painter = painterResource(id = R.drawable.maison),
                     contentDescription = "home",
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                    tint = Color.Black
+                    modifier = Modifier.Companion.size(ButtonDefaults.IconSize),
+                    tint = Color.Companion.Black
                 )
             }
 
             Button(
                 onClick = mainViewModel.browserManager::closeBrowser,
-                modifier = Modifier.padding(horizontal = 5.dp),
+                modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),
-                    contentColor = Color.Black
+                    contentColor = Color.Companion.Black
                 )
             ) {
                 Text(
                     "Retourner à l'application",
-                    color = Color.Black
+                    color = Color.Companion.Black
                 )
             }
 
             Button(
                 onClick = { webView.value?.goForward() },
                 enabled = canGoForward,
-                modifier = Modifier.padding(horizontal = 5.dp),
+                modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),
-                    contentColor = Color.Black
+                    contentColor = Color.Companion.Black
                 )
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.la_droite),
                     contentDescription = "forward",
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                    tint = Color.Black
+                    modifier = Modifier.Companion.size(ButtonDefaults.IconSize),
+                    tint = Color.Companion.Black
                 )
             }
         }

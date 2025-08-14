@@ -19,6 +19,8 @@ import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveTo
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
+import lorry.folder.items.dossiersigma.ui.browser.Browser
+import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import javax.inject.Singleton
 
 
@@ -45,6 +47,11 @@ abstract class RepositoriesModule {
     abstract fun bindIndexBar(
         indexBar: IndexBar
     ): IIndexBar
+
+    @Binds
+    abstract fun bindBrowser(
+        browser: Browser
+    ): IBrowser
 }
 
 @Module

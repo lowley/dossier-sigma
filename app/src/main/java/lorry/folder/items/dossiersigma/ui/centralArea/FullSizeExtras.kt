@@ -20,14 +20,15 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.ui.browser.BrowserOverlay
+import lorry.folder.items.dossiersigma.ui.browser.Browser
+import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
 @Composable
 context(SigmaActivity, BoxScope)
 fun FullSizeExtras(
-
+    browser: IBrowser
 ) {
     val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
     val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
@@ -217,7 +218,9 @@ fun FullSizeExtras(
     val url by mainViewModel.browserManager.currentPage.collectAsState()
 
     if (url != null)
-        BrowserOverlay(
+        browser.Render(
+            item: Item,
+            target: BrowserTarget,
             currentPage = url,
             onClose =  {
                 mainViewModel.browserManager.closeBrowser()
