@@ -108,16 +108,6 @@ fun SigmaActivity.SigmaFAB(
                                     )
                                 }
                             )
-
-//                            val intent =
-//                                Intent(this@SigmaFAB, MoveToNASService::class.java).apply {
-//                                    putExtra("filesToTransfer", Gson().toJson(files))
-//                                    putExtra(
-//                                        "nasDirectory",
-//                                        this@SigmaFAB.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
-//                                    )
-//                                }
-//                            this@SigmaFAB.startService(intent)
                         }
                     },
                     SpeedDialData(
