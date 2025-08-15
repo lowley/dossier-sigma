@@ -4,8 +4,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
@@ -88,7 +90,10 @@ class MoveToNASService @Inject constructor(
                     println("fichier $source supprimé")
 
                     println("envoi du message à CopieurTho2")
-                    sendMessageToThoApp(this@MoveToNASService, source)
+                    sendMessageToThoApp(
+                        this@MoveToNASService,
+                        source,
+                        manifestUri = intent.getParcelableExtra("manifestUri")!!)
                     println("message envoyé")
                 }
 
@@ -244,17 +249,29 @@ class MoveToNASService @Inject constructor(
     override fun onBind(intent: Intent?): IBinder? = null
 }
 
-fun sendMessageToThoApp(context: Context, message: String) {
+fun sendMessageToThoApp(context: Context, videoFile: String, manifestUri: String) {
     try {
+        val uri = Uri.parse(manifestUri)
+
         val intent = Intent("android.intent.action.USER_PRESENT").apply {
             // L'action est la même, elle cible maintenant le BroadcastReceiver
             action = "CopieurTho2.CREATE_SHORTCUT_RECEIVE_MESSAGE"
-            putExtra("Dossiersigma.EXTRA_MESSAGE_CONTENT", message)
+            putExtra("Dossiersigma.EXTRA_MESSAGE_CONTENT", videoFile)
+            putExtra("Dossiersigma.EXTRA_FILE_URI", uri)
 
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+            // très important à partir d’Android 13 : attacher l’Uri dans clipData
+            clipData = ClipData.newUri(context.contentResolver, "manifest", uri)
             // Spécifier le package est une bonne pratique pour la sécurité
-            `package` = "lorry.folder.items.copieurtho2"
+            setPackage("lorry.folder.items.copieurtho2")
         }
 
+        context.grantUriPermission(
+            "lorry.folder.items.copieurtho2",
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
         println("SIGMA2 envoi du broadcast...")
         // LA CORRECTION CLÉ : On envoie un broadcast au lieu de démarrer un service.
         // Cette action est autorisée depuis l'arrière-plan.

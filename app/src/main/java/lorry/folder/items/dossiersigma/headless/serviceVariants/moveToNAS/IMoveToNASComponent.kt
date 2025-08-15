@@ -6,5 +6,6 @@ interface IMoveToNASComponent {
         filesToTransfer: List<Pair<String, String?>>,
         nasDirectory: String,
         changeBottomTools: (progress: Int, index: Int, total: Int) -> Unit,
+        manifestUri: String,
     )
 }

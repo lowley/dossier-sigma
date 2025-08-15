@@ -27,6 +27,7 @@ class MoveToNASComponent @Inject constructor(
         filesToTransfer: List<Pair<String, String?>>,
         nasDirectory: String,
         changeBottomTools: (progress: Int, index: Int, total: Int) -> Unit,
+        manifestUri: String,
     ) {
         val filesToTransferDataDelegate = parameter<List<Pair<String, String?>>>()
         val filesToTransferData by filesToTransferDataDelegate
@@ -34,16 +35,21 @@ class MoveToNASComponent @Inject constructor(
         val nasDirectoryDataDelegate = parameter<String>()
         val nasDirectoryData by nasDirectoryDataDelegate
 
+        val manifestUriDelegate = parameter<String>()
+        val manifestUriData by manifestUriDelegate
+
         val delegates = mapOf(
             "filesToTransferData" to filesToTransferDataDelegate,
-            "nasDirectoryData" to nasDirectoryDataDelegate
+            "nasDirectoryData" to nasDirectoryDataDelegate,
+            "manifestUriData" to manifestUriDelegate
         )
 
         service.startService(
             params = delegates,
             values = mapOf(
                 "filesToTransferData" to Gson().toJson(filesToTransfer),
-                "nasDirectoryData" to nasDirectory
+                "nasDirectoryData" to nasDirectory,
+                "manifestUriData" to manifestUri
             ),
             notificationInfos = listOf(),
             context = context
@@ -53,13 +59,14 @@ class MoveToNASComponent @Inject constructor(
             // core content //
             //////////////////
             val filesToTransferData = delegates["filesToTransferData"]?.value as? List<Pair<String, String?>>
-            val nasDirectoryData = delegates["nasDirectoryDataDelegate"]?.value as? String
+            val nasDirectoryData = delegates["nasDirectoryData"]?.value as? String
+            val manifestUriData = delegates["manifestUriData"]?.value as? String
 
             Log.d(TAG, "MoveToNASService: filesToTransferData: ${filesToTransferData?.size} éléments")
             Log.d(TAG, "MoveToNASService: premier: ${filesToTransferData?.get(0)?.first?.takeLast(20)}, " +
                     "dernier: ${if (filesToTransferData?.get(filesToTransferData.size - 1)?.second == null) "null" else filesToTransferData?.get(filesToTransferData.size - 1)?.second?.take(20)}")
 
-            if (filesToTransferData == null || nasDirectoryData == null)
+            if (filesToTransferData == null || nasDirectoryData == null || manifestUriData == null)
                 START_NOT_STICKY
 
             val destination = "/$nasDirectory"
@@ -90,7 +97,10 @@ class MoveToNASComponent @Inject constructor(
                         println("fichier $source supprimé")
 
                         println("envoi du message à CopieurTho2")
-                        sendMessageToThoApp(context, Gson().toJson(source))
+                        sendMessageToThoApp(
+                            context,
+                            source.first,
+                            manifestUri = manifestUriData!!)
                         println("message envoyé")
                     }
 

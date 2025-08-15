@@ -36,7 +36,7 @@ class NasUtilities @Inject constructor(
                     localFilePath = source,
                     pathOnNAS = destination,
                 ) { p ->
-                    println("progression: $p%")
+//                    println("progression: $p%")
                     changeBottomTools(p, index, total)
                 }
             }

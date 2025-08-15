@@ -39,17 +39,6 @@
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
-        <provider
-                android:name="androidx.core.content.FileProvider"
-                android:authorities="${applicationId}.provider"
-                android:exported="false"
-                android:grantUriPermissions="true"
-                android:readPermission="android.permission.READ_EXTERNAL_STORAGE"
-                android:writePermission="android.permission.WRITE_EXTERNAL_STORAGE">
-            <meta-data
-                    android:name="android.support.FILE_PROVIDER_PATHS"
-                    android:resource="@xml/file_paths" />
-        </provider>
         <service
             android:name=".headless.services.MoveFileService"
             android:exported="false"
@@ -66,5 +55,14 @@
                 android:foregroundServiceType : optionnel, précise le type pour Android 9+
                 (dataSync, location, mediaPlayback, etc.)
             -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

@@ -62,12 +62,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewModelScope
 import coil.compose.AsyncImage
 import com.github.skydoves.colorpicker.compose.ColorEnvelope
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
+import com.google.gson.Gson
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,6 +89,7 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.Scale
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
+import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.services.MoveToNASService
 import lorry.folder.items.dossiersigma.ui.browser.BrowserTarget
@@ -968,12 +971,29 @@ sealed class Tools {
                                 listOf(it to picture64)
                             } ?: emptyList()
 
+                            //* aire des images enregistrées dans un fichier
+                            //* pour transfert à CopieurTho2
+                            val entries = filesToTransfer.map<Pair<String, String?>, ManifestEntry>{
+                                ManifestEntry(fullPath = it.first, picture64 = it.second)
+                            }
+
+                            // 2) Écrire le JSON dans un fichier temporaire de cache interne
+                            val manifestFile = File(mainActivity.cacheDir, "transfer_manifest.json").apply {
+                                writeText(Gson().toJson(entries))
+                            }
+
+                            // 3) Obtenir l’URI de partage via FileProvider
+                            val authority = "${mainActivity.packageName}.provider"
+                            val contentUri = FileProvider.getUriForFile(mainActivity, authority, manifestFile)
+                            //* fin aire des images enregistrées dans un fichier
+
                             val nasDirectory =
                                 mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
                                     ?: ""
 
                             bottomTools.moveToNASComponent.startService(
                                 filesToTransfer = filesToTransfer,
+                                manifestUri = contentUri.toString(),
                                 nasDirectory = nasDirectory,
                                 changeBottomTools = { percentage: Int, index: Int, total: Int ->
                                     bottomTools.updateNASProgress(
