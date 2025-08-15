@@ -74,7 +74,7 @@ class MoveFileService @Inject constructor(
             val duration = measureTimeMillis {
                 if (sourceFile.isFile)
                     copyFileWithProgress(sourceFile, destinationFile) { p ->
-                        println("progression: $p%")
+//                        println("progression: $p%")
                         bottomTools.updateProgress(p)
                     }
 //                    sourceFile.copyTo(destinationFile, overwrite = true)
