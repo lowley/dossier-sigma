@@ -188,8 +188,6 @@ class SigmaActivity : ComponentActivity() {
 
             val fabState = rememberSpeedDialFloatingActionButtonState()
             val colors = MaterialTheme.colorScheme
-            val browserState = browser.rememberBrowserState()
-            val currentPage by browserState.currentPageFlow.collectAsState()
             val isDisplayingMemo by memo.isDisplayingMemo.collectAsState()
             val isKeyboardVisible by keyboardAsState()
 
@@ -201,6 +199,7 @@ class SigmaActivity : ComponentActivity() {
                 scrollStates.getOrPut(currentFolder.fullPath) {
                     LazyGridState()
                 }
+            val browserState by browser.vm.state.collectAsState()
 
             Scaffold(
                 containerColor = colors.background,
@@ -210,7 +209,7 @@ class SigmaActivity : ComponentActivity() {
                     //////////////////////////
 
                     val hidden = homePageVisible ||
-                            currentPage != null ||
+                            browserState.url != null ||
                             (isDisplayingMemo && isKeyboardVisible)
 
                     if (!hidden)
@@ -248,12 +247,10 @@ class SigmaActivity : ComponentActivity() {
                     ///////////////////////////////
                     // barre d'outils du browser //
                     ///////////////////////////////
-                    if (currentPage != null)
-                        BrowserBottomToolbar(
-                            webView = mainViewModel.webView,
-                            canGoBackFlow = mainViewModel.canGoBack,
-                            canGoForwardFlow = mainViewModel.canGoForward
-                        )
+
+                    //déclaration du composant BrowserBottomToolbar: #[[BrowserBottomToolbar]]
+                    if (browserState.url != null)
+                        BrowserBottomToolbar()
                 },
                 floatingActionButton = {
                     Column {
@@ -694,7 +691,7 @@ class SigmaActivity : ComponentActivity() {
                      * View2 -- Repo2
                      * @enduml
                      */
-                    FullSizeExtras(browser, browserState)
+                    FullSizeExtras(browser)
 
                     ////////////////////////////////
                     // memo + palette de couleurs //

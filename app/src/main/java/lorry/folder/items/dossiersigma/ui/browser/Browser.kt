@@ -1,12 +1,16 @@
 package lorry.folder.items.dossiersigma.ui.browser
 
 import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.qualifiers.ActivityContext
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserWindow
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
@@ -14,13 +18,17 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import javax.inject.Inject
 
 class Browser @Inject constructor(
-    val context: Context,
-    override val vm: BrowserViewModel
+    @ActivityContext private val context: Context
 ) : IBrowser {
+
+    override val vm: BrowserViewModel by lazy {
+        val activity = context.findActivity()
+        ViewModelProvider(activity)[BrowserViewModel::class.java]
+    }
 
     @Composable
     override fun rememberBrowserState(): BrowserState {
-        return rememberSaveable { BrowserState() }
+        return remember { BrowserState() }
     }
 
     ////////////
@@ -36,9 +44,28 @@ class Browser @Inject constructor(
                 browserState = browserState,
                 onImageClicked = { imageUrl ->
                     browserState.onImageClicked(imageUrl)
+                },
+                setCanGoBack = { value ->
+                    vm.changeState(
+                        canGoBack = value
+                    )
+                },
+                setCanGoForward = { value ->
+                    vm.changeState(
+                        canGoForward = value
+                    )
+                },
+                closeBrowser = {
+                    vm.close()
                 }
             )
     }
+
+    private fun Context.findActivity(): ComponentActivity =
+        generateSequence(this) { (it as? ContextWrapper)?.baseContext }
+            .filterIsInstance<ComponentActivity>()
+            .firstOrNull()
+            ?: error("Browser attend un @ActivityContext ; vérifie le scope et l’annotation.")
 }
 
 fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
@@ -47,3 +74,4 @@ fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
             viewModel.updatePicture(imageUrl)
         }
 }
+

@@ -48,7 +48,6 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import java.io.File
 import java.util.UUID
@@ -63,7 +62,6 @@ class SigmaViewModel @Inject constructor(
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
     val bottomTools: BottomTools,
-    val browser: IBrowser
 ) : ViewModel() {
 
     ////////////////

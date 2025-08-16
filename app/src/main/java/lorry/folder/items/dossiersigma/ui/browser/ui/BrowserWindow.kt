@@ -6,10 +6,12 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserCommand
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 
 @Composable
@@ -17,6 +19,9 @@ fun BrowserWindow(
     modifier: Modifier,
     browserState: BrowserState,
     onImageClicked: (String) -> Unit,
+    setCanGoBack: (Boolean) -> Unit,
+    setCanGoForward: (Boolean) -> Unit,
+    closeBrowser: () -> Unit,
 ) {
     val context = LocalContext.current
     val currentPage = browserState.url
@@ -30,8 +35,8 @@ fun BrowserWindow(
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, url: String) {
                     super.onPageFinished(view, url)
-                    browserState.setCanGoBack(view.canGoBack())
-                    browserState.setCanGoForward(view.canGoForward())
+                    setCanGoBack(view.canGoBack())
+                    setCanGoForward(view.canGoForward())
                     evaluateJavascript(
                         """
                         document.addEventListener('contextmenu', function(event) {
@@ -48,12 +53,13 @@ fun BrowserWindow(
             addJavascriptInterface(
                 object {
                     var hasClicked = false
+
                     @JavascriptInterface
                     fun onImageLongClick(imageUrl: String) {
                         if (hasClicked) return
                         hasClicked = true
                         onImageClicked(imageUrl)
-                        browserState.closeBrowser()
+                        closeBrowser()
                     }
                 },
                 "android"
@@ -66,28 +72,31 @@ fun BrowserWindow(
         onDispose { webView.destroy() }
     }
 
+
     // 3) AndroidView avec update: on réagit à l’état sans exposer la WebView
     AndroidView(
         modifier = modifier,
         factory = { webView },
         update = {
-            val url = currentPage.value
+            val url = currentPage
             if (url != null && it.url != url) {
                 it.loadUrl(url)
             }
-
-            // Consommer d’éventuelles "commandes" venant du BrowserState
-            browserState.consumeCommand { cmd ->
-                when (cmd) {
-                    is BrowserCommand.GoBack     -> if (it.canGoBack()) it.goBack()
-                    is BrowserCommand.GoForward  -> if (it.canGoForward()) it.goForward()
-                    is BrowserCommand.Reload     -> it.reload()
-                    is BrowserCommand.EvalJs     -> it.evaluateJavascript(cmd.script, null)
-                    is BrowserCommand.LoadUrl    -> it.loadUrl(cmd.url)
-                }
-            }
         }
     )
+
+    LaunchedEffect(webView) {
+        // Consommer d’éventuelles "commandes" venant du BrowserState
+        browserState.commands.collect { cmd ->
+            when (cmd) {
+                is BrowserCommand.goBack -> if (webView.canGoBack()) webView.goBack()
+                is BrowserCommand.goForward -> if (webView.canGoForward()) webView.goForward()
+//                        is BrowserCommand.Reload -> it.reload()
+//                        is BrowserCommand.EvalJs -> it.evaluateJavascript(cmd.script, null)
+//                        is BrowserCommand.LoadUrl -> it.loadUrl(cmd.url)
+            }
+        }
+    }
 }
 
 //Toast.makeText(

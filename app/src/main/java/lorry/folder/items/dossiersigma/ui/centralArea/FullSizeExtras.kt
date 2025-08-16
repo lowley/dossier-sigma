@@ -21,7 +21,6 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
-import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
@@ -29,7 +28,6 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 context(SigmaActivity, BoxScope)
 fun FullSizeExtras(
     browser: IBrowser,
-    browserState: BrowserState
 ) {
     val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
     val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
@@ -39,6 +37,7 @@ fun FullSizeExtras(
     val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
     val currentTool by bottomTools.currentTool.collectAsState()
+    val browserState by browser.vm.state.collectAsState()
 
     if (isTextDialogVisible)
         CustomTextDialog(
@@ -218,6 +217,6 @@ fun FullSizeExtras(
 
     // affichage du #[[browserBody]] si il y a lieu
     //modifié dans [[browserModification]]
-    if (browserState.url != null)
+    if (browserState.isOpen)
         browser.Render()
 }

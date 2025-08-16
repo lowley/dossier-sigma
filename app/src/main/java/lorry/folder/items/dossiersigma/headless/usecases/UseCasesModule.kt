@@ -42,13 +42,6 @@ class UseCasesModule {
     }
 
     @Provides
-    fun provideAccessingToInternetSiteForPictureUseCase(
-        @ApplicationContext context: Context,
-    ): BrowserUseCase {
-        return BrowserUseCase(context)
-    }
-
-    @Provides
     fun provideMemo(): IMemoComponent{
         return MemoComponent()
     }

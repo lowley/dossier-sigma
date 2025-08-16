@@ -21,23 +21,26 @@ data class BrowserState(
     val commands get() = _bus.asSharedFlow()
     fun send(cmd: BrowserCommand) { _bus.tryEmit(cmd) }
 
+    fun goForward() = send(BrowserCommand.goForward)
+    fun goBack() = send(BrowserCommand.goBack)
+
     fun computeUrl(
         item: Item?,
         target: BrowserTarget?
     ): String? {
         var searchString = ""
 
-        if (item == null || target == null)
+        if (target == null)
             return null
 
-        if (item.isFolder()) {
+        if (item?.isFolder() == true) {
             val coreName = item.name
             val splitted = coreName.split(".")
             if (splitted.size == 2)
                 searchString = splitted.last()
         }
 
-        if (item.isFile()) {
+        if (item?.isFile() == true) {
             val coreName = item.name.substringBeforeLast(".")
 
             val prepared1 = target

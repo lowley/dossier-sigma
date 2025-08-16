@@ -1,6 +1,5 @@
 package lorry.folder.items.dossiersigma.ui.browser.ui
 
-import android.webkit.WebView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,20 +22,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.ui.browser.changeState
+import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+
+//implémentation ici: [[BrowserBottomToolbar]]
 
 @Composable
 context(SigmaActivity)
 fun BrowserBottomToolbar(
-    webView: StateFlow<WebView?>,
-    canGoBackFlow: StateFlow<Boolean>,
-    canGoForwardFlow: StateFlow<Boolean>
 ) {
-    val canGoForward by canGoForwardFlow.collectAsState()
-    val canGoBack by canGoBackFlow.collectAsState()
-
     Column(
         modifier = Modifier.Companion
             .fillMaxWidth()
@@ -59,9 +55,11 @@ fun BrowserBottomToolbar(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Companion.CenterVertically
         ) {
+            val state by this@SigmaActivity.browser.vm.state.collectAsState()
+
             Button(
-                onClick = { webView?.value?.goBack() },
-                enabled = canGoBack,
+                onClick = { state.goBack() },
+                enabled = state.canGoBack,
                 modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),
@@ -78,7 +76,10 @@ fun BrowserBottomToolbar(
             }
 
             Button(
-                onClick = { mainViewModel.browserManager.setCurrentPage("https://www.google.fr") },
+                onClick = { browser.changeState(
+                    item = null,
+                    target = BrowserTarget.GOOGLE,
+                ) },
                 modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),
@@ -95,7 +96,7 @@ fun BrowserBottomToolbar(
             }
 
             Button(
-                onClick = mainViewModel.browserManager::closeBrowser,
+                onClick = browser.vm::close,
                 modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),
@@ -109,8 +110,8 @@ fun BrowserBottomToolbar(
             }
 
             Button(
-                onClick = { webView.value?.goForward() },
-                enabled = canGoForward,
+                onClick = { state.goForward() },
+                enabled = state.canGoForward,
                 modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),

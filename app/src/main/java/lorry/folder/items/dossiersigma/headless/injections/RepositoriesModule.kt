@@ -5,7 +5,9 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ActivityScoped
 import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
@@ -47,11 +49,6 @@ abstract class RepositoriesModule {
     abstract fun bindIndexBar(
         indexBar: IndexBar
     ): IIndexBar
-
-    @Binds
-    abstract fun bindBrowser(
-        browser: Browser
-    ): IBrowser
 }
 
 @Module
@@ -72,4 +69,12 @@ object AppModule {
     ): IMoveToNASComponent {
         return MoveToNASComponent(context!!, service, nasUtilities)
     }
+}
+
+@Module
+@InstallIn(ActivityComponent::class)
+abstract class BrowserModule {
+    @Binds
+    @ActivityScoped
+    abstract fun bindBrowser(impl: Browser): IBrowser
 }

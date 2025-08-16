@@ -645,17 +645,19 @@ sealed class Tools {
                                 return@run
 
                             bottomTools.setCurrentContent(DEFAULT)
-                            viewModel.setSelectedItem(null, true)
 
                             //le [[browserBody]] dépend de browserState (dataclass)
                             //ici il y a #[[browserModification]]
-                            viewModel.browser.changeState(
+                            mainActivity.browser.changeState(
+                                isOpen = true,
                                 item = selectedItem,
-                                target =  BrowserTarget.GOOGLE,
+                                target = BrowserTarget.GOOGLE,
                                 onImageClicked = { url ->
                                     viewModel.viewModelScope.launch {
                                         manageImageClick(viewModel, url)
+                                        viewModel.setSelectedItem(null, true)
                                     }
+
                                 }
                             )
                         }
@@ -969,18 +971,21 @@ sealed class Tools {
 
                             //* aire des images enregistrées dans un fichier
                             //* pour transfert à CopieurTho2
-                            val entries = filesToTransfer.map<Pair<String, String?>, ManifestEntry>{
-                                ManifestEntry(fullPath = it.first, picture64 = it.second)
-                            }
+                            val entries =
+                                filesToTransfer.map<Pair<String, String?>, ManifestEntry> {
+                                    ManifestEntry(fullPath = it.first, picture64 = it.second)
+                                }
 
                             // 2) Écrire le JSON dans un fichier temporaire de cache interne
-                            val manifestFile = File(mainActivity.cacheDir, "transfer_manifest.json").apply {
-                                writeText(Gson().toJson(entries))
-                            }
+                            val manifestFile =
+                                File(mainActivity.cacheDir, "transfer_manifest.json").apply {
+                                    writeText(Gson().toJson(entries))
+                                }
 
                             // 3) Obtenir l’URI de partage via FileProvider
                             val authority = "${mainActivity.packageName}.provider"
-                            val contentUri = FileProvider.getUriForFile(mainActivity, authority, manifestFile)
+                            val contentUri =
+                                FileProvider.getUriForFile(mainActivity, authority, manifestFile)
                             //* fin aire des images enregistrées dans un fichier
 
                             val nasDirectory =
@@ -1770,24 +1775,45 @@ fun SigmaActivity.HomeItemDialog(
                                  * voir BrowserOverlay et son appel par MainActivity
                                  * le callback est un de ses paramètres d'appel
                                  */
-                                sigmaActivity.onGotBrowserImage = { url ->
-                                    mainViewModel.viewModelScope.launch {
-                                        val bitmap =
-                                            mainViewModel.changingPictureUseCase.urlToBitmap(url)
-                                                ?: return@launch
-                                        withContext(Dispatchers.Main) {
-                                            mainViewModel.setIsHomeItemDialogVisible(true)
-                                            sigmaActivity.homeViewModel.setDialogHomeItemInfos(
-                                                sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
-                                                    picture = bitmap
+                                sigmaActivity.browser.changeState(
+                                    isOpen = true,
+                                    item = mainViewModel.selectedItem.value,
+                                    target = BrowserTarget.GOOGLE,
+                                    onImageClicked = { url ->
+                                        mainViewModel.viewModelScope.launch {
+                                            val bitmap =
+                                                mainViewModel.changingPictureUseCase.urlToBitmap(url)
+                                                    ?: return@launch
+                                            withContext(Dispatchers.Main) {
+                                                mainViewModel.setIsHomeItemDialogVisible(true)
+                                                sigmaActivity.homeViewModel.setDialogHomeItemInfos(
+                                                    sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+                                                        picture = bitmap
+                                                    )
                                                 )
-                                            )
+                                            }
                                         }
                                     }
-                                }
+                                )
+
+//                                sigmaActivity.onGotBrowserImage = { url ->
+//                                    mainViewModel.viewModelScope.launch {
+//                                        val bitmap =
+//                                            mainViewModel.changingPictureUseCase.urlToBitmap(url)
+//                                                ?: return@launch
+//                                        withContext(Dispatchers.Main) {
+//                                            mainViewModel.setIsHomeItemDialogVisible(true)
+//                                            sigmaActivity.homeViewModel.setDialogHomeItemInfos(
+//                                                sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
+//                                                    picture = bitmap
+//                                                )
+//                                            )
+//                                        }
+//                                    }
+//                                }
 
                                 mainViewModel.setIsHomeItemDialogVisible(false)
-                                mainViewModel.browserManager.openBrowserWithText("")
+//                                mainViewModel.browserManager.openBrowserWithText("")
                             }
                         )
                     },
