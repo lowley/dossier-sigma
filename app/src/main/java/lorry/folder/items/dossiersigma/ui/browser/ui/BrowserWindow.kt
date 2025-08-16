@@ -1,105 +1,98 @@
 package lorry.folder.items.dossiersigma.ui.browser.ui
 
-import android.annotation.SuppressLint
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.key
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import kotlinx.coroutines.flow.StateFlow
+import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 
-@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun BrowserWindow(
-    currentPageFlow: StateFlow<String?>,
-    onClose: () -> Unit,
     modifier: Modifier,
+    browserState: BrowserState,
     onImageClicked: (String) -> Unit,
-    setCanGoBack: (Boolean) -> Unit,
-    setCanGoForward: (Boolean) -> Unit,
-    setWebView: (WebView) -> Unit,
 ) {
     val context = LocalContext.current
-    val currentPage = currentPageFlow.collectAsState()
+    val currentPage = browserState.url
 
-    if (currentPage != null) {
-        Box(
-            modifier = Modifier.Companion
-                .fillMaxSize()
-                .background(Color.Companion.Black.copy(alpha = 0.5f))
-        ) {
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .background(Color.Companion.White)
-            ) {
-                key(currentPage) {
-                    AndroidView(
-                        modifier = Modifier.Companion.weight(1f),
-                        factory = {
-                            WebView(it).apply {
-                                webChromeClient = WebChromeClient()
-                                settings.javaScriptEnabled = true
-                                settings.domStorageEnabled = true
-
-                                webViewClient = object : WebViewClient() {
-                                    override fun onPageFinished(view: WebView, url: String) {
-                                        super.onPageFinished(view, url)
-                                        setCanGoBack(view.canGoBack())
-                                        setCanGoForward(view.canGoForward())
-                                        val js = """
-                            document.addEventListener('contextmenu', function(event) {
-                                event.preventDefault();
-                                var element = event.target;
-                                if (element.tagName === 'IMG') {
-                                    window.android.onImageLongClick(element.src);
-                                }
-                            });
-                        """.trimIndent()
-                                        evaluateJavascript(js, null)
-                                    }
-
-                                }
-                                addJavascriptInterface(
-                                    object {
-                                        var hasClicked = false
-
-                                        @JavascriptInterface
-                                        fun onImageLongClick(imageUrl: String) {
-                                            if (hasClicked) return
-                                            hasClicked = true
-                                            onImageClicked(imageUrl)
-                                            onClose()
-                                        }
-                                    },
-                                    "android"
-                                )
-
-                                loadUrl(currentPage.value ?: "")
-                                setWebView(this)
+    // 1) Une seule WebView, mémorisée
+    val webView = remember {
+        WebView(context).apply {
+            webChromeClient = WebChromeClient()
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView, url: String) {
+                    super.onPageFinished(view, url)
+                    browserState.setCanGoBack(view.canGoBack())
+                    browserState.setCanGoForward(view.canGoForward())
+                    evaluateJavascript(
+                        """
+                        document.addEventListener('contextmenu', function(event) {
+                            event.preventDefault();
+                            var el = event.target;
+                            if (el.tagName === 'IMG') {
+                                window.android.onImageLongClick(el.src);
                             }
-                        }
+                        });
+                        """.trimIndent(), null
                     )
                 }
             }
-
-            Toast.makeText(
-                context,
-                "Naviguez et appuyez longuement sur l'image choisie",
-                Toast.LENGTH_LONG
+            addJavascriptInterface(
+                object {
+                    var hasClicked = false
+                    @JavascriptInterface
+                    fun onImageLongClick(imageUrl: String) {
+                        if (hasClicked) return
+                        hasClicked = true
+                        onImageClicked(imageUrl)
+                        browserState.closeBrowser()
+                    }
+                },
+                "android"
             )
-                .show()
         }
     }
+
+    // 2) Détruire proprement
+    DisposableEffect(Unit) {
+        onDispose { webView.destroy() }
+    }
+
+    // 3) AndroidView avec update: on réagit à l’état sans exposer la WebView
+    AndroidView(
+        modifier = modifier,
+        factory = { webView },
+        update = {
+            val url = currentPage.value
+            if (url != null && it.url != url) {
+                it.loadUrl(url)
+            }
+
+            // Consommer d’éventuelles "commandes" venant du BrowserState
+            browserState.consumeCommand { cmd ->
+                when (cmd) {
+                    is BrowserCommand.GoBack     -> if (it.canGoBack()) it.goBack()
+                    is BrowserCommand.GoForward  -> if (it.canGoForward()) it.goForward()
+                    is BrowserCommand.Reload     -> it.reload()
+                    is BrowserCommand.EvalJs     -> it.evaluateJavascript(cmd.script, null)
+                    is BrowserCommand.LoadUrl    -> it.loadUrl(cmd.url)
+                }
+            }
+        }
+    )
 }
+
+//Toast.makeText(
+//context,
+//"Naviguez et appuyez longuement sur l'image choisie",
+//Toast.LENGTH_LONG
+//)
+//.show()

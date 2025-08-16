@@ -188,7 +188,8 @@ class SigmaActivity : ComponentActivity() {
 
             val fabState = rememberSpeedDialFloatingActionButtonState()
             val colors = MaterialTheme.colorScheme
-            val currentPage by mainViewModel.browserManager.currentPage.collectAsState()
+            val browserState = browser.rememberBrowserState()
+            val currentPage by browserState.currentPageFlow.collectAsState()
             val isDisplayingMemo by memo.isDisplayingMemo.collectAsState()
             val isKeyboardVisible by keyboardAsState()
 
@@ -693,7 +694,7 @@ class SigmaActivity : ComponentActivity() {
                      * View2 -- Repo2
                      * @enduml
                      */
-                    FullSizeExtras()
+                    FullSizeExtras(browser, browserState)
 
                     ////////////////////////////////
                     // memo + palette de couleurs //

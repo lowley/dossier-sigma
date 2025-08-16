@@ -1,35 +1,28 @@
 package lorry.folder.items.dossiersigma.ui.browser
 
-import android.webkit.WebView
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
 
 interface IBrowser {
 
-    var onGotBrowserImage: (String) -> Unit
+    val vm: BrowserViewModel
 
     @Composable
-    fun Render(item: Item, target: BrowserTarget)
+    fun Render()
 
     @Composable
-    fun BrowserOverlay(
-        currentPage: String?,
-        onClose: () -> Unit,
-        modifier: Modifier = Modifier,
-        onImageClicked: (String) -> Unit,
-        setCurrentPage: (String?) -> Unit,
-        webView: StateFlow<WebView?>,
-        canGoBack: StateFlow<Boolean>,
-        canGoForward: StateFlow<Boolean>,
-        setCanGoBack: (Boolean) -> Unit,
-        setCanGoForward: (Boolean) -> Unit,
-        setWebView: (WebView) -> Unit
-    )
-
-
-
+    fun rememberBrowserState(): BrowserState
 
 }
+
+// Extension utilitaire (pas override ⇒ défauts autorisés)
+fun IBrowser.changeState(
+    isOpen: Boolean = vm.state.value.isOpen,
+    item: Item? = vm.state.value.item,
+    target: BrowserTarget? = vm.state.value.target,
+    canGoBack: Boolean = vm.state.value.canGoBack,
+    canGoForward: Boolean = vm.state.value.canGoForward,
+    onImageClicked: (String) -> Unit = vm.state.value.onImageClicked,
+) = vm.changeState(isOpen, item, target, canGoBack, canGoForward, onImageClicked)

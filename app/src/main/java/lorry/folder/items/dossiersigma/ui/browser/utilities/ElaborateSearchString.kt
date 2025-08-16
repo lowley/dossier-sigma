@@ -1,9 +1,19 @@
 package lorry.folder.items.dossiersigma.ui.browser.utilities
 
+import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
 
-fun elaborateSearchString(item: Item, target: BrowserTarget): String {
+fun elaborateSearchString(
+    itemFlow: StateFlow<Item?>,
+    targetFlow: StateFlow<BrowserTarget?>): String {
     var final = ""
+
+    val item = itemFlow.value
+    val target = targetFlow.value
+
+    if (item == null || target == null)
+        return ""
+
 
     if (item.isFolder()) {
         val coreName = item.name

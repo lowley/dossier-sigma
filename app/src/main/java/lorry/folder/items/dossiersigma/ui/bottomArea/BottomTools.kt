@@ -92,8 +92,9 @@ import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveT
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.services.MoveToNASService
-import lorry.folder.items.dossiersigma.ui.browser.BrowserTarget
+import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
+import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.normal.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -646,21 +647,16 @@ sealed class Tools {
                             bottomTools.setCurrentContent(DEFAULT)
                             viewModel.setSelectedItem(null, true)
 
-                            /**
-                             * @see lorry.folder.items.dossiersigma.ui.browser.BrowserOverlay
-                             * le Browser est un composable dans MainActivity
-                             * voir BrowserOverlay et son appel par MainActivity
-                             * le callback est un de ses paramètres d'appel
-                             */
-                            viewModel.browser.onGotBrowserImage = { url ->
-
-                                viewModel.viewModelScope.launch {
-                                    manageImageClick(viewModel, url)
+                            //le [[browserBody]] dépend de browserState (dataclass)
+                            //ici il y a #[[browserModification]]
+                            viewModel.browser.changeState(
+                                item = selectedItem,
+                                target =  BrowserTarget.GOOGLE,
+                                onImageClicked = { url ->
+                                    viewModel.viewModelScope.launch {
+                                        manageImageClick(viewModel, url)
+                                    }
                                 }
-                            }
-
-                            viewModel.browserManager.openBrowser(
-                                selectedItem, BrowserTarget.GOOGLE
                             )
                         }
                     }

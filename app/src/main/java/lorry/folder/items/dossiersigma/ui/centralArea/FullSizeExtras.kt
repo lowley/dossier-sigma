@@ -20,15 +20,16 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfosDialog
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
+import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
 @Composable
 context(SigmaActivity, BoxScope)
 fun FullSizeExtras(
-    browser: IBrowser
+    browser: IBrowser,
+    browserState: BrowserState
 ) {
     val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
     val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
@@ -215,23 +216,8 @@ fun FullSizeExtras(
         }
     }
 
-    val url by mainViewModel.browserManager.currentPage.collectAsState()
-
-    if (url != null)
-        browser.Render(
-            item: Item,
-            target: BrowserTarget,
-            currentPage = url,
-            onClose =  {
-                mainViewModel.browserManager.closeBrowser()
-            },
-            onImageClicked = onGotBrowserImage,
-            setCurrentPage = mainViewModel.browserManager::setCurrentPage,
-            webView = mainViewModel.webView,
-            canGoBack = mainViewModel.canGoBack,
-            canGoForward = mainViewModel.canGoForward,
-            setCanGoBack = mainViewModel::setCanGoBack,
-            setCanGoForward = mainViewModel::setCanGoForward,
-            setWebView = mainViewModel::setWebView
-        )
+    // affichage du #[[browserBody]] si il y a lieu
+    //modifié dans [[browserModification]]
+    if (browserState.url != null)
+        browser.Render()
 }

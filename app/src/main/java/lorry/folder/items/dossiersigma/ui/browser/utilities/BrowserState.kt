@@ -1,0 +1,78 @@
+package lorry.folder.items.dossiersigma.ui.browser.utilities
+
+import androidx.compose.runtime.Immutable
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import lorry.folder.items.dossiersigma.headless.domain.Item
+
+@Immutable
+data class BrowserState(
+    val isOpen: Boolean = false,
+    val item: Item? = null,
+    val target: BrowserTarget? = null,
+    val canGoBack: Boolean = false,
+    val canGoForward: Boolean = false,
+    val onImageClicked: (String) -> Unit = {},
+
+    private val _bus: MutableSharedFlow<BrowserCommand> =
+        MutableSharedFlow(replay = 0, extraBufferCapacity = 32)
+) {
+    val url: String? = computeUrl(item, target)
+    val commands get() = _bus.asSharedFlow()
+    fun send(cmd: BrowserCommand) { _bus.tryEmit(cmd) }
+
+    fun computeUrl(
+        item: Item?,
+        target: BrowserTarget?
+    ): String? {
+        var searchString = ""
+
+        if (item == null || target == null)
+            return null
+
+        if (item.isFolder()) {
+            val coreName = item.name
+            val splitted = coreName.split(".")
+            if (splitted.size == 2)
+                searchString = splitted.last()
+        }
+
+        if (item.isFile()) {
+            val coreName = item.name.substringBeforeLast(".")
+
+            val prepared1 = target
+                .prepareSearchText(coreName)
+                .split(' ')
+                .filter {
+                    it.isNotEmpty()
+//                    && !it.matches(Regex("^\\(\\d{4}\\)$"))
+                }
+
+            val byPart = prepared1.indexOfFirst { it == "by" }
+
+            val prepared2 = if (byPart != -1) {
+                val tiretIndex = prepared1.indexOfFirst {
+                    it == "-" && prepared1.indexOf(it) > byPart
+                }
+                prepared1
+                    .take(tiretIndex)
+                    .filter { it != "by" }
+            } else prepared1
+
+            searchString = prepared2
+                .joinToString("+") {
+                    it.replace("(", "")
+                        .replace(")", "")
+                }
+
+        }
+
+        return target.url + searchString
+    }
+}
+
+sealed interface BrowserCommand {
+    object goBack : BrowserCommand
+    object goForward : BrowserCommand
+}
+

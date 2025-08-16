@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
-import android.webkit.WebView
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextRange
@@ -60,7 +59,6 @@ class SigmaViewModel @Inject constructor(
     val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
     val changePathUseCase: ChangePathUseCase,
-    val browserManager: BrowserUseCase,
     val playingDataSource: IPlayingDataSource,
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
@@ -170,9 +168,9 @@ class SigmaViewModel @Inject constructor(
 
     }
 
-    ///////////////////////
-    // affichage du mémo //
-    ///////////////////////
+    //////////
+    // mémo //
+    //////////
     private val _isDisplayingMemoPalette = MutableStateFlow(false)
     val isDisplayingMemoPalette: StateFlow<Boolean> = _isDisplayingMemoPalette
 
@@ -288,30 +286,12 @@ class SigmaViewModel @Inject constructor(
         _dragState.value = null
     }
 
-//    private val _dragOffset = MutableStateFlow<Offset?>(null)
-//    val dragOffset: StateFlow<Offset?> = _dragOffset
-//
-//    fun setDragOffset(offset: Offset?) {
-//        _dragOffset.value = offset
-//    }
-//
-//    fun addToDragOffset(offset: Offset) {
-//        _dragOffset.value = (_dragOffset.value ?: Offset.Zero) + offset
-//    }
-
     private val _draggableStartPosition = MutableStateFlow<Offset?>(null)
     val draggableStartPosition: StateFlow<Offset?> = _draggableStartPosition
 
     fun setDraggableStartPosition(position: Offset?) {
         _draggableStartPosition.value = position
     }
-
-//    private val _draggedTag = MutableStateFlow<ColoredTag?>(null)
-//    val draggedTag: StateFlow<ColoredTag?> = _draggedTag
-//
-//    fun setDraggedTag(tag: ColoredTag?) {
-//        _draggedTag.value = tag
-//    }
 
     ///////////////////
     // tri des items //
@@ -323,7 +303,6 @@ class SigmaViewModel @Inject constructor(
         _sorting.value = sorting
     }
 
-
     val tools = bottomTools.currentContent.map {
         it?.tools?.value
     }.stateIn(
@@ -331,27 +310,6 @@ class SigmaViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = null
     )
-
-    private val _webView = MutableStateFlow<WebView?>(null)
-    val webView: StateFlow<WebView?> = _webView
-
-    fun setWebView(webView: WebView?) {
-        _webView.value = webView
-    }
-
-    private val _canGoBack = MutableStateFlow(false)
-    val canGoBack: StateFlow<Boolean> = _canGoBack
-
-    fun setCanGoBack(value: Boolean) {
-        _canGoBack.value = value
-    }
-
-    private val _canGoForward = MutableStateFlow(false)
-    val canGoForward: StateFlow<Boolean> = _canGoForward
-
-    fun setCanGoForward(value: Boolean) {
-        _canGoForward.value = value
-    }
 
     ////////////////////
     // maj de l'image //
