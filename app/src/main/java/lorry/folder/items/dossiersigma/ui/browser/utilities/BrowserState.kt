@@ -14,6 +14,9 @@ data class BrowserState(
     val canGoForward: Boolean = false,
     val onImageClicked: (String) -> Unit = {},
 
+    //valeur par défaut donnée
+    //privé: pas inclus dans copy(...) donc garde la même valeur lors copys
+    //mutable mais référence jamais changée donc classe @Immutable
     private val _bus: MutableSharedFlow<BrowserCommand> =
         MutableSharedFlow(replay = 0, extraBufferCapacity = 32)
 ) {

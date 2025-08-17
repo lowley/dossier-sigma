@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,8 +31,8 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 context(SigmaActivity, ColumnScope)
 fun NormalPage(
     onHoveredNotHovered: (Item?) -> Unit,
-    onItemTapped: ((Item) -> Unit),
-    onItemLongPressed: ((Item) -> Unit),
+    onItemTapped: (Item) -> Unit,
+    onItemLongPressed: (Item) -> Unit,
     onTopLeftPanelClick: (Item) -> Unit,
     getInfoSup: suspend (Item) -> String,
     getInfoInf: suspend (Item) -> String,
@@ -62,6 +63,21 @@ fun NormalPage(
                     top = 0.dp,
                     bottom = 0.dp)
         ) {
+
+            DisposableEffect(
+                currentFolder, currentFolder.items,
+                currentScrollState, indexBar,
+                onItemTapped, onItemLongPressed, onTopLeftPanelClick,
+                getInfoSup, getInfoInf
+            ) {
+                android.util.Log.d("Deps", buildString {
+                    appendLine("folder#=${System.identityHashCode(currentFolder)} items#=${System.identityHashCode(currentFolder.items)} size=${currentFolder.items.size}")
+                    appendLine("scroll#=${System.identityHashCode(currentScrollState)} indexBar#=${System.identityHashCode(indexBar)}")
+                    appendLine("tap#=${System.identityHashCode(onItemTapped)} long#=${System.identityHashCode(onItemLongPressed)} topLeft#=${System.identityHashCode(onTopLeftPanelClick)}")
+                    appendLine("infoSup#=${System.identityHashCode(getInfoSup)} infoInf#=${System.identityHashCode(getInfoInf)}")
+                })
+                onDispose { }
+            }
 
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
@@ -108,7 +124,6 @@ fun NormalPage(
                 indexBar.display(currentScrollState = currentScrollState)
             }
         }
-
     }
 }
 

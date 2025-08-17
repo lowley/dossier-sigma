@@ -331,6 +331,11 @@ class SigmaViewModel @Inject constructor(
 
     val reloadTrigger = MutableStateFlow(0)
 
+
+
+
+
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentFolder: StateFlow<SigmaFolder> = combine(
         currentFolderPath,
