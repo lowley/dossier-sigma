@@ -42,6 +42,65 @@ class DiskRepository @Inject constructor(
     val intentWrapper: DSI_IntentWrapper,
 ) : IDiskRepository {
 
+    suspend override fun getFolderItemsLite(
+        folderPath: String,
+        sorting: SortingCriterion
+    ): List<Item> {
+        return withContext(Dispatchers.IO) {
+            val initialItems = withContext(Dispatchers.IO) {
+                datasource.getFolderContent(folderPath)
+                    .filter { itemDTO ->
+                        !itemDTO.name.startsWith(".") &&
+                                itemDTO.name != "System Volume Information" &&
+                                itemDTO.name != "Android"
+                    }
+                    .map { itemDTO ->
+                        async {
+                            val itemDTOPath = "${itemDTO.path}/${itemDTO.name}"
+
+                            if (itemDTO.isFile) {
+                                var file: Item = SigmaFile(
+                                    path = itemDTO.path,
+                                    name = itemDTO.name,
+                                    picture = null,
+                                    modificationDate = itemDTO.lastModified,
+                                    tag = null,
+                                    scale = null,
+                                    memo = null,
+                                )
+
+                                file
+                            } else {
+                                SigmaFolder(
+                                    path = itemDTO.path,
+                                    name = itemDTO.name,
+                                    picture = null,
+                                    items = listOf(),
+                                    modificationDate = itemDTO.lastModified,
+                                    tag = null,
+                                    scale = null,
+                                    memo = null,
+                                )
+                            }
+                        }
+                    }.awaitAll()
+            }
+
+            val sorted = when (sorting) {
+                SortingCriterion.ByNameAsc -> initialItems.sortedWith(
+                    compareBy<Item> { it.isFile() }
+                        .thenBy { it.name.toLowerCase(locale = Locale.current) })
+
+
+                SortingCriterion.ByDateDesc -> initialItems.sortedWith(
+                    compareBy<Item> { it.isFile() }
+                        .thenByDescending { it.modificationDate })
+            }
+
+            return@withContext sorted
+        }
+    }
+
     suspend override fun getFolderItems(
         folderPath: String,
         sorting: SortingCriterion
@@ -186,6 +245,24 @@ class DiskRepository @Inject constructor(
             e.printStackTrace()
             null
         }
+    }
+
+    override suspend fun getSigmaFolderLite(
+        folderPath: String,
+        sorting: SortingCriterion,
+    ): SigmaFolder {
+        val folder = File(folderPath)
+
+        return SigmaFolder(
+            fullPath = folderPath,
+            picture = null,
+            items = getFolderItemsLite(folderPath, sorting),
+            modificationDate = folder.lastModified(),
+            tag = null,
+            scale = ContentScale.Crop,
+            memo = null,
+        )
+
     }
 
     override suspend fun getSigmaFolder(

@@ -39,7 +39,7 @@ fun NormalPage(
     onRefresh: () -> Unit,
     indexBar: IIndexBar,
     currentScrollState: LazyGridState,
-    currentFolder: SigmaFolder,
+    currentFolderLite: SigmaFolder,
 
     ) {
     val currentFolderFlow = mainViewModel.currentFolder
@@ -65,13 +65,13 @@ fun NormalPage(
         ) {
 
             DisposableEffect(
-                currentFolder, currentFolder.items,
+                currentFolderLite, currentFolderLite.items,
                 currentScrollState, indexBar,
                 onItemTapped, onItemLongPressed, onTopLeftPanelClick,
                 getInfoSup, getInfoInf
             ) {
                 android.util.Log.d("Deps", buildString {
-                    appendLine("folder#=${System.identityHashCode(currentFolder)} items#=${System.identityHashCode(currentFolder.items)} size=${currentFolder.items.size}")
+                    appendLine("folder#=${System.identityHashCode(currentFolderLite)} items#=${System.identityHashCode(currentFolderLite.items)} size=${currentFolderLite.items.size}")
                     appendLine("scroll#=${System.identityHashCode(currentScrollState)} indexBar#=${System.identityHashCode(indexBar)}")
                     appendLine("tap#=${System.identityHashCode(onItemTapped)} long#=${System.identityHashCode(onItemLongPressed)} topLeft#=${System.identityHashCode(onTopLeftPanelClick)}")
                     appendLine("infoSup#=${System.identityHashCode(getInfoSup)} infoInf#=${System.identityHashCode(getInfoInf)}")
@@ -85,7 +85,7 @@ fun NormalPage(
                     .padding(start = 25.dp, end = 0.dp),
                 state = currentScrollState
             ) {
-                lazyGridItems(currentFolder.items, key = {
+                lazyGridItems(currentFolderLite.items, key = {
                     it.fullPath + "-" + it.id
                 }) { item ->
                     ItemComponent(

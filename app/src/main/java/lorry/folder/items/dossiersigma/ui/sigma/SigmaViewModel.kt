@@ -331,10 +331,31 @@ class SigmaViewModel @Inject constructor(
 
     val reloadTrigger = MutableStateFlow(0)
 
+    val currentFolderLite: StateFlow<SigmaFolder> = combine(
 
-
-
-
+        currentFolderPath,
+        reloadTrigger,
+        bottomTools.currentFlagId,
+        sorting
+    ) { path, _, currentFlagId, sorting ->
+        Triple(path, currentFlagId, sorting)
+    }.mapLatest { (path, currentFlagId, sorting) ->
+        val folder = diskRepository.getSigmaFolderLite(path, sorting)
+        folder
+    }.stateIn(
+        scope = viewModelScope,
+        started = Eagerly,
+        initialValue = SigmaFolder(
+            path = "/storage/emulated/0/Movies",
+            name = "Veuillez attendre",
+            picture = null,
+            items = emptyList(),
+            tag = null,
+            scale = ContentScale.Crop,
+            modificationDate = System.currentTimeMillis(),
+            memo = ""
+        )
+    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val currentFolder: StateFlow<SigmaFolder> = combine(
@@ -345,28 +366,8 @@ class SigmaViewModel @Inject constructor(
     ) { path, _, currentFlagId, sorting ->
         Triple(path, currentFlagId, sorting)
     }.mapLatest { (path, currentFlagId, sorting) ->
-        val folder = diskRepository.getSigmaFolder(path, sorting)
-
-
-        clearAllCaches()
-        folder.items.forEach { item ->
-            val path = item.fullPath
-            setImageCacheValue(path, item.picture)
-            setFlagCacheValue(path, item.tag)
-            setScaleCacheValue(path, item.scale)
-            setMemoCacheValue(path, item.memo)
-        }
-
-        if (currentFlagId == null)
-            folder
-        else
-            folder.copy(
-                items = folder.items
-                    .mapNotNull { item ->
-                        if (item.tag?.id == currentFlagId) item else null
-                    }
-            )
-
+        val folder = diskRepository.getSigmaFolderLite(path, sorting)
+        folder
     }.stateIn(
         scope = viewModelScope,
         started = Eagerly,
@@ -523,7 +524,8 @@ class SigmaViewModel @Inject constructor(
         if (!onlyCropped)
             capsuleMgr.save(
                 InitialPicture(pictureBitmap, base64Embedder),
-                itemPath)
+                itemPath
+            )
 
         setImageCacheValue(itemPath, pictureBitmap)
     }
@@ -622,7 +624,8 @@ class SigmaViewModel @Inject constructor(
             val capsuleMgr = CapsuleComponent()
             capsuleMgr.save(
                 Flag(tag),
-                item.fullPath)
+                item.fullPath
+            )
 
             removeFlagCacheForKey(item.fullPath)
             refreshCurrentFolder()
