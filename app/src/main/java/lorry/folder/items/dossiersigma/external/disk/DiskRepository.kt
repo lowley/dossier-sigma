@@ -11,6 +11,12 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.base64.Base64DataSource
@@ -23,6 +29,7 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.ItemDTO
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
@@ -41,6 +48,61 @@ class DiskRepository @Inject constructor(
     val base64DataSource: IBase64DataSource,
     val intentWrapper: DSI_IntentWrapper,
 ) : IDiskRepository {
+
+    override fun getFolderItemsLiteFlow(
+        folderPath: String,
+        sorting: SortingCriterion
+    ): Flow<Item> = flow {
+
+        val children = datasource.getFolderContent(folderPath)
+            .filter { itemDTO ->
+                !itemDTO.name.startsWith(".") &&
+                        itemDTO.name != "System Volume Information" &&
+                        itemDTO.name != "Android"
+            }
+//            .sortedWith(compareBy<ItemDTO>({ it.isFile }, { it.name.lowercase() }
+
+        val sorted = when (sorting) {
+            SortingCriterion.ByNameAsc -> children.sortedWith(
+                compareBy<ItemDTO> { it.isFile }
+                    .thenBy { it.name.toLowerCase(locale = Locale.current) })
+
+
+            SortingCriterion.ByDateDesc -> children.sortedWith(
+                compareBy<ItemDTO> { it.isFile }
+                    .thenByDescending { it.lastModified })
+        }
+
+        emitAll(sorted.asFlow().map { itemDTO ->
+            val itemDTOPath = "${itemDTO.path}/${itemDTO.name}"
+
+            val file = if (itemDTO.isFile) {
+                SigmaFile(
+                    path = itemDTO.path,
+                    name = itemDTO.name,
+                    picture = null,
+                    modificationDate = itemDTO.lastModified,
+                    tag = null,
+                    scale = null,
+                    memo = null,
+                )
+            } else {
+                SigmaFolder(
+                    path = itemDTO.path,
+                    name = itemDTO.name,
+                    picture = null,
+                    items = listOf(),
+                    modificationDate = itemDTO.lastModified,
+                    tag = null,
+                    scale = null,
+                    memo = null,
+                )
+            }
+
+            file
+        }
+        )
+    }.flowOn(Dispatchers.IO)
 
     suspend override fun getFolderItemsLite(
         folderPath: String,
@@ -122,7 +184,8 @@ class DiskRepository @Inject constructor(
                             val oldCapsuleManager = CapsuleComponent()
                             val oldCapsule = oldCapsuleManager.getCapsule(
                                 itemDTOPath,
-                                useOld = true)
+                                useOld = true
+                            )
 
                             if (newCapsule == null || oldCapsule == null)
                                 emptyList<Item>()
@@ -262,7 +325,6 @@ class DiskRepository @Inject constructor(
             scale = ContentScale.Crop,
             memo = null,
         )
-
     }
 
     override suspend fun getSigmaFolder(
@@ -306,7 +368,7 @@ class DiskRepository @Inject constructor(
                 println("C'est un fichier")
                 val newCropped = newCapsule?.getCroppedPicture()
                 val newInitial = newCapsule?.getInitialPicture()
-                var image: Any? =  newCropped?: newInitial
+                var image: Any? = newCropped ?: newInitial
                 val repo = VideoInfoEmbedder()
 
                 if (newCropped != null)
@@ -326,7 +388,7 @@ class DiskRepository @Inject constructor(
                     val oldCropped = oldComposite?.getCroppedPicture()
                     val oldInitial = oldComposite?.getInitialPicture()
 
-                    var image: Any? =  oldCropped?: oldInitial
+                    var image: Any? = oldCropped ?: oldInitial
 
                     if (oldCropped != null)
                         println("trouvé oldCropped")
@@ -338,7 +400,8 @@ class DiskRepository @Inject constructor(
                         val capsuleMgr = CapsuleComponent()
                         capsuleMgr.save(
                             InitialPicture(image, repo),
-                            path)
+                            path
+                        )
                     } else {
                         //récupère image existante selon l'ancienne méthode, si elle existe
                         val image64 = repo.extractBase64FromFile(
@@ -349,9 +412,12 @@ class DiskRepository @Inject constructor(
                             image = repo.base64ToBitmap(image64)
                             val capsuleMgr = CapsuleComponent()
                             capsuleMgr.save(
-                                InitialPicture(image,
-                                    repo),
-                                path)
+                                InitialPicture(
+                                    image,
+                                    repo
+                                ),
+                                path
+                            )
                             println("trouvé n-2 Initial")
                         }
                     }
@@ -368,7 +434,7 @@ class DiskRepository @Inject constructor(
                 var image: Any? = newCapsule?.getCroppedPicture() ?: newCapsule?.getInitialPicture()
 
                 if (newCropped != null)
-                println("trouvé newCropped")
+                    println("trouvé newCropped")
 
                 if (newInitial != null)
                     println("trouvé newInitial")
@@ -381,7 +447,7 @@ class DiskRepository @Inject constructor(
                     val oldCropped = oldComposite?.getCroppedPicture()
                     val oldInitial = oldComposite?.getInitialPicture()
 
-                    var image: Any? =  oldCropped?: oldInitial
+                    var image: Any? = oldCropped ?: oldInitial
 
                     if (oldCropped != null)
                         println("trouvé oldCropped")
@@ -392,9 +458,12 @@ class DiskRepository @Inject constructor(
                     if (image != null) {
                         val capsuleMgr = CapsuleComponent()
                         capsuleMgr.save(
-                            InitialPicture(image,
-                                repo2),
-                            path)
+                            InitialPicture(
+                                image,
+                                repo2
+                            ),
+                            path
+                        )
                     }
                 }
 
@@ -403,16 +472,22 @@ class DiskRepository @Inject constructor(
                     if (image != null)
                         println("trouvé n-2 Initial")
                     capsuleMgr.save(
-                        InitialPicture(image,
-                            repo2),
-                        path)
+                        InitialPicture(
+                            image,
+                            repo2
+                        ),
+                        path
+                    )
                 }
 
                 if (newCapsule?.getInitialPicture() == null && image != null)
                     capsuleMgr.save(
-                        InitialPicture(image,
-                            repo2),
-                        path)
+                        InitialPicture(
+                            image,
+                            repo2
+                        ),
+                        path
+                    )
 
                 if (image == null) {
                     println("non trouvé")
@@ -459,7 +534,7 @@ class DiskRepository @Inject constructor(
         picture: String
     ) {
         val htmlFile = File(item.fullPath + "/.folderPicture.html")
-        if (!withContext(Dispatchers.IO) { htmlFile.exists() }) 
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() })
             return
 
         insertPictureToHtmlFile(htmlFile, item)
@@ -510,7 +585,7 @@ class DiskRepository @Inject constructor(
 
         val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
 
-        val scaleToInsert = when(scale){
+        val scaleToInsert = when (scale) {
             ContentScale.Crop -> "Crop"
             ContentScale.Fit -> "Fit"
             ContentScale.None -> "None"
@@ -520,11 +595,13 @@ class DiskRepository @Inject constructor(
             ContentScale.FillBounds -> "FillBounds"
             else -> "Crop"
         }
-        
+
         val imageSection = """<div class="contentScale">$scaleToInsert</div>""""
 
-        val newHtmlContent = replaceOrInsert(htmlContent, """<div class="contentScale" >[^"]+</div>"""
-            .trimMargin(), imageSection)
+        val newHtmlContent = replaceOrInsert(
+            htmlContent, """<div class="contentScale" >[^"]+</div>"""
+                .trimMargin(), imageSection
+        )
 
         htmlFile.delete()
         withContext(Dispatchers.IO) {
@@ -548,8 +625,8 @@ class DiskRepository @Inject constructor(
     }
 
     override suspend fun removeScaleFromHtml(htmlFileFullPath: String) {
-        val htmlFile = File(htmlFileFullPath+"/.folderPicture.html")
-        if (!withContext(Dispatchers.IO) { htmlFile.exists() }) 
+        val htmlFile = File(htmlFileFullPath + "/.folderPicture.html")
+        if (!withContext(Dispatchers.IO) { htmlFile.exists() })
             return
 
         val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
@@ -589,7 +666,7 @@ class DiskRepository @Inject constructor(
 
         val folderPictureFile = File("${item.fullPath}/.folderPicture.html")
         val folderPictureCroppedFile = File("${item.fullPath}/.folderPictureCropped.html")
-        
+
         val result = withContext(Dispatchers.IO) {
             folderPictureFile.exists() || folderPictureCroppedFile.exists()
         }
@@ -672,15 +749,16 @@ class DiskRepository @Inject constructor(
             )
         }
     }
-    
-    override suspend fun isFileOrFolderExists(parentPath: String, item: Item): 
-    Boolean{
-        
+
+    override suspend fun isFileOrFolderExists(parentPath: String, item: Item):
+            Boolean {
+
         val correspondingItem = datasource.getFolderContent(parentPath)
-            .firstOrNull { it.isFile == item.isFile()
-                    && it.name == item.fullPath.substringAfterLast("/")
+            .firstOrNull {
+                it.isFile == item.isFile()
+                        && it.name == item.fullPath.substringAfterLast("/")
             }
-        
+
         return correspondingItem != null
     }
 
@@ -688,9 +766,8 @@ class DiskRepository @Inject constructor(
         val htmlFile = File("$folderPath/.folderPicture.html")
 
         val exists = try {
-             withContext(Dispatchers.IO) { htmlFile.exists() }
-        }
-        catch(e: Exception){
+            withContext(Dispatchers.IO) { htmlFile.exists() }
+        } catch (e: Exception) {
             println(e.message)
             false
         }
@@ -701,10 +778,10 @@ class DiskRepository @Inject constructor(
         // Regex pour trouver le contenu de src="data:image/...;base64,..."
         val regex = Regex("""<div class="coloredTag">(.*?)</div>"""")
         val match = regex.find(htmlContent)
-        
+
         if (match != null)
             println("match")
-        
+
         if (match == null)
             return null
 
@@ -718,7 +795,7 @@ class DiskRepository @Inject constructor(
     ) {
         if (item.isFile())
             return
-        
+
         val htmlFile = File(item.fullPath + "/.folderPicture.html")
         if (!withContext(Dispatchers.IO) { htmlFile.exists() })
             return
@@ -728,8 +805,10 @@ class DiskRepository @Inject constructor(
         val tagToInsert = Gson().toJson(tag)
         val tagSection = """<div class="coloredTag">$tagToInsert</div>""""
 
-        val newHtmlContent = replaceOrInsert(htmlContent, """<div class="coloredTag" >[^"]+</div>"""
-            .trimMargin(), tagSection)
+        val newHtmlContent = replaceOrInsert(
+            htmlContent, """<div class="coloredTag" >[^"]+</div>"""
+                .trimMargin(), tagSection
+        )
 
         htmlFile.delete()
         withContext(Dispatchers.IO) {
@@ -739,7 +818,7 @@ class DiskRepository @Inject constructor(
     }
 
     override suspend fun removeTagFromHtml(folderPath: String) {
-        val htmlFile = File(folderPath+"/.folderPicture.html")
+        val htmlFile = File(folderPath + "/.folderPicture.html")
         if (!withContext(Dispatchers.IO) { htmlFile.exists() })
             return
 
@@ -751,7 +830,7 @@ class DiskRepository @Inject constructor(
 
         if (htmlContent == correctedText)
             return
-        
+
         htmlFile.delete()
         withContext(Dispatchers.IO) {
             val fichier = File(folderPath + "/.folderPicture.html")
@@ -767,10 +846,10 @@ class DiskRepository @Inject constructor(
 
     suspend fun isFolderPopulated(itemPath: String): Boolean {
         val folder = File(itemPath)
-        if (withContext(Dispatchers.IO) {!folder.exists() || folder.isFile()})
+        if (withContext(Dispatchers.IO) { !folder.exists() || folder.isFile() })
             throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: Item does not exist or is not a folder")
 
-        return withContext(Dispatchers.IO) {  folder.listFiles()!!.isNotEmpty()}
+        return withContext(Dispatchers.IO) { folder.listFiles()!!.isNotEmpty() }
     }
 }
 

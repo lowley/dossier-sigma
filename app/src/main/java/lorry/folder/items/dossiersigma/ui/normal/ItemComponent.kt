@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -138,7 +139,7 @@ fun ItemComponent(
         var isStartInLittleBox by remember { mutableStateOf(false) }
         var areShortcutsDisplayed = remember { mutableStateOf(false) }
 
-//        val modifierWithBorder = Modifier
+        val modifierWithBorder = Modifier
 //            .clip(shape1)
 //            .background(Color.Companion.Transparent)
 //            .then(
@@ -154,23 +155,23 @@ fun ItemComponent(
 //                    Modifier.border(2.dp, tag!!.color, shape1)
 //                } else Modifier)
 //            )
-//            .pointerInput(Unit) {
-//                detectTapGestures(
-//                    onTap = {
-//                        // * tap sur un item
-//
-//                        if (areShortcutsDisplayed.value)
-//                            areShortcutsDisplayed.value = false
-//                        else onItemTapped(item)
-//                    },
-//                    onLongPress = { offset ->
-//                        onItemLongPressed(item)
-//                    })
-//            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = {
+                        // * tap sur un item
+
+                        if (areShortcutsDisplayed.value)
+                            areShortcutsDisplayed.value = false
+                        else onItemTapped(item)
+                    },
+                    onLongPress = { offset ->
+                        onItemLongPressed(item)
+                    })
+            }
 
         Box(
-//            modifier = modifierWithBorder
-            modifier = Modifier
+            modifier = modifierWithBorder
+//            modifier = Modifier
                 .width(imageHeight)
                 .height(imageHeight)
                 .onGloballyPositioned {

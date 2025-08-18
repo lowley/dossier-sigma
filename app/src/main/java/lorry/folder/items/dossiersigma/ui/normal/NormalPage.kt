@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
@@ -39,7 +38,7 @@ fun NormalPage(
     onRefresh: () -> Unit,
     indexBar: IIndexBar,
     currentScrollState: LazyGridState,
-    currentFolderLite: SigmaFolder,
+//    currentFolderLite2: SigmaFolder,
 
     ) {
     val currentFolderFlow = mainViewModel.currentFolder
@@ -64,20 +63,7 @@ fun NormalPage(
                     bottom = 0.dp)
         ) {
 
-            DisposableEffect(
-                currentFolderLite, currentFolderLite.items,
-                currentScrollState, indexBar,
-                onItemTapped, onItemLongPressed, onTopLeftPanelClick,
-                getInfoSup, getInfoInf
-            ) {
-                android.util.Log.d("Deps", buildString {
-                    appendLine("folder#=${System.identityHashCode(currentFolderLite)} items#=${System.identityHashCode(currentFolderLite.items)} size=${currentFolderLite.items.size}")
-                    appendLine("scroll#=${System.identityHashCode(currentScrollState)} indexBar#=${System.identityHashCode(indexBar)}")
-                    appendLine("tap#=${System.identityHashCode(onItemTapped)} long#=${System.identityHashCode(onItemLongPressed)} topLeft#=${System.identityHashCode(onTopLeftPanelClick)}")
-                    appendLine("infoSup#=${System.identityHashCode(getInfoSup)} infoInf#=${System.identityHashCode(getInfoInf)}")
-                })
-                onDispose { }
-            }
+            val displayedItems = this@SigmaActivity.mainViewModel.displayedItemsFlow.collectAsState()
 
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
@@ -85,7 +71,7 @@ fun NormalPage(
                     .padding(start = 25.dp, end = 0.dp),
                 state = currentScrollState
             ) {
-                lazyGridItems(currentFolderLite.items, key = {
+                lazyGridItems(displayedItems.value, key = {
                     it.fullPath + "-" + it.id
                 }) { item ->
                     ItemComponent(

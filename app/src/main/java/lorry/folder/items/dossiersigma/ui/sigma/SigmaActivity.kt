@@ -268,7 +268,7 @@ class SigmaActivity : ComponentActivity() {
                 }
             ) { padding ->
                 val currentFolder by mainViewModel.currentFolder.collectAsState()
-                val currentFolderLite by mainViewModel.currentFolderLite.collectAsState()
+//                val currentFolderLite by mainViewModel.currentFolderLite.collectAsState()
                 val selectedItem by mainViewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
                 val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
@@ -674,7 +674,7 @@ class SigmaActivity : ComponentActivity() {
                                 },
                                 indexBar = indexBar,
                                 currentScrollState = currentScrollState,
-                                currentFolderLite = currentFolderLite
+//                                currentFolderLite2 = currentFolderLite
                             )
                         }
                     }

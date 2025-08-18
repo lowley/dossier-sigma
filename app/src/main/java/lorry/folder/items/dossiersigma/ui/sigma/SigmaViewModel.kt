@@ -24,8 +24,13 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -331,30 +336,32 @@ class SigmaViewModel @Inject constructor(
 
     val reloadTrigger = MutableStateFlow(0)
 
-    val currentFolderLite: StateFlow<SigmaFolder> = combine(
-
+    val folderKeyFlow = combine(
         currentFolderPath,
         reloadTrigger,
         bottomTools.currentFlagId,
         sorting
-    ) { path, _, currentFlagId, sorting ->
-        Triple(path, currentFlagId, sorting)
-    }.mapLatest { (path, currentFlagId, sorting) ->
-        val folder = diskRepository.getSigmaFolderLite(path, sorting)
-        folder
+    ){
+        path, reloadTrigger, currentFlagId, sorting ->
+        FolderKey(
+            path = path,
+            reloadTrigger = reloadTrigger,
+            currentFlagId = currentFlagId,
+            sorting = sorting
+        )
+    }.distinctUntilChanged()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val displayedItemsFlow = folderKeyFlow.flatMapLatest { key ->
+        diskRepository.getFolderItemsLiteFlow(key.path, key.sorting)
+            .runningFold(emptyList<Item>()) { acc, it -> acc + it }
+            .flowOn(Dispatchers.IO)
+            .onStart { emit(emptyList()) }
+//            .sample(80)
     }.stateIn(
         scope = viewModelScope,
-        started = Eagerly,
-        initialValue = SigmaFolder(
-            path = "/storage/emulated/0/Movies",
-            name = "Veuillez attendre",
-            picture = null,
-            items = emptyList(),
-            tag = null,
-            scale = ContentScale.Crop,
-            modificationDate = System.currentTimeMillis(),
-            memo = ""
-        )
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = emptyList()
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -681,4 +688,11 @@ fun StateFlow<MutableMap<String, ColoredTag>>.containsFlagAsValue(valueId: UUID)
 data class DragState(
     val tool: Tool,
     val offset: Offset = Offset.Zero
+)
+
+data class FolderKey(
+    val path: String,
+    val reloadTrigger: Int,
+    val currentFlagId: UUID?,
+    val sorting: SortingCriterion
 )
