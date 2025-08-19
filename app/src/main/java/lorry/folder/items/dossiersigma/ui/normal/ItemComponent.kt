@@ -92,9 +92,9 @@ fun ItemComponent(
     getInfoInf: suspend (Item) -> String?,
 
     ) {
-//    val image by imageCache
-//        .map { map -> map[item.fullPath] }
-//        .collectAsState(initial = item.picture)
+    val image by imageCache
+        .map { map -> map[item.fullPath] }
+        .collectAsState(initial = item.picture)
 //
 //    val tag by flagCache
 //        .map { map -> map[item.fullPath] }
@@ -233,8 +233,8 @@ fun ItemComponent(
                         Color.Companion.Transparent,
                         androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                     ),
-//                image = image,
-                image = if (item.isFile()) R.drawable.document2 else R.drawable.folder234full,
+                image = item.picture,
+//                image = if (item.isFile()) R.drawable.document2 else R.drawable.folder234full,
 //                scale = scale,
                 scale = null,
                 name = item.name,
@@ -414,11 +414,11 @@ fun ImageSection(
             )
         }
 
-
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(image ?: R.drawable.document2)
                 .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
+                .crossfade(false)
                 .build(),
             contentDescription = "Miniature",
             contentScale = scale ?: ContentScale.Companion.Crop,

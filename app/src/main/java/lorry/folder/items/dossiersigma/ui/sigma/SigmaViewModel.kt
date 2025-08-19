@@ -374,6 +374,26 @@ class SigmaViewModel @Inject constructor(
         Triple(path, currentFlagId, sorting)
     }.mapLatest { (path, currentFlagId, sorting) ->
         val folder = diskRepository.getSigmaFolderLite(path, sorting)
+
+        clearAllCaches()
+        folder.items.forEach { item ->
+            val path = item.fullPath
+            setImageCacheValue(path, item.picture)
+//            setFlagCacheValue(path, item.tag)
+//            setScaleCacheValue(path, item.scale)
+//            setMemoCacheValue(path, item.memo)
+        }
+
+//        if (currentFlagId == null)
+//            folder
+//        else
+//            folder.copy(
+//                items = folder.items
+//                    .mapNotNull { item ->
+//                        if (item.tag?.id == currentFlagId) item else null
+//                    }
+//            )
+
         folder
     }.stateIn(
         scope = viewModelScope,

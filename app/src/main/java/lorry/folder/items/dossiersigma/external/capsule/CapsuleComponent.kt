@@ -22,7 +22,7 @@ class CapsuleComponent @Inject constructor(): ICapsuleComponent {
             return
 
         if (file.isFile())
-            FileCapsuleManager(targetPath, useOld).save(element)
+            FileCapsuleManager(targetPath, useOld).save(element, forFolder = false)
         else {
             FolderCapsuleManager(targetPath, useOld).save(element)
         }

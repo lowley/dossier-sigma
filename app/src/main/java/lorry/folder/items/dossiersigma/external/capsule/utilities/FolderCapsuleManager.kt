@@ -9,7 +9,7 @@ class FolderCapsuleManager(
 ) {
     suspend fun save(element: IElementInCapsule) {
         val targetHtmlPath = "$targetPath/.folderPicture.html"
-        FileCapsuleManager(targetHtmlPath).save(element)
+        FileCapsuleManager(targetHtmlPath).save(element, forFolder = true)
     }
 
     suspend fun getCapsule(): CapsuleData? {

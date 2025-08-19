@@ -25,6 +25,7 @@ import lorry.folder.items.dossiersigma.external.base64.Tags
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CapsuleData
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CroppedPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
@@ -76,21 +77,64 @@ class DiskRepository @Inject constructor(
         emitAll(sorted.asFlow().map { itemDTO ->
             val itemDTOPath = "${itemDTO.path}/${itemDTO.name}"
 
+            val newCapsuleManager = CapsuleComponent()
+            val newCapsule = newCapsuleManager.getCapsule(itemDTOPath)
+            val oldCapsuleManager = CapsuleComponent()
+            val oldCapsule = oldCapsuleManager.getCapsule(
+                itemDTOPath,
+                useOld = true
+            )
+
+            if (newCapsule == null || oldCapsule == null)
+                emptyList<Item>()
+
             val file = if (itemDTO.isFile) {
-                SigmaFile(
+                var file : Item = SigmaFile(
                     path = itemDTO.path,
                     name = itemDTO.name,
-                    picture = null,
+                    picture = getImage(
+                        path = itemDTOPath,
+                        newCapsule = newCapsule,
+                        oldComposite = oldCapsule,
+                    ),
                     modificationDate = itemDTO.lastModified,
                     tag = null,
                     scale = null,
                     memo = null,
                 )
+
+                if (itemDTO.name.endsWith(".html")) {
+                    try {
+                        val picture =
+                            base64DataSource.extractImageFromHtml("${itemDTO.path}/${itemDTO.name}")
+                        if (picture != null)
+                            file = file.copy(picture = picture)
+                    } catch (e: Exception) {
+                        println("Erreur lors de la lecture de cover : ${e.message}")
+                    }
+                }
+
+                if (itemDTO.name.endsWith(".mp4")) {
+                    try {
+                        val picture =
+                            extractCoverBitmap("${itemDTO.path}/${itemDTO.name}")
+                        if (picture != null)
+                            file = file.copy(picture = picture)
+                    } catch (e: Exception) {
+                        println("Erreur lors de la lecture de cover : ${e.message}")
+                    }
+                }
+
+                file
             } else {
                 SigmaFolder(
                     path = itemDTO.path,
                     name = itemDTO.name,
-                    picture = null,
+                    picture = getImage(
+                        path = itemDTOPath,
+                        newCapsule = newCapsule,
+                        oldComposite = oldCapsule,
+                    ),
                     items = listOf(),
                     modificationDate = itemDTO.lastModified,
                     tag = null,
@@ -438,6 +482,20 @@ class DiskRepository @Inject constructor(
 
                 if (newInitial != null)
                     println("trouvé newInitial")
+
+                if (image != null && !File("$path/.sigma").exists()){
+                    val capsuleMgr = CapsuleComponent()
+                    val repo = VideoInfoEmbedder()
+
+                    capsuleMgr.save(
+                        InitialPicture(image, repo),
+                        path
+                    )
+                    capsuleMgr.save(
+                        CroppedPicture(image, repo),
+                        path
+                    )
+                }
 
                 val capsuleMgr = CapsuleComponent()
                 val repo = Base64DataSource()

@@ -89,7 +89,7 @@ abstract class Item(
             if (this@Item is SigmaFolder) {
                 folderCapsuleManager.save(element)
             } else {
-                fileCapsuleManager.save(element)
+                fileCapsuleManager.save(element, forFolder = false)
             }
         }
     }
