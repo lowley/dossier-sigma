@@ -524,19 +524,16 @@ class SigmaActivity : ComponentActivity() {
                                 // aire de tri des items //
                                 ///////////////////////////
                                 //TODO pas besoin de tout recharger
-
                                 SortingArea(
                                     modifier = Modifier,
                                     sortingFlow = mainViewModel.sorting,
                                     onDateSortClick = {
-                                        mainViewModel.goToFolder(
-                                            currentFolder.fullPath,
+                                        mainViewModel.setSorting(
                                             SortingCriterion.ByDateDesc
                                         )
                                     },
                                     onNameSortClick = {
-                                        mainViewModel.goToFolder(
-                                            currentFolder.fullPath,
+                                        mainViewModel.setSorting(
                                             SortingCriterion.ByNameAsc
                                         )
                                     }
@@ -558,11 +555,9 @@ class SigmaActivity : ComponentActivity() {
                             HomePage(
                                 homeItemsInVM = homeViewModel.homeItems,
                                 onItemClicked = { item: HomeItem ->
-                                    mainViewModel.goToFolder(item.path)
-                                    homeViewModel.setHomePageVisible(
-                                        false
-                                    )
-                                },
+                                    mainViewModel.goToFolder(
+                                        item.path)
+                                    homeViewModel.setHomePageVisible(false) },
                                 onEditTapped = { item: HomeItem ->
                                     homeViewModel.setDialogHomeItemInfos(
                                         HomeItemInfos(
@@ -703,7 +698,6 @@ class SigmaActivity : ComponentActivity() {
                     /////////////////////////////////
                     //si icône d'étiquette
                     //2e icône, draggable
-
                     /**
                      * @startuml
                      * class ViewModel

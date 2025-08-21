@@ -62,7 +62,7 @@ fun NormalPage(
                     bottom = 0.dp)
         ) {
 
-            val displayedItems = this@SigmaActivity.mainViewModel.displayedItemsFlow.collectAsState()
+            val displayedItems = this@SigmaActivity.mainViewModel.displayedItemsFlowFiltered.collectAsState()
 
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),

@@ -110,14 +110,12 @@ class SigmaViewModel @Inject constructor(
         FolderKey(
             path = path,
             reloadTrigger = reloadTrigger,
-            currentFlagId = currentFlagId,
-            sorting = sorting
         )
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val displayedItemsFlow = folderKeyFlow.flatMapLatest { key ->
-        diskRepository.getFolderItemsLiteFlow(key.path, key.sorting)
+        diskRepository.getFolderItemsLiteFlow(key.path, sorting.value)
             .onEach { item ->
                 setImageCacheValue(item.fullPath, item.picture)
                 setFlagCacheValue(item.fullPath, item.tag)
@@ -142,7 +140,6 @@ class SigmaViewModel @Inject constructor(
                     SortingCriterion.ByNameAsc ->
                         compareBy<Item> { it.isFile() }
                             .thenBy { it.name.toLowerCase(locale = Locale.current) }
-
 
                     SortingCriterion.ByDateDesc ->
                         compareBy<Item> { it.isFile() }
@@ -200,6 +197,17 @@ class SigmaViewModel @Inject constructor(
             modificationDate = System.currentTimeMillis(),
             memo = ""
         )
+    )
+
+    val modelFlow = combine(
+        displayedItemsFlow,
+        sorting
+    ) { items, sorting ->
+        items.toIndexBarItemInfoList(this)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyList()
     )
 
     ////////////////
@@ -451,17 +459,6 @@ class SigmaViewModel @Inject constructor(
         scope = viewModelScope,
         started = Eagerly,
         initialValue = ""
-    )
-
-    val modelFlow = combine(
-        currentFolder,
-        sorting
-    ) { folder, sorting ->
-        folder.items.toIndexBarItemInfoList(this)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = emptyList()
     )
 
     companion object {
@@ -746,6 +743,4 @@ data class DragState(
 data class FolderKey(
     val path: String,
     val reloadTrigger: Int,
-    val currentFlagId: UUID?,
-    val sorting: SortingCriterion
 )
