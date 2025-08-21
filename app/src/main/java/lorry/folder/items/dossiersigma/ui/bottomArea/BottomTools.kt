@@ -533,7 +533,7 @@ sealed class Tools {
 
                             //on fait ça parce que par lazy loading au début de l'affichage
                             //du dossier de tous les items
-                            val itemsWithThisTag = viewModel.currentFolder.value.items.filter {
+                            val itemsWithThisTag = viewModel.displayedItemsFlow.value.filter {
                                 val capsuleMgr = CapsuleComponent()
                                 val tagFile = capsuleMgr.getElement(
                                     Flag.Companion,
@@ -583,7 +583,7 @@ sealed class Tools {
                     onClick =
                         { viewModel, mainActivity ->
                             run {
-                                val files = viewModel.currentFolder.value.items
+                                val files = viewModel.displayedItemsFlow.value
 
                                 files.forEach {
                                     val capsuleMgr = CapsuleComponent()
@@ -737,12 +737,14 @@ sealed class Tools {
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
                         val parent = viewModel.currentFolder.value
+                        val items = viewModel.displayedItemsFlow.value
+
                         //viewModel.setSelectedItem(null)
                         viewModel.setDialogMessage("Nouveau nom du dossier")
                         viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
                             run {
                                 val parentPath = parent.fullPath
-                                val children = parent.items
+                                val children = items
                                     .map { item -> item.fullPath }
                                 if (children.any { child -> child.substringAfterLast("/") == newName }
                                 ) {
@@ -787,7 +789,6 @@ sealed class Tools {
                     text = { "+ fils" },
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
-                        val parent = viewModel.currentFolder.value
                         viewModel.setDialogMessage("Nouveau nom du dossier")
                         viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
                             run {

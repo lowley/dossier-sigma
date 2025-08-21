@@ -67,14 +67,14 @@ class IndexBar @Inject constructor() : IIndexBar {
                             state = rememberTooltipState(isPersistent = false)
                         ) {
                             val coroutineScope = rememberCoroutineScope()
-                            val currentFolder = mainViewModel.currentFolder.collectAsState()
+                            val currentFolderItems = mainViewModel.displayedItemsFlow.collectAsState()
 
                             Text(
                                 modifier = Modifier
                                     .clickable {
                                         tooltipVisible.value = !tooltipVisible.value
 
-                                        val items = currentFolder.value.items
+                                        val items = currentFolderItems.value
                                             .sortedBy { it.name }
 
                                         val zone = ZoneId.systemDefault()
@@ -113,7 +113,7 @@ class IndexBar @Inject constructor() : IIndexBar {
                             state = rememberTooltipState(isPersistent = false)
                         ) {
                             val coroutineScope = rememberCoroutineScope()
-                            val currentFolder = mainViewModel.currentFolder.collectAsState()
+                            val currentFolderItems = mainViewModel.displayedItemsFlow.collectAsState()
 
                             Icon(
                                 modifier = Modifier
@@ -124,7 +124,7 @@ class IndexBar @Inject constructor() : IIndexBar {
                                                 tooltipVisible.value = !tooltipVisible.value
 
                                                 require(info.endDate != null)
-                                                val items = currentFolder.value.items
+                                                val items = currentFolderItems.value
                                                     .sortedBy { it.modificationDate }
                                                     .reversed()
 

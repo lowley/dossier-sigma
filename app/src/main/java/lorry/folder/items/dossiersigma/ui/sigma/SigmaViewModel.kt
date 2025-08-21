@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
@@ -29,6 +31,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
@@ -58,6 +61,8 @@ import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
+//adb install "C:\Users\olivier\progs\dossiersigma.apk"
+
 @HiltViewModel
 class SigmaViewModel @Inject constructor(
     val diskRepository: IDiskRepository,
@@ -68,6 +73,134 @@ class SigmaViewModel @Inject constructor(
     val base64Embedder: IVideoInfoEmbedder,
     val bottomTools: BottomTools,
 ) : ViewModel() {
+
+    ///////////////////
+    // tri des items //
+    ///////////////////
+    private val _sorting = MutableStateFlow(SortingCriterion.ByDateDesc)
+    val sorting: StateFlow<SortingCriterion> = _sorting
+
+    fun setSorting(sorting: SortingCriterion) {
+        _sorting.value = sorting
+    }
+
+    ///////////////////////////////
+    // dossiers, dossier courant //
+    ///////////////////////////////
+    private val _folderPathHistory = MutableStateFlow<List<String>>(emptyList())
+    val folderPathHistory: StateFlow<List<String>> = _folderPathHistory
+
+    val currentFolderPath: StateFlow<String> = folderPathHistory
+        .map { it.lastOrNull() ?: "/storage/emulated/0/Movies" }
+        .stateIn(
+            scope = viewModelScope,
+            started = Eagerly,
+            initialValue = "/storage/emulated/0/Movies"
+        )
+
+    val reloadTrigger = MutableStateFlow(0)
+
+    val folderKeyFlow = combine(
+        currentFolderPath,
+        reloadTrigger,
+        bottomTools.currentFlagId,
+        sorting
+    ){
+            path, reloadTrigger, currentFlagId, sorting ->
+        FolderKey(
+            path = path,
+            reloadTrigger = reloadTrigger,
+            currentFlagId = currentFlagId,
+            sorting = sorting
+        )
+    }.distinctUntilChanged()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val displayedItemsFlow = folderKeyFlow.flatMapLatest { key ->
+        diskRepository.getFolderItemsLiteFlow(key.path, key.sorting)
+            .onEach { item ->
+                setImageCacheValue(item.fullPath, item.picture)
+                setFlagCacheValue(item.fullPath, item.tag)
+            }.runningFold(emptyList<Item>()) { acc, it -> acc + it }
+            .flowOn(Dispatchers.IO)
+            .onStart { emit(emptyList()) }
+//            .sample(80)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = emptyList()
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val displayedItemsFlowFiltered = combine(displayedItemsFlow, bottomTools.currentFlagId, sorting){
+            items, flagId, sorting ->
+
+        val filtered = if (flagId == null) items else items.filter { it.tag?.id == flagId }
+        filtered
+            .sortedWith(
+                when (sorting) {
+                    SortingCriterion.ByNameAsc ->
+                        compareBy<Item> { it.isFile() }
+                            .thenBy { it.name.toLowerCase(locale = Locale.current) }
+
+
+                    SortingCriterion.ByDateDesc ->
+                        compareBy<Item> { it.isFile() }
+                            .thenByDescending { it.modificationDate }
+                }
+
+            )
+
+//            .sample(80)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = emptyList()
+    )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentFolder: StateFlow<SigmaFolder> = combine(
+        currentFolderPath,
+        reloadTrigger,
+    ) { path, _ ->
+        path
+    }.mapLatest { path ->
+        val folder = diskRepository.getSigmaFolderUltraLite(path)
+
+        clearAllCaches()
+        folder.items.forEach { item ->
+            val path = item.fullPath
+            setImageCacheValue(path, item.picture)
+//            setFlagCacheValue(path, item.tag)
+//            setScaleCacheValue(path, item.scale)
+//            setMemoCacheValue(path, item.memo)
+        }
+
+//        if (currentFlagId == null)
+//            folder
+//        else
+//            folder.copy(
+//                items = folder.items
+//                    .mapNotNull { item ->
+//                        if (item.tag?.id == currentFlagId) item else null
+//                    }
+//            )
+
+        folder
+    }.stateIn(
+        scope = viewModelScope,
+        started = Lazily,
+        initialValue = SigmaFolder(
+            path = "/storage/emulated/0/Movies",
+            name = "Veuillez attendre",
+            picture = null,
+            items = emptyList(),
+            tag = null,
+            scale = ContentScale.Crop,
+            modificationDate = System.currentTimeMillis(),
+            memo = ""
+        )
+    )
 
     ////////////////
     // imageCache //
@@ -296,16 +429,6 @@ class SigmaViewModel @Inject constructor(
         _draggableStartPosition.value = position
     }
 
-    ///////////////////
-    // tri des items //
-    ///////////////////
-    private val _sorting = MutableStateFlow(SortingCriterion.ByDateDesc)
-    val sorting: StateFlow<SortingCriterion> = _sorting
-
-    fun setSorting(sorting: SortingCriterion) {
-        _sorting.value = sorting
-    }
-
     val tools = bottomTools.currentContent.map {
         it?.tools?.value
     }.stateIn(
@@ -319,96 +442,6 @@ class SigmaViewModel @Inject constructor(
     ////////////////////
     private val _pictureUpdateId = MutableStateFlow(0)
     val pictureUpdateId: StateFlow<Int> = _pictureUpdateId
-
-    ///////////////////////////////
-    // dossiers, dossier courant //
-    ///////////////////////////////
-    private val _folderPathHistory = MutableStateFlow<List<String>>(emptyList())
-    val folderPathHistory: StateFlow<List<String>> = _folderPathHistory
-
-    val currentFolderPath: StateFlow<String> = folderPathHistory
-        .map { it.lastOrNull() ?: "/storage/emulated/0/Movies" }
-        .stateIn(
-            scope = viewModelScope,
-            started = Eagerly,
-            initialValue = "/storage/emulated/0/Movies"
-        )
-
-    val reloadTrigger = MutableStateFlow(0)
-
-    val folderKeyFlow = combine(
-        currentFolderPath,
-        reloadTrigger,
-        bottomTools.currentFlagId,
-        sorting
-    ){
-        path, reloadTrigger, currentFlagId, sorting ->
-        FolderKey(
-            path = path,
-            reloadTrigger = reloadTrigger,
-            currentFlagId = currentFlagId,
-            sorting = sorting
-        )
-    }.distinctUntilChanged()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val displayedItemsFlow = folderKeyFlow.flatMapLatest { key ->
-        diskRepository.getFolderItemsLiteFlow(key.path, key.sorting)
-            .runningFold(emptyList<Item>()) { acc, it -> acc + it }
-            .flowOn(Dispatchers.IO)
-            .onStart { emit(emptyList()) }
-//            .sample(80)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = emptyList()
-    )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val currentFolder: StateFlow<SigmaFolder> = combine(
-        currentFolderPath,
-        reloadTrigger,
-        bottomTools.currentFlagId,
-        sorting
-    ) { path, _, currentFlagId, sorting ->
-        Triple(path, currentFlagId, sorting)
-    }.mapLatest { (path, currentFlagId, sorting) ->
-        val folder = diskRepository.getSigmaFolderLite(path, sorting)
-
-        clearAllCaches()
-        folder.items.forEach { item ->
-            val path = item.fullPath
-            setImageCacheValue(path, item.picture)
-//            setFlagCacheValue(path, item.tag)
-//            setScaleCacheValue(path, item.scale)
-//            setMemoCacheValue(path, item.memo)
-        }
-
-//        if (currentFlagId == null)
-//            folder
-//        else
-//            folder.copy(
-//                items = folder.items
-//                    .mapNotNull { item ->
-//                        if (item.tag?.id == currentFlagId) item else null
-//                    }
-//            )
-
-        folder
-    }.stateIn(
-        scope = viewModelScope,
-        started = Eagerly,
-        initialValue = SigmaFolder(
-            path = "/storage/emulated/0/Movies",
-            name = "Veuillez attendre",
-            picture = null,
-            items = emptyList(),
-            tag = null,
-            scale = ContentScale.Crop,
-            modificationDate = System.currentTimeMillis(),
-            memo = ""
-        )
-    )
 
     val currentMemo: StateFlow<String> = combine(
         currentFolderPath, memoCache

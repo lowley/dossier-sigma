@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -95,10 +97,10 @@ fun ItemComponent(
     val image by imageCache
         .map { map -> map[item.fullPath] }
         .collectAsState(initial = item.picture)
-//
-//    val tag by flagCache
-//        .map { map -> map[item.fullPath] }
-//        .collectAsState(initial = item.tag)
+
+    val tag by flagCache
+        .map { map -> map[item.fullPath] }
+        .collectAsState(initial = item.tag)
 //
 //    val scale by scaleCache
 //        .map { map -> map[item.fullPath] }
@@ -140,9 +142,9 @@ fun ItemComponent(
         var areShortcutsDisplayed = remember { mutableStateOf(false) }
 
         val modifierWithBorder = Modifier
-//            .clip(shape1)
-//            .background(Color.Companion.Transparent)
-//            .then(
+            .clip(shape1)
+            .background(Color.Companion.Transparent)
+            .then(
 //                if (isSelectedItemState)
 //                    Modifier.dashedBorder(
 //                        color = Color(0xFFDBBC00),
@@ -151,9 +153,10 @@ fun ItemComponent(
 //                        dashLength = 10.dp,
 //                        gapLength = 10.dp
 //                    )
-//                else (if (tag != null) {
-//                    Modifier.border(2.dp, tag!!.color, shape1)
-//                } else Modifier)
+//                else (
+                if (tag != null) {
+                    Modifier.border(2.dp, tag!!.color, shape1)
+                } else Modifier)
 //            )
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -233,7 +236,7 @@ fun ItemComponent(
                         Color.Companion.Transparent,
                         androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
                     ),
-                image = item.picture,
+                image = image ?: item.picture,
 //                image = if (item.isFile()) R.drawable.document2 else R.drawable.folder234full,
 //                scale = scale,
                 scale = null,
@@ -241,37 +244,37 @@ fun ItemComponent(
                 areShortcutsDisplayed = areShortcutsDisplayed
             )
 
-//            val infoSup = produceState<String?>(initialValue = null, item) {
-//                value = getInfoSup(item)
-//            }.value
+            val infoSup = produceState<String?>(initialValue = null, item) {
+                value = getInfoSup(item)
+            }.value
+
+            val infoInf = produceState<String?>(initialValue = null, item) {
+                value = getInfoInf(item)
+            }.value
 //
-//            val infoInf = produceState<String?>(initialValue = null, item) {
-//                value = getInfoInf(item)
-//            }.value
-//
-//            if (infoSup == null || infoInf == null) {
-////                        CircularProgressIndicator()
-//            } else {
-//                val boxWidth = 45.dp
-//
-//                Box(
-//                    modifier = Modifier.Companion
-//                        .align(Alignment.Companion.TopStart)
-//                        .graphicsLayer {
-//                            shape = RoundedCornerShape(
-//                                topStart = 8.dp,
-//                                bottomEnd = 8.dp
-//                            )
-//                            clip = true
-//                            shadowElevation = 0f
-//                        }
-//                        .background(SigmaColors.current.secondary)
-//                        .width(boxWidth)
-//                        .clickable {
-//                            onTopLeftPanelClick(item)
-//                        }
-//                ) {
-//                    // Couche 2 (Conditionnelle) : Le maillage, dessiné par-dessus le fond
+            if (infoSup == null || infoInf == null) {
+//                        CircularProgressIndicator()
+            } else {
+                val boxWidth = 45.dp
+
+                Box(
+                    modifier = Modifier.Companion
+                        .align(Alignment.Companion.TopStart)
+                        .graphicsLayer {
+                            shape = RoundedCornerShape(
+                                topStart = 8.dp,
+                                bottomEnd = 8.dp
+                            )
+                            clip = true
+                            shadowElevation = 0f
+                        }
+                        .background(SigmaColors.current.secondary)
+                        .width(boxWidth)
+                        .clickable {
+                            onTopLeftPanelClick(item)
+                        }
+                ) {
+                    // Couche 2 (Conditionnelle) : Le maillage, dessiné par-dessus le fond
 //                    if (!memoEmpty) {
 //                        Image(
 //                            painter = painterResource(id = R.drawable.obliques4), // Remplacez par votre fichier
@@ -280,42 +283,42 @@ fun ItemComponent(
 //                            modifier = Modifier.Companion.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
 //                        )
 //                    }
-//
-//                    Column(
-//                        modifier = Modifier.Companion
-//                            .align(Alignment.Companion.TopStart)
-//                            .padding(start = 0.dp, top = 0.dp)
-//                            .width(boxWidth)
-//                    ) {
-//                        val textHeight = 18.dp
-//
-//                        Text(
-//                            modifier = Modifier.Companion
-//                                .align(Alignment.Companion.CenterHorizontally)
-//                                .padding(0.dp)
-//                                .height(textHeight),
-//                            text = infoSup,
+
+                    Column(
+                        modifier = Modifier.Companion
+                            .align(Alignment.Companion.TopStart)
+                            .padding(start = 0.dp, top = 0.dp)
+                            .width(boxWidth)
+                    ) {
+                        val textHeight = 18.dp
+
+                        Text(
+                            modifier = Modifier.Companion
+                                .align(Alignment.Companion.CenterHorizontally)
+                                .padding(0.dp)
+                                .height(textHeight),
+                            text = infoSup,
 //                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion
 //                                .ExtraBold,
-//                            fontSize = 10.sp,
-//                            color = SigmaColors.current.onSecondary
-//                        )
-//
-//                        Text(
-//                            modifier = Modifier.Companion
-//                                .align(Alignment.Companion.CenterHorizontally)
-//                                .padding(
-//                                    top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
-//                                )
-//                                .height(textHeight),
-//                            text = infoInf,
+                            fontSize = 10.sp,
+                            color = SigmaColors.current.onSecondary
+                        )
+
+                        Text(
+                            modifier = Modifier.Companion
+                                .align(Alignment.Companion.CenterHorizontally)
+                                .padding(
+                                    top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
+                                )
+                                .height(textHeight),
+                            text = infoInf,
 //                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion.ExtraBold,
-//                            fontSize = 10.sp,
-//                            color = SigmaColors.current.onSecondary
-//                        )
-//                    }
-//                }
-//            }
+                            fontSize = 10.sp,
+                            color = SigmaColors.current.onSecondary
+                        )
+                    }
+                }
+            }
 
             if (item.isFolder())
                 Box(

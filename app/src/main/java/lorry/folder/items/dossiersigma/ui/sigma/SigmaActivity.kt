@@ -674,7 +674,6 @@ class SigmaActivity : ComponentActivity() {
                                 },
                                 indexBar = indexBar,
                                 currentScrollState = currentScrollState,
-//                                currentFolderLite2 = currentFolderLite
                             )
                         }
                     }

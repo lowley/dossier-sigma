@@ -67,7 +67,7 @@ fun SigmaActivity.SigmaFAB(
                         painter = painterResource(id = R.drawable.ftp),
                     ) {
                         mainViewModel.viewModelScope.launch {
-                            val files = mainViewModel.currentFolder.value.items.map {
+                            val files = mainViewModel.displayedItemsFlow.value.map {
                                 val picture = mainViewModel.imageCache.value[it.fullPath]
                                 val picture64 = if (picture != null)
                                     mainViewModel.base64Embedder.bitmapToBase64(picture as Bitmap)

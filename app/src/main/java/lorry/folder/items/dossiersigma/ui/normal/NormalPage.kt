@@ -38,7 +38,6 @@ fun NormalPage(
     onRefresh: () -> Unit,
     indexBar: IIndexBar,
     currentScrollState: LazyGridState,
-//    currentFolderLite2: SigmaFolder,
 
     ) {
     val currentFolderFlow = mainViewModel.currentFolder

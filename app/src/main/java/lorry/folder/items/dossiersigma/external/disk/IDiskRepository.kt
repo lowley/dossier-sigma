@@ -16,6 +16,10 @@ interface IDiskRepository {
         sorting: SortingCriterion
     ): List<Item>
 
+    suspend fun getSigmaFolderUltraLite(
+        folderPath: String,
+    ): SigmaFolder
+
     fun getFolderItemsLiteFlow(
         folderPath: String,
         sorting: SortingCriterion
