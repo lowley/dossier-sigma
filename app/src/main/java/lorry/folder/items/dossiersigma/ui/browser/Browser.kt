@@ -35,12 +35,12 @@ class Browser @Inject constructor(
     // zoneUI //
     ////////////
     @Composable
-    override fun Render() {
+    override fun Render(modifier: Modifier) {
         val browserState by vm.state.collectAsState()
 
         if (browserState.isOpen)
             BrowserWindow(
-                modifier = Modifier,
+                modifier = modifier,
                 browserState = browserState,
                 onImageClicked = { imageUrl ->
                     browserState.onImageClicked(imageUrl)

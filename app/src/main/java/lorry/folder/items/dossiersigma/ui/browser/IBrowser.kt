@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.browser
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
@@ -10,7 +11,7 @@ interface IBrowser {
     val vm: BrowserViewModel
 
     @Composable
-    fun Render()
+    fun Render(modifier: Modifier)
 
     @Composable
     fun rememberBrowserState(): BrowserState

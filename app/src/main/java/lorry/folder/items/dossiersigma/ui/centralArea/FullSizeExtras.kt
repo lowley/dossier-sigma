@@ -2,6 +2,7 @@ package lorry.folder.items.dossiersigma.ui.centralArea
 
 import android.content.Intent
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -218,5 +219,8 @@ fun FullSizeExtras(
     // affichage du #[[browserBody]] si il y a lieu
     //modifié dans [[browserModification]]
     if (browserState.isOpen)
-        browser.Render()
+        browser.Render(
+            modifier = Modifier
+                .fillMaxSize()
+        )
 }
