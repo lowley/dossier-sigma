@@ -99,7 +99,7 @@ class DiskRepository @Inject constructor(
                     modificationDate = itemDTO.lastModified,
                 tag = newCapsule!!.getFlag(),
                     scale = null,
-                    memo = null,
+                    memo = newCapsule.memo2,
                 )
 
                 if (itemDTO.name.endsWith(".html")) {
@@ -137,7 +137,7 @@ class DiskRepository @Inject constructor(
                     modificationDate = itemDTO.lastModified,
                     tag = newCapsule!!.getFlag(),
                     scale = null,
-                    memo = null,
+                    memo = newCapsule.memo2,
                 )
             }
 

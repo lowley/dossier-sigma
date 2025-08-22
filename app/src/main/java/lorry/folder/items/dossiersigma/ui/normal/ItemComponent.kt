@@ -52,6 +52,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
@@ -101,18 +102,18 @@ fun ItemComponent(
     val tag by flagCache
         .map { map -> map[item.fullPath] }
         .collectAsState(initial = item.tag)
-//
+
 //    val scale by scaleCache
 //        .map { map -> map[item.fullPath] }
 //        .collectAsState(initial = item.scale)
-//
-//    val memo by memoCache
-//        .map { map -> map[item.fullPath] }
-//        .collectAsState(initial = item.memo)
-//
-//    val memoEmpty by memoCache
-//        .map { map -> map[item.fullPath].isNullOrEmpty() }
-//        .collectAsState(initial = true)
+
+    val memo by memoCache
+        .map { map -> map[item.fullPath] }
+        .collectAsState(initial = item.memo)
+
+    val memoEmpty by memoCache
+        .map { map -> map[item.fullPath].isNullOrEmpty() }
+        .collectAsState(initial = true)
 
     val imageHeight = 160.dp
 
@@ -274,15 +275,15 @@ fun ItemComponent(
                             onTopLeftPanelClick(item)
                         }
                 ) {
-                    // Couche 2 (Conditionnelle) : Le maillage, dessiné par-dessus le fond
-//                    if (!memoEmpty) {
-//                        Image(
-//                            painter = painterResource(id = R.drawable.obliques4), // Remplacez par votre fichier
-//                            contentDescription = "Maillage de fond",
-//                            contentScale = ContentScale.Companion.Crop, // Assure que l'image remplit l'espace
-//                            modifier = Modifier.Companion.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
-//                        )
-//                    }
+//                     Couche 2 (Conditionnelle) : Le maillage, dessiné par-dessus le fond
+                    if (!memoEmpty) {
+                        Image(
+                            painter = painterResource(id = R.drawable.obliques4), // Remplacez par votre fichier
+                            contentDescription = "Maillage de fond",
+                            contentScale = ContentScale.Companion.Crop, // Assure que l'image remplit l'espace
+                            modifier = Modifier.Companion.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
+                        )
+                    }
 
                     Column(
                         modifier = Modifier.Companion
@@ -298,8 +299,8 @@ fun ItemComponent(
                                 .padding(0.dp)
                                 .height(textHeight),
                             text = infoSup,
-//                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion
-//                                .ExtraBold,
+                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion
+                                .ExtraBold,
                             fontSize = 10.sp,
                             color = SigmaColors.current.onSecondary
                         )
@@ -312,7 +313,7 @@ fun ItemComponent(
                                 )
                                 .height(textHeight),
                             text = infoInf,
-//                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion.ExtraBold,
+                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion.ExtraBold,
                             fontSize = 10.sp,
                             color = SigmaColors.current.onSecondary
                         )

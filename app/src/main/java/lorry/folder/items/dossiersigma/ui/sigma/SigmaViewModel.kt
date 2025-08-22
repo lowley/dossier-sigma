@@ -242,6 +242,7 @@ class SigmaViewModel @Inject constructor(
             result.forEach { item ->
                 setImageCacheValue(item.fullPath, item.picture)
                 setFlagCacheValue(item.fullPath, item.tag)
+                setMemoCacheValue(item.fullPath, item.memo)
             }
 
             flowOf(path to result)
@@ -251,6 +252,7 @@ class SigmaViewModel @Inject constructor(
                 .onEach { item ->
                     setImageCacheValue(item.fullPath, item.picture)
                     setFlagCacheValue(item.fullPath, item.tag)
+                    setMemoCacheValue(item.fullPath, item.memo)
                 }.runningFold(emptyList<Item>()) { acc, it -> acc + it }
                 .flowOn(Dispatchers.IO)
                 .onStart { emit(emptyList()) }
