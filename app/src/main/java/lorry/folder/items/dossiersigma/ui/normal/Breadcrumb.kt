@@ -97,14 +97,14 @@ fun Breadcrumb(
                             else -> index
                         }
                         val path = when {
-                            item == "Local" -> "storage/emulated/0"
-                            item == "Carte SD" -> "storage/${items.getOrNull(1) ?: ""}"
-                            else -> items.take(
+                            item == "Local" -> "/storage/emulated/0"
+                            item == "Carte SD" -> "/storage/${items.getOrNull(1) ?: ""}"
+                            else -> "/${items.take(
                                 actualIndex + 1 + if (items.isNotEmpty() && (items[0] == "Local" || items[0] ==
                                             "Carte SD")
                                 ) 1 else 0
-                            )
-                                .joinToString("/")
+                            ).joinToString("/")}"
+
                         }
                         onPathClick(path)
                     },

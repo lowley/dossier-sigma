@@ -75,6 +75,7 @@ class IndexBar @Inject constructor() : IIndexBar {
                                         tooltipVisible.value = !tooltipVisible.value
 
                                         val items = currentFolderItems.value
+                                            .second
                                             .sortedBy { it.name }
 
                                         val zone = ZoneId.systemDefault()
@@ -125,6 +126,7 @@ class IndexBar @Inject constructor() : IIndexBar {
 
                                                 require(info.endDate != null)
                                                 val items = currentFolderItems.value
+                                                    .second
                                                     .sortedBy { it.modificationDate }
                                                     .reversed()
 

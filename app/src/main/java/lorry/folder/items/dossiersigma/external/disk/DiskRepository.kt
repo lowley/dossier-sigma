@@ -28,6 +28,7 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.CroppedPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
+import lorry.folder.items.dossiersigma.headless.domain.FolderFreshness
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.ItemDTO
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
@@ -42,6 +43,7 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import javax.inject.Inject
+import kotlin.time.ExperimentalTime
 
 class DiskRepository @Inject constructor(
     val datasource: IDiskDataSource,
@@ -144,6 +146,18 @@ class DiskRepository @Inject constructor(
         }
         )
     }.flowOn(Dispatchers.IO)
+
+    @OptIn(ExperimentalTime::class)
+    override suspend fun getFolderFreshness(folderPath: String): FolderFreshness{
+
+        val infos = datasource.getFolderLiteContent(folderPath)
+
+        return FolderFreshness(
+            path = folderPath,
+            containerMtime = infos.first,
+            contentsMaxMtime = infos.second
+        )
+    }
 
     suspend override fun getFolderItemsLite(
         folderPath: String,

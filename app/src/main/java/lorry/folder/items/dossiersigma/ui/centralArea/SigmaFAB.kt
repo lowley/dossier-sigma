@@ -67,7 +67,7 @@ fun SigmaActivity.SigmaFAB(
                         painter = painterResource(id = R.drawable.ftp),
                     ) {
                         mainViewModel.viewModelScope.launch {
-                            val files = mainViewModel.displayedItemsFlow.value.map {
+                            val files = mainViewModel.displayedItemsFlow.value.second.map {
                                 val picture = mainViewModel.imageCache.value[it.fullPath]
                                 val picture64 = if (picture != null)
                                     mainViewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
@@ -117,7 +117,7 @@ fun SigmaActivity.SigmaFAB(
                         mainViewModel.setDialogMessage("Nom du dossier à créer")
                         mainViewModel.dialogOnOkLambda =
                             { newName, viewModel, mainActivity ->
-                                val currentFolderPath = viewModel.currentFolderPath.value
+                                val currentFolderPath = viewModel.LastFolderFreshness.value.path
                                 val newFullName = "$currentFolderPath/$newName"
 
                                 if (!File(newFullName).exists()) {

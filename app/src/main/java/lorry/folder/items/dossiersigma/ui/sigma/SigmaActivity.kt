@@ -282,7 +282,7 @@ class SigmaActivity : ComponentActivity() {
                 }
 
                 BackHandler(enabled = true) {
-                    mainViewModel.sortingCache[mainViewModel.currentFolderPath.value] =
+                    mainViewModel.sortingCache[mainViewModel.LastFolderFreshness.value.path] =
                         mainViewModel.sorting.value
                     mainViewModel.removeLastFolderPathHistory()
 

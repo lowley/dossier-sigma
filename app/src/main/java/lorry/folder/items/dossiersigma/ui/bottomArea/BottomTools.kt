@@ -274,7 +274,7 @@ class BottomTools @Inject constructor(
             combine(
                 viewModel.flagCache,
                 currentFlagId,
-                viewModel.currentFolderPath,
+                viewModel.LastFolderFreshness,
                 viewModel.reloadTrigger
             ) { tagsMap, selectedId, _, _ ->
 //                val currentContentNow = currentContent.value
@@ -533,7 +533,7 @@ sealed class Tools {
 
                             //on fait ça parce que par lazy loading au début de l'affichage
                             //du dossier de tous les items
-                            val itemsWithThisTag = viewModel.displayedItemsFlow.value.filter {
+                            val itemsWithThisTag = viewModel.displayedItemsFlow.value.second.filter {
                                 val capsuleMgr = CapsuleComponent()
                                 val tagFile = capsuleMgr.getElement(
                                     Flag.Companion,
@@ -583,7 +583,7 @@ sealed class Tools {
                     onClick =
                         { viewModel, mainActivity ->
                             run {
-                                val files = viewModel.displayedItemsFlow.value
+                                val files = viewModel.displayedItemsFlow.value.second
 
                                 files.forEach {
                                     val capsuleMgr = CapsuleComponent()
@@ -737,7 +737,7 @@ sealed class Tools {
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
                         val parent = viewModel.currentFolder.value
-                        val items = viewModel.displayedItemsFlow.value
+                        val items = viewModel.displayedItemsFlow.value.second
 
                         //viewModel.setSelectedItem(null)
                         viewModel.setDialogMessage("Nouveau nom du dossier")
