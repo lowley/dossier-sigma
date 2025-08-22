@@ -59,8 +59,7 @@ class DiskDataSource @Inject constructor() : IDiskDataSource {
                 val max1 = folder.listFiles()?.maxOfOrNull { it.lastModified() }
                 max1
             }
-        }
-        catch(ex: SecurityException) {
+        } catch (ex: SecurityException) {
             Log.d(TAG, "")
             return Pair(Instant.fromEpochMilliseconds(0), Instant.fromEpochMilliseconds(0))
 
@@ -70,6 +69,6 @@ class DiskDataSource @Inject constructor() : IDiskDataSource {
         val first = Instant.fromEpochMilliseconds(folder.lastModified())
         val pair: Pair<Instant, Instant> = Pair(first, last)
 
-    return pair
-}
+        return pair
+    }
 }

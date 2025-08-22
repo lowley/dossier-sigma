@@ -145,19 +145,19 @@ fun ItemComponent(
             .clip(shape1)
             .background(Color.Companion.Transparent)
             .then(
-//                if (isSelectedItemState)
-//                    Modifier.dashedBorder(
-//                        color = Color(0xFFDBBC00),
-//                        strokeWidth = 2.dp,
-//                        cornerRadius = 8.dp,
-//                        dashLength = 10.dp,
-//                        gapLength = 10.dp
-//                    )
-//                else (
+                if (isSelectedItemState)
+                    Modifier.dashedBorder(
+                        color = Color(0xFFDBBC00),
+                        strokeWidth = 2.dp,
+                        cornerRadius = 8.dp,
+                        dashLength = 10.dp,
+                        gapLength = 10.dp
+                    )
+                else (
                 if (tag != null) {
                     Modifier.border(2.dp, tag!!.color, shape1)
                 } else Modifier)
-//            )
+            )
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = {

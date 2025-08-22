@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.external.base64.Base64DataSource
 import lorry.folder.items.dossiersigma.external.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
@@ -466,22 +465,22 @@ class DiskRepository @Inject constructor(
                     )
                 }
 
-                val capsuleMgr = CapsuleComponent()
-                val repo = Base64DataSource()
-                val repo2 = VideoInfoEmbedder()
+//                val capsuleMgr = CapsuleComponent()
+//                val repo = Base64DataSource()
+//                val repo2 = VideoInfoEmbedder()
 
-                if (image == null) {
-                    image = repo.extractImageFromHtml("${path}/.folderPicture.html")
-                    if (image != null)
-                        println("trouvé n-2 Initial")
-                    capsuleMgr.save(
-                        InitialPicture(
-                            image,
-                            repo2
-                        ),
-                        path
-                    )
-                }
+//                if (image == null) {
+//                    image = repo.extractImageFromHtml("${path}/.folderPicture.html")
+//                    if (image != null)
+//                        println("trouvé n-2 Initial")
+//                    capsuleMgr.save(
+//                        InitialPicture(
+//                            image,
+//                            repo2
+//                        ),
+//                        path
+//                    )
+//                }
 
                 if (image == null) {
                     println("non trouvé")
