@@ -233,13 +233,19 @@ class SigmaViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val displayedItemsFlow = folderKeyFlow.flatMapLatest { key ->
         val path = key.path
-
         val currentFolderFreshness = diskRepository.getFolderFreshness(path)
+
         val inclusion = itemListCache.value.containsKey(path)
         val equality = LastFolderFreshness.value.isSameAs(currentFolderFreshness)
+        if (inclusion && equality) {
+            val result = itemListCache.value[path]!!
+            result.forEach { item ->
+                setImageCacheValue(item.fullPath, item.picture)
+                setFlagCacheValue(item.fullPath, item.tag)
+            }
 
-        if (inclusion && equality)
-            flowOf(path to itemListCache.value[path]!!)
+            flowOf(path to result)
+        }
         else
             diskRepository.getFolderItemsLiteFlow(key.path, sorting.value)
                 .onEach { item ->
