@@ -69,7 +69,7 @@ fun SigmaActivity.SigmaFAB(
                         mainViewModel.viewModelScope.launch {
                             val files = mainViewModel.displayedItemsFlow.value.second.map {
                                 val picture = mainViewModel.imageCache.value[it.fullPath]
-                                val picture64 = if (picture != null)
+                                val picture64 = if (picture != null && picture is Bitmap)
                                     mainViewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
                                 else null
 
