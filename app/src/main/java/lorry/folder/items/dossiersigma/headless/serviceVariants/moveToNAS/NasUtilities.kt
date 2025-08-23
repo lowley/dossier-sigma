@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -12,6 +13,11 @@ import javax.inject.Inject
 class NasUtilities @Inject constructor(
     val nasDS: DSI_FTP,
 ) {
+    companion object{
+        val TAG = "NasUtls"
+    }
+
+
     suspend fun copy(
         source: String,
         destination: String,
@@ -86,8 +92,10 @@ class NasUtilities @Inject constructor(
     }
 
     suspend fun verify(source: String, destination: String): Boolean {
-        val sourceFile = File(source)
+        Log.d(TAG,"début de verify")
+        Log.d(TAG,"source=$source, destination=$destination")
 
+        val sourceFile = File(source)
         val destinationFiles = nasDS.fetchFiles(destination)
 
         var file = destinationFiles
@@ -96,8 +104,11 @@ class NasUtilities @Inject constructor(
         if (file == null)
             return false
 
-//        return file.size == sourceFile.length()
-        return true
+        val result = file.size == sourceFile.length()
+        Log.d(TAG,"début de verify: resultat=$result")
+
+        return result
+//        return true
     }
 
     fun delete(source: String) {

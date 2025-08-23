@@ -264,7 +264,8 @@ class SigmaActivity : ComponentActivity() {
                             isTagInfosDialogVisible = isTagInfosDialogVisible,
                             isFilePickerVisible = isFilePickerVisible,
                             isSettingsPageVisible = isSettingsPageVisible,
-                            fabState = fabState
+                            fabState = fabState,
+                            context = this@SigmaActivity
                         )
                     }
                 }

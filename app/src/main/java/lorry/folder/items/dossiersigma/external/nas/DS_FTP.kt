@@ -180,7 +180,7 @@ open class DS_FTP @Inject constructor(
     override suspend fun copy(
         localFilePath: String,
         pathOnNAS: String,
-        progressCallback: (Int) -> Unit
+        progressCallback: suspend (Int) -> Unit
     ): Boolean {
         return doWithNASAccess<Boolean>(parent = pathOnNAS) { ftp ->
             val remoteFilePath = "$pathOnNAS/${localFilePath.substringAfterLast("/")}"

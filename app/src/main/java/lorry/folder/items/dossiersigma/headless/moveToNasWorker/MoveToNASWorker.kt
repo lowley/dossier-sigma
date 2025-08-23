@@ -1,6 +1,7 @@
-package lorry.folder.items.dossiersigma.domain.services
+package lorry.folder.items.dossiersigma.headless.moveToNasWorker
 
 import android.Manifest
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -15,6 +16,8 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +26,9 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.IMoveProgress
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
+import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import java.io.File
+import java.time.Duration
 import java.time.temporal.ChronoUnit
 
 /**
@@ -44,23 +49,29 @@ class MoveToNASWorker @AssistedInject constructor(
         private const val CHANNEL_ID = "move_nas_channel"
         private const val NOTIF_ID = 42
 
-        const val KEY_SOURCES = "sources"  // Array<String>
+        const val KEY_MANIFEST_PATH = "manifest_path"
+        const val KEY_MANIFEST_URI = "manifest_uri"// Array<String>
         const val KEY_TARGET = "target"   // String
         const val P_ITEMS = "p_items"
         const val P_INDEX = "p_index"
         const val P_PCT = "p_pct"
 
-        fun request(sources: List<String>, target: String): OneTimeWorkRequest {
+        fun request(
+            sources: List<Pair<String, String?>>,
+            target: String,
+            manifestPath: String,
+            manifestUri: String): OneTimeWorkRequest {
 
             val data = workDataOf(
-                KEY_SOURCES to sources.toTypedArray(),
+                KEY_MANIFEST_PATH to manifestPath,
+                KEY_MANIFEST_URI to manifestUri,
                 KEY_TARGET to target
             )
 
             return OneTimeWorkRequestBuilder<MoveToNASWorker>()
                 .setInputData(data)
                 .setBackoffCriteria(
-                    BackoffPolicy.EXPONENTIAL, java.time.Duration.of(
+                    BackoffPolicy.EXPONENTIAL, Duration.of(
                         10_000,
                         ChronoUnit.MILLIS
                     )
@@ -71,14 +82,18 @@ class MoveToNASWorker @AssistedInject constructor(
     }
 
     private val notificationManager =
-        appContext.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
     // Le travail principal est effectué ici, dans une coroutine.
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
-        // Récupérer les données passées lors de la création de la tâche
-        val sources =
-            inputData.getStringArray(KEY_SOURCES)?.toList().orEmpty()
+        val uri = inputData.getString(KEY_MANIFEST_URI) ?: return Result.failure()
+        val path = inputData.getString(KEY_MANIFEST_PATH) ?: return Result.failure()
+        val json = File(path).readText()
+        val type = object : TypeToken<List<ManifestEntry>>() {}.type
+        val entries: List<ManifestEntry> = Gson().fromJson(json, type)
+        val sources = entries.map { it.fullPath }
+
         val target = inputData.getString(KEY_TARGET) ?: return Result.failure()
         val destination = "/$target"
 
@@ -86,7 +101,7 @@ class MoveToNASWorker @AssistedInject constructor(
         ensureChannel()
 
         var total = 0
-        val callabck = object : IMoveProgress {
+        val callback = object : IMoveProgress {
 
             @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             override suspend fun onStart(t: Int) {
@@ -109,10 +124,12 @@ class MoveToNASWorker @AssistedInject constructor(
 
         return try {
             engine.copyAll(
-                sources,
+                entries,
                 destination,
-                callabck,
-                isCancelled = { isStopped }
+                callback,
+                isCancelled = { isStopped },
+                path = path,
+                uri = uri
             )
 
             updateNotif("Copie terminée", "$total fichier(s) copiés")
@@ -219,22 +236,22 @@ class MoveToNASWorker @AssistedInject constructor(
 
 // --- Gestion de la notification de premier plan ---
 
-    private fun createForegroundInfo(notification: android.app.Notification): ForegroundInfo {
+    private fun createForegroundInfo(notification: Notification): ForegroundInfo {
         return ForegroundInfo(id.hashCode(), notification)
     }
 
     private fun createNotification(
         progress: String,
         progressPercent: Int? = null
-    ): android.app.Notification {
+    ): Notification {
         val channelId = "MoveToNASChannel"
         val title = "Transfert vers le NAS"
 
         // Créer le canal de notification si nécessaire (pour Android 8.0+)
-        val channel = android.app.NotificationChannel(
+        val channel = NotificationChannel(
             channelId,
             title,
-            android.app.NotificationManager.IMPORTANCE_LOW
+            NotificationManager.IMPORTANCE_LOW
         )
         notificationManager.createNotificationChannel(channel)
 

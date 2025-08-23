@@ -11,6 +11,6 @@ interface DSI_FTP {
     suspend fun copy(
         localFilePath: String,
         pathOnNAS: String,
-        progressCallback: (Int) -> Unit
+        progressCallback: suspend (Int) -> Unit
     ): Boolean
 }

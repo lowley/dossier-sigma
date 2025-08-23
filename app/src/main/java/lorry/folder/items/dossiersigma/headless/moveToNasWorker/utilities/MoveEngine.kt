@@ -1,27 +1,50 @@
 package lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities
 
+import android.content.Context
 import jakarta.inject.Inject
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
+import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
+import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
+import lorry.folder.items.dossiersigma.headless.services.sendMessageToThoApp
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
 class MoveEngine @Inject constructor(
-    private val dsFTP: DSI_FTP
+    private val dsFTP: DSI_FTP,
+    val nasUtilities: NasUtilities,
+    val context: Context,
 ){
     suspend fun copyAll(
-        sources: List<String>,
+        entries: List<ManifestEntry>,
         destDir: String,
         callback: IMoveProgress?,
-        isCancelled: () -> Boolean
+        isCancelled: () -> Boolean,
+        path: String,
+        uri: String,
     ){
-        callback?.onStart(sources.size)
-        sources.onEachIndexed { itemIndex,  source ->
+        callback?.onStart(entries.size)
+        entries.onEachIndexed { itemIndex,  entry ->
 
             if (isCancelled())
                 return@onEachIndexed
 
-            dsFTP.copy(source, destDir){ percent ->
+            dsFTP.copy(entry.fullPath, destDir){ percent ->
                 callback?.onItemProgress(itemIndex, percent)
             }
             callback?.onItemDone(itemIndex)
+
+            val verify = nasUtilities.verify(entry.fullPath, destDir)
+
+            if (verify) {
+                nasUtilities.delete(entry.fullPath)
+
+                sendMessageToThoApp(
+                    context,
+                    entry.fullPath,
+                    manifestUri = uri)
+            }
+
+            SigmaViewModel.requestRefresh()
+
             if (isCancelled())
                 return@onEachIndexed
         }

@@ -12,6 +12,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkManager
 import com.google.gson.Gson
 import de.charlex.compose.SpeedDialData
 import de.charlex.compose.SpeedDialFloatingActionButton
@@ -19,6 +21,7 @@ import de.charlex.compose.SpeedDialFloatingActionButtonState
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -34,7 +37,8 @@ fun SigmaActivity.SigmaFAB(
     isFilePickerVisible: Boolean,
     isTagInfosDialogVisible: Boolean,
     fabState: SpeedDialFloatingActionButtonState,
-    isSettingsPageVisible: Boolean
+    isSettingsPageVisible: Boolean,
+    context: SigmaActivity
 ) {
     if (!homePageVisible &&
         !isTextDialogVisible &&
@@ -78,7 +82,7 @@ fun SigmaActivity.SigmaFAB(
 
                             //* aire des images enregistrées dans un fichier
                             //* pour transfert à CopieurTho2
-                            val entries = files.map<Pair<String, String?>, ManifestEntry>{
+                            val entries = files.map<Pair<String, String?>, ManifestEntry> {
                                 ManifestEntry(fullPath = it.first, picture64 = it.second)
                             }
 
@@ -89,25 +93,54 @@ fun SigmaActivity.SigmaFAB(
 
                             // 3) Obtenir l’URI de partage via FileProvider
                             val authority = "${packageName}.provider"
-                            val contentUri = FileProvider.getUriForFile(this@SigmaFAB, authority, manifestFile)
+                            val contentUri =
+                                FileProvider.getUriForFile(this@SigmaFAB, authority, manifestFile)
                             //* fin aire des images enregistrées dans un fichier
 
                             val nasDirectory =
                                 this@SigmaFAB.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
                                     ?: ""
 
-                            bottomTools.moveToNASComponent.startService(
-                                filesToTransfer = files,
-                                manifestUri = contentUri.toString(),
-                                nasDirectory = nasDirectory,
-                                changeBottomTools = { percentage: Int, index: Int, total: Int ->
-                                    bottomTools.updateNASProgress(
-                                        percentage = percentage,
-                                        fileIndex = index,
-                                        fileCount = total
+                            val req = MoveToNASWorker.request(
+                                sources = files,
+                                manifestPath = manifestFile.absolutePath,
+                                target = nasDirectory,
+                                manifestUri = contentUri.toString()
+                            )
+
+                            WorkManager.getInstance(this@SigmaFAB)
+                                .enqueueUniqueWork(
+                                    "move-to-nas",
+                                    ExistingWorkPolicy.APPEND_OR_REPLACE,
+                                    req
+                                )
+
+                            WorkManager.getInstance(context)
+                                .getWorkInfoByIdLiveData(req.id)
+                                .observe(context) { info ->
+                                    val items = info?.progress?.getInt(MoveToNASWorker.P_ITEMS, 0)
+                                    val index = info?.progress?.getInt(MoveToNASWorker.P_INDEX, 0)
+                                    val pct = info?.progress?.getInt(MoveToNASWorker.P_PCT, -1)
+
+                                    context.bottomTools.updateNASProgress(
+                                        percentage = pct ?: 0,
+                                        fileIndex = index ?: 0,
+                                        fileCount = items ?: 0
                                     )
                                 }
-                            )
+
+//                            bottomTools.moveToNASComponent.startService(
+//                                filesToTransfer = files,
+//                                manifestUri = contentUri.toString(),
+//                                nasDirectory = nasDirectory,
+//                                changeBottomTools = { percentage: Int, index: Int, total: Int ->
+//                                    bottomTools.updateNASProgress(
+//                                        percentage = percentage,
+//                                        fileIndex = index,
+//                                        fileCount = total
+//                                    )
+//                                }
+//                            )
                         }
                     },
                     SpeedDialData(

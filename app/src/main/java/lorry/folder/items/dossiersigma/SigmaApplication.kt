@@ -5,12 +5,14 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import androidx.core.content.ContextCompat
+import androidx.work.Configuration
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
+import jakarta.inject.Inject
 import lorry.folder.items.dossiersigma.external.capsule.utilities.AppContextProvider
 
 @HiltAndroidApp
-class SigmaApplication : Application() {
+class SigmaApplication() : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
@@ -24,6 +26,14 @@ class SigmaApplication : Application() {
         val notificationManager = ContextCompat.getSystemService(this, NotificationManager::class.java)
         notificationManager?.createNotificationChannel(channel)
     }
+
+    @Inject
+    lateinit var workerFactory: androidx.hilt.work.HiltWorkerFactory
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 
     companion object {
         lateinit var instance: SigmaApplication
