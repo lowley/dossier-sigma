@@ -5,37 +5,34 @@ import android.util.Log
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import com.google.gson.Gson
 import com.kavi.droid.color.palette.extension.base
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.external.datastore.SettingsStoreProvider
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfosDTO
 import javax.inject.Inject
 import javax.inject.Singleton
-import androidx.core.graphics.toColorInt
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.stateIn
 
 // On déclare la classe comme un Singleton pour n'avoir qu'une seule instance dans toute l'app
 @Singleton
-class SettingsManager @Inject constructor(@ApplicationContext private val context: Context) {
-
-    // Crée une instance de DataStore liée à un fichier "settings.preferences_pb"
-    // Le nom est arbitraire mais doit être unique.
-    private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+class SettingsManager @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val dataStore: DataStore<Preferences>) {
 
     // On définit les clés pour chaque valeur que l'on veut stocker.
     // C'est une bonne pratique de les déclarer comme des objets compagnons.
@@ -48,17 +45,27 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
         val NAS_FOLDER_KEY = stringPreferencesKey("nas_folder")
         val HOMEITEMS_KEY = stringSetPreferencesKey("home_items")
         val THEME_BASE_COLOR_KEY = stringPreferencesKey("theme_basecolor")
+
+        @Volatile private var INSTANCE: SettingsManager? = null
+
+        fun getInstance(ctx: Context): SettingsManager =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: SettingsManager(
+                    ctx.applicationContext,
+                    SettingsStoreProvider.get(ctx.applicationContext) // ⬅️
+                ).also { INSTANCE = it }
+            }
     }
 
     suspend fun saveNasAddress(address: String) {
         withContext(Dispatchers.IO) {
-            context.dataStore.edit { settings ->
+            dataStore.edit { settings ->
                 settings[NAS_ADDRESS_KEY] = address
             }
         }
     }
 
-    val nasAddressFlow: Flow<String> = context.dataStore.data
+    val nasAddressFlow: Flow<String> = dataStore.data
         .map { preferences ->
             // On lit la valeur associée à notre clé.
             // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
@@ -67,26 +74,26 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
 
     suspend fun saveNasLogin(login: String) {
         withContext(Dispatchers.IO) {
-            context.dataStore.edit { settings ->
+            dataStore.edit { settings ->
                 settings[NAS_LOGIN_KEY] = login
             }
         }
     }
 
-    val nasLoginFlow: Flow<String> = context.dataStore.data
+    val nasLoginFlow: Flow<String> = dataStore.data
         .map { preferences ->
             preferences[NAS_LOGIN_KEY] ?: ""
         }
 
     suspend fun saveNasPassword(password: String) {
         withContext(Dispatchers.IO) {
-            context.dataStore.edit { settings ->
+            dataStore.edit { settings ->
                 settings[NAS_PASSWORD_KEY] = password
             }
         }
     }
 
-    val nasPasswordFlow: Flow<String> = context.dataStore.data
+    val nasPasswordFlow: Flow<String> = dataStore.data
         .map { preferences ->
             // On lit la valeur associée à notre clé.
             // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
@@ -95,13 +102,13 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
 
     suspend fun saveNasFolder(folder: String) {
         withContext(Dispatchers.IO) {
-            context.dataStore.edit { settings ->
+            dataStore.edit { settings ->
                 settings[NAS_FOLDER_KEY] = folder
             }
         }
     }
 
-    val nasFolderFlow: Flow<String> = context.dataStore.data
+    val nasFolderFlow: Flow<String> = dataStore.data
         .map { preferences ->
             // On lit la valeur associée à notre clé.
             // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
@@ -110,14 +117,14 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
 
     suspend fun saveHomeItems(items: Set<HomeItemInfos>) {
         withContext(Dispatchers.IO) {
-            context.dataStore.edit { settings ->
+            dataStore.edit { settings ->
                 settings[HOMEITEMS_KEY] =
                     items.map { Gson().toJson(it.toHomeItemInfosDTO()) }.toSet()
             }
         }
     }
 
-    val homeItemsFlow: Flow<List<HomeItemInfos>> = context.dataStore.data
+    val homeItemsFlow: Flow<List<HomeItemInfos>> = dataStore.data
         .map { preferences ->
             val raw = preferences[HOMEITEMS_KEY] ?: return@map emptyList()
 
@@ -135,7 +142,7 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
 
     suspend fun saveBaseColor(color: Color) {
         withContext(Dispatchers.IO) {
-            context.dataStore.edit { settings ->
+            dataStore.edit { settings ->
                 settings[THEME_BASE_COLOR_KEY] = color.toHex()
             }
         }
@@ -143,7 +150,7 @@ class SettingsManager @Inject constructor(@ApplicationContext private val contex
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    val baseColorFlow: Flow<Color> = context.dataStore.data
+    val baseColorFlow: Flow<Color> = dataStore.data
         .map { preferences ->
             try {
                 val raw = preferences[THEME_BASE_COLOR_KEY]

@@ -13,7 +13,7 @@ class SigmaFile(
     scale: ContentScale?,
     memo: String? = null,
     size: Long? = null
-) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale
+) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale, size = size
 ) {
 
     fun copy(

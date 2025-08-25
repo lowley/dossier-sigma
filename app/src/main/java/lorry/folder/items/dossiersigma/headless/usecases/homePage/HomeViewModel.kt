@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.headless.usecases.homePage
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
 import androidx.lifecycle.ViewModel
@@ -11,17 +12,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.ServiceLocator
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     val homeUseCase: HomeUseCase,
-    val settingsManager: SettingsManager
+    val context: Context
 ) : ViewModel() {
 
+    val settingsManager = ServiceLocator.settings(context)
     private val _homePageVisible = MutableStateFlow<Boolean>(true)
     val homePageVisible: StateFlow<Boolean> = _homePageVisible
 

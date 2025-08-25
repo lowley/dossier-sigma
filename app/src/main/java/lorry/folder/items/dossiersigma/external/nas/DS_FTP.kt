@@ -1,13 +1,14 @@
 package lorry.folder.items.dossiersigma.external.nas
 
+import android.content.Context
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.ServiceLocator
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
 import org.apache.commons.net.ftp.FTPReply
@@ -18,8 +19,10 @@ import javax.inject.Singleton
 
 @Singleton
 open class DS_FTP @Inject constructor(
-    val settingsManager: SettingsManager
+    val context: Context
 ) : DSI_FTP {
+
+    val settings = ServiceLocator.settings(context)
 
     suspend fun <T : Any?> doWithNASAccess(
         parent: String,
@@ -34,7 +37,7 @@ open class DS_FTP @Inject constructor(
         var answer: T? = null
 
         try {
-            val server = settingsManager.nasAddressFlow.firstOrNull()
+            val server = settings.nasAddressFlow.firstOrNull()
             withContext(Dispatchers.IO) {
                 ftp.connect(server)
             }
@@ -48,8 +51,8 @@ open class DS_FTP @Inject constructor(
                 throw Exception("FTP server refused connection.")
             }
 
-            val login = settingsManager.nasLoginFlow.firstOrNull()
-            val password = settingsManager.nasPasswordFlow.firstOrNull()
+            val login = settings.nasLoginFlow.firstOrNull()
+            val password = settings.nasPasswordFlow.firstOrNull()
 
             Log.d("SIGMA DISK", "connexion: server: $server, login: $login, password: $password")
 
@@ -152,15 +155,8 @@ open class DS_FTP @Inject constructor(
         return doWithNASAccess(parent) { ftp ->
             val liste = withContext(Dispatchers.IO) {
                 ftp.listFiles(parent)
-//                    ?.filter { file ->
-//                        file.name.endsWith(".mp4") ||
-//                                file.name.endsWith(".mpg") ||
-//                                file.name.endsWith(".mkv") ||
-//                                file.name.endsWith(".avi") ||
-//                                file.name.endsWith(".ts") ||
-//                                file.name.endsWith(".iso")
-//                    }
                     ?.map { file ->
+                        Log.d("SIGMA DISK", "file: ${file.name} Size: ${file.size}")
                         SigmaFile(
                             name = file.name,
                             modificationDate = file.timestamp.timeInMillis,

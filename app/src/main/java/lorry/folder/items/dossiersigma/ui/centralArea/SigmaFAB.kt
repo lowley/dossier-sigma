@@ -7,12 +7,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.gson.Gson
 import de.charlex.compose.SpeedDialData
@@ -38,8 +43,33 @@ fun SigmaActivity.SigmaFAB(
     isTagInfosDialogVisible: Boolean,
     fabState: SpeedDialFloatingActionButtonState,
     isSettingsPageVisible: Boolean,
-    context: SigmaActivity
-) {
+    context: SigmaActivity,
+
+    ) {
+
+    val workManager = remember { WorkManager.getInstance(this@SigmaActivity) }
+    val infos by workManager.getWorkInfosByTagLiveData("move-to-nas-active")
+        .observeAsState(initial = emptyList())
+
+    // ➜ pousse le progress vers bottomTools à chaque changement
+    LaunchedEffect(infos) {
+        val active = infos
+            .firstOrNull { it.state == WorkInfo.State.RUNNING }
+            ?: infos.firstOrNull { it.state == WorkInfo.State.ENQUEUED }
+
+        if (active != null) {
+            val items = active.progress.getInt(MoveToNASWorker.P_ITEMS, 0)
+            val index = active.progress.getInt(MoveToNASWorker.P_INDEX, 0)
+            val pct   = active.progress.getInt(MoveToNASWorker.P_PCT, 0)
+
+            bottomTools.updateNASProgress(
+                percentage = pct.coerceAtLeast(0),
+                fileIndex = index,
+                fileCount = items
+            )
+        }
+    }
+
     if (!homePageVisible &&
         !isTextDialogVisible &&
         !isYesNoDialogVisible &&
@@ -102,7 +132,6 @@ fun SigmaActivity.SigmaFAB(
                                     ?: ""
 
                             val req = MoveToNASWorker.request(
-                                sources = files,
                                 manifestPath = manifestFile.absolutePath,
                                 target = nasDirectory,
                                 manifestUri = contentUri.toString()
@@ -111,23 +140,24 @@ fun SigmaActivity.SigmaFAB(
                             WorkManager.getInstance(this@SigmaFAB)
                                 .enqueueUniqueWork(
                                     "move-to-nas",
-                                    ExistingWorkPolicy.APPEND_OR_REPLACE,
+                                    ExistingWorkPolicy.KEEP,
                                     req
                                 )
 
-                            WorkManager.getInstance(context)
-                                .getWorkInfoByIdLiveData(req.id)
-                                .observe(context) { info ->
-                                    val items = info?.progress?.getInt(MoveToNASWorker.P_ITEMS, 0)
-                                    val index = info?.progress?.getInt(MoveToNASWorker.P_INDEX, 0)
-                                    val pct = info?.progress?.getInt(MoveToNASWorker.P_PCT, -1)
-
-                                    context.bottomTools.updateNASProgress(
-                                        percentage = pct ?: 0,
-                                        fileIndex = index ?: 0,
-                                        fileCount = items ?: 0
-                                    )
-                                }
+                            // Prends la plus récente en cours
+//                            val active = infos
+//                                .filter { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }
+//                                .maxByOrNull { it.runAttemptCount } ?: infos.maxByOrNull { it.runAttemptCount }
+//
+//                            val items = active?.progress?.getInt(MoveToNASWorker.P_ITEMS, 0) ?: 0
+//                            val index = active?.progress?.getInt(MoveToNASWorker.P_INDEX, 0) ?: 0
+//                            val pct   = active?.progress?.getInt(MoveToNASWorker.P_PCT, -1) ?: -1
+//
+//                                    context.bottomTools.updateNASProgress(
+//                                        percentage = pct ?: 0,
+//                                        fileIndex = index ?: 0,
+//                                        fileCount = items ?: 0
+//                                    )
 
 //                            bottomTools.moveToNASComponent.startService(
 //                                filesToTransfer = files,

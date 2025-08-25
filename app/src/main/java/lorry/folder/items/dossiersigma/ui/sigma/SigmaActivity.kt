@@ -265,7 +265,7 @@ class SigmaActivity : ComponentActivity() {
                             isFilePickerVisible = isFilePickerVisible,
                             isSettingsPageVisible = isSettingsPageVisible,
                             fabState = fabState,
-                            context = this@SigmaActivity
+                            context = this@SigmaActivity,
                         )
                     }
                 }

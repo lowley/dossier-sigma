@@ -5,10 +5,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ServiceInfo
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.hilt.work.HiltWorker
 import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -18,14 +18,11 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
+import lorry.folder.items.dossiersigma.ServiceLocator
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.IMoveProgress
-import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import java.io.File
 import java.time.Duration
@@ -36,13 +33,9 @@ import java.time.temporal.ChronoUnit
  * Il remplace l'ancien MoveToNASService pour garantir l'exécution
  * même si l'application est fermée.
  */
-@HiltWorker
-class MoveToNASWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
-    private val engine: MoveEngine,
-    // L'injection Hilt fonctionne toujours pour vos dépendances
-    private val dsFtp: DSI_FTP
+class MoveToNASWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -57,10 +50,10 @@ class MoveToNASWorker @AssistedInject constructor(
         const val P_PCT = "p_pct"
 
         fun request(
-            sources: List<Pair<String, String?>>,
             target: String,
             manifestPath: String,
-            manifestUri: String): OneTimeWorkRequest {
+            manifestUri: String
+        ): OneTimeWorkRequest {
 
             val data = workDataOf(
                 KEY_MANIFEST_PATH to manifestPath,
@@ -70,6 +63,7 @@ class MoveToNASWorker @AssistedInject constructor(
 
             return OneTimeWorkRequestBuilder<MoveToNASWorker>()
                 .setInputData(data)
+                .addTag("move-to-nas-active")
                 .setBackoffCriteria(
                     BackoffPolicy.EXPONENTIAL, Duration.of(
                         10_000,
@@ -87,12 +81,13 @@ class MoveToNASWorker @AssistedInject constructor(
     // Le travail principal est effectué ici, dans une coroutine.
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
+        val engine = ServiceLocator.moveEngine(applicationContext)
+
         val uri = inputData.getString(KEY_MANIFEST_URI) ?: return Result.failure()
         val path = inputData.getString(KEY_MANIFEST_PATH) ?: return Result.failure()
         val json = File(path).readText()
         val type = object : TypeToken<List<ManifestEntry>>() {}.type
         val entries: List<ManifestEntry> = Gson().fromJson(json, type)
-        val sources = entries.map { it.fullPath }
 
         val target = inputData.getString(KEY_TARGET) ?: return Result.failure()
         val destination = "/$target"
@@ -101,24 +96,35 @@ class MoveToNASWorker @AssistedInject constructor(
         ensureChannel()
 
         var total = 0
+        var currentPercent = -1
         val callback = object : IMoveProgress {
 
             @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             override suspend fun onStart(t: Int) {
                 total = t
                 setProgress(workDataOf(P_ITEMS to t, P_INDEX to 0, P_PCT to 0))
-                updateNotif("Copie en cours", " 0/ $t")
+                withContext(Dispatchers.Main) {
+                    updateNotif("Copie en cours", " 0/ $t")
+                }
             }
 
             @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             override suspend fun onItemProgress(index: Int, percent: Int) {
-                setProgress(workDataOf(P_ITEMS to total, P_INDEX to index, P_PCT to percent))
+                if (currentPercent != percent) {
+                    setProgress(workDataOf(P_ITEMS to total, P_INDEX to index, P_PCT to percent))
+                    withContext(Dispatchers.Main) {
+                        updateNotif("Copie en cours", "$index / $total: $percent%")
+                    }
+                    currentPercent = percent
+                }
             }
 
 
             @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             override suspend fun onItemDone(index: Int) {
-                updateNotif("Copie en cours", "${index + 1} / $total")
+                withContext(Dispatchers.Main){
+                    updateNotif("Copie en cours", "${index + 1} / $total")
+                }
             }
         }
 
@@ -152,7 +158,11 @@ class MoveToNASWorker @AssistedInject constructor(
                 .build()
         }
 
-        return ForegroundInfo(NOTIF_ID, notif)
+        return ForegroundInfo(
+            NOTIF_ID,
+            notif,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
@@ -190,6 +200,8 @@ class MoveToNASWorker @AssistedInject constructor(
         index: Int,
         total: Int
     ): Boolean {
+        val dsFtp = ServiceLocator.dsFtp(applicationContext)
+
         return withContext(Dispatchers.IO) {
             try {
                 dsFtp.copy(
@@ -237,7 +249,11 @@ class MoveToNASWorker @AssistedInject constructor(
 // --- Gestion de la notification de premier plan ---
 
     private fun createForegroundInfo(notification: Notification): ForegroundInfo {
-        return ForegroundInfo(id.hashCode(), notification)
+        return ForegroundInfo(
+            id.hashCode(),
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
     }
 
     private fun createNotification(

@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import lorry.folder.items.dossiersigma.ServiceLocator
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,8 +26,10 @@ import javax.inject.Inject
  * resultat: getPrimaryPair(), getSecondaryPair(), getTertiaryPair()
  */
 class SettingsViewModel @Inject constructor(
-    val settingsManager: SettingsManager
+    val context: Context
 ) : ViewModel() {
+
+    val settingsManager = ServiceLocator.settings(context)
 
     companion object{
         const val TAG = "SgsVM"
