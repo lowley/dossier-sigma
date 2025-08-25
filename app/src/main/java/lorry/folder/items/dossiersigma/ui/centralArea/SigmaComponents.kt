@@ -40,7 +40,7 @@ fun HomeButtonIcon(
                 )
             },
         painter = painterResource(icon),
-        tint = SigmaColors.current.tertiary,
+        tint = SigmaColors.current.secondary,
         contentDescription = null
     )
 }

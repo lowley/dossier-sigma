@@ -10,26 +10,28 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
@@ -39,12 +41,15 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewModelScope
 import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
 import com.elixer.palette.constraints.VerticalAlignment
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,29 +57,151 @@ fun SigmaActivity.SettingsPage(
     vm: SettingsViewModel
 
 ) {
+    /////////////////
+    // nas address //
+    /////////////////
     val nasAddressFromDataStore by vm.settingsManager.nasAddressFlow.collectAsState("")
-    var nasAddress = remember(nasAddressFromDataStore) {
+    var nasAddress = rememberSaveable("") {
         mutableStateOf(nasAddressFromDataStore)
     }
 
+    var userEditedAddress = remember {
+        mutableStateOf(false)
+    }
+
+    // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
+    // on met à jour le champ local pour rester en phase.
+    LaunchedEffect(nasAddressFromDataStore) {
+        if (!userEditedAddress.value) nasAddress.value = nasAddressFromDataStore
+    }
+
+    val hasNasAddressChanged by remember {
+        derivedStateOf { userEditedAddress.value && nasAddress.value != nasAddressFromDataStore }
+    }
+
+    ///////////////
+    // nas login //
+    ///////////////
     val nasLoginFromDataStore by vm.settingsManager.nasLoginFlow.collectAsState("")
-    var nasLogin = remember(nasLoginFromDataStore) {
+    var nasLogin = rememberSaveable(nasLoginFromDataStore) {
         mutableStateOf(nasLoginFromDataStore)
     }
 
+    var userEditedNasLogin = remember {
+        mutableStateOf(false)
+    }
+
+    // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
+    // on met à jour le champ local pour rester en phase.
+    LaunchedEffect(nasLoginFromDataStore) {
+        if (!userEditedNasLogin.value) nasLogin.value = nasLoginFromDataStore
+    }
+
+    val hasNasLoginChanged by remember {
+        derivedStateOf { userEditedNasLogin.value && nasLogin.value != nasLoginFromDataStore }
+    }
+
+    //////////////////
+    // nas password //
+    //////////////////
     val nasPasswordFromDataStore by vm.settingsManager.nasPasswordFlow.collectAsState("")
     var nasPassword = remember(nasPasswordFromDataStore) {
         mutableStateOf(nasPasswordFromDataStore)
     }
 
+    var userEditedNasPassword = remember {
+        mutableStateOf(false)
+    }
+
+    // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
+    // on met à jour le champ local pour rester en phase.
+    LaunchedEffect(nasPasswordFromDataStore) {
+        if (!userEditedNasPassword.value) nasPassword.value = nasPasswordFromDataStore
+    }
+
+    val hasNasPasswordChanged by remember {
+        derivedStateOf { userEditedNasPassword.value && nasPassword.value != nasPasswordFromDataStore }
+    }
+
+    ////////////////
+    // nas folder //
+    ////////////////
     val nasFolderFromDataStore by vm.settingsManager.nasFolderFlow.collectAsState("")
     var nasFolder = remember(nasFolderFromDataStore) {
         mutableStateOf(nasFolderFromDataStore)
     }
 
+    var userEditedNasFolder = remember {
+        mutableStateOf(false)
+    }
+
+    // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
+    // on met à jour le champ local pour rester en phase.
+    LaunchedEffect(nasFolderFromDataStore) {
+        if (!userEditedNasFolder.value) nasFolder.value = nasFolderFromDataStore
+    }
+
+    val hasNasFolderChanged by remember {
+        derivedStateOf { userEditedNasFolder.value && nasFolder.value != nasFolderFromDataStore }
+    }
+
+    ////////////////
+    // base color //
+    ////////////////
     val baseColorFromDataStore by vm.settingsManager.baseColorFlow.collectAsState(Color.Black)
-    var backgroundColor = remember(baseColorFromDataStore) {
+    var baseColor = remember(baseColorFromDataStore) {
         mutableStateOf(baseColorFromDataStore)
+    }
+
+    var userEditedBaseColor = remember {
+        mutableStateOf(false)
+    }
+
+    // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
+    // on met à jour le champ local pour rester en phase.
+    LaunchedEffect(baseColorFromDataStore) {
+        if (!userEditedBaseColor.value) baseColor.value = baseColorFromDataStore
+    }
+
+    val hasBaseColorChanged by remember {
+        derivedStateOf { userEditedBaseColor.value && baseColor.value != baseColorFromDataStore }
+    }
+
+
+    /////////////////////////
+    // theme light ou dark //
+    /////////////////////////
+    val themeFromDataStore by vm.settingsManager.themeFlow.collectAsState(NightAndDay.DARK)
+    var theme = remember(themeFromDataStore) {
+        mutableStateOf(themeFromDataStore)
+    }
+
+    var userEditedTheme = remember {
+        mutableStateOf(false)
+    }
+
+    // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
+    // on met à jour le champ local pour rester en phase.
+    LaunchedEffect(themeFromDataStore) {
+        if (!userEditedTheme.value) theme.value = themeFromDataStore
+    }
+
+    val hasThemeChanged by remember {
+        derivedStateOf { userEditedTheme.value && theme.value != themeFromDataStore }
+    }
+
+    //////////
+    // tout //
+    //////////
+    val hasSomethingChanged by remember {
+        derivedStateOf {
+            hasNasAddressChanged ||
+                    hasNasLoginChanged ||
+                    hasNasPasswordChanged ||
+                    hasNasFolderChanged ||
+                    hasBaseColorChanged ||
+                    hasThemeChanged
+        }
     }
 
     Box(
@@ -115,7 +242,9 @@ fun SigmaActivity.SettingsPage(
                     label = "ex: 192.168.1.26",
                     state = nasAddress,
                     width = inputWidth,
-                    height = cellHeight
+                    height = cellHeight,
+                    userEditeField = userEditedAddress
+
                 )
             }
 
@@ -139,7 +268,8 @@ fun SigmaActivity.SettingsPage(
                     label = "ex: tintin76",
                     state = nasLogin,
                     width = inputWidth,
-                    height = cellHeight
+                    height = cellHeight,
+                    userEditeField = userEditedNasLogin
                 )
             }
 
@@ -163,7 +293,8 @@ fun SigmaActivity.SettingsPage(
                     label = "ex: 123456",
                     state = nasPassword,
                     width = inputWidth,
-                    height = cellHeight
+                    height = cellHeight,
+                    userEditeField = userEditedNasPassword
                 )
             }
 
@@ -187,7 +318,8 @@ fun SigmaActivity.SettingsPage(
                     label = "ex: fichiers",
                     state = nasFolder,
                     width = inputWidth,
-                    height = cellHeight
+                    height = cellHeight,
+                    userEditeField = userEditedNasFolder
                 )
             }
 
@@ -202,12 +334,12 @@ fun SigmaActivity.SettingsPage(
                     .align(Alignment.CenterHorizontally),
                 verticalAlignment = CenterVertically,
 
-            ) {
+                ) {
                 Text(
                     text = "Changer la couleur du fond",
                     modifier = Modifier
                         .padding(end = 10.dp),
-                    color = Color.White
+                    color = SigmaColors.current.onPrimary
                 )
 
                 Box(
@@ -222,7 +354,29 @@ fun SigmaActivity.SettingsPage(
                         }
                         .clip(RoundedCornerShape(8.dp))
                         .border(1.dp, Color.White, RoundedCornerShape(8.dp))
-                        .background(backgroundColor.value)
+                        .background(baseColor.value)
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .padding(end = 20.dp, bottom = 10.dp),
+            ) {
+                Switch(
+                    modifier = Modifier,
+                    checked = hasThemeChanged,
+                    onCheckedChange = {
+                        userEditedTheme.value = true
+                        theme.value = if (it) NightAndDay.DARK else NightAndDay.LIGHT
+                    }
+                )
+
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .padding(start = 10.dp),
+                    text = if (theme.value.isDark()) "Mode sombre" else "Mode clair",
+                    color = SigmaColors.current.onPrimary
                 )
             }
 
@@ -260,18 +414,34 @@ fun SigmaActivity.SettingsPage(
                     modifier = Modifier
                         .padding(end = 20.dp, bottom = 10.dp),
                     colors = ButtonDefaults.buttonColors().copy(
-                        containerColor = Color.Red,
+                        containerColor = if (hasSomethingChanged) Color.Red else SigmaColors.current.tertiary,
                         contentColor = Color.Black
                     ),
+                    enabled = hasSomethingChanged,
                     onClick = {
                         vm.viewModelScope.launch {
-                            settingsViewModel.settingsManager.saveNasAddress(nasAddress.value)
-                            settingsViewModel.settingsManager.saveNasLogin(nasLogin.value)
-                            settingsViewModel.settingsManager.saveNasPassword(nasPassword.value)
-                            settingsViewModel.settingsManager.saveNasFolder(nasFolder.value)
+                            if (hasSomethingChanged) {
 
-                            settingsViewModel.setNightAndDay(NightAndDay.DARK)
-                            settingsViewModel.settingsManager.saveBaseColor(backgroundColor.value)
+                                settingsViewModel.settingsManager.saveNasAddress(nasAddress.value)
+                                settingsViewModel.settingsManager.saveNasLogin(nasLogin.value)
+                                settingsViewModel.settingsManager.saveNasPassword(nasPassword.value)
+                                settingsViewModel.settingsManager.saveNasFolder(nasFolder.value)
+
+//                                settingsViewModel.settingsManager.saveTheme(if (theme.value.isDark()) NightAndDay.DARK else NightAndDay.LIGHT)
+//                                settingsViewModel.setNightAndDay(if (theme.value.isDark()) NightAndDay.DARK else NightAndDay.LIGHT)
+
+                                val base = baseColor.value
+                                var mode = if (base.isLightBase()) NightAndDay.LIGHT
+                                else
+                                    NightAndDay.DARK
+
+                                if (userEditedTheme.value)
+                                    mode = theme.value
+
+                                settingsViewModel.settingsManager.saveTheme(mode)
+                                settingsViewModel.settingsManager.saveBaseColor(base)
+                                settingsViewModel.setNightAndDay(mode)
+                            }
                         }
 
                         mainViewModel.setIsSettingsPageVisible(false)
@@ -302,10 +472,10 @@ fun SigmaActivity.SettingsPage(
                 )
 
                 Palette(
-                    defaultColor = backgroundColor.value,
+                    defaultColor = baseColor.value,
 //                    defaultColor = Color(0xFF363E4C),
                     buttonSize = 100.dp,
-                    swatches = Palettes.darkPalette,
+                    swatches = Palettes.mixedPalettes,
                     innerRadius = 400f,
                     strokeWidth = 120f,
                     spacerRotation = 5f,
@@ -313,8 +483,10 @@ fun SigmaActivity.SettingsPage(
                     verticalAlignment = VerticalAlignment.Bottom,
                     horizontalAlignment = HorizontalAlignment.Start,
                     onColorSelected = {
-                        backgroundColor.value = it
+                        baseColor.value = it
                         showColorPicker = false
+                        if (it != baseColorFromDataStore)
+                            userEditedBaseColor.value = true
                     }
                 )
             }
@@ -340,7 +512,7 @@ fun TitleZone(
             modifier = modifier
                 .align(Alignment.CenterStart),
             text = text,
-            color = Color.White
+            color = SigmaColors.current.onPrimary
         )
     }
 }
@@ -352,7 +524,8 @@ fun inputZone(
     label: String,
     state: MutableState<String>,
     width: Dp,
-    height: Dp
+    height: Dp,
+    userEditeField: MutableState<Boolean>
 ) {
     Box(
         modifier = Modifier
@@ -365,190 +538,650 @@ fun inputZone(
             label = { Text(label) },
             onValueChange = {
                 state.value = it
+                userEditeField.value = true
             },
         )
     }
 }
 
-
 object Palettes {
-    val darkPalette: List<List<Color>> = listOf(
-        // Noirs & gris
+    /**
+     * Chaque sous-liste = 1 famille chromatique.
+     * Ordre interne : du plus sombre au plus clair pour favoriser les thèmes dark.
+     * Tous les Color(...) sont en ARGB (0xFFrrggbb).
+     */
+    val darkPalettes: List<List<Color>> = listOf(
+        // 0) Noirs & gris neutres
         listOf(
-            Color(0xFF131313),
-            Color(0xFF252525),
-            Color(0xFF333333),
-            Color(0xFF3E3E3E),
-            Color(0xFF4A4A4A)
+            Color(0xFF0F0F10),
+            Color(0xFF1A1B1D),
+            Color(0xFF27292C),
+            Color(0xFF36393D),
+            Color(0xFF4A4E53)
         ),
+        // 1) Gris chauds
         listOf(
-            Color(0xFF0F0F0F),
-            Color(0xFF16161D),
-            Color(0xFF1B1B1B),
-            Color(0xFF232B2B),
-            Color(0xFF2C3539),
-            Color(0xFF414A4C)
+            Color(0xFF1A1715),
+            Color(0xFF2A2623),
+            Color(0xFF3B3632),
+            Color(0xFF4C4641),
+            Color(0xFF5E5751)
         ),
-        // Bruns profonds / terre
+
+        // 2) Bleus "nuit"
         listOf(
-            Color(0xFF372200),
-            Color(0xFF574200),
-            Color(0xFF776219),
-            Color(0xFF978139),
-            Color(0xFFB7A158)
+            Color(0xFF031225),
+            Color(0xFF07203A),
+            Color(0xFF0C2E50),
+            Color(0xFF123B66),
+            Color(0xFF1B4A7D)
         ),
+        // 3) Bleus profonds
         listOf(
-            Color(0xFF48312B),
-            Color(0xFF603A28),
-            Color(0xFF522D17),
-            Color(0xFF402315),
-            Color(0xFF0B0201)
+            Color(0xFF081633),
+            Color(0xFF0E224A),
+            Color(0xFF173060),
+            Color(0xFF213E76),
+            Color(0xFF2B4C8C)
         ),
-        // Bleu sombre / nuit
+        // 4) Bleus froids vifs
         listOf(
-            Color(0xFF002147),
-            Color(0xFF003366),
-            Color(0xFF001E1E),
-            Color(0xFF00312F),
-            Color(0xFF005958)
+            Color(0xFF0A213F),
+            Color(0xFF0E2F58),
+            Color(0xFF143D72),
+            Color(0xFF1D4C8C),
+            Color(0xFF2A5AA6)
         ),
+        // 5) Bleus grisés (blue-gray)
         listOf(
-            Color(0xFF002B36),
-            Color(0xFF073642),
-            Color(0xFF0F1F24),
-            Color(0xFF152D32),
-            Color(0xFF2F3B22)
+            Color(0xFF0F1A24),
+            Color(0xFF172635),
+            Color(0xFF203445),
+            Color(0xFF2A4256),
+            Color(0xFF355066)
         ),
-        // Vert foncé / forêt
+
+        // 6) Cyan profonds
         listOf(
-            Color(0xFF003F20),
-            Color(0xFF035F40),
-            Color(0xFF237F60),
-            Color(0xFF439E80),
-            Color(0xFF63BE9F)
+            Color(0xFF042127),
+            Color(0xFF07363F),
+            Color(0xFF0A4A58),
+            Color(0xFF0F5F72),
+            Color(0xFF16748B)
         ),
+        // 7) Teal / bleu-vert
         listOf(
-            Color(0xFF556B2F),
-            Color(0xFF6B8E23),
-            Color(0xFF466037),
-            Color(0xFF2E8B57)
+            Color(0xFF05221D),
+            Color(0xFF08342B),
+            Color(0xFF0C4639),
+            Color(0xFF115847),
+            Color(0xFF176B56)
         ),
-        // Rouge sombre / bordeaux
+        // 8) Turquoises doux
         listOf(
-            Color(0xFFB22222),
-            Color(0xFF8B1A1A),
-            Color(0xFFCD5C5C),
-            Color(0xFFEE6363),
-            Color(0xFFFF6A6A)
+            Color(0xFF06201F),
+            Color(0xFF0B3432),
+            Color(0xFF134846),
+            Color(0xFF1C5C5A),
+            Color(0xFF26716F)
         ),
+
+        // 9) Verts forêt
         listOf(
-            Color(0xFF46000D),
-            Color(0xFF5E0009),
-            Color(0xFF720137),
-            Color(0xFF590054),
-            Color(0xFF42002E)
+            Color(0xFF0A1D0F),
+            Color(0xFF0F2C18),
+            Color(0xFF153B22),
+            Color(0xFF1D4B2D),
+            Color(0xFF265C38)
         ),
-        // Purple / violet profond
+        // 10) Verts olive
         listOf(
-            Color(0xFF9932CC),
-            Color(0xFFD33682),
-            Color(0xFFBD93F9),
-            Color(0xFF44475A),
-            Color(0xFF6272A4)
+            Color(0xFF1A1F0C),
+            Color(0xFF232A10),
+            Color(0xFF2E3616),
+            Color(0xFF39431D),
+            Color(0xFF465127)
         ),
+
+        // 11) Jaunes ambrés (dark-friendly)
         listOf(
-            Color(0xFF322F42),
-            Color(0xFF4B3A70),
-            Color(0xFF212531),
-            Color(0xFFC5C3C4),
-            Color(0xFFB7A2C9)
+            Color(0xFF231A02),
+            Color(0xFF342607),
+            Color(0xFF48330D),
+            Color(0xFF5E4215),
+            Color(0xFF75531F)
         ),
-        // Neutres sombres
+        // 12) Or vieilli / laiton
         listOf(
-            Color(0xFF353A34),
-            Color(0xFF515051),
-            Color(0xFF555D57),
-            Color(0xFF616260),
-            Color(0xFF717262)
+            Color(0xFF221C05),
+            Color(0xFF32290A),
+            Color(0xFF423612),
+            Color(0xFF53441B),
+            Color(0xFF655226)
         ),
+
+        // 13) Oranges bruns
         listOf(
-            Color(0xFF232B2B),
-            Color(0xFF2C3539),
-            Color(0xFF414A4C),
-            Color(0xFF1A2421)
+            Color(0xFF2A1407),
+            Color(0xFF3D1E0B),
+            Color(0xFF532910),
+            Color(0xFF6B3516),
+            Color(0xFF85411D)
         ),
-        // Brown-dark neutrals
+        // 14) Oranges cuivrés
         listOf(
-            Color(0xFF8B4513),
-            Color(0xFFCD661D),
-            Color(0xFFEE7621),
-            Color(0xFFFF7F24)
+            Color(0xFF2B1209),
+            Color(0xFF3F1A0E),
+            Color(0xFF562315),
+            Color(0xFF6E2E1D),
+            Color(0xFF883926)
         ),
+
+        // 15) Rouges bordeaux
         listOf(
-            Color(0xFF6B8E23),
-            Color(0xFF556B2F),
-            Color(0xFF8B6914),
-            Color(0xFFCD950C)
+            Color(0xFF26060B),
+            Color(0xFF3A0B13),
+            Color(0xFF4F111B),
+            Color(0xFF661826),
+            Color(0xFF7F2031)
         ),
-        // Bleu-vert profond
+        // 16) Rouges profonds
         listOf(
-            Color(0xFF016764),
-            Color(0xFF005958),
-            Color(0xFF014848),
-            Color(0xFF00312F)
+            Color(0xFF2A0707),
+            Color(0xFF3F0D0D),
+            Color(0xFF561515),
+            Color(0xFF6F1E1E),
+            Color(0xFF892828)
         ),
+
+        // 17) Magentas sourds
         listOf(
-            Color(0xFF1B2F3C),
-            Color(0xFF26333B),
-            Color(0xFF384B49),
-            Color(0xFF3F3F3F)
+            Color(0xFF230818),
+            Color(0xFF330D23),
+            Color(0xFF45132F),
+            Color(0xFF591A3D),
+            Color(0xFF6E224C)
         ),
-        // Palette sombre variée
+        // 18) Fuchsias froids
         listOf(
-            Color(0xFF1D1E27),
-            Color(0xFF14151C),
-            Color(0xFF000000),
-            Color(0xFF180E13),
-            Color(0xFF27141F)
+            Color(0xFF1B0A1D),
+            Color(0xFF290F2B),
+            Color(0xFF38143A),
+            Color(0xFF491A4B),
+            Color(0xFF5C215E)
         ),
+
+        // 19) Violets profonds
         listOf(
-            Color(0xFF2F4F4F),
-            Color(0xFF4682B4),
-            Color(0xFF36454F),
-            Color(0xFF2F4F4F)
+            Color(0xFF140A25),
+            Color(0xFF1F1036),
+            Color(0xFF2B1748),
+            Color(0xFF391F5C),
+            Color(0xFF472870)
         ),
+        // 20) Violets bleutés
         listOf(
-            Color(0xFF3B3C36),
-            Color(0xFF1B1B1B),
-            Color(0xFF100C08),
-            Color(0xFF0D031B),
-            Color(0xFF242124)
+            Color(0xFF0F0C27),
+            Color(0xFF19143A),
+            Color(0xFF231D4E),
+            Color(0xFF2F2763),
+            Color(0xFF3B3280)
         ),
+
+        // 21) Bruns terre
         listOf(
-            Color(0xFF0F0F0F),
-            Color(0xFF16161D),
-            Color(0xFF36454F),
-            Color(0xFF2C3539)
+            Color(0xFF1A100A),
+            Color(0xFF26170F),
+            Color(0xFF331E14),
+            Color(0xFF42261A),
+            Color(0xFF523020)
         ),
+        // 22) Bruns chocolat
         listOf(
-            Color(0xFF20116D),
-            Color(0xFF40318D),
-            Color(0xFF6051AC),
-            Color(0xFF8071CC),
-            Color(0xFF9F90EC)
+            Color(0xFF160C07),
+            Color(0xFF22130C),
+            Color(0xFF2F1B11),
+            Color(0xFF3D2417),
+            Color(0xFF4C2E1E)
         ),
+
+        // 23) Neutres bleutés (slate)
         listOf(
-            Color(0xFF612302),
-            Color(0xFF3D0C02),
-            Color(0xFF32174D),
-            Color(0xFF3D2B1F)
+            Color(0xFF0D1116),
+            Color(0xFF171C24),
+            Color(0xFF222935),
+            Color(0xFF2E3747),
+            Color(0xFF3B475B)
+        )
+    )
+
+    /**
+     * Chaque sous-liste = 1 famille.
+     * Ordre interne : du très clair vers le moyen/soutenu (adapté thème clair).
+     * Color(...) en ARGB: 0xFFrrggbb
+     */
+    val lightPalettes: List<List<Color>> = listOf(
+        // 0) Neutres froids (gris bleutés)
+        listOf(
+            Color(0xFFF7F9FB),
+            Color(0xFFE9EEF3),
+            Color(0xFFD8DFE7),
+            Color(0xFFC4CDD8),
+            Color(0xFFAFBBC9)
         ),
+        // 1) Neutres chauds (gris beiges)
         listOf(
-            Color(0xFF002147),
-            Color(0xFF003366),
-            Color(0xFF20116D),
-            Color(0xFF40318D),
-            Color(0xFF6051AC)
+            Color(0xFFFAF8F6),
+            Color(0xFFF0ECE8),
+            Color(0xFFE5DFD8),
+            Color(0xFFD8D1C8),
+            Color(0xFFCBC3B8)
+        ),
+
+        // 2) Bleus clairs “ciel”
+        listOf(
+            Color(0xFFF2F7FE),
+            Color(0xFFE3EEFD),
+            Color(0xFFCFE2FB),
+            Color(0xFFB9D4F7),
+            Color(0xFFA1C5F3)
+        ),
+        // 3) Bleus moyens “UI”
+        listOf(
+            Color(0xFFF3F7FC),
+            Color(0xFFE4EDFA),
+            Color(0xFFD0E0F7),
+            Color(0xFFBAD1F2),
+            Color(0xFFA3C1ED)
+        ),
+        // 4) Bleus gris (blue-gray)
+        listOf(
+            Color(0xFFF5F8FB),
+            Color(0xFFE8EEF4),
+            Color(0xFFD8E0E9),
+            Color(0xFFC6D0DD),
+            Color(0xFFB2BFCE)
+        ),
+        // 5) Bleus vifs (accents)
+        listOf(
+            Color(0xFFEDF5FF),
+            Color(0xFFD9EAFF),
+            Color(0xFFC1DBFF),
+            Color(0xFFA7CBFF),
+            Color(0xFF8DBAFF)
+        ),
+
+        // 6) Cyans clairs
+        listOf(
+            Color(0xFFECFAFB),
+            Color(0xFFD6F2F5),
+            Color(0xFFBEE7EB),
+            Color(0xFFA6DBE1),
+            Color(0xFF8DCED6)
+        ),
+        // 7) Teal (bleu-vert doux)
+        listOf(
+            Color(0xFFEDF9F7),
+            Color(0xFFD8F1EC),
+            Color(0xFFC2E6DF),
+            Color(0xFFA9D9D0),
+            Color(0xFF92CCC2)
+        ),
+        // 8) Turquoises pastels
+        listOf(
+            Color(0xFFEDFAF9),
+            Color(0xFFD9F2EF),
+            Color(0xFFC3E8E4),
+            Color(0xFFAEDDD9),
+            Color(0xFF98D2CE)
+        ),
+
+        // 9) Verts frais
+        listOf(
+            Color(0xFFF1FBF3),
+            Color(0xFFDEF6E4),
+            Color(0xFFC9EED4),
+            Color(0xFFB3E5C4),
+            Color(0xFF9BDBB3)
+        ),
+        // 10) Olive clair (lisible en clair)
+        listOf(
+            Color(0xFFFAFBF2),
+            Color(0xFFF0F3E0),
+            Color(0xFFE5EAD0),
+            Color(0xFFD9E0C1),
+            Color(0xFFCBD5B1)
+        ),
+
+        // 11) Jaunes ambrés doux
+        listOf(
+            Color(0xFFFFFCF1),
+            Color(0xFFFEF6D9),
+            Color(0xFFFBEEC0),
+            Color(0xFFF6E3A8),
+            Color(0xFFF0D88F)
+        ),
+        // 12) Laiton / or vieilli clairs
+        listOf(
+            Color(0xFFFBF8EE),
+            Color(0xFFF4EED8),
+            Color(0xFFEDE4C3),
+            Color(0xFFE3D8AE),
+            Color(0xFFD8CB99)
+        ),
+
+        // 13) Oranges doux
+        listOf(
+            Color(0xFFFFF6F1),
+            Color(0xFFFFE9DB),
+            Color(0xFFFFDCC7),
+            Color(0xFFFFCFB4),
+            Color(0xFFFEC3A3)
+        ),
+        // 14) Cuivres clairs
+        listOf(
+            Color(0xFFFEF6F3),
+            Color(0xFFFBE7DE),
+            Color(0xFFF6D7CB),
+            Color(0xFFEFC6B7),
+            Color(0xFFE7B4A3)
+        ),
+
+        // 15) Rouges rosés (UI non agressifs)
+        listOf(
+            Color(0xFFFFF4F5),
+            Color(0xFFFFE4E7),
+            Color(0xFFFFD2D7),
+            Color(0xFFFFBFC7),
+            Color(0xFFFFACB7)
+        ),
+        // 16) Rouges corail
+        listOf(
+            Color(0xFFFEF4F3),
+            Color(0xFFFDE4E1),
+            Color(0xFFFBD2CD),
+            Color(0xFFF7BFBA),
+            Color(0xFFF2ABA6)
+        ),
+
+        // 17) Magentas pastels
+        listOf(
+            Color(0xFFFEF5FA),
+            Color(0xFFFBE6F2),
+            Color(0xFFF7D5E9),
+            Color(0xFFF1C3DF),
+            Color(0xFFEAB1D5)
+        ),
+        // 18) Fuchsias doux
+        listOf(
+            Color(0xFFFEF6FE),
+            Color(0xFFF9E6FB),
+            Color(0xFFF3D5F6),
+            Color(0xFFEBC3F0),
+            Color(0xFFE2B1E9)
+        ),
+
+        // 19) Violets lavande
+        listOf(
+            Color(0xFFFAF7FF),
+            Color(0xFFF0E8FE),
+            Color(0xFFE4D8FB),
+            Color(0xFFD6C7F6),
+            Color(0xFFC7B6F0)
+        ),
+        // 20) Violets bleutés (pervenche)
+        listOf(
+            Color(0xFFF6F7FF),
+            Color(0xFFE8EAFF),
+            Color(0xFFD9DCFE),
+            Color(0xFFC9CDFB),
+            Color(0xFFB8BFF6)
+        ),
+
+        // 21) Bruns sable
+        listOf(
+            Color(0xFFFBF8F5),
+            Color(0xFFF2E9E2),
+            Color(0xFFE7DBD1),
+            Color(0xFFDCCDBF),
+            Color(0xFFD0C0AF)
+        ),
+        // 22) Bruns clairs (cappuccino)
+        listOf(
+            Color(0xFFFCF7F4),
+            Color(0xFFF3E9E3),
+            Color(0xFFE8DBD3),
+            Color(0xFFDDCEC4),
+            Color(0xFFD2C1B6)
+        ),
+
+        // 23) Neutres “paper” (gris très légers)
+        listOf(
+            Color(0xFFFFFFFF),
+            Color(0xFFFAFBFC),
+            Color(0xFFF5F6F8),
+            Color(0xFFEFF1F4),
+            Color(0xFFE8EBEF)
+        )
+    )
+
+    val mixedPalettes: List<List<Color>> = listOf(
+        // 0) Neutres froids (gris bleutés)
+        listOf(
+            Color(0xFFF7F9FB), // très clair
+            Color(0xFFE8EEF4),
+            Color(0xFFD4DCE6),
+            Color(0xFFBAC6D4),
+            Color(0xFF95A4B5),
+            Color(0xFF4A4E53)  // foncé
+        ),
+        // 1) Neutres chauds (gris beiges)
+        listOf(
+            Color(0xFFFAF8F6),
+            Color(0xFFF0ECE8),
+            Color(0xFFE4DDD6),
+            Color(0xFFD2C6BA),
+            Color(0xFFB39F8F),
+            Color(0xFF5E5751)
+        ),
+
+        // 2) Bleus “ciel → nuit”
+        listOf(
+            Color(0xFFF2F7FE),
+            Color(0xFFE3EEFD),
+            Color(0xFFCFE2FB),
+            Color(0xFFAFCFF6),
+            Color(0xFF6FA6EA),
+            Color(0xFF0C2E50)
+        ),
+        // 3) Bleus UI (légèrement plus saturés)
+        listOf(
+            Color(0xFFF3F7FC),
+            Color(0xFFE4EDFA),
+            Color(0xFFCFE0F7),
+            Color(0xFFAFCBF1),
+            Color(0xFF5B8FE0),
+            Color(0xFF173060)
+        ),
+        // 4) Bleus gris (blue-gray)
+        listOf(
+            Color(0xFFF5F8FB),
+            Color(0xFFE8EEF4),
+            Color(0xFFD8E0E9),
+            Color(0xFFBECADA),
+            Color(0xFF7A93AD),
+            Color(0xFF0F1A24)
+        ),
+
+        // 5) Cyans (eau)
+        listOf(
+            Color(0xFFECFAFB),
+            Color(0xFFD6F2F5),
+            Color(0xFFBFE8EC),
+            Color(0xFFA2DAE0),
+            Color(0xFF4FB2C1),
+            Color(0xFF0A4A58)
+        ),
+        // 6) Teal (bleu-vert)
+        listOf(
+            Color(0xFFEDF9F7),
+            Color(0xFFD8F1EC),
+            Color(0xFFC2E6DF),
+            Color(0xFFA8D8CF),
+            Color(0xFF4FA99A),
+            Color(0xFF0C4639)
+        ),
+        // 7) Turquoises
+        listOf(
+            Color(0xFFEDFAF9),
+            Color(0xFFD9F2EF),
+            Color(0xFFC3E8E4),
+            Color(0xFFA9DCD7),
+            Color(0xFF4BB9B1),
+            Color(0xFF134846)
+        ),
+
+        // 8) Verts frais
+        listOf(
+            Color(0xFFF1FBF3),
+            Color(0xFFDEF6E4),
+            Color(0xFFC8EED3),
+            Color(0xFFAEE2C0),
+            Color(0xFF5ABF8C),
+            Color(0xFF153B22)
+        ),
+        // 9) Olives
+        listOf(
+            Color(0xFFFAFBF2),
+            Color(0xFFF0F3E0),
+            Color(0xFFE5EAD0),
+            Color(0xFFCFD9B4),
+            Color(0xFF8FA36A),
+            Color(0xFF2E3616)
+        ),
+
+        // 10) Jaunes / ambrés
+        listOf(
+            Color(0xFFFFFCF1),
+            Color(0xFFFEF6D9),
+            Color(0xFFFBEEC0),
+            Color(0xFFF4E39F),
+            Color(0xFFE0B94A),
+            Color(0xFF48330D)
+        ),
+        // 11) Or vieilli / laiton
+        listOf(
+            Color(0xFFFBF8EE),
+            Color(0xFFF4EED8),
+            Color(0xFFEDE4C3),
+            Color(0xFFDCCB9E),
+            Color(0xFFB99745),
+            Color(0xFF423612)
+        ),
+
+        // 12) Oranges doux → cuivrés
+        listOf(
+            Color(0xFFFFF6F1),
+            Color(0xFFFFE9DB),
+            Color(0xFFFFD9C2),
+            Color(0xFFFFC7A8),
+            Color(0xFFEC874F),
+            Color(0xFF532910)
+        ),
+        // 13) Cuivres (chauds)
+        listOf(
+            Color(0xFFFEF6F3),
+            Color(0xFFFBE7DE),
+            Color(0xFFF6D7CB),
+            Color(0xFFEFC4B4),
+            Color(0xFFD47E5F),
+            Color(0xFF562315)
+        ),
+
+        // 14) Rouges rosés
+        listOf(
+            Color(0xFFFFF4F5),
+            Color(0xFFFFE4E7),
+            Color(0xFFFFD2D7),
+            Color(0xFFFEBEC7),
+            Color(0xFFEB6B84),
+            Color(0xFF4F111B)
+        ),
+        // 15) Rouges corail → bordeaux
+        listOf(
+            Color(0xFFFEF4F3),
+            Color(0xFFFDE4E1),
+            Color(0xFFFBD2CD),
+            Color(0xFFF7BDB6),
+            Color(0xFFE36F61),
+            Color(0xFF661826)
+        ),
+
+        // 16) Magentas
+        listOf(
+            Color(0xFFFEF5FA),
+            Color(0xFFFBE6F2),
+            Color(0xFFF7D5E9),
+            Color(0xFFF0C0DD),
+            Color(0xFFD26CA9),
+            Color(0xFF45132F)
+        ),
+        // 17) Fuchsias
+        listOf(
+            Color(0xFFFEF6FE),
+            Color(0xFFF9E6FB),
+            Color(0xFFF3D5F6),
+            Color(0xFFE9C0EE),
+            Color(0xFFC66BD4),
+            Color(0xFF38143A)
+        ),
+
+        // 18) Violets lavande → profonds
+        listOf(
+            Color(0xFFFAF7FF),
+            Color(0xFFF0E8FE),
+            Color(0xFFE4D8FB),
+            Color(0xFFD2C4F6),
+            Color(0xFF9B83E6),
+            Color(0xFF2B1748)
+        ),
+        // 19) Violets bleutés (pervenche)
+        listOf(
+            Color(0xFFF6F7FF),
+            Color(0xFFE8EAFF),
+            Color(0xFFD9DCFE),
+            Color(0xFFC6CAFB),
+            Color(0xFF7A8AEF),
+            Color(0xFF231D4E)
+        ),
+
+        // 20) Bruns sable → terre
+        listOf(
+            Color(0xFFFBF8F5),
+            Color(0xFFF2E9E2),
+            Color(0xFFE7DBD1),
+            Color(0xFFD6C7B8),
+            Color(0xFFB28E6E),
+            Color(0xFF331E14)
+        ),
+        // 21) Bruns cappuccino → chocolat
+        listOf(
+            Color(0xFFFCF7F4),
+            Color(0xFFF3E9E3),
+            Color(0xFFE8DBD3),
+            Color(0xFFD7C7BC),
+            Color(0xFFA9816A),
+            Color(0xFF2F1B11)
+        ),
+
+        // 22) Slate (neutres bleutés)
+        listOf(
+            Color(0xFFF5F6F8),
+            Color(0xFFE8EBEF),
+            Color(0xFFD6DEE7),
+            Color(0xFFBECADA),
+            Color(0xFF7A93AD),
+            Color(0xFF222935)
         )
     )
 }

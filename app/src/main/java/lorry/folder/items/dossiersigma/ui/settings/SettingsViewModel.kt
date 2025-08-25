@@ -90,8 +90,22 @@ enum class NightAndDay {
     DARK
 }
 
+fun NightAndDay.isLight(): Boolean = this == NightAndDay.LIGHT
+fun NightAndDay.isDark(): Boolean = this == NightAndDay.DARK
+
+fun Boolean.toNightAndDayIsDark(): NightAndDay = if (this) NightAndDay.DARK else NightAndDay.LIGHT
+
 
 data class ColorPair(
     val foreground: Color,
     val background: Color
     )
+
+fun Color.isLightBase(): Boolean {
+    val r = this.red
+    val g = this.green
+    val b = this.blue
+    // luminance relative sRGB (approx.)
+    val lum = 0.2126f * r + 0.7152f * g + 0.0722f * b
+    return lum > 0.7f // seuil à ajuster selon ton rendu
+}

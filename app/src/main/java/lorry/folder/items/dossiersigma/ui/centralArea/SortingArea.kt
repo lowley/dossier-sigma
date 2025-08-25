@@ -51,8 +51,8 @@ fun SortingArea(
         if (sorting == SortingCriterion.ByDateDesc)
             FilterChip2(
                 colors = FilterChipDefaults.filterChipColors().copy(
-                    containerColor = SigmaColors.current.primary,
-                    labelColor = SigmaColors.current.tertiary,
+                    containerColor = SigmaColors.current.secondary,
+                    labelColor = SigmaColors.current.onPrimary,
                 ),
                 label = { Text("Date") },
                 modifier = Modifier.Companion,
@@ -61,7 +61,7 @@ fun SortingArea(
                         painterResource(id = R.drawable.trier_decroissant),
                         contentDescription = null,
                         modifier = Modifier.Companion.size(24.dp),
-                        tint = SigmaColors.current.tertiary
+                        tint = SigmaColors.current.secondary
                     )
                 },
                 enabled = true,
@@ -72,8 +72,8 @@ fun SortingArea(
         if (sorting == SortingCriterion.ByNameAsc)
             FilterChip2(
                 colors = FilterChipDefaults.filterChipColors().copy(
-                    containerColor = SigmaColors.current.primary,
-                    labelColor = SigmaColors.current.tertiary,
+                    containerColor = SigmaColors.current.secondary,
+                    labelColor = SigmaColors.current.onPrimary,
                 ),
                 label = { Text("Nom") },
                 modifier = Modifier.Companion,
@@ -84,7 +84,7 @@ fun SortingArea(
                         painterResource(id = R.drawable.trier_croissant),
                         contentDescription = null,
                         modifier = Modifier.Companion.size(24.dp),
-                        tint = SigmaColors.current.tertiary
+                        tint = SigmaColors.current.secondary
                     )
 
                 },

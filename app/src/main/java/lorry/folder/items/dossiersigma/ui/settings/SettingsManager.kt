@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
@@ -45,6 +46,7 @@ class SettingsManager @Inject constructor(
         val NAS_FOLDER_KEY = stringPreferencesKey("nas_folder")
         val HOMEITEMS_KEY = stringSetPreferencesKey("home_items")
         val THEME_BASE_COLOR_KEY = stringPreferencesKey("theme_basecolor")
+        val THEME_IS_DARK_THEME_KEY = booleanPreferencesKey("theme_dark")
 
         @Volatile private var INSTANCE: SettingsManager? = null
 
@@ -138,6 +140,23 @@ class SettingsManager @Inject constructor(
                 }
 
             return@map cool
+        }
+
+    suspend fun saveTheme(isDark: NightAndDay) {
+        withContext(Dispatchers.IO) {
+            dataStore.edit { settings ->
+                settings[THEME_IS_DARK_THEME_KEY] = isDark == NightAndDay.DARK
+            }
+        }
+    }
+
+    val themeFlow: Flow<NightAndDay> = dataStore.data
+        .map { preferences ->
+            // On lit la valeur associée à notre clé.
+            // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
+            if (preferences[THEME_IS_DARK_THEME_KEY] == true)
+                NightAndDay.DARK
+            else NightAndDay.LIGHT
         }
 
     suspend fun saveBaseColor(color: Color) {
