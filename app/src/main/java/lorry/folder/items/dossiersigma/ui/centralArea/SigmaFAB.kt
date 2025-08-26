@@ -144,6 +144,8 @@ fun SigmaActivity.SigmaFAB(
                                     req
                                 )
 
+                            this@SigmaFAB.closeOptionsMenu()
+
                             // Prends la plus récente en cours
 //                            val active = infos
 //                                .filter { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }

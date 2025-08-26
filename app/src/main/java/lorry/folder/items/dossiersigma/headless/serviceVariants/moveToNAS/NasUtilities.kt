@@ -13,7 +13,7 @@ import javax.inject.Inject
 class NasUtilities @Inject constructor(
     val nasDS: DSI_FTP,
 ) {
-    companion object{
+    companion object {
         val TAG = "NasUtls"
     }
 
@@ -24,7 +24,7 @@ class NasUtilities @Inject constructor(
         index: Int,
         total: Int,
         changeBottomTools: (percentage: Int, index: Int, total: Int) -> Unit
-        ) {
+    ) {
         if (source == null || destination == null)
             return
 
@@ -92,8 +92,8 @@ class NasUtilities @Inject constructor(
     }
 
     suspend fun verify(source: String, destination: String): Boolean {
-        Log.d(TAG,"début de verify")
-        Log.d(TAG,"source=$source, destination=$destination")
+        Log.d(TAG, "début de verify")
+        Log.d(TAG, "source=$source, destination=$destination")
 
         val sourceFile = File(source)
         val destinationFiles = nasDS.fetchFiles(destination)
@@ -105,7 +105,7 @@ class NasUtilities @Inject constructor(
             return false
 
         val result = file.size == sourceFile.length()
-        Log.d(TAG,"début de verify: resultat=$result")
+        Log.d(TAG, "début de verify: resultat=$result")
 
         return result
 //        return true

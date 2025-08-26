@@ -124,4 +124,8 @@ dependencies {
 
     implementation("com.arkivanov.decompose:decompose:2.1.1")
     implementation("com.arkivanov.decompose:extensions-compose-jetbrains:2.1.1")
+
+    //options
+    //https://github.com/peter-tackage/kotlin-options
+    implementation("com.github.peter-tackage.kotlin-options:kotlin-options:0.10")
 }

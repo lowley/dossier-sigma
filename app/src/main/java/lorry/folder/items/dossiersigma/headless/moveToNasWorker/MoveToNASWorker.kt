@@ -18,6 +18,8 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.petertackage.kotlinoptions.Option
+import com.petertackage.kotlinoptions.optionOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
@@ -49,6 +51,8 @@ class MoveToNASWorker(
         const val P_INDEX = "p_index"
         const val P_PCT = "p_pct"
 
+        var sourceFolderInPath: Option<String> = optionOf(null)
+
         fun request(
             target: String,
             manifestPath: String,
@@ -78,9 +82,9 @@ class MoveToNASWorker(
     private val notificationManager =
         appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-    // Le travail principal est effectué ici, dans une coroutine.
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
+
         val engine = ServiceLocator.moveEngine(applicationContext)
 
         val uri = inputData.getString(KEY_MANIFEST_URI) ?: return Result.failure()
@@ -92,6 +96,13 @@ class MoveToNASWorker(
         val target = inputData.getString(KEY_TARGET) ?: return Result.failure()
         val destination = "/$target"
 
+        sourceFolderInPath = optionOf(
+            entries
+                .firstOrNull()
+                ?.fullPath
+                ?.substringBeforeLast("/") //répertoire contenant
+        )
+        
         setForeground(createForegroundInfo("Copie en cours...", "Préparation"))
         ensureChannel()
 
@@ -122,7 +133,7 @@ class MoveToNASWorker(
 
             @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             override suspend fun onItemDone(index: Int) {
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     updateNotif("Copie en cours", "${index + 1} / $total")
                 }
             }
@@ -143,6 +154,8 @@ class MoveToNASWorker(
         } catch (e: Exception) {
             updateNotif("Copie interrompue", e.message ?: "Erreur")
             Result.failure()
+        }finally {
+            sourceFolderInPath = optionOf(null)
         }
     }
 

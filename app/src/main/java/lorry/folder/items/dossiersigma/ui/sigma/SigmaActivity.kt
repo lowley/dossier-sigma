@@ -14,6 +14,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
@@ -55,6 +57,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -67,6 +70,7 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
@@ -516,25 +520,52 @@ class SigmaActivity : ComponentActivity() {
                                 val nasText by bottomTools.copyNASText.collectAsState()
                                 val allNasText by bottomTools.copyAllNASText.collectAsState()
 
-                                if (nasText != "1 -> NAS")
-                                    Text(
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically)
-                                            .padding(end = 5.dp),
-                                        text = nasText,
-                                        color = SigmaColors.current.onPrimary,
-                                        maxLines = 1
-                                    )
-                                else
-                                    if (allNasText != "Tous -> NAS")
+                                Row(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterVertically)
+                                        .wrapContentSize()
+                                        .clickable {
+                                            if (nasText != "1 -> NAS" &&
+                                                allNasText != "Tous -> NAS"
+                                            ) {
+                                                MoveToNASWorker.sourceFolderInPath.matchAction(
+                                                    someAction = { path ->
+                                                        mainViewModel.goToFolder(path)
+                                                    },
+                                                    noneAction = {
+                                                        //on ne fait rien
+                                                    }
+                                                )
+
+                                            }
+                                        }
+                                ) {
+                                    if (nasText != "1 -> NAS")
                                         Text(
                                             modifier = Modifier
                                                 .align(Alignment.CenterVertically)
                                                 .padding(end = 5.dp),
-                                            text = allNasText,
+                                            text = nasText,
                                             color = SigmaColors.current.onPrimary,
-                                            maxLines = 1
+                                            maxLines = 1,
+                                            fontWeight = if (nasText != "1 -> NAS" &&
+                                                allNasText != "Tous -> NAS"
+                                            ) FontWeight.Bold else FontWeight.Normal
                                         )
+                                    else
+                                        if (allNasText != "Tous -> NAS")
+                                            Text(
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterVertically)
+                                                    .padding(end = 5.dp),
+                                                text = allNasText,
+                                                color = SigmaColors.current.onPrimary,
+                                                maxLines = 1,
+                                                fontWeight = if (nasText != "1 -> NAS" &&
+                                                    allNasText != "Tous -> NAS"
+                                                ) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                }
 
                                 ///////////////////////////
                                 // aire de tri des items //
