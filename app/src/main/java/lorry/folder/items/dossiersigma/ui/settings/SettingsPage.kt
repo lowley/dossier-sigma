@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -20,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -75,7 +77,7 @@ fun SigmaActivity.SettingsPage(
         if (!userEditedAddress.value) nasAddress.value = nasAddressFromDataStore
     }
 
-    val hasNasAddressChanged by remember {
+    val hasNasAddressChanged = remember {
         derivedStateOf { userEditedAddress.value && nasAddress.value != nasAddressFromDataStore }
     }
 
@@ -97,7 +99,7 @@ fun SigmaActivity.SettingsPage(
         if (!userEditedNasLogin.value) nasLogin.value = nasLoginFromDataStore
     }
 
-    val hasNasLoginChanged by remember {
+    val hasNasLoginChanged = remember {
         derivedStateOf { userEditedNasLogin.value && nasLogin.value != nasLoginFromDataStore }
     }
 
@@ -119,7 +121,7 @@ fun SigmaActivity.SettingsPage(
         if (!userEditedNasPassword.value) nasPassword.value = nasPasswordFromDataStore
     }
 
-    val hasNasPasswordChanged by remember {
+    val hasNasPasswordChanged = remember {
         derivedStateOf { userEditedNasPassword.value && nasPassword.value != nasPasswordFromDataStore }
     }
 
@@ -141,32 +143,36 @@ fun SigmaActivity.SettingsPage(
         if (!userEditedNasFolder.value) nasFolder.value = nasFolderFromDataStore
     }
 
-    val hasNasFolderChanged by remember {
+    val hasNasFolderChanged = remember {
         derivedStateOf { userEditedNasFolder.value && nasFolder.value != nasFolderFromDataStore }
     }
 
     ////////////////
     // base color //
     ////////////////
-    val baseColorFromDataStore by vm.settingsManager.baseColorFlow.collectAsState(Color.Black)
-    var baseColor = remember(baseColorFromDataStore) {
-        mutableStateOf(baseColorFromDataStore)
+    val baseColorFromDataStore = vm.settingsManager.baseColorFlow.collectAsState(Color.White)
+    var baseColor = remember {
+        mutableStateOf(baseColorFromDataStore.value)
     }
 
-    var userEditedBaseColor = remember {
+    var userEditedBaseColor = rememberSaveable  {
         mutableStateOf(false)
     }
 
     // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
     // on met à jour le champ local pour rester en phase.
-    LaunchedEffect(baseColorFromDataStore) {
-        if (!userEditedBaseColor.value) baseColor.value = baseColorFromDataStore
+    LaunchedEffect(baseColorFromDataStore.value) {
+        if (!userEditedBaseColor.value) {
+            baseColor.value = baseColorFromDataStore.value
+        }
     }
 
-    val hasBaseColorChanged by remember {
-        derivedStateOf { userEditedBaseColor.value && baseColor.value != baseColorFromDataStore }
+    val hasBaseColorChanged = remember {
+        derivedStateOf {
+            val result = userEditedBaseColor.value && baseColor.value != baseColorFromDataStore.value
+            result
+        }
     }
-
 
     /////////////////////////
     // theme light ou dark //
@@ -183,25 +189,29 @@ fun SigmaActivity.SettingsPage(
     // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
     // on met à jour le champ local pour rester en phase.
     LaunchedEffect(themeFromDataStore) {
-        if (!userEditedTheme.value) theme.value = themeFromDataStore
+        if (!userEditedTheme.value) {
+            theme.value = themeFromDataStore
+//            settingsViewModel.setNightAndDay(theme.value)
+        }
     }
 
-    val hasThemeChanged by remember {
+    val hasThemeChanged = remember {
         derivedStateOf { userEditedTheme.value && theme.value != themeFromDataStore }
     }
 
     //////////
     // tout //
     //////////
-    val hasSomethingChanged by remember {
-        derivedStateOf {
-            hasNasAddressChanged ||
-                    hasNasLoginChanged ||
-                    hasNasPasswordChanged ||
-                    hasNasFolderChanged ||
-                    hasBaseColorChanged ||
-                    hasThemeChanged
-        }
+    val hasSomethingChanged =
+         hasNasAddressChanged.value ||
+                 hasNasLoginChanged.value ||
+                 hasNasPasswordChanged.value ||
+                 hasNasFolderChanged.value ||
+                 hasBaseColorChanged.value ||
+                 hasThemeChanged.value
+
+    LaunchedEffect(hasBaseColorChanged.value, hasSomethingChanged) {
+        Log.d("SETTINGS", "hasBase=${hasBaseColorChanged.value}  save=${hasSomethingChanged}  base=${baseColor.value}  ds=${baseColorFromDataStore}")
     }
 
     Box(
@@ -364,10 +374,11 @@ fun SigmaActivity.SettingsPage(
             ) {
                 Switch(
                     modifier = Modifier,
-                    checked = hasThemeChanged,
+                    checked = theme.value.isDark(),
                     onCheckedChange = {
                         userEditedTheme.value = true
                         theme.value = if (it) NightAndDay.DARK else NightAndDay.LIGHT
+                        settingsViewModel.setNightAndDay(theme.value)
                     }
                 )
 
@@ -404,18 +415,26 @@ fun SigmaActivity.SettingsPage(
                         contentColor = Color.Black
                     ),
                     onClick = {
+                        settingsViewModel.setNightAndDay(themeFromDataStore)
+                        settingsViewModel.setBaseColor(baseColorFromDataStore.value)
+
                         mainViewModel.setIsSettingsPageVisible(false)
                     }
                 ) {
                     Text(text = "Annuler")
                 }
 
+                val saveEnabled = hasSomethingChanged
+                val disabledContainer = MaterialTheme.colorScheme.surfaceVariant
+                val container = if (saveEnabled) Color.Red else disabledContainer
+
                 Button(
                     modifier = Modifier
                         .padding(end = 20.dp, bottom = 10.dp),
-                    colors = ButtonDefaults.buttonColors().copy(
-                        containerColor = if (hasSomethingChanged) Color.Red else SigmaColors.current.tertiary,
-                        contentColor = Color.Black
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = container,
+                        contentColor   = if (saveEnabled) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     enabled = hasSomethingChanged,
                     onClick = {
@@ -438,9 +457,11 @@ fun SigmaActivity.SettingsPage(
                                 if (userEditedTheme.value)
                                     mode = theme.value
 
-                                settingsViewModel.settingsManager.saveTheme(mode)
-                                settingsViewModel.settingsManager.saveBaseColor(base)
                                 settingsViewModel.setNightAndDay(mode)
+                                settingsViewModel.setBaseColor(baseColor.value)
+
+                                settingsViewModel.settingsManager.saveTheme(mode)
+                                settingsViewModel.settingsManager.saveBaseColor(baseColor.value)
                             }
                         }
 
@@ -484,9 +505,9 @@ fun SigmaActivity.SettingsPage(
                     horizontalAlignment = HorizontalAlignment.Start,
                     onColorSelected = {
                         baseColor.value = it
+                        userEditedBaseColor.value = true
+                        settingsViewModel.setBaseColor(it)
                         showColorPicker = false
-                        if (it != baseColorFromDataStore)
-                            userEditedBaseColor.value = true
                     }
                 )
             }

@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
@@ -57,6 +58,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewModelScope
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
@@ -156,9 +158,6 @@ class SigmaActivity : ComponentActivity() {
 //            ) onCreate
             val colorScheme by settingsViewModel.colorScheme.collectAsState()
 
-            val baseColor = settingsViewModel.settingsManager.baseColorFlow.collectAsState(Color.Black)
-            val theme = ColorThemeGenerator.generateTheme(baseColor.value)
-            
             MaterialTheme(
                 colorScheme = colorScheme,
                 typography = androidx.compose.material3.Typography(),
@@ -176,7 +175,7 @@ class SigmaActivity : ComponentActivity() {
     fun AppContent() {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            color = colorScheme.background
         ) {
             val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
             val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
@@ -189,7 +188,7 @@ class SigmaActivity : ComponentActivity() {
             val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
             val fabState = rememberSpeedDialFloatingActionButtonState()
-            val colors = MaterialTheme.colorScheme
+            val colors = colorScheme
             val isDisplayingMemo by memo.isDisplayingMemo.collectAsState()
             val isKeyboardVisible by keyboardAsState()
 
@@ -204,7 +203,7 @@ class SigmaActivity : ComponentActivity() {
             val browserState by browser.vm.state.collectAsState()
 
             Scaffold(
-                containerColor = colors.background,
+                containerColor = Color.Transparent,
                 bottomBar = {
                     //////////////////////////
                     // bottomAppBar normale //
@@ -222,7 +221,7 @@ class SigmaActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(65.dp)
-                                .background(SigmaColors.current.primary)
+                                .background(Color.Transparent)
                         ) {
                             Spacer(
                                 modifier = Modifier
@@ -239,7 +238,7 @@ class SigmaActivity : ComponentActivity() {
 
                             BottomAppBar(
                                 containerColor = Color.Transparent,
-                                contentColor = Color.Black,
+                                contentColor = colors.background,
                                 tonalElevation = 0.dp
                             ) {
                                 bottomTools.BottomToolBar(activity = this@SigmaActivity)
@@ -296,7 +295,20 @@ class SigmaActivity : ComponentActivity() {
 //                        mainViewModel.refreshCurrentFolder()
                 }
 
-                window.navigationBarColor = SigmaColors.current.primary.toArgb()
+                val view = LocalView.current
+//                val activity = remember(view) { view.context.findActivity() }  // cf. helper ci-dessous
+                val bg = colorScheme.background
+
+                SideEffect {
+                    val window = activity.window
+                    window.navigationBarColor = bg.toArgb()
+                    WindowInsetsControllerCompat(window, view)
+                        .isAppearanceLightNavigationBars = false
+                    window.isNavigationBarContrastEnforced = false
+                }
+
+                window.navigationBarColor = colorScheme.background.toArgb()
+//                window.navigationBarColor = SigmaColors.current.primary.toArgb()
 
                 LaunchedEffect(Unit) {
                     bottomTools.setCurrentContent(DEFAULT)
@@ -560,8 +572,10 @@ class SigmaActivity : ComponentActivity() {
                                 homeItemsInVM = homeViewModel.homeItems,
                                 onItemClicked = { item: HomeItem ->
                                     mainViewModel.goToFolder(
-                                        item.path)
-                                    homeViewModel.setHomePageVisible(false) },
+                                        item.path
+                                    )
+                                    homeViewModel.setHomePageVisible(false)
+                                },
                                 onEditTapped = { item: HomeItem ->
                                     homeViewModel.setDialogHomeItemInfos(
                                         HomeItemInfos(
@@ -712,7 +726,7 @@ class SigmaActivity : ComponentActivity() {
                     val dragState by mainViewModel.dragState.collectAsState()
                     dragState?.let { dragState ->
                         dragState.tool?.let { tool: Tool ->
-                            with(bottomTools){
+                            with(bottomTools) {
                                 MobileSticker(
                                     dragState = dragState,
                                     activity = this@SigmaActivity

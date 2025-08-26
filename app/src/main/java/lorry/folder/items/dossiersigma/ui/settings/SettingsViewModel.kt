@@ -8,11 +8,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kavi.droid.color.palette.KvColorPalette
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.ServiceLocator
 import javax.inject.Inject
 
@@ -31,8 +37,27 @@ class SettingsViewModel @Inject constructor(
 
     val settingsManager = ServiceLocator.settings(context)
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    // Pour éviter d’initialiser 2× si la page est recomposée :
+    private var initialized = false
     companion object{
         const val TAG = "SgsVM"
+    }
+
+    init{
+        serviceScope.launch {
+            if (initialized)
+                return@launch
+
+            val initialBaseColor = settingsManager.baseColorFlow.first()
+            setBaseColor(initialBaseColor)
+
+            val initialTheme = settingsManager.themeFlow.first()
+            setNightAndDay(initialTheme)
+            Log.d(TAG, "initialTheme=$initialTheme, initialBaseColor=$initialBaseColor")
+
+            initialized = true
+        }
     }
 
     private val _nightAndDay = MutableStateFlow(NightAndDay.LIGHT)
@@ -42,8 +67,15 @@ class SettingsViewModel @Inject constructor(
         _nightAndDay.value = nightAndDay
     }
 
+    private val _baseColor = MutableStateFlow(Color.Black)
+    val baseColor = _baseColor.asStateFlow()
+
+    fun setBaseColor(color: Color) {
+        _baseColor.value = color
+    }
+
     val colorScheme: StateFlow<ColorScheme> = combine(
-        settingsManager.baseColorFlow,
+        baseColor,
         nightAndDay
     ) { baseColor, nightAndDay ->
         generateKvColorScheme(baseColor, nightAndDay)

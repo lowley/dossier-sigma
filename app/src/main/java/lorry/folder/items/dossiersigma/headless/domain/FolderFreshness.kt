@@ -12,7 +12,7 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
     companion object{
         @OptIn(ExperimentalTime::class)
         val DUMMY = FolderFreshness(
-            path = "/storage/emulated/0/Downloads",
+            path = "/storage/emulated/0/Movies",
             containerMtime = Instant.DISTANT_PAST,
             contentsMaxMtime = Instant.DISTANT_PAST,
         )
