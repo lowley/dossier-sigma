@@ -49,6 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -1327,6 +1329,7 @@ fun CustomTextDialog(
     onOk: (String) -> Unit,
 ) {
     val editMessage = remember { mutableStateOf(initialText) }
+    val focusRequester = remember { FocusRequester() }
 
     Box(
         modifier = Modifier.Companion
@@ -1360,6 +1363,8 @@ fun CustomTextDialog(
             Spacer(modifier = Modifier.Companion.height(8.dp))
 
             TextField(
+                modifier = Modifier
+                    .focusRequester(focusRequester),
                 value = editMessage.value,
                 onValueChange = { editMessage.value = it },
                 singleLine = true
@@ -1391,6 +1396,11 @@ fun CustomTextDialog(
                 }
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        // après composition → demande le focus
+        focusRequester.requestFocus()
     }
 }
 
@@ -1469,6 +1479,7 @@ fun CustomMoveFileExistingDestinationDialog(
     viewModel: SigmaViewModel,
 ) {
     val editMessage = remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
 
     Box(
         modifier = Modifier.Companion
@@ -1667,6 +1678,7 @@ fun SigmaActivity.HomeItemDialog(
     var editPath1 by remember { mutableStateOf(homeItemInfos.value?.path ?: "") }
     var editPicture1 by remember { mutableStateOf(homeItemInfos.value?.picture) }
     val homeInfos by homeItemInfos.collectAsState()
+    val focusRequester = remember { FocusRequester() }
 
     Log.d(SigmaActivity.Companion.TAG, "HomeItemDialog: $homeInfos")
     Box(
@@ -1702,7 +1714,8 @@ fun SigmaActivity.HomeItemDialog(
 
             TextField(
                 modifier = Modifier.Companion
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
                 value = if (homeInfos!!.newTitle == null) homeInfos!!.oldTitle!! else homeInfos!!.newTitle!!,
                 onValueChange = { value: String ->
                     sigmaActivity.homeViewModel.setDialogHomeItemInfos(
@@ -1890,6 +1903,11 @@ fun SigmaActivity.HomeItemDialog(
                 }
             }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        // après composition → demande le focus
+        focusRequester.requestFocus()
     }
 }
 

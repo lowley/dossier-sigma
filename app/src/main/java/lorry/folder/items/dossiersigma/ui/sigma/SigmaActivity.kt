@@ -48,6 +48,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,9 +64,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.viewModelScope
+import com.leinardi.android.speeddial.compose.SpeedDialOverlay
+import com.leinardi.android.speeddial.compose.SpeedDialState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
-import de.charlex.compose.rememberSpeedDialFloatingActionButtonState
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -191,7 +193,8 @@ class SigmaActivity : ComponentActivity() {
             val homePageVisible by homeViewModel.homePageVisible.collectAsState()
             val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
-            val fabState = rememberSpeedDialFloatingActionButtonState()
+            var fabState = rememberSaveable { mutableStateOf(SpeedDialState.Collapsed) }
+            var overlayVisible = rememberSaveable { mutableStateOf(fabState.value.isExpanded()) }
             val colors = colorScheme
             val isDisplayingMemo by memo.isDisplayingMemo.collectAsState()
             val isKeyboardVisible by keyboardAsState()
@@ -268,6 +271,7 @@ class SigmaActivity : ComponentActivity() {
                             isFilePickerVisible = isFilePickerVisible,
                             isSettingsPageVisible = isSettingsPageVisible,
                             fabState = fabState,
+                            overlayVisible = overlayVisible,
                             context = this@SigmaActivity,
                         )
                     }
@@ -765,6 +769,15 @@ class SigmaActivity : ComponentActivity() {
                             }
                         }
                     }
+
+                    SpeedDialOverlay(
+                        visible = overlayVisible.value,
+                        color = Color(0x00000000),
+                        onClick = {
+                            overlayVisible.value = false
+                            fabState.value = SpeedDialState.Collapsed
+                        },
+                    )
                 }
             }
 

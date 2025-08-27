@@ -112,11 +112,15 @@ dependencies {
 
     //FAB matérial 3
     //https://github.com/ch4rl3x/SpeedDialFloatingActionButton
-    implementation ("de.charlex.compose:speeddial-bottomappbar-material3:1.1.1")
+//    implementation ("de.charlex.compose:speeddial-bottomappbar-material3:1.1.1")
 
     //FAB material 2
     //https://github.com/ch4rl3x/SpeedDialFloatingActionButton
-    implementation("de.charlex.compose:speeddial:1.1.1")
+//    implementation("de.charlex.compose:speeddial:1.1.1")
+
+    //speed dial
+    //https://github.com/leinardi/FloatingActionButtonSpeedDial
+    implementation("com.leinardi.android:speed-dial.compose:1.0.0-alpha04")
 
     //générer un thème
     //https://github.com/KvColorPalette/KvColorPalette-Android

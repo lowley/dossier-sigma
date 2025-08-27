@@ -44,7 +44,7 @@ fun FullSizeExtras(
         CustomTextDialog(
             text = dialogMessage.value ?: "",
             viewModel = mainViewModel,
-            initialText = mainViewModel.dialogInitialText.value ?: ""
+            initialText = mainViewModel.dialogInitialText.value ?: "",
         ) { text ->
             if (mainViewModel.dialogOnOkLambda != null) {
                 mainViewModel.viewModelScope.launch {

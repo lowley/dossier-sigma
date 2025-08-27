@@ -2,12 +2,15 @@ package lorry.folder.items.dossiersigma.ui.centralArea
 
 import android.graphics.Bitmap
 import android.widget.Toast
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
@@ -20,9 +23,9 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.gson.Gson
-import de.charlex.compose.SpeedDialData
-import de.charlex.compose.SpeedDialFloatingActionButton
-import de.charlex.compose.SpeedDialFloatingActionButtonState
+import com.leinardi.android.speeddial.compose.FabWithLabel
+import com.leinardi.android.speeddial.compose.SpeedDial
+import com.leinardi.android.speeddial.compose.SpeedDialState
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
@@ -32,7 +35,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.io.File
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SigmaActivity.SigmaFAB(
     homePageVisible: Boolean,
@@ -41,7 +44,8 @@ fun SigmaActivity.SigmaFAB(
     isMoveFileDialogVisible: Boolean,
     isFilePickerVisible: Boolean,
     isTagInfosDialogVisible: Boolean,
-    fabState: SpeedDialFloatingActionButtonState,
+    fabState: MutableState<SpeedDialState>,
+    overlayVisible: MutableState<Boolean>,
     isSettingsPageVisible: Boolean,
     context: SigmaActivity,
 
@@ -60,7 +64,7 @@ fun SigmaActivity.SigmaFAB(
         if (active != null) {
             val items = active.progress.getInt(MoveToNASWorker.P_ITEMS, 0)
             val index = active.progress.getInt(MoveToNASWorker.P_INDEX, 0)
-            val pct   = active.progress.getInt(MoveToNASWorker.P_PCT, 0)
+            val pct = active.progress.getInt(MoveToNASWorker.P_PCT, 0)
 
             bottomTools.updateNASProgress(
                 percentage = pct.coerceAtLeast(0),
@@ -82,71 +86,130 @@ fun SigmaActivity.SigmaFAB(
         Box(
             Modifier.Companion
                 .padding(bottom = 5.dp, end = 20.dp)
-                .height(65.dp)
         ) {
 
-            SpeedDialFloatingActionButton(
-                modifier = Modifier.Companion,
-                initialExpanded = false,
-                animationDuration = 300,
-                animationDelayPerSelection = 100,
-                showLabels = true,
-                fabBackgroundColor = SigmaColors.current.secondary,
-                fabContentColor = SigmaColors.current.onPrimary,
-                speedDialBackgroundColor = SigmaColors.current.secondary,
-                speedDialContentColor = SigmaColors.current.tertiary,
-                speedDialData = listOf(
-                    SpeedDialData(
-                        label = "Dossier -> NAS",
-                        painter = painterResource(id = R.drawable.ftp),
-                    ) {
-                        mainViewModel.viewModelScope.launch {
-                            val files = mainViewModel.displayedItemsFlow.value.second.map {
-                                val picture = mainViewModel.imageCache.value[it.fullPath]
-                                val picture64 = if (picture != null && picture is Bitmap)
-                                    mainViewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
-                                else null
-
-                                it.fullPath to picture64
-                            }
-
-                            //* aire des images enregistrées dans un fichier
-                            //* pour transfert à CopieurTho2
-                            val entries = files.map<Pair<String, String?>, ManifestEntry> {
-                                ManifestEntry(fullPath = it.first, picture64 = it.second)
-                            }
-
-                            // 2) Écrire le JSON dans un fichier temporaire de cache interne
-                            val manifestFile = File(cacheDir, "transfer_manifest.json").apply {
-                                writeText(Gson().toJson(entries))
-                            }
-
-                            // 3) Obtenir l’URI de partage via FileProvider
-                            val authority = "${packageName}.provider"
-                            val contentUri =
-                                FileProvider.getUriForFile(this@SigmaFAB, authority, manifestFile)
-                            //* fin aire des images enregistrées dans un fichier
-
-                            val nasDirectory =
-                                this@SigmaFAB.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
-                                    ?: ""
-
-                            val req = MoveToNASWorker.request(
-                                manifestPath = manifestFile.absolutePath,
-                                target = nasDirectory,
-                                manifestUri = contentUri.toString()
+            SpeedDial(
+                modifier = Modifier,
+                state = fabState.value,
+                onFabClick = { expanded ->
+                    overlayVisible.value = !expanded
+                    fabState.value = if (expanded) SpeedDialState.Collapsed
+                    else SpeedDialState.Expanded
+                }
+            ) {
+                item {
+                    FabWithLabel(
+                        modifier = Modifier,
+                        labelBackgroundColor = SigmaColors.current.primary,
+                        fabBackgroundColor = SigmaColors.current.primary,
+                        labelContent = {
+                            Text(
+                                modifier = Modifier,
+                                text = "Dossier -> NAS",
+                                color = SigmaColors.current.onSecondary
                             )
+                        },
+//                        fabBackgroundColor = SigmaColors.current.primary,
+                        onClick = {
+                            overlayVisible.value = false
+                            fabState.value = SpeedDialState.Collapsed
+                            copyEntireFolderToNAS()
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(25.dp),
+                            painter = painterResource(id = R.drawable.chaine),
+                            contentDescription = null,
+                        )
+                    }
+                }
 
-                            WorkManager.getInstance(this@SigmaFAB)
-                                .enqueueUniqueWork(
-                                    "move-to-nas",
-                                    ExistingWorkPolicy.KEEP,
-                                    req
-                                )
+                item {
+                    FabWithLabel(
+                        modifier = Modifier,
+                        labelBackgroundColor = SigmaColors.current.primary,
+                        fabBackgroundColor = SigmaColors.current.primary,
+                        labelContent = {
+                            Text(
+                                modifier = Modifier,
+                                text = "Créer dossier",
+                                color = SigmaColors.current.onSecondary
+                            )
+                        },
+//                        fabBackgroundColor = SigmaColors.current.primary,
+                        onClick = {
+                            overlayVisible.value = false
+                            fabState.value = SpeedDialState.Collapsed
+                            createFolder()
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(25.dp),
+                            painter = painterResource(id = R.drawable.add_folder),
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+        }
+}
 
-                            this@SigmaFAB.closeOptionsMenu()
+/////////////////////////////////////////
+// reste du code: méthodes utilitaires //
+/////////////////////////////////////////
 
-                            // Prends la plus récente en cours
+private fun SigmaActivity.copyEntireFolderToNAS() {
+    mainViewModel.viewModelScope.launch {
+        val files = mainViewModel.displayedItemsFlow.value.second.map {
+            val picture = mainViewModel.imageCache.value[it.fullPath]
+            val picture64 = if (picture != null && picture is Bitmap)
+                mainViewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
+            else null
+
+            it.fullPath to picture64
+        }
+
+        //* aire des images enregistrées dans un fichier
+        //* pour transfert à CopieurTho2
+        val entries = files.map<Pair<String, String?>, ManifestEntry> {
+            ManifestEntry(fullPath = it.first, picture64 = it.second)
+        }
+
+        // 2) Écrire le JSON dans un fichier temporaire de cache interne
+        val manifestFile = File(cacheDir, "transfer_manifest.json").apply {
+            writeText(Gson().toJson(entries))
+        }
+
+        // 3) Obtenir l’URI de partage via FileProvider
+        val authority = "${packageName}.provider"
+        val contentUri =
+            FileProvider.getUriForFile(
+                this@SigmaActivity,
+                authority,
+                manifestFile
+            )
+        //* fin aire des images enregistrées dans un fichier
+
+        val nasDirectory =
+            this@SigmaActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
+                ?: ""
+
+        val req = MoveToNASWorker.request(
+            manifestPath = manifestFile.absolutePath,
+            target = nasDirectory,
+            manifestUri = contentUri.toString()
+        )
+
+        WorkManager.getInstance(this@SigmaActivity)
+            .enqueueUniqueWork(
+                "move-to-nas",
+                ExistingWorkPolicy.KEEP,
+                req
+            )
+
+        // Prends la plus récente en cours
 //                            val active = infos
 //                                .filter { it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED }
 //                                .maxByOrNull { it.runAttemptCount } ?: infos.maxByOrNull { it.runAttemptCount }
@@ -173,38 +236,33 @@ fun SigmaActivity.SigmaFAB(
 //                                    )
 //                                }
 //                            )
-                        }
-                    },
-                    SpeedDialData(
-                        label = "Ajouter dossier",
-                        painter = painterResource(id = R.drawable.dossier_plus)
-                    ) {
-                        mainViewModel.setDialogMessage("Nom du dossier à créer")
-                        mainViewModel.dialogOnOkLambda =
-                            { newName, viewModel, mainActivity ->
-                                val currentFolderPath = viewModel.LastFolderFreshness.value.path
-                                val newFullName = "$currentFolderPath/$newName"
-
-                                if (!File(newFullName).exists()) {
-                                    if (File(newFullName).mkdir()) {
-                                        Toast.makeText(
-                                            mainActivity,
-                                            "Répertoire créé",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        viewModel.refreshCurrentFolder()
-                                    } else
-                                        Toast.makeText(
-                                            mainActivity,
-                                            "Un problème est survenu",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                }
-                            }
-
-                        mainViewModel.setIsTextDialogVisible(true)
-                    },
-                )
-            )
-        }
+    }
 }
+
+private fun SigmaActivity.createFolder() {
+    mainViewModel.setDialogMessage("Nom du dossier à créer")
+    mainViewModel.dialogOnOkLambda =
+        { newName, viewModel, mainActivity ->
+            val currentFolderPath = viewModel.LastFolderFreshness.value.path
+            val newFullName = "$currentFolderPath/$newName"
+
+            if (!File(newFullName).exists()) {
+                if (File(newFullName).mkdir()) {
+                    Toast.makeText(
+                        mainActivity,
+                        "Répertoire créé",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    viewModel.refreshCurrentFolder()
+                } else
+                    Toast.makeText(
+                        mainActivity,
+                        "Un problème est survenu",
+                        Toast.LENGTH_SHORT
+                    ).show()
+            }
+        }
+
+    mainViewModel.setIsTextDialogVisible(true)
+}
+
