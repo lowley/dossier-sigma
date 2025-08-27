@@ -419,7 +419,6 @@ fun ImageSection(
             )
         }
 
-
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(image ?: R.drawable.document2)

@@ -967,7 +967,7 @@ sealed class Tools {
 
                             val picture =
                                 viewModel.imageCache.value[viewModel.selectedItemFullPath.value]
-                            val picture64 = if (picture != null)
+                            val picture64 = if (picture != null && picture is Bitmap)
                                 viewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
                             else null
 
