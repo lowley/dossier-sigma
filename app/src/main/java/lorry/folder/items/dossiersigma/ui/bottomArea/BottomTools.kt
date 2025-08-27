@@ -67,6 +67,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkManager
 import coil.compose.AsyncImage
 import com.github.skydoves.colorpicker.compose.ColorEnvelope
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
@@ -90,6 +92,7 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Scale
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
@@ -995,18 +998,31 @@ sealed class Tools {
                                 mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
                                     ?: ""
 
-                            bottomTools.moveToNASComponent.startService(
-                                filesToTransfer = filesToTransfer,
-                                manifestUri = contentUri.toString(),
-                                nasDirectory = nasDirectory,
-                                changeBottomTools = { percentage: Int, index: Int, total: Int ->
-                                    bottomTools.updateNASProgress(
-                                        percentage = percentage,
-                                        fileIndex = index,
-                                        fileCount = total
-                                    )
-                                }
+                            val req = MoveToNASWorker.request(
+                                manifestPath = manifestFile.absolutePath,
+                                target = nasDirectory,
+                                manifestUri = contentUri.toString()
                             )
+
+                            WorkManager.getInstance(mainActivity)
+                                .enqueueUniqueWork(
+                                    "move-to-nas",
+                                    ExistingWorkPolicy.KEEP,
+                                    req
+                                )
+
+//                            bottomTools.moveToNASComponent.startService(
+//                                filesToTransfer = filesToTransfer,
+//                                manifestUri = contentUri.toString(),
+//                                nasDirectory = nasDirectory,
+//                                changeBottomTools = { percentage: Int, index: Int, total: Int ->
+//                                    bottomTools.updateNASProgress(
+//                                        percentage = percentage,
+//                                        fileIndex = index,
+//                                        fileCount = total
+//                                    )
+//                                }
+//                            )
 
                             ////////////
                             // legacy //

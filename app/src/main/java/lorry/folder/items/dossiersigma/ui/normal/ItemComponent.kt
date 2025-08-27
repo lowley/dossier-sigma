@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -418,6 +419,7 @@ fun ImageSection(
             )
         }
 
+
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(image ?: R.drawable.document2)
@@ -443,8 +445,11 @@ fun ImageSection(
                         modifier = Modifier.Companion
                             .matchParentSize(),
                         colorFilter = if (image == null || image is Int) ColorFilter.tint(
-                            SigmaColors.current.tertiary
-                        ) else null
+                            lerp(
+                                SigmaColors.current.secondary,
+                                SigmaColors.current.primary,
+                                0.8f))
+                         else null
                     )
 
                     Shortcuts(
