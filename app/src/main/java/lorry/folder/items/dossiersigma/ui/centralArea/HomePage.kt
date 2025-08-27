@@ -285,7 +285,7 @@ fun HomeItemContent(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 10.dp
         ),
-        border = BorderStroke(2.dp, _10Color),
+        border = BorderStroke(2.dp, lerp(_60Color, SigmaColors.current.primary, 0.4f)),
     ) {
         Box(
             modifier = Modifier
