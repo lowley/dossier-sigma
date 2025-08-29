@@ -19,8 +19,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +43,6 @@ import androidx.lifecycle.viewModelScope
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
@@ -66,14 +66,13 @@ fun SigmaActivity.MemoEditor(
             .zIndex(15f)
     ) {
 
-        val selectedItemMemo by combine(
-            currentItemFlow,
-            mainViewModel.memoCache
-        ) { item, cache ->
-            if (item != null)
-                cache[item.fullPath]
-            else ""
-        }.collectAsState(initial = "")
+        val selectedItemMemo by remember {
+            derivedStateOf {
+                mainViewModel.folderContentComponent
+                    .currentFolderFlow?.value
+                    ?.memo
+            }
+        }
 
         LaunchedEffect(isRichText.value, selectedItemMemo) {
             if (isRichText.value) {
@@ -245,11 +244,6 @@ fun SigmaActivity.MemoEditor(
                         currentItem.copy(memo = editorContent)
                     )
 
-                    mainViewModel.setMemoCacheValue(
-                        key = currentItem.fullPath,
-                        memo = editorContent
-                    )
-
                     mainViewModel.viewModelScope.launch(Dispatchers.IO) {
 
                         val capsuleMgr = CapsuleComponent()
@@ -260,6 +254,9 @@ fun SigmaActivity.MemoEditor(
                             mainViewModel.setSelectedItem(null)
                         }
                     }
+
+                    mainViewModel.folderContentComponent
+                        ?.refreshCurrentFolder()
 
                     richTextState.clear()
                     closeMemo()

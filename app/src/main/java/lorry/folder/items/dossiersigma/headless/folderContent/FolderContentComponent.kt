@@ -8,9 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -70,63 +69,56 @@ class FolderContentComponent @Inject constructor(
         folderPathHistory,
         reloadTrigger,
         bottomTools.currentFlagId,
-        folderCacheFlow
-    ) { folderPathHistory, reloadTrigger, flagId, folderCache ->
-        Triple(folderPathHistory.lastOrNull(), flagId, folderCache)
-    }.flatMapLatest { (latestPath, flagId, folderCache) ->
+    ) { folderPathHistory, reloadTrigger, flagId ->
+        Pair(folderPathHistory.lastOrNull(), flagId)
+    }.flatMapLatest { (latestPath, flagId) ->
 
-        flow {
-            if (latestPath == null) {
-                emit(null)
-                return@flow
-            }
+        if (latestPath == null)
+            return@flatMapLatest flowOf<SigmaFolder?>(null)
 
-            val cachedFolderFreshness = folderCacheFlow.value[latestPath]?.freshness
-            val realFolderFreshness = diskRepository.getFolderFreshness(latestPath)
+        val cachedFolderFreshness = folderCacheFlow.value[latestPath]?.freshness
+        val realFolderFreshness = diskRepository.getFolderFreshness(latestPath)
+        val folderCache = folderCacheFlow.value
+        //le cache possède le tri actuel
+        //le tri si doit être modifié est une modification du cache
+        val sort = folderCache[latestPath]?.sort ?: SortingCriterion.ByDateDesc
 
-            //le cache possède le tri actuel
-            //le tri si doit être modifié est une modification du cache
-            val sort = folderCache[latestPath]?.sort ?: SortingCriterion.ByDateDesc
-
-            val inclusion = folderCache.containsKey(latestPath)
-            val equality = cachedFolderFreshness?.isSameAs(realFolderFreshness) == true
+        val inclusion = folderCache.containsKey(latestPath)
+        val equality = cachedFolderFreshness?.isSameAs(realFolderFreshness) == true
 
 
-            if (inclusion && equality) {
-                val currentCachedFolder = folderCache[latestPath]
-                emit(currentCachedFolder?.folder)
-            } else {
-                emitAll(
-                    //récupération avec tri
-                    diskRepository.getFolderItemsLiteFlow(latestPath, sort)
-                        .runningFold(emptyList<Item>()) { acc, it -> acc + it }
-                        .flowOn(Dispatchers.IO)
-                        //stockage dans cache
-                        .onEach { items ->
-                            val realFresh = diskRepository.getFolderFreshness(latestPath)
-                            val folder = SigmaFolder.ofItemsAndPath(
-                                items = items,
-                                path = latestPath
-                            )
-                            val fc = FolderCacheEntry(folder, sort, realFresh)
-                            _folderCacheFlow.value = folderCache.toMutableMap()
-                                .apply { put(latestPath, fc) }
-                        }
-                        //filtrage
-                        .map { items ->
-                            val filtered =
-                                if (flagId == null) items else items.filter { it.tag?.id == flagId }
-                            filtered
-                        }
-                        //incorporation dans SigmaFolder
-                        .map { items ->
-                            SigmaFolder.ofItemsAndPath(
-                                items = items,
-                                path = latestPath
-                            )
-                        }
-                )
-            }
+        if (inclusion && equality) {
+            val currentCachedFolder = folderCache[latestPath]
+            flowOf(currentCachedFolder?.folder)
+        } else {
+            //récupération avec tri
+            diskRepository.getFolderItemsLiteFlow(latestPath, sort)
+                .runningFold(emptyList<Item>()) { acc, it -> acc + it }
+                .flowOn(Dispatchers.IO)
+                //stockage dans cache
+                .onEach { items ->
+                    val realFresh = diskRepository.getFolderFreshness(latestPath)
+                    val folder = SigmaFolder.ofItemsAndPath(
+                        items = items,
+                        path = latestPath
+                    )
+                    val fc = FolderCacheEntry(folder, sort, realFresh)
+                    _folderCacheFlow.value = folderCache.toMutableMap()
+                        .apply { put(latestPath, fc) }
+                }
+                //filtrage
+                .map { items ->
+                    val filtered =
+                        if (flagId == null) items else items.filter { it.tag?.id == flagId }
+                    filtered
+                }
+                //incorporation dans SigmaFolder
+                .map { items ->
+                    SigmaFolder.ofItemsAndPath(
+                        items = items,
+                        path = latestPath
+                    )
+                }
         }
     }.stateIn(
         scope = scope,

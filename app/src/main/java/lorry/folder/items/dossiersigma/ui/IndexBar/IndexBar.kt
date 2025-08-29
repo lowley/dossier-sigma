@@ -17,6 +17,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +53,7 @@ class IndexBar @Inject constructor() : IIndexBar {
         {
             val model by mainViewModel.modelFlow.collectAsState(emptyList())
 
-            model.forEach { info ->
+            model?.forEach { info ->
                 when (val c = info.content) {
                     is Content.Text -> {
                         var tooltipVisible = remember { mutableStateOf(false) }
@@ -67,7 +68,14 @@ class IndexBar @Inject constructor() : IIndexBar {
                             state = rememberTooltipState(isPersistent = false)
                         ) {
                             val coroutineScope = rememberCoroutineScope()
-                            val currentFolderItems = mainViewModel.displayedItemsFlow.collectAsState()
+                            val currentFolderItems = remember {
+                                derivedStateOf {
+                                    mainViewModel.folderContentComponent
+                                        .currentFolderFlow?.value?.items ?: emptyList()
+                                }
+                            }
+
+//                                mainViewModel.displayedItemsFlow.collectAsState()
 
                             Text(
                                 modifier = Modifier
@@ -75,7 +83,6 @@ class IndexBar @Inject constructor() : IIndexBar {
                                         tooltipVisible.value = !tooltipVisible.value
 
                                         val items = currentFolderItems.value
-                                            .second
                                             .sortedBy { it.name }
 
                                         val zone = ZoneId.systemDefault()
@@ -114,7 +121,12 @@ class IndexBar @Inject constructor() : IIndexBar {
                             state = rememberTooltipState(isPersistent = false)
                         ) {
                             val coroutineScope = rememberCoroutineScope()
-                            val currentFolderItems = mainViewModel.displayedItemsFlow.collectAsState()
+                            val currentFolderItems = remember {
+                                derivedStateOf {
+                                    mainViewModel.folderContentComponent
+                                        .currentFolderFlow.value?.items ?: emptyList()
+                                }
+                            }
 
                             Icon(
                                 modifier = Modifier
@@ -126,7 +138,6 @@ class IndexBar @Inject constructor() : IIndexBar {
 
                                                 require(info.endDate != null)
                                                 val items = currentFolderItems.value
-                                                    .second
                                                     .sortedBy { it.modificationDate }
                                                     .reversed()
 

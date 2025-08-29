@@ -162,8 +162,12 @@ fun SigmaActivity.SigmaFAB(
 
 private fun SigmaActivity.copyEntireFolderToNAS() {
     mainViewModel.viewModelScope.launch {
-        val files = mainViewModel.displayedItemsFlow.value.second.map {
-            val picture = mainViewModel.imageCache.value[it.fullPath]
+        val currentFolderItems =
+                mainViewModel.folderContentComponent
+                    .currentFolderFlow.value?.items ?: emptyList()
+
+        val files = currentFolderItems.map {
+            val picture = it.picture
             val picture64 = if (picture != null && picture is Bitmap)
                 mainViewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
             else null
@@ -243,7 +247,10 @@ private fun SigmaActivity.createFolder() {
     mainViewModel.setDialogMessage("Nom du dossier à créer")
     mainViewModel.dialogOnOkLambda =
         { newName, viewModel, mainActivity ->
-            val currentFolderPath = viewModel.LastFolderFreshness.value.path
+            val currentFolderPath = viewModel.folderContentComponent
+                ?.currentFolderFlow?.value
+                ?.fullPath
+
             val newFullName = "$currentFolderPath/$newName"
 
             if (!File(newFullName).exists()) {
@@ -253,7 +260,7 @@ private fun SigmaActivity.createFolder() {
                         "Répertoire créé",
                         Toast.LENGTH_SHORT
                     ).show()
-                    viewModel.refreshCurrentFolder()
+                    viewModel.folderContentComponent.refreshCurrentFolder()
                 } else
                     Toast.makeText(
                         mainActivity,

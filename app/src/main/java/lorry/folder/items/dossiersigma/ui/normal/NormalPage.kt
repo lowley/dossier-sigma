@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
+import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -58,8 +59,9 @@ fun NormalPage(
                     bottom = 0.dp)
         ) {
 
-            val displayedItems = remember { derivedStateOf<List<Item>?>{
-                currentFolderFlow.value?.items}}
+            val displayedItems = mainViewModel.folderContentComponent.currentFolderFlow
+                .map { it?.items ?: emptyList() }
+                .collectAsState(initial = emptyList())
 
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
@@ -67,7 +69,7 @@ fun NormalPage(
                     .padding(start = 25.dp, end = 0.dp),
                 state = currentScrollState
             ) {
-                lazyGridItems(displayedItems.value as List<Item>, key = {
+                lazyGridItems(displayedItems.value , key = {
                     it.fullPath + "-" + it.id
                 }) { item ->
                     ItemComponent(

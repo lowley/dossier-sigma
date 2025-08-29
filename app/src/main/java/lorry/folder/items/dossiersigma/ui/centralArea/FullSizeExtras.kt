@@ -114,7 +114,7 @@ fun FullSizeExtras(
                         putExtra("addSuffix", "")
                     }
                 startService(intent)
-                mainViewModel.refreshCurrentFolder()
+                mainViewModel.folderContentComponent.refreshCurrentFolder()
             },
             onCancel = {
                 bottomTools.setCurrentContent(DEFAULT)
@@ -125,7 +125,7 @@ fun FullSizeExtras(
                     mainViewModel.goToFolder(movingParent)
                 bottomTools.movingItem = null
                 mainViewModel.setSelectedItem(null, true)
-                mainViewModel.refreshCurrentFolder()
+                mainViewModel.folderContentComponent.refreshCurrentFolder()
             },
             onCreateCopy = {
                 val intent =
@@ -144,7 +144,7 @@ fun FullSizeExtras(
                         putExtra("addSuffix", " - copie")
                     }
                 startService(intent)
-                mainViewModel.refreshCurrentFolder()
+                mainViewModel.folderContentComponent.refreshCurrentFolder()
             }
         )
     }

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.util.Base64
+import android.util.Log
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
@@ -13,10 +14,14 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.base64.IBase64DataSource
@@ -50,104 +55,104 @@ class DiskRepository @Inject constructor(
     val intentWrapper: DSI_IntentWrapper,
 ) : IDiskRepository {
 
+    companion object {
+        val TAG = "DskRepo"
+    }
+
     override fun getFolderItemsLiteFlow(
         folderPath: String,
         sorting: SortingCriterion
     ): Flow<Item> = flow {
-
         val children = datasource.getFolderContent(folderPath)
-            .filter { itemDTO ->
-                !itemDTO.name.startsWith(".") &&
-                        itemDTO.name != "System Volume Information" &&
-                        itemDTO.name != "Android"
+            .filter { dto ->
+                !dto.name.startsWith(".") &&
+                        dto.name != "System Volume Information" &&
+                        dto.name != "Android"
             }
-//            .sortedWith(compareBy<ItemDTO>({ it.isFile }, { it.name.lowercase() }
 
         val sorted = when (sorting) {
-            SortingCriterion.ByNameAsc -> children.sortedWith(
-                compareBy<ItemDTO> { it.isFile }
-                    .thenBy { it.name.toLowerCase(locale = Locale.current) })
-
-
-            SortingCriterion.ByDateDesc -> children.sortedWith(
-                compareBy<ItemDTO> { it.isFile }
-                    .thenByDescending { it.lastModified })
-        }
-
-        emitAll(sorted.asFlow().map { itemDTO ->
-            val itemDTOPath = "${itemDTO.path}/${itemDTO.name}"
-
-            val newCapsuleManager = CapsuleComponent()
-            val newCapsule = newCapsuleManager.getCapsule(itemDTOPath)
-//            val oldCapsuleManager = CapsuleComponent()
-//            val oldCapsule = oldCapsuleManager.getCapsule(
-//                itemDTOPath,
-//                useOld = true
-//            )
-
-            if (newCapsule == null)
-                emptyList<Item>()
-
-            val file = if (itemDTO.isFile) {
-                var file : Item = SigmaFile(
-                    path = itemDTO.path,
-                    name = itemDTO.name,
-                    picture = getImage(
-                        path = itemDTOPath,
-                        newCapsule = newCapsule,
-                    ),
-                    modificationDate = itemDTO.lastModified,
-                tag = newCapsule!!.getFlag(),
-                    scale = null,
-                    memo = newCapsule.memo2,
+            SortingCriterion.ByNameAsc ->
+                children.sortedWith(
+                    compareBy<ItemDTO> { it.isFile }
+                        .thenBy { it.name.lowercase(java.util.Locale.getDefault()) }
                 )
 
-                if (itemDTO.name.endsWith(".html")) {
-                    try {
-                        val picture =
-                            base64DataSource.extractImageFromHtml("${itemDTO.path}/${itemDTO.name}")
-                        if (picture != null)
-                            file = file.copy(picture = picture)
-                    } catch (e: Exception) {
-                        println("Erreur lors de la lecture de cover : ${e.message}")
-                    }
-                }
-
-                if (itemDTO.name.endsWith(".mp4")) {
-                    try {
-                        val picture =
-                            extractCoverBitmap("${itemDTO.path}/${itemDTO.name}")
-                        if (picture != null)
-                            file = file.copy(picture = picture)
-                    } catch (e: Exception) {
-                        println("Erreur lors de la lecture de cover : ${e.message}")
-                    }
-                }
-
-                file
-            } else {
-                SigmaFolder(
-                    path = itemDTO.path,
-                    name = itemDTO.name,
-                    picture = getImage(
-                        path = itemDTOPath,
-                        newCapsule = newCapsule,
-                    ),
-                    items = listOf(),
-                    modificationDate = itemDTO.lastModified,
-                    tag = newCapsule!!.getFlag(),
-                    scale = null,
-                    memo = newCapsule.memo2,
+            SortingCriterion.ByDateDesc ->
+                children.sortedWith(
+                    compareBy<ItemDTO> { it.isFile }
+                        .thenByDescending { it.lastModified }
                 )
-            }
-
-            file
         }
+
+        // Crée une fois pour toutes
+        val capsuleManager = CapsuleComponent()
+
+        emitAll(
+            sorted.asFlow()
+                .onStart { Log.d(TAG, "START items=${sorted.size} path=$folderPath") }
+                .onEach { dto -> Log.d(TAG, "DTO -> ${dto.name}") }
+                .map { dto ->
+                    val itemPath = "${dto.path}/${dto.name}"
+                    val capsule = capsuleManager.getCapsule(itemPath)
+
+                    val tag = capsule?.getFlag()
+                    val memo = capsule?.memo2
+
+                    val basePicture = getImage(path = itemPath, newCapsule = capsule)
+
+                    if (dto.isFile) {
+                        val nameLower = dto.name.lowercase(java.util.Locale.getDefault())
+
+                        var picture: Any? = basePicture
+                        if (picture == null && nameLower.endsWith(".html")) {
+                            try {
+                                picture = base64DataSource.extractImageFromHtml(itemPath)
+                            } catch (e: Exception) {
+                                println("Erreur cover HTML: ${e.message}")
+                            }
+                        }
+                        if (picture == null && nameLower.endsWith(".mp4")) {
+                            try {
+                                picture = extractCoverBitmap(itemPath)
+                            } catch (e: Exception) {
+                                println("Erreur cover MP4: ${e.message}")
+                            }
+                        }
+
+                        SigmaFile(
+                            path = dto.path,
+                            name = dto.name,
+                            picture = picture,
+                            modificationDate = dto.lastModified,
+                            tag = tag,
+                            scale = null,
+                            memo = memo,
+                        )
+                    } else {
+                        SigmaFolder(
+                            path = dto.path,
+                            name = dto.name,
+                            picture = basePicture,
+                            items = emptyList(),
+                            modificationDate = dto.lastModified,
+                            tag = tag,
+                            scale = null,
+                            memo = memo,
+                        )
+                    }
+                }
+                .onEach { item -> Log.d(TAG, "ITEM -> ${item.name}") } // ③ atteint seulement si le map a produit
+                .onCompletion { cause ->
+                    Log.d(TAG, if (cause == null) "COMPLETE ok" else "COMPLETE with error: ${cause.message}")
+                }
+                .catch { e ->
+                    Log.e(TAG, "FLOW ERROR: ${e.message}", e)          // ④ erreurs amont
+                }
         )
     }.flowOn(Dispatchers.IO)
 
     @OptIn(ExperimentalTime::class)
-    override suspend fun getFolderFreshness(folderPath: String): FolderFreshness{
+    override suspend fun getFolderFreshness(folderPath: String): FolderFreshness {
 
         val infos = datasource.getFolderLiteContent(folderPath)
 
@@ -451,7 +456,7 @@ class DiskRepository @Inject constructor(
                 println("C'est un dossier")
                 var image: Any? = newCapsule?.getCroppedPicture() ?: newCapsule?.getInitialPicture()
 
-                if (image != null && !File("$path/.sigma").exists()){
+                if (image != null && !File("$path/.sigma").exists()) {
                     val capsuleMgr = CapsuleComponent()
                     val repo = VideoInfoEmbedder()
 
