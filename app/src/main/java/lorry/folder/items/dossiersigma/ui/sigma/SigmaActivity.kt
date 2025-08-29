@@ -143,7 +143,6 @@ class SigmaActivity : ComponentActivity() {
      */
     var onFolderChosen: (String?) -> Unit = {}
 
-
     val sigmaActivity = this
 
     @Inject

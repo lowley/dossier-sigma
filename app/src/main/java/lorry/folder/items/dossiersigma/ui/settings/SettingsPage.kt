@@ -1,6 +1,5 @@
 package lorry.folder.items.dossiersigma.ui.settings
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -150,54 +149,44 @@ fun SigmaActivity.SettingsPage(
     ////////////////
     // base color //
     ////////////////
-    val baseColorFromDataStore = vm.settingsManager.baseColorFlow.collectAsState(Color.White)
-    var baseColor = remember {
-        mutableStateOf(baseColorFromDataStore.value)
-    }
+    val baseColorEffective = vm.baseColorEffective.collectAsState(Color(0xFF4F86F7))
 
-    var userEditedBaseColor = rememberSaveable  {
-        mutableStateOf(false)
-    }
+//    var userEditedBaseColor = rememberSaveable  {
+//        mutableStateOf(false)
+//    }
 
     // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
     // on met à jour le champ local pour rester en phase.
-    LaunchedEffect(baseColorFromDataStore.value) {
-        if (!userEditedBaseColor.value) {
-            baseColor.value = baseColorFromDataStore.value
-        }
-    }
+//    LaunchedEffect(baseColorFromDataStore.value) {
+//        if (!userEditedBaseColor.value) {
+//            baseColor.value = baseColorFromDataStore.value
+//        }
+//    }
 
-    val hasBaseColorChanged = remember {
-        derivedStateOf {
-            val result = userEditedBaseColor.value && baseColor.value != baseColorFromDataStore.value
-            result
-        }
-    }
+    val hasBaseColorChanged = vm.baseColorChanged.collectAsState()
 
     /////////////////////////
     // theme light ou dark //
     /////////////////////////
-    val themeFromDataStore by vm.settingsManager.themeFlow.collectAsState(NightAndDay.DARK)
-    var theme = remember(themeFromDataStore) {
-        mutableStateOf(themeFromDataStore)
-    }
-
-    var userEditedTheme = remember {
-        mutableStateOf(false)
-    }
+    val themeEffective by vm.modeEffective.collectAsState(NightAndDay.LIGHT)
+//    var theme = remember(themeFromDataStore) {
+//        mutableStateOf(themeFromDataStore)
+//    }
+//
+//    var userEditedTheme = remember {
+//        mutableStateOf(false)
+//    }
 
     // Si la valeur DataStore change et que l'utilisateur n'a pas commencé à taper,
     // on met à jour le champ local pour rester en phase.
-    LaunchedEffect(themeFromDataStore) {
-        if (!userEditedTheme.value) {
-            theme.value = themeFromDataStore
-//            settingsViewModel.setNightAndDay(theme.value)
-        }
-    }
-
-    val hasThemeChanged = remember {
-        derivedStateOf { userEditedTheme.value && theme.value != themeFromDataStore }
-    }
+//    LaunchedEffect(themeFromDataStore) {
+//        if (!userEditedTheme.value) {
+//            theme.value = themeFromDataStore
+////            settingsViewModel.setNightAndDay(theme.value)
+//        }
+//    }
+//
+    val hasThemeChanged = vm.modeChanged.collectAsState()
 
     //////////
     // tout //
@@ -210,9 +199,9 @@ fun SigmaActivity.SettingsPage(
                  hasBaseColorChanged.value ||
                  hasThemeChanged.value
 
-    LaunchedEffect(hasBaseColorChanged.value, hasSomethingChanged) {
-        Log.d("SETTINGS", "hasBase=${hasBaseColorChanged.value}  save=${hasSomethingChanged}  base=${baseColor.value}  ds=${baseColorFromDataStore}")
-    }
+//    LaunchedEffect(hasBaseColorChanged.value, hasSomethingChanged) {
+//        Log.d("SETTINGS", "hasBase=${hasBaseColorChanged.value}  save=${hasSomethingChanged}  base=${baseColor.value}  ds=${baseColorFromDataStore}")
+//    }
 
     Box(
         modifier = Modifier
@@ -364,7 +353,7 @@ fun SigmaActivity.SettingsPage(
                         }
                         .clip(RoundedCornerShape(8.dp))
                         .border(1.dp, Color.White, RoundedCornerShape(8.dp))
-                        .background(baseColor.value)
+                        .background(baseColorEffective.value)
                 )
             }
 
@@ -374,11 +363,9 @@ fun SigmaActivity.SettingsPage(
             ) {
                 Switch(
                     modifier = Modifier,
-                    checked = theme.value.isDark(),
+                    checked = themeEffective.isDark(),
                     onCheckedChange = {
-                        userEditedTheme.value = true
-                        theme.value = if (it) NightAndDay.DARK else NightAndDay.LIGHT
-                        settingsViewModel.setNightAndDay(theme.value)
+                        vm.previewMode(if (it) NightAndDay.DARK else NightAndDay.LIGHT)
                     }
                 )
 
@@ -386,7 +373,7 @@ fun SigmaActivity.SettingsPage(
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
                         .padding(start = 10.dp),
-                    text = if (theme.value.isDark()) "Mode sombre" else "Mode clair",
+                    text = if (themeEffective.isDark()) "Mode sombre" else "Mode clair",
                     color = SigmaColors.current.onPrimary
                 )
             }
@@ -415,9 +402,8 @@ fun SigmaActivity.SettingsPage(
                         contentColor = Color.Black
                     ),
                     onClick = {
-                        settingsViewModel.setNightAndDay(themeFromDataStore)
-                        settingsViewModel.setBaseColor(baseColorFromDataStore.value)
-
+                        vm.previewMode(null)
+                        vm.previewBaseColor(null)
                         mainViewModel.setIsSettingsPageVisible(false)
                     }
                 ) {
@@ -449,23 +435,21 @@ fun SigmaActivity.SettingsPage(
 //                                settingsViewModel.settingsManager.saveTheme(if (theme.value.isDark()) NightAndDay.DARK else NightAndDay.LIGHT)
 //                                settingsViewModel.setNightAndDay(if (theme.value.isDark()) NightAndDay.DARK else NightAndDay.LIGHT)
 
-                                val base = baseColor.value
+                                val base = baseColorEffective.value
                                 var mode = if (base.isLightBase()) NightAndDay.LIGHT
                                 else
                                     NightAndDay.DARK
 
-                                if (userEditedTheme.value)
-                                    mode = theme.value
+                                if (hasThemeChanged.value)
+                                    mode = themeEffective
 
-                                settingsViewModel.setNightAndDay(mode)
-                                settingsViewModel.setBaseColor(baseColor.value)
-
-                                settingsViewModel.settingsManager.saveTheme(mode)
-                                settingsViewModel.settingsManager.saveBaseColor(baseColor.value)
+                                settingsViewModel.saveMode(mode)
+                                settingsViewModel.saveBaseColor(baseColorEffective.value)
                             }
                         }
 
                         mainViewModel.setIsSettingsPageVisible(false)
+                        homeViewModel.setHomePageVisible(true)
                     }
                 ) {
                     Text(text = "Enregistrer")
@@ -493,7 +477,7 @@ fun SigmaActivity.SettingsPage(
                 )
 
                 Palette(
-                    defaultColor = baseColor.value,
+                    defaultColor = baseColorEffective.value,
 //                    defaultColor = Color(0xFF363E4C),
                     buttonSize = 100.dp,
                     swatches = Palettes.mixedPalettes,
@@ -504,9 +488,7 @@ fun SigmaActivity.SettingsPage(
                     verticalAlignment = VerticalAlignment.Bottom,
                     horizontalAlignment = HorizontalAlignment.Start,
                     onColorSelected = {
-                        baseColor.value = it
-                        userEditedBaseColor.value = true
-                        settingsViewModel.setBaseColor(it)
+                        vm.previewBaseColor(it)
                         showColorPicker = false
                     }
                 )

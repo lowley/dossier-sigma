@@ -14,11 +14,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.ServiceLocator
 import javax.inject.Inject
 
@@ -44,39 +41,54 @@ class SettingsViewModel @Inject constructor(
         const val TAG = "SgsVM"
     }
 
-    init{
-        serviceScope.launch {
-            if (initialized)
-                return@launch
+//    init{
+//        serviceScope.launch {
+//            if (initialized)
+//                return@launch
+//
+//            val initialBaseColor = settingsManager.baseColorFlow.first()
+////            setBaseColor(initialBaseColor)
+//
+//            val initialTheme = settingsManager.themeFlow.first()
+////            setNightAndDay(initialTheme)
+//            Log.d(TAG, "initialTheme=$initialTheme, initialBaseColor=$initialBaseColor")
+//
+//            initialized = true
+//        }
+//    }
 
-            val initialBaseColor = settingsManager.baseColorFlow.first()
-            setBaseColor(initialBaseColor)
+    // 1) Flows persistants (DataStore)
+    private val baseColorPersisted: StateFlow<Color> =
+        settingsManager.baseColorFlow.stateIn(viewModelScope, SharingStarted.Eagerly, Color(0xFF4F86F7))
 
-            val initialTheme = settingsManager.themeFlow.first()
-            setNightAndDay(initialTheme)
-            Log.d(TAG, "initialTheme=$initialTheme, initialBaseColor=$initialBaseColor")
+    private val modePersisted: StateFlow<NightAndDay> =
+        settingsManager.themeFlow.stateIn(viewModelScope, SharingStarted.Eagerly, NightAndDay.LIGHT)
 
-            initialized = true
-        }
-    }
+    // 2) Overrides locaux pour l’aperçu (null = pas d’override)
+    private val baseColorOverride = MutableStateFlow<Color?>(null)
+    private val modeOverride      = MutableStateFlow<NightAndDay?>(null)
 
-    private val _nightAndDay = MutableStateFlow(NightAndDay.LIGHT)
-    val nightAndDay: StateFlow<NightAndDay> = _nightAndDay
+    // 3) Valeurs “effectives” (persisté || override)
+    val baseColorEffective: StateFlow<Color> =
+        combine(baseColorPersisted, baseColorOverride) { p, o -> o ?: p }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, baseColorPersisted.value)
 
-    fun setNightAndDay(nightAndDay: NightAndDay) {
-        _nightAndDay.value = nightAndDay
-    }
+    val modeEffective: StateFlow<NightAndDay> =
+        combine(modePersisted, modeOverride) { p, o -> o ?: p }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, modePersisted.value)
 
-    private val _baseColor = MutableStateFlow(Color.Black)
-    val baseColor = _baseColor.asStateFlow()
+    val baseColorChanged: StateFlow<Boolean> =
+        combine(baseColorPersisted, baseColorOverride) { p, o -> o != null && o != p }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    fun setBaseColor(color: Color) {
-        _baseColor.value = color
-    }
+    val modeChanged: StateFlow<Boolean> =
+        combine(modePersisted, modeOverride) { p, o -> o != null && o != p }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
 
     val colorScheme: StateFlow<ColorScheme> = combine(
-        baseColor,
-        nightAndDay
+        baseColorEffective,
+        modeEffective
     ) { baseColor, nightAndDay ->
         generateKvColorScheme(baseColor, nightAndDay)
     }.stateIn(
@@ -84,6 +96,14 @@ class SettingsViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = generateKvColorScheme(Color.Green, NightAndDay.LIGHT)
     )
+
+    // --- API Settings ---
+    fun previewBaseColor(c: Color?) = baseColorOverride.tryEmit(c)
+    fun previewMode(m: NightAndDay?) = modeOverride.tryEmit(m)
+
+    suspend fun saveBaseColor(c: Color) { settingsManager.saveBaseColor(c); baseColorOverride.value = null }
+    suspend fun saveMode(m: NightAndDay) { settingsManager.saveTheme(m); modeOverride.value = null }
+
 
     private fun generateKvColorScheme(baseColor: Color, nightAndDay: NightAndDay): ColorScheme {
         KvColorPalette.initialize(
