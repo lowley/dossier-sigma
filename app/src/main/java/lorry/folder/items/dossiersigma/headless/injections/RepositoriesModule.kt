@@ -15,12 +15,15 @@ import lorry.folder.items.dossiersigma.external.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.external.clipboard.IClipboardRepository
 import lorry.folder.items.dossiersigma.external.disk.DiskRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
+import lorry.folder.items.dossiersigma.headless.folderContent.FolderContentComponent
+import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
 import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
+import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import javax.inject.Singleton
@@ -68,6 +71,17 @@ object AppModule {
         nasUtilities: NasUtilities,
     ): IMoveToNASComponent {
         return MoveToNASComponent(context!!, service, nasUtilities)
+    }
+
+    @Provides
+    fun provideIFolderContentComponent(
+        diskRepository: IDiskRepository,
+        bottomTools: BottomTools
+    ): IFolderContentComponent {
+        return FolderContentComponent(
+            diskRepository = diskRepository,
+            bottomTools = bottomTools
+        )
     }
 }
 

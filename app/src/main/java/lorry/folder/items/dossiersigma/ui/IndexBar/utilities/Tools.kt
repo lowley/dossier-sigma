@@ -2,7 +2,6 @@ package lorry.folder.items.dossiersigma.ui.IndexBar.utilities
 
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.time.DayOfWeek
 import java.time.Instant
@@ -17,10 +16,8 @@ import java.util.Locale
 import java.util.stream.IntStream
 
 fun List<Item>.toIndexBarItemInfoList(
-    viewModel: SigmaViewModel
+    sorting: SortingCriterion
 ): List<IndexBarItemInfo> {
-
-    val sorting = viewModel.sorting.value
 
     return when (sorting) {
         SortingCriterion.ByNameAsc ->

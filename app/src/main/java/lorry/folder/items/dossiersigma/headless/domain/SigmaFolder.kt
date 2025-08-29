@@ -73,4 +73,18 @@ class SigmaFolder(
         )
         return result
     }
+
+    companion object{
+        fun ofItemsAndPath(items: List<Item>, path: String): SigmaFolder{
+            return SigmaFolder(
+                items = items,
+                fullPath = path,
+                picture = null,
+                modificationDate = 0L,
+                tag = null,
+                scale = null,
+                memo = null,
+            )
+        }
+    }
 }

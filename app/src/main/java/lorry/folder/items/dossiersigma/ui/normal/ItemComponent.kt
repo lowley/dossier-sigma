@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -69,7 +70,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -82,10 +82,6 @@ fun ItemComponent(
     modifier: Modifier,
     item: Item,
     onItemUpdated: (Item) -> Unit,
-    imageCache: StateFlow<MutableMap<String, Any?>>,
-    flagCache: StateFlow<MutableMap<String, ColoredTag>>,
-    scaleCache: StateFlow<MutableMap<String, ContentScale>>,
-    memoCache: StateFlow<MutableMap<String, String>>,
     draggableStartPosition: StateFlow<Offset?>,
     onHoveredNotHovered: (Item?) -> Unit,
     selectedItemFullPath: StateFlow<String?>,
@@ -96,25 +92,24 @@ fun ItemComponent(
     getInfoInf: suspend (Item) -> String?,
 
     ) {
-    val image by imageCache
-        .map { map -> map[item.fullPath] }
-        .collectAsState(initial = item.picture)
 
-    val tag by flagCache
-        .map { map -> map[item.fullPath] }
-        .collectAsState(initial = item.tag)
+    val memo by folderContentComponent.currentFolderFlow
+        .map { folder -> folder?.memo }
+        .collectAsState(initial = "")
 
-//    val scale by scaleCache
-//        .map { map -> map[item.fullPath] }
-//        .collectAsState(initial = item.scale)
+    val memoEmpty by remember {
+        derivedStateOf {
+            memo?.isEmpty() ?: true
+        }
+    }
 
-    val memo by memoCache
-        .map { map -> map[item.fullPath] }
-        .collectAsState(initial = item.memo)
+    val tag by folderContentComponent.currentFolderFlow
+        .map { folder -> folder?.tag }
+        .collectAsState(initial = null)
 
-    val memoEmpty by memoCache
-        .map { map -> map[item.fullPath].isNullOrEmpty() }
-        .collectAsState(initial = true)
+    val image by folderContentComponent.currentFolderFlow
+        .map { folder -> folder?.picture }
+        .collectAsState(initial = null)
 
     val imageHeight = 160.dp
 
@@ -156,9 +151,9 @@ fun ItemComponent(
                         gapLength = 10.dp
                     )
                 else (
-                if (tag != null) {
-                    Modifier.border(2.dp, tag!!.color, shape1)
-                } else Modifier)
+                        if (tag != null) {
+                            Modifier.border(2.dp, tag!!.color, shape1)
+                        } else Modifier)
             )
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -447,8 +442,10 @@ fun ImageSection(
                             lerp(
                                 SigmaColors.current.secondary,
                                 SigmaColors.current.primary,
-                                0.8f))
-                         else null
+                                0.8f
+                            )
+                        )
+                        else null
                     )
 
                     Shortcuts(

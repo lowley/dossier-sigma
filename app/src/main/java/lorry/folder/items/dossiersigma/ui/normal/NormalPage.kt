@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,11 +40,7 @@ fun NormalPage(
     currentScrollState: LazyGridState,
 
     ) {
-    val currentFolderFlow = mainViewModel.currentFolder
-    val imageCache = mainViewModel.imageCache
-    val flagCache = mainViewModel.flagCache
-    val scaleCache = mainViewModel.scaleCache
-    val memoCache = mainViewModel.memoCache
+    val currentFolderFlow = folderContentComponent.currentFolderFlow
 
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
     val draggableStartPosition = mainViewModel.draggableStartPosition
@@ -62,7 +58,8 @@ fun NormalPage(
                     bottom = 0.dp)
         ) {
 
-            val displayedItems = this@SigmaActivity.mainViewModel.displayedItemsFlowFiltered.collectAsState()
+            val displayedItems = remember { derivedStateOf<List<Item>?>{
+                currentFolderFlow.value?.items}}
 
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(150.dp),
@@ -70,7 +67,7 @@ fun NormalPage(
                     .padding(start = 25.dp, end = 0.dp),
                 state = currentScrollState
             ) {
-                lazyGridItems(displayedItems.value, key = {
+                lazyGridItems(displayedItems.value as List<Item>, key = {
                     it.fullPath + "-" + it.id
                 }) { item ->
                     ItemComponent(
@@ -83,10 +80,6 @@ fun NormalPage(
 //                                        onDrop = { tag: ColoredTag ->
 //                                            mainViewModel.assignColoredTagToItem(item, tag)
 //                                      }
-                        imageCache = imageCache,
-                        flagCache = flagCache,
-                        scaleCache = scaleCache,
-                        memoCache = memoCache,
                         onHoveredNotHovered = onHoveredNotHovered,
                         selectedItemFullPath = selectedItemFullPath,
                         draggableStartPosition = draggableStartPosition,

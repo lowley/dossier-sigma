@@ -27,11 +27,11 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.CroppedPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
-import lorry.folder.items.dossiersigma.headless.domain.FolderFreshness
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.ItemDTO
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.folderContent.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import okhttp3.OkHttpClient
 import okhttp3.Request

@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.domain
+package lorry.folder.items.dossiersigma.headless.folderContent
 
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -8,8 +8,8 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
     val path: String,
     private val containerMtime: Instant,      // mtime du dossier lui-même
     private val contentsMaxMtime: Instant,
-){
-    companion object{
+) {
+    companion object {
         @OptIn(ExperimentalTime::class)
         val DUMMY = FolderFreshness(
             path = "/storage/emulated/0/Movies",
@@ -18,9 +18,9 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
         )
     }
 
-
-
     @OptIn(ExperimentalTime::class)
     fun isSameAs(other: FolderFreshness): Boolean =
-        containerMtime.toString() == other.containerMtime.toString() && contentsMaxMtime.toString() == other.contentsMaxMtime.toString()
+        path == other.path &&
+        containerMtime.toString() == other.containerMtime.toString() &&
+        contentsMaxMtime.toString() == other.contentsMaxMtime.toString()
 }

@@ -106,7 +106,6 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
-import lorry.folder.items.dossiersigma.ui.sigma.containsFlagAsValue
 import java.io.File
 import java.util.UUID
 import java.util.UUID.randomUUID
@@ -277,18 +276,17 @@ class BottomTools @Inject constructor(
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
             // La lambda sera appelée si l'un ou l'autre change.
             combine(
-                viewModel.flagCache,
                 currentFlagId,
-                viewModel.LastFolderFreshness,
-                viewModel.reloadTrigger
-            ) { tagsMap, selectedId, _, _ ->
-//                val currentContentNow = currentContent.value
-//                if (currentContentNow?.name != "DEFAULT_CONTENT")
-//                    return@combine
-                // 2. On transforme les tags du cache en outils dynamiques
-                val uniqueTags = tagsMap.values.distinctBy { it.id }
+                viewModel.folderContentComponent.currentFolderFlow,
+                viewModel.folderContentComponent.reloadTrigger
+            ) { selectedId, currentFolder, _ ->
+                val tags = currentFolder
+                    ?.items
+                    ?.mapNotNull { it.tag }
+                    ?.distinctBy { it.id }
+                    ?: emptyList()
 
-                val tagTools = uniqueTags.map { tag ->
+                val tagTools = tags.map { tag ->
                     Tool(
                         text = { tag.title },
                         icon = R.drawable.etiquette,
@@ -393,7 +391,12 @@ sealed class Tools {
                     text = { "Ajouter" },
                     icon = R.drawable.plus,
                     visible = { viewModel, mainActivity ->
-                        viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
+                        val currentFolder = viewModel.folderContentComponent.currentFolderFlow.value
+                        val selectedFolder = viewModel.folderContentComponent
+                            .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
+                        val selectedFolderTag = selectedFolder?.tag
+
+                        selectedFolder != null && selectedFolderTag == null
                     },
                     onClick = { viewModel, mainActivity ->
                         run {
@@ -420,10 +423,7 @@ sealed class Tools {
                                         currentItem.fullPath
                                     )
 
-                                    viewModel.setFlagCacheValue(
-                                        currentItem.fullPath,
-                                        newFlag
-                                    )
+                                    viewModel.folderContentComponent.refreshCurrentFolder()
                                 }
 
                                 bottomTools.setCurrentContent(DEFAULT)
@@ -441,7 +441,12 @@ sealed class Tools {
                     text = { "Modifier" },
                     icon = R.drawable.modifier,
                     visible = { viewModel, mainActivity ->
-                        viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
+                        val currentFolder = viewModel.folderContentComponent.currentFolderFlow.value
+                        val selectedFolder = viewModel.folderContentComponent
+                            .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
+                        val selectedFolderTag = selectedFolder?.tag
+
+                        selectedFolderTag != null
                     },
                     onClick = { viewModel, mainActivity ->
 //                        viewModel.setDialogMessage("Nom du dossier à créer")
@@ -472,7 +477,12 @@ sealed class Tools {
                     text = { "item" },
                     icon = R.drawable.moins,
                     visible = { viewModel, mainActivity ->
-                        viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
+                        val currentFolder = viewModel.folderContentComponent.currentFolderFlow.value
+                        val selectedFolder = viewModel.folderContentComponent
+                            .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
+                        val selectedFolderTag = selectedFolder?.tag
+
+                        selectedFolderTag != null
                     },
                     onClick = { viewModel, mainActivity ->
                         run {
@@ -480,20 +490,22 @@ sealed class Tools {
                             if (currentItem == null)
                                 return@run
 
-                            val currentTag =
-                                viewModel.flagCache.value[viewModel.selectedItemFullPath.value]
+                            val selectedFolder = viewModel.folderContentComponent
+                                .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
+                            val selectedFolderTag = selectedFolder?.tag
                             val tool = DEFAULT.content(viewModel)
-                                .tools.value.firstOrNull { it.id == currentTag?.id }
+                                .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
 
                             if (tool == null) {
                                 println("problème, tool inexistant")
                                 return@run
                             }
 
-                            if (viewModel.removeFlagCacheForKey(currentItem.fullPath) == null) {
-                                println("problème, suppression de tag impossible")
-                                return@run
-                            }
+                            //inutile car refresh plus loin
+//                            if (viewModel.removeFlagCacheForKey(currentItem.fullPath) == null) {
+//                                println("problème, suppression de tag impossible")
+//                                return@run
+//                            }
 
                             val capsuleMgr = CapsuleComponent()
                             capsuleMgr.save(
@@ -501,11 +513,16 @@ sealed class Tools {
                                 currentItem.fullPath
                             )
 
-                            if (!viewModel.flagCache.containsFlagAsValue(tool.id))
+                            val none = viewModel.folderContentComponent
+                                .folderCacheFlow
+                                ?.value
+                                ?.none { it.value?.folder?.tag?.id == tool.id } == true
+
+                            if (none)
                                 DEFAULT.content(viewModel).removeTool(tool)
 
                             viewModel.setSelectedItem(null, true)
-//                            viewModel.refreshCurrentFolder()
+                            viewModel.folderContentComponent.refreshCurrentFolder()
                             bottomTools.setCurrentContent(DEFAULT)
 
 //                            viewModel.clearFlagCache()
@@ -520,57 +537,65 @@ sealed class Tools {
                     text = { "étiquette" },
                     icon = R.drawable.moins,
                     visible = { viewModel, mainActivity ->
-                        viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
+                        val selectedFolder = viewModel.folderContentComponent
+                            .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
+                        val selectedFolderTag = selectedFolder?.tag
+
+                        selectedFolderTag != null
                     },
                     onClick = { viewModel, mainActivity ->
                         run {
-                            val currentItem = viewModel.selectedItem.value ?: return@run
-                            val currentTag =
-                                viewModel.flagCache.value[viewModel.selectedItemFullPath.value]
+                            val selectedFolder = viewModel.folderContentComponent
+                                .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
+                            val selectedFolderTag = selectedFolder?.tag
 
                             val tool = DEFAULT.content(viewModel)
-                                .tools.value.firstOrNull { it.id == currentTag?.id }
+                                .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
 
                             if (tool == null) {
                                 println("problème, tool inexistant")
                                 return@run
                             }
 
-                            //on fait ça parce que par lazy loading au début de l'affichage
-                            //du dossier de tous les items
-                            val itemsWithThisTag = viewModel.displayedItemsFlow.value.second.filter {
-                                val capsuleMgr = CapsuleComponent()
-                                val tagFile = capsuleMgr.getElement(
-                                    Flag.Companion,
-                                    it.fullPath
-                                )
 
-                                val tagCache = viewModel.flagCache.value[it.fullPath]
-
-                                val tagFinal = tagCache ?: tagFile
-                                tagFinal?.id == tool.id
-                            }
-
-                            itemsWithThisTag.forEach {
-                                if (viewModel.removeFlagCacheForKey(it.fullPath) == null) {
-                                    println("problème, suppression de tag impossible")
-                                    return@run
+                            val itemsWithThisTag = viewModel.folderContentComponent
+                                ?.currentFolderFlow
+                                ?.value
+                                ?.items
+                                ?.filter { item ->
+                                   item?.tag?.id == tool.id
                                 }
 
+                            //on fait ça parce que par lazy loading au début de l'affichage
+                            //du dossier de tous les items
+//                            val itemsWithThisTag =
+//                                viewModel.displayedItemsFlow.value.second.filter {
+//                                    val capsuleMgr = CapsuleComponent()
+//                                    val tagFile = capsuleMgr.getElement(
+//                                        Flag.Companion,
+//                                        it.fullPath
+//                                    )
+//
+//                                    val tagCache = viewModel.flagCache.value[it.fullPath]
+//
+//                                    val tagFinal = tagCache ?: tagFile
+//                                    tagFinal?.id == tool.id
+//                                }
+
+                            itemsWithThisTag?.forEach {
                                 val capsuleMgr = CapsuleComponent()
-                                capsuleMgr.save(
-                                    Flag(null),
-                                    it.fullPath
-                                )
+                                capsuleMgr.save(Flag(null), it.fullPath)
                             }
 
                             //normalement toujours vrai
-                            if (!viewModel.flagCache.containsFlagAsValue(tool.id))
-                                DEFAULT.content(viewModel).removeTool(tool)
+//                            if (!viewModel.flagCache.containsFlagAsValue(tool.id))
+//                                DEFAULT.content(viewModel).removeTool(tool)
 
                             viewModel.setSelectedItem(null, true)
 //                            viewModel.refreshCurrentFolder()
                             bottomTools.setCurrentContent(DEFAULT)
+
+                            viewModel.folderContentComponent.refreshCurrentFolder()
                         }
                     }
                 ),
@@ -583,27 +608,62 @@ sealed class Tools {
                     icon = R.drawable.moins,
                     visible =
                         { viewModel, mainActivity ->
-                            viewModel.flagCache.value[viewModel.selectedItemFullPath.value] != null
+                            val selectedFolder = viewModel.folderContentComponent
+                                .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
+                            val selectedFolderTag = selectedFolder?.tag
+
+                            selectedFolderTag != null
                         },
                     onClick =
                         { viewModel, mainActivity ->
                             run {
-                                val files = viewModel.displayedItemsFlow.value.second
+                                val selectedFolder = viewModel.folderContentComponent
+                                    .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
+                                val selectedFolderTag = selectedFolder?.tag
 
-                                files.forEach {
-                                    val capsuleMgr = CapsuleComponent()
-                                    capsuleMgr.save(
-                                        Flag(null),
-                                        it.fullPath
-                                    )
+                                val tool = DEFAULT.content(viewModel)
+                                    .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
+
+                                if (tool == null) {
+                                    println("problème, tool inexistant")
+                                    return@run
                                 }
 
-                                viewModel.clearFlagCache()
-                                DEFAULT.content().updateTools(emptyList<Tool>())
+                                val itemsWithThisTag = viewModel.folderContentComponent
+                                    ?.currentFolderFlow
+                                    ?.value
+                                    ?.items
+
+                                //on fait ça parce que par lazy loading au début de l'affichage
+                                //du dossier de tous les items
+//                            val itemsWithThisTag =
+//                                viewModel.displayedItemsFlow.value.second.filter {
+//                                    val capsuleMgr = CapsuleComponent()
+//                                    val tagFile = capsuleMgr.getElement(
+//                                        Flag.Companion,
+//                                        it.fullPath
+//                                    )
+//
+//                                    val tagCache = viewModel.flagCache.value[it.fullPath]
+//
+//                                    val tagFinal = tagCache ?: tagFile
+//                                    tagFinal?.id == tool.id
+//                                }
+
+                                itemsWithThisTag?.forEach {
+                                    val capsuleMgr = CapsuleComponent()
+                                    capsuleMgr.save(Flag(null), it.fullPath)
+                                }
+
+                                //normalement toujours vrai
+//                            if (!viewModel.flagCache.containsFlagAsValue(tool.id))
+//                                DEFAULT.content(viewModel).removeTool(tool)
 
                                 viewModel.setSelectedItem(null, true)
-//                                viewModel.refreshCurrentFolder()
+//                            viewModel.refreshCurrentFolder()
                                 bottomTools.setCurrentContent(DEFAULT)
+
+                                viewModel.folderContentComponent.refreshCurrentFolder()
                             }
                         }
                 )
@@ -716,7 +776,7 @@ sealed class Tools {
                                             "Renommage effectué",
                                             Toast.LENGTH_SHORT
                                         ).show()
-                                        viewModel.refreshCurrentFolder()
+                                        viewModel.folderContentComponent.refreshCurrentFolder()
                                     } else
                                         Toast.makeText(
                                             mainActivity,
@@ -741,8 +801,12 @@ sealed class Tools {
                     text = { "+ frère" },
                     icon = R.drawable.dossier,
                     onClick = { viewModel, mainActivity ->
-                        val parent = viewModel.currentFolder.value
-                        val items = viewModel.displayedItemsFlow.value.second
+                        val parent = viewModel.folderContentComponent
+                            .currentFolderFlow.value
+                        val items = parent?.items ?: emptyList()
+
+                        if (parent == null)
+                            return@Tool
 
                         //viewModel.setSelectedItem(null)
                         viewModel.setDialogMessage("Nouveau nom du dossier")
@@ -770,7 +834,7 @@ sealed class Tools {
                                         "Dossier créé",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    viewModel.refreshCurrentFolder()
+                                    viewModel.folderContentComponent.refreshCurrentFolder()
                                 } else
                                     Toast.makeText(
                                         mainActivity,
@@ -831,7 +895,7 @@ sealed class Tools {
                                         "Dossier créé",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    viewModel.refreshCurrentFolder()
+                                    viewModel.folderContentComponent.refreshCurrentFolder()
                                 } else
                                     Toast.makeText(
                                         mainActivity,
@@ -894,7 +958,7 @@ sealed class Tools {
                                 ).show()
                             }
 
-                            viewModel.refreshCurrentFolder()
+                            viewModel.folderContentComponent.refreshCurrentFolder()
                             bottomTools.setCurrentContent(DEFAULT)
                         }
 
@@ -965,8 +1029,12 @@ sealed class Tools {
                             // current //
                             /////////////
 
-                            val picture =
-                                viewModel.imageCache.value[viewModel.selectedItemFullPath.value]
+                            val picture = viewModel?.folderContentComponent
+                                ?.folderCacheFlow?.value[viewModel.selectedItemFullPath.value]
+                                ?.folder?.picture
+
+//                            val picture =
+//                                viewModel.imageCache.value[viewModel.selectedItemFullPath.value]
                             val picture64 = if (picture != null && picture is Bitmap)
                                 viewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
                             else null
@@ -1115,8 +1183,9 @@ sealed class Tools {
                             var dest = bottomTools.itemToMove
 
                             if (dest == null) {
-                                bottomTools.itemToMove = viewModel.currentFolder.value
-                                dest = bottomTools.itemToMove
+                                return@run
+//                                bottomTools.itemToMove = viewModel.currentFolder.value
+//                                dest = bottomTools.itemToMove
                             }
 
                             //toast
@@ -1164,7 +1233,7 @@ sealed class Tools {
                             }
                             mainActivity.startService(intent)
 //                            viewModel.setSelectedItem(null, true)
-                            viewModel.refreshCurrentFolder()
+                            viewModel.folderContentComponent.refreshCurrentFolder()
                             //2.vérif copie bien réalisée:
                             //dest existe
                             //tailles égales
@@ -1297,7 +1366,6 @@ sealed class Tools {
 
 fun changeCrop(viewModel: SigmaViewModel, scale: ContentScale) {
     val item = viewModel.selectedItem.value ?: return
-    viewModel.setScaleCacheValue(item.fullPath, scale)
     viewModel.setSelectedItem(item.copy(scale = scale))
 
     if (item.isFile() &&

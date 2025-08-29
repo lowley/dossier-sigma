@@ -72,6 +72,7 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
@@ -127,6 +128,9 @@ class SigmaActivity : ComponentActivity() {
 
     @Inject
     lateinit var browser: IBrowser
+
+    @Inject
+    lateinit var folderContentComponent: IFolderContentComponent
 
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
@@ -199,12 +203,13 @@ class SigmaActivity : ComponentActivity() {
             val isDisplayingMemo by memo.isDisplayingMemo.collectAsState()
             val isKeyboardVisible by keyboardAsState()
 
-            val currentFolder by mainViewModel.currentFolder.collectAsState()
+            val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsState(null)
+            val currentSorting = mainViewModel.folderContentComponent.sorting
 
             val scrollStates =
                 remember { mutableMapOf<String, LazyGridState>() }
             val currentScrollState =
-                scrollStates.getOrPut(currentFolder.fullPath) {
+                scrollStates.getOrPut(currentFolder?.fullPath ?: "") {
                     LazyGridState()
                 }
             val browserState by browser.vm.state.collectAsState()
@@ -277,7 +282,7 @@ class SigmaActivity : ComponentActivity() {
                     }
                 }
             ) { padding ->
-                val currentFolder by mainViewModel.currentFolder.collectAsState()
+//                val currentFolder by mainViewModel.currentFolder.collectAsState()
 //                val currentFolderLite by mainViewModel.currentFolderLite.collectAsState()
                 val selectedItem by mainViewModel.selectedItem.collectAsState()
                 val activity = LocalContext.current as Activity
@@ -290,17 +295,18 @@ class SigmaActivity : ComponentActivity() {
                 }
 
                 BackHandler(enabled = true) {
-                    mainViewModel.sortingCache[mainViewModel.LastFolderFreshness.value.path] =
-                        mainViewModel.sorting.value
-                    mainViewModel.removeLastFolderPathHistory()
 
-                    val newSorting = if (mainViewModel.folderPathHistory.value.isEmpty())
-                        SortingCriterion.ByDateDesc
-                    else
-                        mainViewModel.sortingCache[mainViewModel.folderPathHistory.value.last()]
-                            ?: SortingCriterion.ByDateDesc
-                    mainViewModel.setSorting(newSorting)
-//                        mainViewModel.refreshCurrentFolder()
+                    //stockage de sorting actuel dans le cache
+                    // -> auto lors des modifications du tri
+
+                    //retour dans l'history
+                    mainViewModel.folderContentComponent.removeLastFolderPathHistory()
+
+                    //récup sorting dans cache du tri
+                    // -> se fait automatiquement dans le combine de currentFolderFlow
+
+                    //on applique le nouveau tri
+                    // -> se fait automatiquement dans le combine de currentFolderFlow
                 }
 
                 val view = LocalView.current
@@ -402,8 +408,8 @@ class SigmaActivity : ComponentActivity() {
                                     ////////////////
                                     if (!homePageVisible)
                                         Breadcrumb(
-                                            items = currentFolder.fullPath.split("/")
-                                                .filter { it != "" },
+                                            items = currentFolder?.fullPath?.split("/")
+                                                ?.filter { it != "" }?: emptyList(),
                                             onPathClick = { path ->
                                                 mainViewModel.goToFolder(path)
                                             },
@@ -577,15 +583,16 @@ class SigmaActivity : ComponentActivity() {
                                 //TODO pas besoin de tout recharger
                                 SortingArea(
                                     modifier = Modifier,
-                                    sortingFlow = mainViewModel.sorting,
+                                    sortingFlow = currentSorting,
                                     onDateSortClick = {
-                                        mainViewModel.setSorting(
-                                            SortingCriterion.ByDateDesc
+                                        mainViewModel.folderContentComponent.setSorting(
+                                            sorting = SortingCriterion.ByDateDesc
                                         )
+
                                     },
                                     onNameSortClick = {
-                                        mainViewModel.setSorting(
-                                            SortingCriterion.ByNameAsc
+                                        mainViewModel.folderContentComponent.setSorting(
+                                            sorting = SortingCriterion.ByNameAsc
                                         )
                                     }
                                 )
@@ -718,7 +725,7 @@ class SigmaActivity : ComponentActivity() {
                                     mainViewModel.getInfoInf(item)
                                 },
                                 onRefresh = {
-                                    mainViewModel.refreshCurrentFolder()
+                                    mainViewModel.folderContentComponent.refreshCurrentFolder()
                                 },
                                 indexBar = indexBar,
                                 currentScrollState = currentScrollState,

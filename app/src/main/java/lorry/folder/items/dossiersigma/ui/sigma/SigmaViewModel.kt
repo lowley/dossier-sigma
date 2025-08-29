@@ -6,37 +6,24 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
-import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -49,9 +36,9 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.external.playing.IPlayingDataSource
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
-import lorry.folder.items.dossiersigma.headless.domain.FolderFreshness
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.toIndexBarItemInfoList
@@ -76,348 +63,231 @@ class SigmaViewModel @Inject constructor(
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
     val bottomTools: BottomTools,
+    val folderContentComponent: IFolderContentComponent
 ) : ViewModel() {
 
-    ///////////////////
-    // tri des items //
-    ///////////////////
-    private val _sorting = MutableStateFlow(SortingCriterion.ByDateDesc)
-    val sorting: StateFlow<SortingCriterion> = _sorting
 
-    fun setSorting(sorting: SortingCriterion) {
-        _sorting.value = sorting
-    }
+//    @OptIn(ExperimentalCoroutinesApi::class)
+//    val currentFolder: StateFlow<SigmaFolder> = combine(
+//        LastFolderFreshness,
+//        reloadTrigger,
+//    ) { freshness, _ ->
+//        freshness
+//    }.mapLatest { freshness ->
+//        val folder = diskRepository.getSigmaFolderUltraLite(freshness.path)
+//
+//        clearAllCaches()
+//        folder.items.forEach { item ->
+//            val path = item.fullPath
+//            setImageCacheValue(path, item.picture)
+////            setFlagCacheValue(path, item.tag)
+////            setScaleCacheValue(path, item.scale)
+////            setMemoCacheValue(path, item.memo)
+//        }
+//
+////        if (currentFlagId == null)
+////            folder
+////        else
+////            folder.copy(
+////                items = folder.items
+////                    .mapNotNull { item ->
+////                        if (item.tag?.id == currentFlagId) item else null
+////                    }
+////            )
+//
+//        folder
+//    }.stateIn(
+//        scope = viewModelScope,
+//        started = Lazily,
+//        initialValue = SigmaFolder(
+//            path = "/storage/emulated/0/Movies",
+//            name = "Veuillez attendre",
+//            picture = null,
+//            items = emptyList(),
+//            tag = null,
+//            scale = ContentScale.Crop,
+//            modificationDate = System.currentTimeMillis(),
+//            memo = ""
+//        )
+//    )
 
-    /////////////////
-    // items cache //
-    /////////////////
-    private val _itemListCache = MutableStateFlow(mutableMapOf<String, List<Item>>())
-    val itemListCache = _itemListCache.asStateFlow()
 
-    fun setItemListCache(key: String, items: List<Item>) {
-        if (items != null) {
-            val newMap = _itemListCache.value.toMutableMap()
-            newMap[key] = items
-            _itemListCache.value = newMap
+//    @OptIn(ExperimentalCoroutinesApi::class)
+//    val displayedItemsFlow = folderKeyFlow.flatMapLatest { key ->
+//        val path = key.path
+//        val currentFolderFreshness = diskRepository.getFolderFreshness(path)
+//
+//        val inclusion = itemListCache.value.containsKey(path)
+//        val equality = LastFolderFreshness.value.isSameAs(currentFolderFreshness)
+//        if (inclusion && equality) {
+//            val result = itemListCache.value[path]!!
+//            result.forEach { item ->
+//                setImageCacheValue(item.fullPath, item.picture)
+//                setFlagCacheValue(item.fullPath, item.tag)
+//                setMemoCacheValue(item.fullPath, item.memo)
+//            }
+//
+//            flowOf(path to result)
+//        }
+//        else {
+////            setItemListCache(path, currentFolderFreshness)
+//
+//            diskRepository.getFolderItemsLiteFlow(key.path, sorting.value)
+//                .onEach { item ->
+//                    setImageCacheValue(item.fullPath, item.picture)
+//                    setFlagCacheValue(item.fullPath, item.tag)
+//                    setMemoCacheValue(item.fullPath, item.memo)
+//                }.runningFold(emptyList<Item>()) { acc, it -> acc + it }
+//                .flowOn(Dispatchers.IO)
+//                .onStart { emit(emptyList()) }
+//                .map { items -> path to items }
+////            .sample(80)}
+//        }
+//    }.stateIn(
+//        scope = viewModelScope,
+//        started = SharingStarted.Eagerly,
+//        initialValue = "/storage/emulated/0/Movies" to emptyList<Item>()
+//    )
 
-            println("ajout de clé dans itemListCache: ${key.takeLast(20)}: $items")
-            println("il y a ${_itemListCache.value.size} clés")
-        }
-    }
-
-    fun clearItemListCache() {
-        _itemListCache.value.clear()
-    }
-
-    ///////////////////////////////
-    // dossiers, dossier courant //
-    ///////////////////////////////
-    private val _folderPathHistory = MutableStateFlow<List<String>>(emptyList())
-    val folderPathHistory: StateFlow<List<String>> = _folderPathHistory
-
-    //T est liste de strings, liste des chemins
-    //R est le générateur, indépendant du contenu de Flow<T>
-
-
-    private fun List<String>.isPrefixOf(other: List<String>): Boolean =
-        this == other.take(size)
-
-    val folderFreshnessHistory: StateFlow<List<FolderFreshness>> =
-        folderPathHistory
-            .distinctUntilChanged { old, new ->
-                old.size == new.size
-            }
-            .runningFold(
-                initial = Pair(emptyList<String>(), emptyList<FolderFreshness>())
-            ) { (prevPaths, prevFresh), currPaths ->
-                when {
-                    // PUSH : on ajoute 1 élément en fin et le préfixe est identique
-                    currPaths.size == prevPaths.size + 1 && prevPaths.isPrefixOf(currPaths) -> {
-                        val newPath = currPaths.last()
-                        val newFresh = withContext(Dispatchers.IO) {
-                            diskRepository.getFolderFreshness(newPath)
-                        }
-                        currPaths to (prevFresh + newFresh)
-                    }
-
-                    // POP : on retire 1 élément en fin
-                    currPaths.size + 1 == prevPaths.size && currPaths == prevPaths.dropLast(1) -> {
-                        currPaths to prevFresh.dropLast(1)
-                    }
-
-                    // RESET : liste vide
-                    currPaths.isEmpty() -> {
-                        emptyList<String>() to emptyList()
-                    }
-
-                    // Toute autre forme de modification n'est pas prévue ici
-                    else -> {
-                        // Si ça ne doit jamais arriver, tu peux même lancer une exception :
-                        // error("Unexpected history change")
-                        // ou bien : on ne touche à rien
-                        prevPaths to prevFresh
-                    }
-                }
-            }
-            .map { it.second }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    val LastFolderFreshness = folderFreshnessHistory
-        .map {
-            it.lastOrNull() ?: FolderFreshness.DUMMY
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = Eagerly,
-            initialValue = FolderFreshness.DUMMY
-        )
-
-    val reloadTrigger = MutableStateFlow(0)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val currentFolder: StateFlow<SigmaFolder> = combine(
-        LastFolderFreshness,
-        reloadTrigger,
-    ) { freshness, _ ->
-        freshness
-    }.mapLatest { freshness ->
-        val folder = diskRepository.getSigmaFolderUltraLite(freshness.path)
-
-        clearAllCaches()
-        folder.items.forEach { item ->
-            val path = item.fullPath
-            setImageCacheValue(path, item.picture)
-//            setFlagCacheValue(path, item.tag)
-//            setScaleCacheValue(path, item.scale)
-//            setMemoCacheValue(path, item.memo)
-        }
-
-//        if (currentFlagId == null)
-//            folder
-//        else
-//            folder.copy(
-//                items = folder.items
-//                    .mapNotNull { item ->
-//                        if (item.tag?.id == currentFlagId) item else null
+//    @OptIn(ExperimentalCoroutinesApi::class)
+//    val displayedItemsFlowFiltered =
+//        combine(displayedItemsFlow, bottomTools.currentFlagId, sorting) { (path, items), flagId, sorting ->
+//
+//            val filtered = if (flagId == null) items else items.filter { it.tag?.id == flagId }
+//            val result = filtered
+//                .sortedWith(
+//                    when (sorting) {
+//                        SortingCriterion.ByNameAsc ->
+//                            compareBy<Item> { it.isFile() }
+//                                .thenBy { it.name.toLowerCase(locale = Locale.current) }
+//
+//                        SortingCriterion.ByDateDesc ->
+//                            compareBy<Item> { it.isFile() }
+//                                .thenByDescending { it.modificationDate }
 //                    }
-//            )
-
-        folder
-    }.stateIn(
-        scope = viewModelScope,
-        started = Lazily,
-        initialValue = SigmaFolder(
-            path = "/storage/emulated/0/Movies",
-            name = "Veuillez attendre",
-            picture = null,
-            items = emptyList(),
-            tag = null,
-            scale = ContentScale.Crop,
-            modificationDate = System.currentTimeMillis(),
-            memo = ""
-        )
-    )
-
-    val folderKeyFlow = combine(
-        LastFolderFreshness,
-        reloadTrigger,
-        bottomTools.currentFlagId,
-        sorting
-    ) { freshness, reloadTrigger, currentFlagId, sorting ->
-        FolderKey(
-            path = freshness.path,
-            reloadTrigger = reloadTrigger,
-        )
-    }.distinctUntilChanged()
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val displayedItemsFlow = folderKeyFlow.flatMapLatest { key ->
-        val path = key.path
-        val currentFolderFreshness = diskRepository.getFolderFreshness(path)
-
-        val inclusion = itemListCache.value.containsKey(path)
-        val equality = LastFolderFreshness.value.isSameAs(currentFolderFreshness)
-        if (inclusion && equality) {
-            val result = itemListCache.value[path]!!
-            result.forEach { item ->
-                setImageCacheValue(item.fullPath, item.picture)
-                setFlagCacheValue(item.fullPath, item.tag)
-                setMemoCacheValue(item.fullPath, item.memo)
-            }
-
-            flowOf(path to result)
-        }
-        else
-            diskRepository.getFolderItemsLiteFlow(key.path, sorting.value)
-                .onEach { item ->
-                    setImageCacheValue(item.fullPath, item.picture)
-                    setFlagCacheValue(item.fullPath, item.tag)
-                    setMemoCacheValue(item.fullPath, item.memo)
-                }.runningFold(emptyList<Item>()) { acc, it -> acc + it }
-                .flowOn(Dispatchers.IO)
-                .onStart { emit(emptyList()) }
-                .map { items -> path to items }
-//            .sample(80)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = "/storage/emulated/0/Movies" to emptyList<Item>()
-    )
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val displayedItemsFlowFiltered =
-        combine(displayedItemsFlow, bottomTools.currentFlagId, sorting) { (path, items), flagId, sorting ->
-
-            val filtered = if (flagId == null) items else items.filter { it.tag?.id == flagId }
-            val result = filtered
-                .sortedWith(
-                    when (sorting) {
-                        SortingCriterion.ByNameAsc ->
-                            compareBy<Item> { it.isFile() }
-                                .thenBy { it.name.toLowerCase(locale = Locale.current) }
-
-                        SortingCriterion.ByDateDesc ->
-                            compareBy<Item> { it.isFile() }
-                                .thenByDescending { it.modificationDate }
-                    }
-                )
-
-            setItemListCache(key = path, items = result)
-            result
-//            .sample(80)
-        }.stateIn(
-            scope = viewModelScope,
-            started = WhileSubscribed(),
-            initialValue = emptyList()
-        )
-
+//                )
+//
+//            setItemListCache(key = path, items = result)
+//            result
+////            .sample(80)
+//        }.stateIn(
+//            scope = viewModelScope,
+//            started = WhileSubscribed(),
+//            initialValue = emptyList()
+//        )
 
     val modelFlow = combine(
-        displayedItemsFlow,
-        sorting
-    ) { (path, items), sorting ->
-        items.toIndexBarItemInfoList(this)
+        folderContentComponent.currentFolderFlow,
+        folderContentComponent.sorting
+    ) { currentFolder, sorting ->
+        currentFolder?.items?.toIndexBarItemInfoList(sorting)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
 
-    fun refreshCurrentFolder() {
-        reloadTrigger.value = reloadTrigger.value + 1 // redéclenchement immédiat
-    }
+//    ////////////////
+//// imageCache //
+//////////////////
+//    private val _imageCache = MutableStateFlow(mutableMapOf<String, Any?>())
+//    val imageCache: StateFlow<MutableMap<String, Any?>> = _imageCache
+//
+//    fun setImageCacheValue(key: String, image: Any?) {
+//        if (image != null) {
+//            val newMap = _imageCache.value.toMutableMap()
+//            newMap[key] = image
+//            _imageCache.value = newMap
+//
+//            println("ajout de clé dans imageCache: ${key.takeLast(20)}: $image")
+//            println("il y a ${_imageCache.value.size} clés")
+//        }
+//    }
 
-    fun addFolderPathToHistory(folderPath: String) {
-        val currentHistory = _folderPathHistory.value
-        _folderPathHistory.value = currentHistory + folderPath
-    }
-
-    fun removeLastFolderPathHistory() {
-        val currentHistory = _folderPathHistory.value
-        _folderPathHistory.value = currentHistory.dropLast(1)
-    }
-
-    ////////////////
-// imageCache //
-////////////////
-    private val _imageCache = MutableStateFlow(mutableMapOf<String, Any?>())
-    val imageCache: StateFlow<MutableMap<String, Any?>> = _imageCache
-
-    fun setImageCacheValue(key: String, image: Any?) {
-        if (image != null) {
-            val newMap = _imageCache.value.toMutableMap()
-            newMap[key] = image
-            _imageCache.value = newMap
-
-            println("ajout de clé dans imageCache: ${key.takeLast(20)}: $image")
-            println("il y a ${_imageCache.value.size} clés")
-        }
-    }
-
-    fun clearImageCache() {
-        _imageCache.value.clear()
-    }
-
-    fun removeImageFromCache(key: String?) {
-        if (key != null)
-            _imageCache.value.remove(key)
-    }
+//    fun clearImageCache() {
+//        _imageCache.value.clear()
+//    }
+//
+//    fun removeImageFromCache(key: String?) {
+//        if (key != null)
+//            _imageCache.value.remove(key)
+//    }
 
     ////////////////
 // scaleCache //
 ////////////////
-    private val _scaleCache = MutableStateFlow(mutableMapOf<String, ContentScale>())
-    val scaleCache: StateFlow<MutableMap<String, ContentScale>> = _scaleCache
-
-    fun setScaleCacheValue(key: String, scale: ContentScale?) {
-        if (scale == null)
-            return
-        _scaleCache.value = _scaleCache.value.toMutableMap().apply {
-            put(key, scale)
-            println("ajout de clé dans scaleCache: ${key.takeLast(20)}: $scale")
-            println("il y a ${_scaleCache.value.size} clés")
-        }
-    }
-
-    fun clearScalecache() {
-        _scaleCache.value.clear()
-    }
-
-    val sortingCache = mutableMapOf<String, SortingCriterion>()
-
-    ///////////////
-// flagCache //
-///////////////
-    private val _flagCache = MutableStateFlow(mutableMapOf<String, ColoredTag>())
-    val flagCache: StateFlow<MutableMap<String, ColoredTag>> = _flagCache
-
-    fun setFlagCacheValue(key: String, tag: ColoredTag?) {
-        if (tag == null)
-            return
-        _flagCache.value = _flagCache.value.toMutableMap().apply {
-            put(key, tag)
-            println("ajout de clé dans flagCache: ${key.takeLast(20)}: $tag")
-            println("il y a ${_flagCache.value.size} clés")
-        }
-        println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
-    }
-
-    fun removeFlagCacheForKey(key: String): ColoredTag? {
-        return _flagCache.value.remove(key)
-    }
-
-    fun clearFlagCache() {
-        _flagCache.value = mutableMapOf()
-        println("clearFlagCache, il y a ${_flagCache.value.size} clés")
-    }
-
-    ///////////////
-// memoCache //
-///////////////
-    private val _memoCache = MutableStateFlow(mutableMapOf<String, String>())
-    val memoCache: StateFlow<MutableMap<String, String>> = _memoCache
-
-    fun setMemoCacheValue(key: String, memo: String?) {
-        if (memo == null)
-            return
-        _memoCache.value = _memoCache.value.toMutableMap().apply {
-            put(key, memo)
-            println("ajout de clé dans memoCache: ${key.takeLast(20)}: $memo")
-            println("il y a ${_memoCache.value.size} clés")
-        }
-
-        println("ajout de clé dans memoCache, il y a ${_memoCache.value.size} clés")
-    }
-
-    fun removeMemoCacheForKey(key: String): String? {
-        return _memoCache.value.remove(key)
-    }
-
-    fun clearMemoCache() {
-        _memoCache.value = mutableMapOf()
-        println("clearMemoCache, il y a ${_memoCache.value.size} clés")
-
-    }
+//    private val _scaleCache = MutableStateFlow(mutableMapOf<String, ContentScale>())
+//    val scaleCache: StateFlow<MutableMap<String, ContentScale>> = _scaleCache
+//
+//    fun setScaleCacheValue(key: String, scale: ContentScale?) {
+//        if (scale == null)
+//            return
+//        _scaleCache.value = _scaleCache.value.toMutableMap().apply {
+//            put(key, scale)
+//            println("ajout de clé dans scaleCache: ${key.takeLast(20)}: $scale")
+//            println("il y a ${_scaleCache.value.size} clés")
+//        }
+//    }
+//
+//    fun clearScalecache() {
+//        _scaleCache.value.clear()
+//    }
+//
+//    val sortingCache = mutableMapOf<String, SortingCriterion>()
+//
+//    ///////////////
+//// flagCache //
+/////////////////
+//    private val _flagCache = MutableStateFlow(mutableMapOf<String, ColoredTag>())
+//    val flagCache: StateFlow<MutableMap<String, ColoredTag>> = _flagCache
+//
+//    fun setFlagCacheValue(key: String, tag: ColoredTag?) {
+//        if (tag == null)
+//            return
+//        _flagCache.value = _flagCache.value.toMutableMap().apply {
+//            put(key, tag)
+//            println("ajout de clé dans flagCache: ${key.takeLast(20)}: $tag")
+//            println("il y a ${_flagCache.value.size} clés")
+//        }
+//        println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
+//    }
+//
+//    fun removeFlagCacheForKey(key: String): ColoredTag? {
+//        return _flagCache.value.remove(key)
+//    }
+//
+//    fun clearFlagCache() {
+//        _flagCache.value = mutableMapOf()
+//        println("clearFlagCache, il y a ${_flagCache.value.size} clés")
+//    }
+//
+//    ///////////////
+//// memoCache //
+/////////////////
+//    private val _memoCache = MutableStateFlow(mutableMapOf<String, String>())
+//    val memoCache: StateFlow<MutableMap<String, String>> = _memoCache
+//
+//    fun setMemoCacheValue(key: String, memo: String?) {
+//        if (memo == null)
+//            return
+//        _memoCache.value = _memoCache.value.toMutableMap().apply {
+//            put(key, memo)
+//            println("ajout de clé dans memoCache: ${key.takeLast(20)}: $memo")
+//            println("il y a ${_memoCache.value.size} clés")
+//        }
+//
+//        println("ajout de clé dans memoCache, il y a ${_memoCache.value.size} clés")
+//    }
+//
+//    fun removeMemoCacheForKey(key: String): String? {
+//        return _memoCache.value.remove(key)
+//    }
+//
+//    fun clearMemoCache() {
+//        _memoCache.value = mutableMapOf()
+//        println("clearMemoCache, il y a ${_memoCache.value.size} clés")
+//
+//    }
 
     //////////
 // mémo //
@@ -555,18 +425,15 @@ class SigmaViewModel @Inject constructor(
     ////////////////////
 // maj de l'image //
 ////////////////////
-    private val _pictureUpdateId = MutableStateFlow(0)
-    val pictureUpdateId: StateFlow<Int> = _pictureUpdateId
 
-    val currentMemo: StateFlow<String> = combine(
-        LastFolderFreshness, memoCache
-    ) { freshness, cache ->
-        cache[freshness.path] ?: ""
-    }.stateIn(
-        scope = viewModelScope,
-        started = Eagerly,
-        initialValue = ""
-    )
+    val currentMemo: StateFlow<String?> =
+        folderContentComponent.currentFolderFlow
+            .map { it?.memo }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.Eagerly,
+                initialValue = null
+            )
 
     companion object {
         private val _refreshRequested = MutableSharedFlow<Unit>(replay = 0)
@@ -584,7 +451,7 @@ class SigmaViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             refreshRequested.collect {
-                refreshCurrentFolder()
+                folderContentComponent.refreshCurrentFolder()
             }
         }
     }
@@ -629,13 +496,6 @@ class SigmaViewModel @Inject constructor(
         }
     }
 
-    fun clearAllCaches() {
-        clearImageCache()
-        clearFlagCache()
-        clearScalecache()
-        clearMemoCache()
-    }
-
     val selectedItemFullPath = selectedItem
         .map { item -> item?.fullPath }
         .stateIn(
@@ -653,6 +513,9 @@ class SigmaViewModel @Inject constructor(
 
         val itemPath = selectedItemFullPath.value
 
+        if (itemPath == null)
+            return
+
         var pictureBitmap =
             if (newPicture is String) withContext(Dispatchers.IO) {
                 changingPictureUseCase.urlToBitmap(newPicture)
@@ -661,9 +524,6 @@ class SigmaViewModel @Inject constructor(
 
         if (pictureBitmap == null)
             return
-
-        //s'assure que les refreshs ci-dessous verront bien la nouvelle image
-        removeImageFromCache(itemPath!!)
 
         val capsuleMgr = CapsuleComponent()
         capsuleMgr.save(
@@ -677,28 +537,18 @@ class SigmaViewModel @Inject constructor(
                 itemPath
             )
 
-        setImageCacheValue(itemPath, pictureBitmap)
+        folderContentComponent.refreshCurrentFolder()
     }
 
     fun goToFolder(folderPath: String, sorting: SortingCriterion? = null) {
-        sortingCache[LastFolderFreshness.value.path] = this.sorting.value
-
-        if (sorting != null)
-            setSorting(sorting)
-        else
-            setSorting(sortingCache[folderPath] ?: SortingCriterion.ByDateDesc)
-
-        clearImageCache()
-        scaleCache.value.clear()
-        clearMemoCache()
-        clearFlagCache()
         DEFAULT.content().updateTools(emptyList<Tool>())
 
         viewModelScope.launch(Dispatchers.Main) {
-            if (folderPath == LastFolderFreshness.value.path)
-                refreshCurrentFolder()
+            if (folderPath == folderContentComponent.currentFolderFlow
+                .value?.fullPath)
+                folderContentComponent.refreshCurrentFolder()
             else
-                addFolderPathToHistory(folderPath)
+                folderContentComponent.addFolderPathToHistory(folderPath)
 
             bottomTools.setCurrentFlagId(null)
         }
@@ -777,8 +627,7 @@ class SigmaViewModel @Inject constructor(
                 item.fullPath
             )
 
-            removeFlagCacheForKey(item.fullPath)
-            refreshCurrentFolder()
+            folderContentComponent.refreshCurrentFolder()
         }
     }
 

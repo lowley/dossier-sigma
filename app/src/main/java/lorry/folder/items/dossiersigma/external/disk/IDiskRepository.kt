@@ -3,9 +3,9 @@ package lorry.folder.items.dossiersigma.external.disk
 import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.flow.Flow
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
-import lorry.folder.items.dossiersigma.headless.domain.FolderFreshness
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.folderContent.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 
