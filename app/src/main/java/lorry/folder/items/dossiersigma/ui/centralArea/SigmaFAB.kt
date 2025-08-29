@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -91,6 +92,10 @@ fun SigmaActivity.SigmaFAB(
             SpeedDial(
                 modifier = Modifier,
                 state = fabState.value,
+                fabOpenedBackgroundColor = SigmaColors.current.secondary,
+                fabOpenedContentColor = SigmaColors.current.onSecondary,
+                fabClosedBackgroundColor = SigmaColors.current.secondary,
+                fabClosedContentColor = SigmaColors.current.onSecondary,
                 onFabClick = { expanded ->
                     overlayVisible.value = !expanded
                     fabState.value = if (expanded) SpeedDialState.Collapsed
@@ -100,7 +105,11 @@ fun SigmaActivity.SigmaFAB(
                 item {
                     FabWithLabel(
                         modifier = Modifier,
-                        labelBackgroundColor = SigmaColors.current.primary,
+                        labelBackgroundColor = lerp(
+                            SigmaColors.current.primary,
+                            SigmaColors.current.secondary,
+                            0.3f
+                            ),
                         fabBackgroundColor = SigmaColors.current.primary,
                         labelContent = {
                             Text(
@@ -121,6 +130,7 @@ fun SigmaActivity.SigmaFAB(
                                 .size(25.dp),
                             painter = painterResource(id = R.drawable.chaine),
                             contentDescription = null,
+                            tint = SigmaColors.current.secondary
                         )
                     }
                 }
@@ -128,7 +138,11 @@ fun SigmaActivity.SigmaFAB(
                 item {
                     FabWithLabel(
                         modifier = Modifier,
-                        labelBackgroundColor = SigmaColors.current.primary,
+                        labelBackgroundColor = lerp(
+                            SigmaColors.current.primary,
+                            SigmaColors.current.secondary,
+                            0.3f
+                        ),
                         fabBackgroundColor = SigmaColors.current.primary,
                         labelContent = {
                             Text(
@@ -148,7 +162,8 @@ fun SigmaActivity.SigmaFAB(
                             modifier = Modifier
                                 .size(25.dp),
                             painter = painterResource(id = R.drawable.add_folder),
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = SigmaColors.current.secondary
                         )
                     }
                 }

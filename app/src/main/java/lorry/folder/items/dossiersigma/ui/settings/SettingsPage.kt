@@ -432,9 +432,6 @@ fun SigmaActivity.SettingsPage(
                                 settingsViewModel.settingsManager.saveNasPassword(nasPassword.value)
                                 settingsViewModel.settingsManager.saveNasFolder(nasFolder.value)
 
-//                                settingsViewModel.settingsManager.saveTheme(if (theme.value.isDark()) NightAndDay.DARK else NightAndDay.LIGHT)
-//                                settingsViewModel.setNightAndDay(if (theme.value.isDark()) NightAndDay.DARK else NightAndDay.LIGHT)
-
                                 val base = baseColorEffective.value
                                 var mode = if (base.isLightBase()) NightAndDay.LIGHT
                                 else
