@@ -89,7 +89,27 @@ class FolderContentComponent @Inject constructor(
 
         if (inclusion && equality) {
             val currentCachedFolder = folderCache[latestPath]
-            flowOf(currentCachedFolder?.folder)
+            val oldFolder = currentCachedFolder?.folder
+            val oldItems = oldFolder?.items ?: emptyList()
+
+            val newItems = when (sort) {
+                SortingCriterion.ByNameAsc ->
+                    oldItems.sortedWith(
+                        compareBy<Item> { it.isFile() }
+                            .thenBy { it.name.lowercase(java.util.Locale.getDefault()) }
+                    )
+
+                SortingCriterion.ByDateDesc ->
+                    oldItems.sortedWith(
+                        compareBy<Item> { it.isFile() }
+                            .thenByDescending { it.modificationDate }
+                    )
+            }
+
+            val newFolder = oldFolder?.copy(
+                items = newItems ?: emptyList()
+            )
+            flowOf(newFolder)
         } else {
             //récupération avec tri
             diskRepository.getFolderItemsLiteFlow(latestPath, sort)

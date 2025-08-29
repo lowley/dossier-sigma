@@ -589,11 +589,14 @@ class SigmaActivity : ComponentActivity() {
                                             sorting = SortingCriterion.ByDateDesc
                                         )
 
+                                        mainViewModel.folderContentComponent.refreshCurrentFolder()
                                     },
                                     onNameSortClick = {
                                         mainViewModel.folderContentComponent.setSorting(
                                             sorting = SortingCriterion.ByNameAsc
                                         )
+
+                                        mainViewModel.folderContentComponent.refreshCurrentFolder()
                                     }
                                 )
                             }
