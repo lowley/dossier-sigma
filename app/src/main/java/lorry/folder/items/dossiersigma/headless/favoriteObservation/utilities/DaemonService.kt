@@ -69,14 +69,23 @@ class DaemonService : LifecycleService() {
 
             val homeItems = settingsManager.homeItemsFlow.firstOrNull()
             val files = homeItems
-                ?.map { it.path
+                ?.map {
+                    it.path
 //                    ?.substringAfterLast("/")
 //                    ?.substringBeforeLast(".")
                 }
                 ?.joinToString(",")
                 ?: "rien"
 
-            updateNotification("$index - $files")
+//            updateNotification("$index - $files")
+
+            val parent = homeItems?.let {
+                it[0]
+                    .path
+                    ?.substringAfterLast("/")
+            }
+
+
 
             index++
             delay(2_000)
