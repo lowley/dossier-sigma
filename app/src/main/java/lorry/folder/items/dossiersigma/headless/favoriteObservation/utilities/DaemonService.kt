@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
@@ -49,7 +50,6 @@ class DaemonService : LifecycleService() {
         // 1) Démarrer au premier plan rapidement
         startForeground(30215, buildOngoingNotification())
 
-
         // 2) Démarrer ta boucle “daemon”
         scope.launch {
             runDaemonLoop()
@@ -65,9 +65,20 @@ class DaemonService : LifecycleService() {
             //* … ton travail de fond (IO, sync, watch, etc.)
             // Mettre à jour la notif si utile :
             // updateNotification("Progression: 42%")
-            updateNotification("index: $index")
-            index++
+//            updateNotification("index: $index")
 
+            val homeItems = settingsManager.homeItemsFlow.firstOrNull()
+            val files = homeItems
+                ?.map { it.path
+//                    ?.substringAfterLast("/")
+//                    ?.substringBeforeLast(".")
+                }
+                ?.joinToString(",")
+                ?: "rien"
+
+            updateNotification("$index - $files")
+
+            index++
             delay(2_000)
         }
     }
