@@ -1063,7 +1063,7 @@ sealed class Tools {
                             //* fin aire des images enregistrées dans un fichier
 
                             val nasDirectory =
-                                mainActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
+                                mainActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull()
                                     ?: ""
 
                             val req = MoveToNASWorker.request(
@@ -1969,7 +1969,7 @@ fun SigmaActivity.HomeItemDialog(
                                         )
                                     }.toSet()
 
-                                sigmaActivity.settingsViewModel.settingsManager.saveHomeItems(
+                                sigmaActivity.settingsViewModel.settings.saveHomeItems(
                                     newHomeItems
                                 )
                             }

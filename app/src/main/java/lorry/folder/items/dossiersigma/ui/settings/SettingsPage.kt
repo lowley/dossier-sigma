@@ -61,7 +61,7 @@ fun SigmaActivity.SettingsPage(
     /////////////////
     // nas address //
     /////////////////
-    val nasAddressFromDataStore by vm.settingsManager.nasAddressFlow.collectAsState("")
+    val nasAddressFromDataStore by vm.settings.nasAddressFlow.collectAsState("")
     var nasAddress = rememberSaveable("") {
         mutableStateOf(nasAddressFromDataStore)
     }
@@ -83,7 +83,7 @@ fun SigmaActivity.SettingsPage(
     ///////////////
     // nas login //
     ///////////////
-    val nasLoginFromDataStore by vm.settingsManager.nasLoginFlow.collectAsState("")
+    val nasLoginFromDataStore by vm.settings.nasLoginFlow.collectAsState("")
     var nasLogin = rememberSaveable(nasLoginFromDataStore) {
         mutableStateOf(nasLoginFromDataStore)
     }
@@ -105,7 +105,7 @@ fun SigmaActivity.SettingsPage(
     //////////////////
     // nas password //
     //////////////////
-    val nasPasswordFromDataStore by vm.settingsManager.nasPasswordFlow.collectAsState("")
+    val nasPasswordFromDataStore by vm.settings.nasPasswordFlow.collectAsState("")
     var nasPassword = remember(nasPasswordFromDataStore) {
         mutableStateOf(nasPasswordFromDataStore)
     }
@@ -127,7 +127,7 @@ fun SigmaActivity.SettingsPage(
     ////////////////
     // nas folder //
     ////////////////
-    val nasFolderFromDataStore by vm.settingsManager.nasFolderFlow.collectAsState("")
+    val nasFolderFromDataStore by vm.settings.nasFolderFlow.collectAsState("")
     var nasFolder = remember(nasFolderFromDataStore) {
         mutableStateOf(nasFolderFromDataStore)
     }
@@ -427,10 +427,10 @@ fun SigmaActivity.SettingsPage(
                         vm.viewModelScope.launch {
                             if (hasSomethingChanged) {
 
-                                settingsViewModel.settingsManager.saveNasAddress(nasAddress.value)
-                                settingsViewModel.settingsManager.saveNasLogin(nasLogin.value)
-                                settingsViewModel.settingsManager.saveNasPassword(nasPassword.value)
-                                settingsViewModel.settingsManager.saveNasFolder(nasFolder.value)
+                                settingsViewModel.settings.saveNasAddress(nasAddress.value)
+                                settingsViewModel.settings.saveNasLogin(nasLogin.value)
+                                settingsViewModel.settings.saveNasPassword(nasPassword.value)
+                                settingsViewModel.settings.saveNasFolder(nasFolder.value)
 
                                 val base = baseColorEffective.value
                                 var mode = if (base.isLightBase()) NightAndDay.LIGHT

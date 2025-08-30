@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.external.datastore.SettingsStoreProvider
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfosDTO
 import javax.inject.Inject
@@ -48,15 +47,7 @@ class SettingsManager @Inject constructor(
         val THEME_BASE_COLOR_KEY = stringPreferencesKey("theme_basecolor")
         val THEME_IS_DARK_THEME_KEY = booleanPreferencesKey("theme_dark")
 
-        @Volatile private var INSTANCE: SettingsManager? = null
-
-        fun getInstance(ctx: Context): SettingsManager =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: SettingsManager(
-                    ctx.applicationContext,
-                    SettingsStoreProvider.get(ctx.applicationContext) // ⬅️
-                ).also { INSTANCE = it }
-            }
+        private val FILE_OBSERVER_SERVICE_KEY = booleanPreferencesKey("fgs_running")
     }
 
     suspend fun saveNasAddress(address: String) {
@@ -157,6 +148,21 @@ class SettingsManager @Inject constructor(
             if (preferences[THEME_IS_DARK_THEME_KEY] == true)
                 NightAndDay.DARK
             else NightAndDay.LIGHT
+        }
+
+    suspend fun saveIsFileObserverEnabled(isEnabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            dataStore.edit { settings ->
+                settings[FILE_OBSERVER_SERVICE_KEY] = isEnabled
+            }
+        }
+    }
+
+    val isFileObserverEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            // On lit la valeur associée à notre clé.
+            // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
+            preferences[FILE_OBSERVER_SERVICE_KEY] == true
         }
 
     suspend fun saveBaseColor(color: Color) {

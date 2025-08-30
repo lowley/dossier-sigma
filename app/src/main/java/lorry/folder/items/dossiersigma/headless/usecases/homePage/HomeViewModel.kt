@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.ServiceLocator
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
 import javax.inject.Inject
 
@@ -23,7 +23,8 @@ class HomeViewModel @Inject constructor(
     val context: Context
 ) : ViewModel() {
 
-    val settingsManager = ServiceLocator.settings(context)
+    @Inject lateinit var settings: SettingsManager
+
     private val _homePageVisible = MutableStateFlow<Boolean>(true)
     val homePageVisible: StateFlow<Boolean> = _homePageVisible
 
@@ -77,7 +78,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             // On bascule sur un thread I/O pour la tâche longue (c'est correct).
             val homeItemsFromSettings = withContext(Dispatchers.IO) {
-                settingsManager.homeItemsFlow.firstOrNull() ?: emptyList()
+                settings.homeItemsFlow.firstOrNull() ?: emptyList()
             }
 
             // De retour sur le thread principal automatiquement.

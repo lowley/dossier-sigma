@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="lorry.folder.items.dossiersigma.permission.SEND_MESSAGE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
 <!--  android:icon="@mipmap/ic_launcher"  -->
     <application
@@ -69,5 +70,20 @@
             android:exported="false"
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
+        <service
+            android:name=".headless.favoriteObservation.utilities.DaemonService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync">
+            <!-- Certains cas exigent d'autres types : location, mediaPlayback, etc. -->
+        </service>
+        <receiver
+            android:name=".headless.favoriteObservation.utilities.BootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>

@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -72,6 +73,8 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.headless.favoriteObservation.utilities.startDaemon
+import lorry.folder.items.dossiersigma.headless.favoriteObservation.utilities.stopDaemon
 import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
@@ -549,6 +552,29 @@ class SigmaActivity : ComponentActivity() {
                                             }
                                         }
                                 ) {
+                                    val ctx = LocalContext.current
+                                    val isRunning by settingsViewModel.settings.isFileObserverEnabledFlow.collectAsState(initial = false)
+
+                                    Button(
+                                        modifier = Modifier,
+                                        onClick = {
+                                            if (isRunning)
+                                                ctx.stopDaemon()
+                                            else
+                                                ctx.startDaemon()
+                                        }
+                                    ){
+                                        Box(
+                                            modifier = Modifier
+                                                .background(SigmaColors.current.secondary)
+                                        ){
+                                            Text(
+                                                text = if (isRunning) "stp" else "srt",
+                                                color = SigmaColors.current.onSecondary
+                                            )
+                                        }
+                                    }
+
                                     if (nasText != "1 -> NAS")
                                         Text(
                                             modifier = Modifier
@@ -637,7 +663,7 @@ class SigmaActivity : ComponentActivity() {
                                 onDeleteTapped = { item: HomeItem ->
                                     homeViewModel.removeHomeItem(item)
                                     mainViewModel.viewModelScope.launch {
-                                        settingsViewModel.settingsManager.saveHomeItems(
+                                        settingsViewModel.settings.saveHomeItems(
                                             homeViewModel.homeItems.value
                                                 .toSet()
                                                 .map {
@@ -655,7 +681,7 @@ class SigmaActivity : ComponentActivity() {
                                 onItemsReordered = { newList ->
                                     homeViewModel.setHomeItems(newList)
                                     mainViewModel.viewModelScope.launch {
-                                        settingsViewModel.settingsManager.saveHomeItems(
+                                        settingsViewModel.settings.saveHomeItems(
                                             newList
                                                 .toSet()
                                                 .map {

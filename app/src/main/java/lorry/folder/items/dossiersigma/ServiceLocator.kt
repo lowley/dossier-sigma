@@ -5,17 +5,8 @@ import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.external.nas.DS_FTP
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
-import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 
 object ServiceLocator {
-
-    // --- SettingsManager (singleton, basé sur applicationContext) ------------
-    @Volatile private var settingsSingleton: SettingsManager? = null
-    fun settings(ctx: Context): SettingsManager =
-        settingsSingleton ?: synchronized(this) {
-            settingsSingleton ?: SettingsManager.getInstance(ctx.applicationContext)
-                .also { settingsSingleton = it }
-        }
 
     // --- DS_FTP (singleton dépendant de Settings) ----------------------------
     @Volatile private var dsFtpSingleton: DSI_FTP? = null

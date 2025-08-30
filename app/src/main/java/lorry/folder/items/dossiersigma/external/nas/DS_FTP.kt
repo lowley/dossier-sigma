@@ -5,10 +5,10 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.ServiceLocator
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
 import org.apache.commons.net.ftp.FTPReply
@@ -22,7 +22,7 @@ open class DS_FTP @Inject constructor(
     val context: Context
 ) : DSI_FTP {
 
-    val settings = ServiceLocator.settings(context)
+    @Inject lateinit var settings: SettingsManager
 
     suspend fun <T : Any?> doWithNASAccess(
         parent: String,

@@ -212,7 +212,7 @@ private fun SigmaActivity.copyEntireFolderToNAS() {
         //* fin aire des images enregistrées dans un fichier
 
         val nasDirectory =
-            this@SigmaActivity.settingsViewModel.settingsManager.nasFolderFlow.firstOrNull()
+            this@SigmaActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull()
                 ?: ""
 
         val req = MoveToNASWorker.request(

@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
-import lorry.folder.items.dossiersigma.ServiceLocator
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.io.File
 import javax.inject.Inject
 
@@ -12,7 +12,7 @@ class PlayingDataSource @Inject constructor(
     val context: Context,
 ) : IPlayingDataSource {
 
-    val settings = ServiceLocator.settings(context)
+    @Inject lateinit var settings: SettingsManager
 
     override suspend fun playFile(fullPath: String, type: String) {
 
