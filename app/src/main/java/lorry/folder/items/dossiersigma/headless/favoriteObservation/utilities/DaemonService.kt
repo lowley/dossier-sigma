@@ -25,7 +25,7 @@ import javax.inject.Inject
 private const val CHANNEL_ID = "daemon"
 
 @AndroidEntryPoint
-class DaemonService @Inject constructor() : LifecycleService() {
+class DaemonService : LifecycleService() {
 
     @Inject
     lateinit var settingsManager: SettingsManager
@@ -102,10 +102,9 @@ class DaemonService @Inject constructor() : LifecycleService() {
 
         scope.launch(Dispatchers.IO) {
             settingsManager.saveIsFileObserverEnabled(false)
+            job.cancel() // Arrête proprement les coroutines
+            stopForeground(STOP_FOREGROUND_DETACH) // détache la notif (ou STOP_FOREGROUND_REMOVE pour la retirer)
         }
-
-        job.cancel() // Arrête proprement les coroutines
-        stopForeground(STOP_FOREGROUND_DETACH) // détache la notif (ou STOP_FOREGROUND_REMOVE pour la retirer)
     }
 
     override fun onBind(intent: Intent): IBinder? {

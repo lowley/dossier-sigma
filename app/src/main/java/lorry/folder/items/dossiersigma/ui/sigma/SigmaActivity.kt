@@ -559,14 +559,14 @@ class SigmaActivity : ComponentActivity() {
                                         }
                                 ) {
                                     val ctx = LocalContext.current
-                                    val isRunning by settingsViewModel.settings.isFileObserverEnabledFlow.collectAsState(
+                                    val isRunning = settingsViewModel.settings.isFileObserverEnabledFlow.collectAsState(
                                         initial = false
                                     )
 
                                     Button(
                                         modifier = Modifier,
                                         onClick = {
-                                            if (isRunning)
+                                            if (isRunning.value)
                                                 ctx.stopDaemon()
                                             else
                                                 ctx.startDaemon()
@@ -576,7 +576,7 @@ class SigmaActivity : ComponentActivity() {
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(5.dp))
                                                 .background(
-                                                    if (isRunning) Color.Green else Color.Red
+                                                    if (isRunning.value) Color.Green else Color.Red
                                                 )
                                                 .border(
                                                     1.dp,
@@ -592,7 +592,7 @@ class SigmaActivity : ComponentActivity() {
                                             Text(
                                                 modifier = Modifier
                                                     .padding(horizontal = 5.dp, vertical = 2.dp),
-                                                text = if (isRunning) "stp" else "srt",
+                                                text = if (isRunning.value) "stop" else "start",
                                                 color = SigmaColors.current.onSecondary
                                             )
                                         }
