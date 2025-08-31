@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.headless.folderContent.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.HomeItemInfosDTO
 import javax.inject.Inject
@@ -48,6 +49,9 @@ class SettingsManager @Inject constructor(
         val THEME_IS_DARK_THEME_KEY = booleanPreferencesKey("theme_dark")
 
         private val FILE_OBSERVER_SERVICE_KEY = booleanPreferencesKey("fgs_running")
+
+        private val TEST_FRESHNESS_KEY = stringPreferencesKey("folder_cache_entry")
+
     }
 
     suspend fun saveNasAddress(address: String) {
@@ -163,6 +167,22 @@ class SettingsManager @Inject constructor(
             // On lit la valeur associée à notre clé.
             // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
             preferences[FILE_OBSERVER_SERVICE_KEY] == true
+        }
+
+    suspend fun saveTestFreshness(fressness: FolderFreshness) {
+        withContext(Dispatchers.IO) {
+            dataStore.edit { settings ->
+                settings[TEST_FRESHNESS_KEY] = Gson().toJson(fressness)
+            }
+        }
+    }
+
+    val testFreshnessFlow: Flow<FolderFreshness> = dataStore.data
+        .map { preferences ->
+            // On lit la valeur associée à notre clé.
+            // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
+            Gson().fromJson(preferences[TEST_FRESHNESS_KEY],
+                FolderFreshness::class.java)
         }
 
     suspend fun saveBaseColor(color: Color) {

@@ -275,7 +275,7 @@ private fun SigmaActivity.createFolder() {
                         "Répertoire créé",
                         Toast.LENGTH_SHORT
                     ).show()
-                    viewModel.folderContentComponent.refreshCurrentFolder()
+                    viewModel.folderContentComponent.reloadCurrentFolder()
                 } else
                     Toast.makeText(
                         mainActivity,

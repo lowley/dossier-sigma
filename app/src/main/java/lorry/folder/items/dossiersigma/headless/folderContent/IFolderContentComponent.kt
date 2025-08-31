@@ -9,16 +9,23 @@ interface IFolderContentComponent{
 
     val sorting: StateFlow<SortingCriterion>
     fun setSorting(sorting: SortingCriterion)
-    fun refreshCurrentFolder()
 
     val folderPathHistory: StateFlow<List<String>>
-
-    val folderCacheFlow: StateFlow<Map<String, FolderCacheEntry>>
-    val reloadTrigger: MutableStateFlow<Int>
-    val currentFolderFlow: StateFlow<SigmaFolder?>
-
     fun addFolderPathToHistory(folderPath: String)
     fun removeLastFolderPathHistory()
+    val folderCacheFlow: StateFlow<Map<String, FolderCacheEntry>>
+    val currentFolderFlow: StateFlow<SigmaFolder?>
 
+    ///////////////////
+    // reload simple //
+    ///////////////////
+    val reloadTrigger: MutableStateFlow<Int>
+    fun reloadCurrentFolder()
+
+    /////////////////////////
+    // reload pour refresh //
+    /////////////////////////
+    val refreshReloadTrigger: MutableStateFlow<Int>
+    fun reloadCurrentFolderByRefresh()
 
 }

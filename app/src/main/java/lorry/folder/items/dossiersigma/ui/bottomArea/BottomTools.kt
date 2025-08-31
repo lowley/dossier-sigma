@@ -423,7 +423,7 @@ sealed class Tools {
                                         currentItem.fullPath
                                     )
 
-                                    viewModel.folderContentComponent.refreshCurrentFolder()
+                                    viewModel.folderContentComponent.reloadCurrentFolder()
                                 }
 
                                 bottomTools.setCurrentContent(DEFAULT)
@@ -522,7 +522,7 @@ sealed class Tools {
                                 DEFAULT.content(viewModel).removeTool(tool)
 
                             viewModel.setSelectedItem(null, true)
-                            viewModel.folderContentComponent.refreshCurrentFolder()
+                            viewModel.folderContentComponent.reloadCurrentFolder()
                             bottomTools.setCurrentContent(DEFAULT)
 
 //                            viewModel.clearFlagCache()
@@ -595,7 +595,7 @@ sealed class Tools {
 //                            viewModel.refreshCurrentFolder()
                             bottomTools.setCurrentContent(DEFAULT)
 
-                            viewModel.folderContentComponent.refreshCurrentFolder()
+                            viewModel.folderContentComponent.reloadCurrentFolder()
                         }
                     }
                 ),
@@ -663,7 +663,7 @@ sealed class Tools {
 //                            viewModel.refreshCurrentFolder()
                                 bottomTools.setCurrentContent(DEFAULT)
 
-                                viewModel.folderContentComponent.refreshCurrentFolder()
+                                viewModel.folderContentComponent.reloadCurrentFolder()
                             }
                         }
                 )
@@ -776,7 +776,7 @@ sealed class Tools {
                                             "Renommage effectué",
                                             Toast.LENGTH_SHORT
                                         ).show()
-                                        viewModel.folderContentComponent.refreshCurrentFolder()
+                                        viewModel.folderContentComponent.reloadCurrentFolder()
                                     } else
                                         Toast.makeText(
                                             mainActivity,
@@ -834,7 +834,7 @@ sealed class Tools {
                                         "Dossier créé",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    viewModel.folderContentComponent.refreshCurrentFolder()
+                                    viewModel.folderContentComponent.reloadCurrentFolder()
                                 } else
                                     Toast.makeText(
                                         mainActivity,
@@ -895,7 +895,7 @@ sealed class Tools {
                                         "Dossier créé",
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                    viewModel.folderContentComponent.refreshCurrentFolder()
+                                    viewModel.folderContentComponent.reloadCurrentFolder()
                                 } else
                                     Toast.makeText(
                                         mainActivity,
@@ -958,7 +958,7 @@ sealed class Tools {
                                 ).show()
                             }
 
-                            viewModel.folderContentComponent.refreshCurrentFolder()
+                            viewModel.folderContentComponent.reloadCurrentFolder()
                             bottomTools.setCurrentContent(DEFAULT)
                         }
 
@@ -1233,7 +1233,7 @@ sealed class Tools {
                             }
                             mainActivity.startService(intent)
 //                            viewModel.setSelectedItem(null, true)
-                            viewModel.folderContentComponent.refreshCurrentFolder()
+                            viewModel.folderContentComponent.reloadCurrentFolder()
                             //2.vérif copie bien réalisée:
                             //dest existe
                             //tailles égales

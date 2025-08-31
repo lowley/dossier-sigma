@@ -4,6 +4,7 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,9 +13,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.runningFold
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.zip
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
@@ -58,20 +62,79 @@ class FolderContentComponent @Inject constructor(
     ///////////////////
     override val reloadTrigger = MutableStateFlow(0)
 
-    override fun refreshCurrentFolder() {
+    override fun reloadCurrentFolder() {
         reloadTrigger.value = reloadTrigger.value + 1 // redéclenchement immédiat
+    }
+
+    ////////////////////////
+    // reload par refresh //
+    ////////////////////////
+    override val refreshReloadTrigger = MutableStateFlow(0)
+
+    override fun reloadCurrentFolderByRefresh() {
+        refreshReloadTrigger.value = refreshReloadTrigger.value + 1 // redéclenchement immédiat
+    }
+
+    enum class Origin {
+        FOLDER_PATH_HISTORY,
+        CURRENT_FLAG_ID,
+        REFRESH_RELOAD_TRIGGER,
+        RELOAD_TRIGGER,
+    }
+
+    fun <A, B, C, D, R> combineWithSource(
+        scope: CoroutineScope,
+        f1: Flow<A>,
+        f2: Flow<B>,
+        f3: Flow<C>,
+        f4: Flow<D>,
+        transform: (A, B, C, D) -> R
+    ): Flow<Pair<Origin, R>> {
+
+        // 1) Partager les sources si besoin (saute ceci si ce sont déjà des StateFlow/SharedFlow)
+        val s1 = f1.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+        val s2 = f2.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+        val s3 = f3.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+        val s4 = f4.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+
+        // 2) Flux des déclencheurs (qui a émis ?)
+        val sourceIdFlow = merge(
+            s1.map { Origin.FOLDER_PATH_HISTORY },
+            s2.map { Origin.REFRESH_RELOAD_TRIGGER },
+            s3.map { Origin.RELOAD_TRIGGER },
+            s4.map { Origin.CURRENT_FLAG_ID }
+        )
+
+        // 3) Valeur combinée
+        val combined = combine(s1, s2, s3, s4) { a, b, c, d -> transform(a, b, c, d) }
+
+        // 4) Recolle déclencheur + résultat recalculé (une paire par déclenchement)
+        return sourceIdFlow.zip(combined) { src, value -> src to value }
     }
 
     //////////////////////////
     // dossier courant trié //
     //////////////////////////
-    override val currentFolderFlow = combine(
-        folderPathHistory,
-        reloadTrigger,
-        bottomTools.currentFlagId,
-    ) { folderPathHistory, reloadTrigger, flagId ->
-        Pair(folderPathHistory.lastOrNull(), flagId)
-    }.flatMapLatest { (latestPath, flagId) ->
+//    override val currentFolderFlow2 = combine(
+//        folderPathHistory,
+//        bottomTools.currentFlagId,
+//        refreshReloadTrigger,
+//        reloadTrigger,
+//    ) { folderPathHistory, flagId, _, _ ->
+//        Pair(folderPathHistory.lastOrNull(), flagId)
+//    }
+
+    override val currentFolderFlow = combineWithSource(
+        scope = scope,
+        f1 = folderPathHistory,
+        f2 = bottomTools.currentFlagId,
+        f3 = refreshReloadTrigger,
+        f4 = reloadTrigger,
+    ){ pathHistory, flagId, _, _  ->
+        Pair(pathHistory.lastOrNull(),flagId)
+    }.flatMapLatest { (origin, pair) ->
+
+        val (latestPath, flagId) = pair
 
         if (latestPath == null)
             return@flatMapLatest flowOf<SigmaFolder?>(null)
@@ -86,8 +149,9 @@ class FolderContentComponent @Inject constructor(
         val inclusion = folderCache.containsKey(latestPath)
         val equality = cachedFolderFreshness?.isSameAs(realFolderFreshness) == true
 
-
-        if (inclusion && equality) {
+        //si c'est un refresh du dossier initié par un pullToRefresh
+        //on skippe le cache pour forcer un reload à partir du disque
+        if (origin != Origin.REFRESH_RELOAD_TRIGGER && inclusion && equality) {
             val currentCachedFolder = folderCache[latestPath]
             val oldFolder = currentCachedFolder?.folder
             val oldItems = oldFolder?.items ?: emptyList()

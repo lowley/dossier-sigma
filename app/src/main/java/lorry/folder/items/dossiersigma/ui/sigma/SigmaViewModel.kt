@@ -451,7 +451,7 @@ class SigmaViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             refreshRequested.collect {
-                folderContentComponent.refreshCurrentFolder()
+                folderContentComponent.reloadCurrentFolder()
             }
         }
     }
@@ -537,7 +537,7 @@ class SigmaViewModel @Inject constructor(
                 itemPath
             )
 
-        folderContentComponent.refreshCurrentFolder()
+        folderContentComponent.reloadCurrentFolder()
     }
 
     fun goToFolder(folderPath: String, sorting: SortingCriterion? = null) {
@@ -546,7 +546,7 @@ class SigmaViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Main) {
             if (folderPath == folderContentComponent.currentFolderFlow
                 .value?.fullPath)
-                folderContentComponent.refreshCurrentFolder()
+                folderContentComponent.reloadCurrentFolder()
             else
                 folderContentComponent.addFolderPathToHistory(folderPath)
 
@@ -627,7 +627,7 @@ class SigmaViewModel @Inject constructor(
                 item.fullPath
             )
 
-            folderContentComponent.refreshCurrentFolder()
+            folderContentComponent.reloadCurrentFolder()
         }
     }
 

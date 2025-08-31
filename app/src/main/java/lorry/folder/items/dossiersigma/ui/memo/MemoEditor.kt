@@ -256,7 +256,7 @@ fun SigmaActivity.MemoEditor(
                     }
 
                     mainViewModel.folderContentComponent
-                        ?.refreshCurrentFolder()
+                        ?.reloadCurrentFolder()
 
                     richTextState.clear()
                     closeMemo()

@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.ViewTreeObserver
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -57,7 +58,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -73,12 +73,14 @@ import com.leinardi.android.speeddial.compose.SpeedDialOverlay
 import com.leinardi.android.speeddial.compose.SpeedDialState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.utilities.startDaemon
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.utilities.stopDaemon
+import lorry.folder.items.dossiersigma.headless.folderContent.FolderFreshness
 import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
@@ -559,8 +561,24 @@ class SigmaActivity : ComponentActivity() {
                                         }
                                 ) {
                                     val ctx = LocalContext.current
-                                    val isRunning = settingsViewModel.settings.isFileObserverEnabledFlow.collectAsState(
-                                        initial = false
+                                    val isRunning =
+                                        settingsViewModel.settings.isFileObserverEnabledFlow.collectAsState(
+                                            initial = false
+                                        )
+                                    val realFreshness by
+                                        settingsViewModel.settings.testFreshnessFlow.collectAsState(
+                                            null
+                                        )
+                                    val theoricalFreshness by
+                                        mainViewModel.folderContentComponent.folderCacheFlow
+                                            .map {
+                                                it[mainViewModel.folderContentComponent.currentFolderFlow.value?.fullPath]
+                                                    ?.freshness
+                                            }.collectAsState(null)
+
+                                    Log.d(
+                                        "SigmaActivitos",
+                                        "realF:${realFreshness.hashCode()}, theo:${theoricalFreshness.hashCode()}"
                                     )
 
                                     Button(
@@ -578,16 +596,21 @@ class SigmaActivity : ComponentActivity() {
                                                 .background(
                                                     if (isRunning.value) Color.Green else Color.Red
                                                 )
+//                                                .border(
+//                                                    1.dp,
+//                                                    lerp(
+//                                                        SigmaColors.current.secondary,
+//                                                        SigmaColors.current.primary,
+//                                                        0.7f
+//                                                    ),
+//                                                    shape = RoundedCornerShape(5.dp)
+//                                                )
                                                 .border(
                                                     1.dp,
-                                                    lerp(
-                                                        SigmaColors.current.secondary,
-                                                        SigmaColors.current.primary,
-                                                        0.7f
-                                                    ),
+                                                    if (realFreshness?.isSameAs(theoricalFreshness ?: FolderFreshness.DUMMY) == true)
+                                                        Color.Green else Color.Red,
                                                     shape = RoundedCornerShape(5.dp)
                                                 )
-
                                         ) {
                                             Text(
                                                 modifier = Modifier
@@ -637,14 +660,14 @@ class SigmaActivity : ComponentActivity() {
                                             sorting = SortingCriterion.ByDateDesc
                                         )
 
-                                        mainViewModel.folderContentComponent.refreshCurrentFolder()
+                                        mainViewModel.folderContentComponent.reloadCurrentFolder()
                                     },
                                     onNameSortClick = {
                                         mainViewModel.folderContentComponent.setSorting(
                                             sorting = SortingCriterion.ByNameAsc
                                         )
 
-                                        mainViewModel.folderContentComponent.refreshCurrentFolder()
+                                        mainViewModel.folderContentComponent.reloadCurrentFolder()
                                     }
                                 )
                             }
@@ -776,7 +799,7 @@ class SigmaActivity : ComponentActivity() {
                                     mainViewModel.getInfoInf(item)
                                 },
                                 onRefresh = {
-                                    mainViewModel.folderContentComponent.refreshCurrentFolder()
+                                    mainViewModel.folderContentComponent.reloadCurrentFolder()
                                 },
                                 indexBar = indexBar,
                                 currentScrollState = currentScrollState,
