@@ -1,11 +1,15 @@
 package lorry.folder.items.dossiersigma.headless.favoriteObservation.service
 
 import android.os.FileObserver
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 
 class SigmaFileObserver(
     val file: File,
-    val doOnEvent: (event: Int, path: String?) -> Unit
+    val doOnEvent: suspend (event: Int, path: String?) -> Unit
 ) : RecursiveFileObserver(
     file,
     FileObserver.MOVED_FROM or
@@ -17,5 +21,9 @@ class SigmaFileObserver(
     {
         val event = it.event
         val path = it.childPath
-        doOnEvent(event, path)
+        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+        scope.launch {
+            doOnEvent(event, path)
+        }
     })

@@ -309,8 +309,16 @@ class SigmaActivity : ComponentActivity() {
                     //stockage de sorting actuel dans le cache
                     // -> auto lors des modifications du tri
 
-                    //retour dans l'history
-                    mainViewModel.folderContentComponent.removeLastFolderPathHistory()
+                    mainViewModel.viewModelScope.launch {
+                        val last1 = mainViewModel.folderContentComponent.folderPathHistory.value.last()
+
+                        //retour dans l'history
+                        mainViewModel.folderContentComponent.removeLastFolderPathHistory()
+
+                        val last2 = mainViewModel.folderContentComponent.folderPathHistory.value.last()
+                        mainViewModel.settingsManager.saveCurrentPath(last2)
+                        Log.d("Sact", last1 )
+                    }
 
                     //récup sorting dans cache du tri
                     // -> se fait automatiquement dans le combine de currentFolderFlow

@@ -19,7 +19,8 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
     }
 
     @OptIn(ExperimentalTime::class)
-    fun isSameAs(other: FolderFreshness): Boolean =
+    fun isSameAs(other: FolderFreshness?): Boolean =
+        other != null &&
         path == other.path &&
         containerMtime.toString() == other.containerMtime.toString() &&
         contentsMaxMtime.toString() == other.contentsMaxMtime.toString()

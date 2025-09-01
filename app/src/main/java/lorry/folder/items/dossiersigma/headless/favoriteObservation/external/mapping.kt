@@ -33,7 +33,7 @@ object SigmaFolderMapping {
                 PersistedItem(
                     name = item.name,
                     modificationDate = item.modificationDate,
-                    tagId = item.tag?.id.toString(),
+                    tagId = Gson().toJson(item.tag),
                     picture = pic,
                     isFolder = item.isFolder(),
                     fullPath = item.fullPath
@@ -57,21 +57,21 @@ object SigmaFolderMapping {
             // Reconstruis ton Item “métier” (sans changer sa classe)
             if (pi.isFolder)
                 SigmaFolder(
-                    name = pi.name,
+//                    name = pi.name,
                     modificationDate = pi.modificationDate,
                     tag = pi.tagId?.let { Gson().fromJson(it, ColoredTag::class.java) },
                     picture = any,
-                    path = pi.fullPath,
+                    fullPath = pi.fullPath,
                     scale = null,
                     items = emptyList()
                 )
             else
                 SigmaFile(
-                    name = pi.name,
+//                    name = pi.name,
                     modificationDate = pi.modificationDate,
                     tag = pi.tagId?.let { Gson().fromJson(it, ColoredTag::class.java) },
                     picture = any,
-                    path = pi.fullPath,
+                    fullPath = pi.fullPath,
                     scale = null
                 )
         }

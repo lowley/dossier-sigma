@@ -52,6 +52,8 @@ class SettingsManager @Inject constructor(
 
         private val TEST_FRESHNESS_KEY = stringPreferencesKey("folder_cache_entry")
 
+        val CURRENT_APP_PATH_KEY = stringPreferencesKey("current_path")
+
     }
 
     suspend fun saveNasAddress(address: String) {
@@ -135,6 +137,20 @@ class SettingsManager @Inject constructor(
                 }
 
             return@map cool
+        }
+
+    suspend fun saveCurrentPath(path: String) {
+        withContext(Dispatchers.IO) {
+            dataStore.edit { settings ->
+                settings[CURRENT_APP_PATH_KEY] = path
+            }
+        }
+    }
+
+    val currentPathFlow: Flow<String?> = dataStore.data
+        .map { preferences ->
+            val raw = preferences[CURRENT_APP_PATH_KEY] ?: return@map null
+            return@map raw
         }
 
     suspend fun saveTheme(isDark: NightAndDay) {

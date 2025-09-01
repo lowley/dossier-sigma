@@ -15,6 +15,24 @@ class SigmaFile(
     size: Long? = null
 ) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale, size = size
 ) {
+    constructor(
+        fullPath: String,
+        picture: Any?,
+        id: String = UUID.randomUUID().toString(),
+        modificationDate: Long,
+        tag: ColoredTag?,
+        scale: ContentScale?,
+        memo: String? = null,
+    ) : this(
+        path = fullPath.substringBeforeLast("/"),
+        name = fullPath.substringAfterLast("/"),
+        picture = picture,
+        id = id,
+        modificationDate = modificationDate,
+        tag = tag,
+        scale = scale,
+        memo = memo,
+    )
 
     fun copy(
         path: String = this.path,

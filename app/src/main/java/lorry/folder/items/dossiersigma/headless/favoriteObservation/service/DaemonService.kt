@@ -11,6 +11,7 @@ import android.os.FileObserver
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.datastore.preferences.protobuf.LazyStringArrayList
 import androidx.lifecycle.LifecycleService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -78,8 +79,10 @@ class DaemonService : LifecycleService() {
 
     private suspend fun runDaemonLoop() {
 
-        val homeItems = settingsManager.homeItemsFlow.firstOrNull()
-        val files = homeItems
+        val favorites = settingsManager.homeItemsFlow.firstOrNull()
+        val currentAppFolder = settingsManager.currentPathFlow.first()
+
+        val files = favorites
             ?.map {
                 it.path
 //                    ?.substringAfterLast("/")
@@ -90,28 +93,32 @@ class DaemonService : LifecycleService() {
 
 //            updateNotification("$index - $files")
 
-        val parent = homeItems?.let {
+        val parent = favorites?.let {
             it[0]
                 .path
                 ?.substringBeforeLast("/")
         }
 
-        Log.d(TAG, "envoi initial ...")
-        computeAndSendFreshness("/storage/emulated/0/Movies")
-        Log.d(TAG, "envoi initial terminé")
 
+        val directories = (favorites?.map { it.path }
+            ?: LazyStringArrayList.emptyList() + currentAppFolder).filterNotNull()
+        Log.d(TAG, "envoi initial de ${directories.size} dossiers...")
+
+        val dups = directories.groupBy { it }.filterValues { it.size > 1 }
+        Log.d(
+            TAG,
+            "paths=${directories.size}, distinct=${directories.distinct().size}, dups=${dups.keys}"
+        )
+
+        for (path in directories) {
+            computeAndSendFreshness(path, currentAppFolder)
+        }
+        Log.d(TAG, "envoi initial terminé")
 
         fileObserver = SigmaFileObserver(
             file = File("/storage/emulated/0/Movies"),
             doOnEvent = { event, path ->
-
-                if (path == null)
-                    return@SigmaFileObserver
-
-                val eventType = convertEvent(event)
-                updateNotification("$path : ${eventType.message}")
-
-                computeAndSendFreshness("/storage/emulated/0/Movies")
+                doOnEvent(event, path)
             }
         )
 
@@ -129,34 +136,55 @@ class DaemonService : LifecycleService() {
         }
     }
 
-    private fun computeAndSendFreshness(path: String) {
+    private suspend fun doOnEvent(event: Int, path: String?) {
+
+        if (path != null) {
+            val favorites = settingsManager.homeItemsFlow.firstOrNull()
+            val currentAppFolder = settingsManager.currentPathFlow.first()
+
+            val eventType = convertEvent(event)
+            updateNotification("$path : ${eventType.message}")
+
+//            for (path in (favorites?.map { it.path }
+//                ?: emptyList() + currentAppFolder)
+//                .filterNotNull()) {
+            computeAndSendFreshness(path, currentAppFolder)
+//            }
+        }
+    }
+
+    private suspend fun computeAndSendFreshness(path: String, currentAppFolder: String?) {
         var fc: FolderCacheEntry? = null
-        scope.launch {
-            fc = generateFolderCacheEntry(path)
-            if (fc == null) {
-                updateNotification("fc null")
-                Log.d(TAG, "envoi de Freshness: ${fc!!.freshness.hashCode()}")
-                return@launch
-            }
+        fc = generateFolderCacheEntry(path)
+        if (fc == null) {
+            updateNotification("fc null")
+            Log.d(TAG, "envoi de Freshness: ${fc!!.freshness.hashCode()}")
+            return
+        }
 
-            val oldFreshness = settingsManager.testFreshnessFlow.first()
-            val newFreshness = fc!!.freshness
+        val dao = FolderCacheEntryDB.get(this@DaemonService)
 
-            if (!newFreshness.isSameAs(oldFreshness)) {
+        val oldFreshness = dao.getByPath(
+            path, scope,
+            this@DaemonService
+        )?.freshness
 
-                val favorites = settingsManager.homeItemsFlow.first()
+        val newFreshness = fc!!.freshness
 
-                if (favorites.any { it.path == path }){
+        if (!newFreshness.isSameAs(oldFreshness)) {
+            Log.d(TAG, "   sauvegarde de FolderCacheEntry pour $path")
+            Log.d(TAG, "      fc: path=${fc!!.path}, id=${fc!!.id}")
+            dao.saveFolderCacheEntry(fc!!, this@DaemonService)
 
-                    val dao = FolderCacheEntryDB.get(this@DaemonService)
-                    dao.saveFolderCacheEntry(fc!!, this@DaemonService)
-
-                }
-
-                Log.d(TAG, "envoi de Freshness: ${fc!!.freshness.hashCode()}")
+            if (path == currentAppFolder) {
+                Log.d(
+                    TAG,
+                    "   envoi de Freshness de currentAppFolder: ${fc!!.freshness.hashCode()} pour $currentAppFolder"
+                )
                 settingsManager.saveTestFreshness(fc!!.freshness)
             }
 
+            Log.d(TAG, "   sauvegarde achevée")
         }
     }
 
@@ -241,7 +269,7 @@ class DaemonService : LifecycleService() {
         )
         val fc = FolderCacheEntry(
             folder = folder,
-            path = folder.path,
+            path = folder.fullPath,
             sort = SortingCriterion.ByDateDesc,
             freshness = realFresh
         )

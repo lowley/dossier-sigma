@@ -41,7 +41,8 @@ abstract class FolderCacheEntryDB : RoomDatabase() {
 //                    .addMigrations(MIGRATION_1_2)
                     // .addMigrations(MIGRATION_1_2, ...)   // à utiliser quand le schéma évolue
                     // .fallbackToDestructiveMigration()    // option « reset » si pas de migration
-                    .fallbackToDestructiveMigration(true)
+                    //.fallbackToDestructiveMigration(true)
+                    .setJournalMode(RoomDatabase.JournalMode.TRUNCATE)
                     .build().also { INSTANCE = it }
             }
     }

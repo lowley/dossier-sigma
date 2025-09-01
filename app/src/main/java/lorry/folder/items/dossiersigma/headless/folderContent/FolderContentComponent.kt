@@ -172,8 +172,8 @@ class FolderContentComponent @Inject constructor(
         val favoriteInclusion = favorites.any { it.path == latestPath }
 
         //si favori et non refresh manuel
-        if (origin != Origin.REFRESH_RELOAD_TRIGGER && favoriteInclusion
-            && savedEntry != null) {
+        // && favoriteInclusion
+        if (origin != Origin.REFRESH_RELOAD_TRIGGER && savedEntry != null) {
 
             val dao = FolderCacheEntryDB.get(context)
 //            val serviceEntry = dao.getByPath(latestPath, scope, context)
@@ -211,7 +211,7 @@ class FolderContentComponent @Inject constructor(
         }
 
         //dans le cache et non refresh manuel
-        else if (origin != Origin.REFRESH_RELOAD_TRIGGER && cacheInclusion && cacheEquality) {
+        if (origin != Origin.REFRESH_RELOAD_TRIGGER && cacheInclusion && cacheEquality) {
             val currentCachedFolder = folderCache[latestPath]
             val oldFolder = currentCachedFolder?.folder
             val oldItems = oldFolder?.items ?: emptyList()
@@ -233,6 +233,7 @@ class FolderContentComponent @Inject constructor(
             val newFolder = oldFolder?.copy(
                 items = newItems ?: emptyList()
             )
+
             return@flatMapLatest flowOf(newFolder)
         }
 

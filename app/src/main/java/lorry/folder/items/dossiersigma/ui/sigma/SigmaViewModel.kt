@@ -47,6 +47,7 @@ import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
 import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import java.io.File
 import java.util.UUID
@@ -63,7 +64,8 @@ class SigmaViewModel @Inject constructor(
     val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
     val bottomTools: BottomTools,
-    val folderContentComponent: IFolderContentComponent
+    val folderContentComponent: IFolderContentComponent,
+    val settingsManager: SettingsManager,
 ) : ViewModel() {
 
 
@@ -543,12 +545,18 @@ class SigmaViewModel @Inject constructor(
     fun goToFolder(folderPath: String, sorting: SortingCriterion? = null) {
         DEFAULT.content().updateTools(emptyList<Tool>())
 
+
         viewModelScope.launch(Dispatchers.Main) {
+
             if (folderPath == folderContentComponent.currentFolderFlow
                 .value?.fullPath)
                 folderContentComponent.reloadCurrentFolder()
-            else
+            else {
+                //lèvera un event dans le service si différent
+                settingsManager.saveCurrentPath(folderPath)
+
                 folderContentComponent.addFolderPathToHistory(folderPath)
+            }
 
             bottomTools.setCurrentFlagId(null)
         }
