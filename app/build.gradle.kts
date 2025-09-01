@@ -80,6 +80,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.hilt.android)
+    ksp("com.google.dagger:hilt-compiler:2.56.2")
     ksp(libs.hilt.android.compiler)
     implementation(libs.accompanist.flowlayout)
     implementation("me.saket.cascade:cascade:2.3.0")
@@ -133,4 +134,16 @@ dependencies {
     //options
     //https://github.com/peter-tackage/kotlin-options
     implementation("com.github.peter-tackage.kotlin-options:kotlin-options:0.10")
+
+    val room = "2.7.0"
+    implementation("androidx.room:room-runtime:$room")
+    implementation("androidx.room:room-ktx:$room")   // coroutines, Flow, transactions suspend
+    ksp("androidx.room:room-compiler:$room") // annotation processor (remplace kapt)
 }
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.generateKotlin", "true")
+    arg("room.incremental", "true")
+}
+

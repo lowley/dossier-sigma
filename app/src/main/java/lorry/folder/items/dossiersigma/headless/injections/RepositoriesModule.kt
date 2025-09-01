@@ -30,6 +30,7 @@ import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import javax.inject.Singleton
 
 
@@ -80,11 +81,15 @@ object AppModule {
     @Provides
     fun provideIFolderContentComponent(
         diskRepository: IDiskRepository,
-        bottomTools: BottomTools
+        bottomTools: BottomTools,
+        settingsManager: SettingsManager,
+        context: Context
     ): IFolderContentComponent {
         return FolderContentComponent(
             diskRepository = diskRepository,
-            bottomTools = bottomTools
+            bottomTools = bottomTools,
+            settingsManager = settingsManager,
+            context = context
         )
     }
 }

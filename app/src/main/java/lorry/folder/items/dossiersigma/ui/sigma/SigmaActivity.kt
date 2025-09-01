@@ -78,8 +78,8 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
-import lorry.folder.items.dossiersigma.headless.favoriteObservation.utilities.startDaemon
-import lorry.folder.items.dossiersigma.headless.favoriteObservation.utilities.stopDaemon
+import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.startDaemon
+import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.stopDaemon
 import lorry.folder.items.dossiersigma.headless.folderContent.FolderFreshness
 import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker

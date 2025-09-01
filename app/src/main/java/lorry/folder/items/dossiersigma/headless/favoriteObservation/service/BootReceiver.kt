@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.favoriteObservation.utilities
+package lorry.folder.items.dossiersigma.headless.favoriteObservation.service
 
 import android.content.BroadcastReceiver
 import android.content.Context

@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.favoriteObservation.utilities
+package lorry.folder.items.dossiersigma.headless.favoriteObservation.service
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -18,11 +18,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
 import lorry.folder.items.dossiersigma.headless.folderContent.FolderCacheEntry
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -137,11 +139,25 @@ class DaemonService : LifecycleService() {
                 return@launch
             }
 
-            Log.d(TAG, "envoi de Freshness: ${fc!!.freshness.hashCode()}")
-            settingsManager.saveTestFreshness(fc!!.freshness)
+            val oldFreshness = settingsManager.testFreshnessFlow.first()
+            val newFreshness = fc!!.freshness
+
+            if (!newFreshness.isSameAs(oldFreshness)) {
+
+                val favorites = settingsManager.homeItemsFlow.first()
+
+                if (favorites.any { it.path == path }){
+
+                    val dao = FolderCacheEntryDB.get(this@DaemonService)
+                    dao.saveFolderCacheEntry(fc!!, this@DaemonService)
+
+                }
+
+                Log.d(TAG, "envoi de Freshness: ${fc!!.freshness.hashCode()}")
+                settingsManager.saveTestFreshness(fc!!.freshness)
+            }
+
         }
-
-
     }
 
     private fun buildOngoingNotification(): Notification {
@@ -213,8 +229,6 @@ class DaemonService : LifecycleService() {
             else ->
                 return EventType.UNKNOWN
         }
-
-
     }
 
     private suspend fun generateFolderCacheEntry(path: String): FolderCacheEntry {
@@ -225,7 +239,12 @@ class DaemonService : LifecycleService() {
             items = items,
             path = path
         )
-        val fc = FolderCacheEntry(folder, SortingCriterion.ByDateDesc, realFresh)
+        val fc = FolderCacheEntry(
+            folder = folder,
+            path = folder.path,
+            sort = SortingCriterion.ByDateDesc,
+            freshness = realFresh
+        )
         return fc
     }
 }

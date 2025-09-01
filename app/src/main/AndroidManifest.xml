@@ -71,13 +71,13 @@
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
         <service
-            android:name=".headless.favoriteObservation.utilities.DaemonService"
+            android:name=".headless.favoriteObservation.service.DaemonService"
             android:exported="false"
             android:foregroundServiceType="dataSync">
             <!-- Certains cas exigent d'autres types : location, mediaPlayback, etc. -->
         </service>
         <receiver
-            android:name=".headless.favoriteObservation.utilities.BootReceiver"
+            android:name=".headless.favoriteObservation.service.BootReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>
