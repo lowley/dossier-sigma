@@ -10,6 +10,8 @@ import android.os.Build
 import android.os.FileObserver
 import android.os.IBinder
 import android.util.Log
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.protobuf.LazyStringArrayList
 import androidx.lifecycle.LifecycleService
@@ -54,6 +56,9 @@ class DaemonService : LifecycleService() {
 
     private var index: Int = 0
 
+    private var currentNotificationColor: Color = Color.Red
+    private var latestNotificationMessage: String? = null
+
     override fun onCreate() {
         super.onCreate()
         applicationContext.ensureDaemonChannel()
@@ -81,24 +86,6 @@ class DaemonService : LifecycleService() {
 
         val favorites = settingsManager.homeItemsFlow.firstOrNull()
         val currentAppFolder = settingsManager.currentPathFlow.first()
-
-        val files = favorites
-            ?.map {
-                it.path
-//                    ?.substringAfterLast("/")
-//                    ?.substringBeforeLast(".")
-            }
-            ?.joinToString(",")
-            ?: "rien"
-
-//            updateNotification("$index - $files")
-
-        val parent = favorites?.let {
-            it[0]
-                .path
-                ?.substringBeforeLast("/")
-        }
-
 
         val directories = (favorites?.map { it.path }
             ?: LazyStringArrayList.emptyList() + currentAppFolder).filterNotNull()
@@ -145,16 +132,13 @@ class DaemonService : LifecycleService() {
             val eventType = convertEvent(event)
             updateNotification("$path : ${eventType.message}")
 
-//            for (path in (favorites?.map { it.path }
-//                ?: emptyList() + currentAppFolder)
-//                .filterNotNull()) {
             computeAndSendFreshness(path, currentAppFolder)
-//            }
         }
     }
 
     private suspend fun computeAndSendFreshness(path: String, currentAppFolder: String?) {
         var fc: FolderCacheEntry? = null
+
         fc = generateFolderCacheEntry(path)
         if (fc == null) {
             updateNotification("fc null")
@@ -163,6 +147,8 @@ class DaemonService : LifecycleService() {
         }
 
         val dao = FolderCacheEntryDB.get(this@DaemonService)
+
+        updateNotification(color = Color.Blue)
 
         val oldFreshness = dao.getByPath(
             path, scope,
@@ -186,6 +172,8 @@ class DaemonService : LifecycleService() {
 
             Log.d(TAG, "   sauvegarde achevée")
         }
+
+        updateNotification(color = Color.Black)
     }
 
     private fun buildOngoingNotification(): Notification {
@@ -202,12 +190,27 @@ class DaemonService : LifecycleService() {
             .build()
     }
 
-    private fun updateNotification(text: String) {
+    private fun updateNotification(text: String? = null, color: Color? = null) {
+        text?.let { latestNotificationMessage = it }
+        color?.let { currentNotificationColor = it }
+
+        val smallIcon = when(color){
+            Color.Red -> R.drawable.engrenage_rouge
+            Color.Blue -> R.drawable.engrenage_bleu
+            Color.Green -> R.drawable.engrenage_vert
+            Color.Black -> R.drawable.engrenage_noir
+            Color.White -> R.drawable.engrenage_blanc
+            else -> R.drawable.engrenage_blanc
+        }
+
+
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notif = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.settings)
-            .setContentTitle("Service actif")
-            .setContentText(text)
+            .setSmallIcon(smallIcon)
+            .setContentTitle("Observateur de fichiers@Dossier σ")
+            .setContentText(latestNotificationMessage)
+            .setColor(currentNotificationColor.toArgb())
+            .setColorized(true)
             .setOngoing(true)
             .build()
         nm.notify(30215, notif)
@@ -261,6 +264,8 @@ class DaemonService : LifecycleService() {
 
     private suspend fun generateFolderCacheEntry(path: String): FolderCacheEntry {
 
+        updateNotification(color = Color.Red)
+
         val items = diskRepository.getFolderItems(path, SortingCriterion.ByDateDesc)
         val realFresh = diskRepository.getFolderFreshness(path)
         val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
@@ -273,6 +278,8 @@ class DaemonService : LifecycleService() {
             sort = SortingCriterion.ByDateDesc,
             freshness = realFresh
         )
+
+        updateNotification(color = Color.Black)
         return fc
     }
 }
