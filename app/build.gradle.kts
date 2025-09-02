@@ -31,6 +31,12 @@ android {
                 "proguard-rules.pro"
             )
         }
+
+        debug {
+            isDebuggable = true
+            isMinifyEnabled = false   // R8 off
+            isShrinkResources = false
+        }
     }
 
     tasks.withType<KotlinCompile>().configureEach {

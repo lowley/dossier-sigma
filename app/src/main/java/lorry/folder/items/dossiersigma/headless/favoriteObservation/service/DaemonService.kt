@@ -263,9 +263,9 @@ class DaemonService : LifecycleService() {
 
         val items = diskRepository.getFolderItems(path, SortingCriterion.ByDateDesc)
         val realFresh = diskRepository.getFolderFreshness(path)
-        val folder = SigmaFolder.ofItemsAndPath(
+        val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
             items = items,
-            path = path
+            fullPath = path.substringBeforeLast("/"),
         )
         val fc = FolderCacheEntry(
             folder = folder,
