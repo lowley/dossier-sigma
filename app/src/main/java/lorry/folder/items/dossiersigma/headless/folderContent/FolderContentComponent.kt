@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -115,7 +117,7 @@ class FolderContentComponent @Inject constructor(
         val sourceIdFlow = merge(
             s1.map { Origin.FOLDER_PATH_HISTORY },
             s2.map { Origin.CURRENT_FLAG_ID },
-            s3.map { Origin.SAVED_ENTRY },
+            s3.filterNotNull().map { Origin.SAVED_ENTRY },
             s4.map { Origin.REFRESH_RELOAD_TRIGGER },
             s5.map { Origin.RELOAD_TRIGGER },
         )
@@ -129,14 +131,20 @@ class FolderContentComponent @Inject constructor(
 
     val dao = FolderCacheEntryDB.get(context)
     val currentPath = folderPathHistory.map { it.lastOrNull() }
+        .distinctUntilChanged()
 
-    val currentDatabaseFolderCacheEntry = currentPath.flatMapLatest {
-        dao.folderCacheEntryRepository().getFlowByPath(it ?: "")
-    }.stateIn(
-        scope = scope,
-        started = SharingStarted.Eagerly,
-        initialValue = null
-    )
+    val currentDatabaseFolderCacheEntry: Flow<FolderCacheEntry?> =
+        currentPath
+            .filterNotNull()                 // pas de requête pour path = null
+            .distinctUntilChanged()
+            .onEach { Log.d("PathCrspd", "READ  path=$it") }
+            .flatMapLatest { path ->
+                dao.folderCacheEntryRepository()
+                    .getFlowByPath(path)
+                    .distinctUntilChanged()
+                    .onEach { Log.d("PathCrspd", "Room emit: $it for $path") }
+            }
+            .shareIn(scope, SharingStarted.Eagerly, replay = 1) // optionnel si tu veux rejouer la dernière
 
     //////////////////////////
     // dossier courant trié //
@@ -176,14 +184,12 @@ class FolderContentComponent @Inject constructor(
         val favorites = settingsManager.homeItemsFlow.first()
         val favoriteInclusion = favorites.any { it.path == latestPath }
 
-        val error = savedEntry?.path != latestPath
-        if (error)
-            Log.d(TAG,"erreur de savedEntry")
+        val error = savedEntry != null && savedEntry.path != latestPath
+        val roomOk = savedEntry?.let { it.path == latestPath && it.freshness.isSameAs(realFolderFreshness) } == true
 
-        //si favori et non refresh manuel
+        // si favori et non refresh manuel
         // && favoriteInclusion
-        if (origin != Origin.REFRESH_RELOAD_TRIGGER && savedEntry != null
-            && !error) {
+        if (origin != Origin.REFRESH_RELOAD_TRIGGER && roomOk) {
 
             val dao = FolderCacheEntryDB.get(context)
 //            val serviceEntry = dao.getByPath(latestPath, scope, context)
@@ -213,6 +219,8 @@ class FolderContentComponent @Inject constructor(
                 val newFolder = serviceFolder?.copy(
                     items = newItems ?: emptyList()
                 )
+
+                //vient de room
                 return@flatMapLatest flowOf(newFolder)
             } else {
                 //le déroulement naturel de la méthode
@@ -244,11 +252,14 @@ class FolderContentComponent @Inject constructor(
                 items = newItems ?: emptyList()
             )
 
+            //vient du cache
             return@flatMapLatest flowOf(newFolder)
         }
 
         //les autres cas: refresh manuel ou pas de cache
         //récupération avec tri
+
+        //vient du disque (rechargement par le disque, lent)
         return@flatMapLatest diskRepository.getFolderItemsLiteFlow(latestPath, sort)
             .runningFold(emptyList<Item>()) { acc, it -> acc + it }
             .flowOn(Dispatchers.IO)

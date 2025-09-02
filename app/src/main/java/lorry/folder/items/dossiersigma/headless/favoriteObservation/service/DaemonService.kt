@@ -159,7 +159,7 @@ class DaemonService : LifecycleService() {
 
         if (!newFreshness.isSameAs(oldFreshness)) {
             Log.d(TAG, "   sauvegarde de FolderCacheEntry pour $path")
-            Log.d(TAG, "      fc: path=${fc!!.path}, id=${fc!!.id}")
+            Log.d("PathCrspd", "      fc: path=${fc!!.path}, id=${fc!!.id}")
             dao.saveFolderCacheEntry(fc!!, this@DaemonService)
 
             if (path == currentAppFolder) {
@@ -262,15 +262,15 @@ class DaemonService : LifecycleService() {
         }
     }
 
-    private suspend fun generateFolderCacheEntry(path: String): FolderCacheEntry {
+    private suspend fun generateFolderCacheEntry(fullPath: String): FolderCacheEntry {
 
         updateNotification(color = Color.Red)
 
-        val items = diskRepository.getFolderItems(path, SortingCriterion.ByDateDesc)
-        val realFresh = diskRepository.getFolderFreshness(path)
+        val items = diskRepository.getFolderItems(fullPath, SortingCriterion.ByDateDesc)
+        val realFresh = diskRepository.getFolderFreshness(fullPath)
         val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
             items = items,
-            fullPath = path.substringBeforeLast("/"),
+            fullPath = fullPath,
         )
         val fc = FolderCacheEntry(
             folder = folder,
