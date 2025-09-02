@@ -328,19 +328,16 @@ class SigmaActivity : ComponentActivity() {
                 }
 
                 val view = LocalView.current
-//                val activity = remember(view) { view.context.findActivity() }  // cf. helper ci-dessous
                 val bg = colorScheme.background
+                val colors = SigmaColors.current
 
                 SideEffect {
                     val window = activity.window
-                    window.navigationBarColor = bg.toArgb()
+                    window.navigationBarColor = colors.primary.toArgb()
                     WindowInsetsControllerCompat(window, view)
                         .isAppearanceLightNavigationBars = false
                     window.isNavigationBarContrastEnforced = false
                 }
-
-                window.navigationBarColor = colorScheme.background.toArgb()
-//                window.navigationBarColor = SigmaColors.current.primary.toArgb()
 
                 LaunchedEffect(Unit) {
                     bottomTools.setCurrentContent(DEFAULT)
