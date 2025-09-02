@@ -16,7 +16,7 @@ object SigmaFolderMapping {
         saveBitmap: (Bitmap) -> String
     ): PersistedSigmaFolder {
         return PersistedSigmaFolder(
-            path = f.path,
+            path = f.fullPath,
             items = f.items.map { item ->
 
                 val pic = when (val any = item.picture /* Any? */) {
@@ -39,7 +39,7 @@ object SigmaFolderMapping {
                     fullPath = item.fullPath
                 )
             },
-            meta = null /* si tu as des métadonnées simples */
+            meta = mapOf("name" to f.name) /* si tu as des métadonnées simples */
 //            meta = f.meta /* si tu as des métadonnées simples */
         )
     }
@@ -76,7 +76,11 @@ object SigmaFolderMapping {
                 )
         }
 
-        return SigmaFolder.ofItemsAndPath(items, p.path)
+        return SigmaFolder.ofItemsAndPersistedSigmaFolder(
+            items,
+            fullPath = p.path,
+//            name = p.meta?.get("name") ?: p.path.substringAfterLast("/"),
+            )
     }
 
     fun encodeToString(f: SigmaFolder, saveBitmap: (android.graphics.Bitmap) -> String): String =

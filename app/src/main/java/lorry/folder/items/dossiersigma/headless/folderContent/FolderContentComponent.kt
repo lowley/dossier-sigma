@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.headless.folderContent
 
 import android.content.Context
+import android.util.Log
 import jakarta.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,10 @@ class FolderContentComponent @Inject constructor(
     val settingsManager: SettingsManager,
     val context: Context
 ) : IFolderContentComponent {
+
+    companion object{
+        val TAG = "FoldCmp"
+    }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -171,9 +176,14 @@ class FolderContentComponent @Inject constructor(
         val favorites = settingsManager.homeItemsFlow.first()
         val favoriteInclusion = favorites.any { it.path == latestPath }
 
+        val error = savedEntry?.path != latestPath
+        if (error)
+            Log.d(TAG,"erreur de savedEntry")
+
         //si favori et non refresh manuel
         // && favoriteInclusion
-        if (origin != Origin.REFRESH_RELOAD_TRIGGER && savedEntry != null) {
+        if (origin != Origin.REFRESH_RELOAD_TRIGGER && savedEntry != null
+            && !error) {
 
             val dao = FolderCacheEntryDB.get(context)
 //            val serviceEntry = dao.getByPath(latestPath, scope, context)
@@ -239,15 +249,16 @@ class FolderContentComponent @Inject constructor(
 
         //les autres cas: refresh manuel ou pas de cache
         //récupération avec tri
-        diskRepository.getFolderItemsLiteFlow(latestPath, sort)
+        return@flatMapLatest diskRepository.getFolderItemsLiteFlow(latestPath, sort)
             .runningFold(emptyList<Item>()) { acc, it -> acc + it }
             .flowOn(Dispatchers.IO)
             //stockage dans cache
             .onEach { items ->
                 val realFresh = diskRepository.getFolderFreshness(latestPath)
-                val folder = SigmaFolder.ofItemsAndPath(
+                val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
                     items = items,
-                    path = latestPath
+                    fullPath = latestPath,
+//                    name = latestPath.substringAfterLast("/")
                 )
                 val fc = FolderCacheEntry(folder = folder, sort = sort, freshness = realFresh, path = folder.fullPath)
                 _folderCacheFlow.value = folderCache.toMutableMap()
@@ -261,9 +272,10 @@ class FolderContentComponent @Inject constructor(
             }
             //incorporation dans SigmaFolder
             .map { items ->
-                SigmaFolder.ofItemsAndPath(
+                SigmaFolder.ofItemsAndPersistedSigmaFolder(
                     items = items,
-                    path = latestPath
+                    fullPath = latestPath,
+//                    name = latestPath.substringAfterLast("/")
                 )
             }
 

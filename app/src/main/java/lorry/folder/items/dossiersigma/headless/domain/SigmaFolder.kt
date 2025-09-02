@@ -75,10 +75,13 @@ class SigmaFolder(
     }
 
     companion object{
-        fun ofItemsAndPath(items: List<Item>, path: String): SigmaFolder {
+        fun ofItemsAndPersistedSigmaFolder(
+            items: List<Item>,
+            fullPath: String,
+        ): SigmaFolder {
             val result = SigmaFolder(
                 items = items,
-                fullPath = path,
+                fullPath = fullPath,
                 picture = null,
                 modificationDate = 0L,
                 tag = null,
