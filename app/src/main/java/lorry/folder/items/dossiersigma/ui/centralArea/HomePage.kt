@@ -3,7 +3,6 @@ package lorry.folder.items.dossiersigma.ui.centralArea
 import android.graphics.Rect
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -33,11 +32,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
@@ -86,22 +83,22 @@ fun HomePage(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        Image(
-            modifier = Modifier
-                .fillMaxSize()
-                .align(Alignment.Center)
-                .alpha(0.2f),
-            painter = painterResource(R.drawable.mesh_homepage),
-            contentDescription = "",
-            colorFilter = ColorFilter.tint(SigmaColors.current.tertiary)
-        )
+//        Image(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .align(Alignment.Center)
+//                .alpha(0.2f),
+//            painter = painterResource(R.drawable.mesh_homepage),
+//            contentDescription = "",
+//            colorFilter = ColorFilter.tint(SigmaColors.current.tertiary)
+//        )
 
         LazyVerticalGrid(
             state = gridState, // On lie l'état à la grille
             columns = GridCells.Adaptive(150.dp),
             modifier = Modifier.Companion
                 .fillMaxSize()
-                .padding(horizontal = 10.dp, vertical = 10.dp)
+                .padding(start = 10.dp, end = 10.dp, top = 0.dp, bottom = 10.dp)
                 .background(Color.Transparent)
                 .onGloballyPositioned { layoutCoordinates ->
                     // On récupère les dimensions et la position de la grille à l'écran

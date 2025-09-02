@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.DossierSigma" parent="Theme.MaterialComponents.DayNight.DarkActionBar" />
+    <style name="Theme.DossierSigma" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Barres transparentes (API 21+, donc OK pour minSdk 35) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <!-- Désactive le contraste forcé de la nav bar (API 29+, OK aussi) -->
+<!--        <item name="enforceNavigationBarContrast">false</item>-->
+    </style>
 </resources>

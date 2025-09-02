@@ -93,6 +93,7 @@ dependencies {
     implementation("me.saket.cascade:cascade-compose:2.3.0")
     implementation(libs.coil.compose)
     implementation(libs.coil.svg)
+    implementation("androidx.appcompat:appcompat:1.6.1")
 
 //    implementation(libs.compressor)
 
