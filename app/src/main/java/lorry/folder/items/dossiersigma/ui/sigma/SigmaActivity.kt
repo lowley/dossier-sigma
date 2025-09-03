@@ -80,8 +80,7 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.startDaemon
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.stopDaemon
-import lorry.folder.items.dossiersigma.headless.folderContent.FolderFreshness
-import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
+import lorry.folder.items.dossiersigma.headless.folderContent.ReloadType
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
@@ -138,8 +137,8 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var browser: IBrowser
 
-    @Inject
-    lateinit var folderContentComponent: IFolderContentComponent
+//    @Inject
+//    lateinit var folderContentComponent: IFolderContentComponent
 
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
@@ -352,7 +351,8 @@ class SigmaActivity : ComponentActivity() {
                         .padding(
                             start = 0.dp,
                             end = 0.dp,
-                            top = padding.calculateTopPadding(),
+                            top = 0.dp,
+//                                padding.calculateTopPadding(),
                             bottom = padding.calculateBottomPadding()
                         )
                 ) {
@@ -595,6 +595,8 @@ class SigmaActivity : ComponentActivity() {
                                                 ctx.startDaemon()
                                         }
                                     ) {
+                                        val reloadType = mainViewModel.folderContentComponent.reloadType.collectAsState()
+
                                         Box(
                                             modifier = Modifier
                                                 .clip(RoundedCornerShape(5.dp))
@@ -611,9 +613,15 @@ class SigmaActivity : ComponentActivity() {
 //                                                    shape = RoundedCornerShape(5.dp)
 //                                                )
                                                 .border(
-                                                    1.dp,
-                                                    if (realFreshness?.isSameAs(theoricalFreshness ?: FolderFreshness.DUMMY) == true)
-                                                        Color.Green else Color.Red,
+                                                    2.dp,
+                                                    color = when(reloadType.value){
+                                                        ReloadType.DISK -> Color.Red
+                                                        ReloadType.CACHE -> Color.Green
+                                                        ReloadType.SERVICE -> Color.Yellow
+                                                        else -> Color.Black
+                                                    },
+//                                                    if (realFreshness?.isSameAs(theoricalFreshness ?: FolderFreshness.DUMMY) == true)
+//                                                        Color.Green else Color.Red,
                                                     shape = RoundedCornerShape(5.dp)
                                                 )
                                         ) {

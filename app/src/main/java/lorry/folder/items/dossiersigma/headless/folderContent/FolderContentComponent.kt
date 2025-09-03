@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
@@ -220,6 +221,7 @@ class FolderContentComponent @Inject constructor(
                     items = newItems ?: emptyList()
                 )
 
+                setReloadType(ReloadType.SERVICE)
                 //vient de room
                 return@flatMapLatest flowOf(newFolder)
             } else {
@@ -252,6 +254,7 @@ class FolderContentComponent @Inject constructor(
                 items = newItems ?: emptyList()
             )
 
+            setReloadType(ReloadType.CACHE)
             //vient du cache
             return@flatMapLatest flowOf(newFolder)
         }
@@ -259,6 +262,7 @@ class FolderContentComponent @Inject constructor(
         //les autres cas: refresh manuel ou pas de cache
         //récupération avec tri
 
+        setReloadType(ReloadType.DISK)
         //vient du disque (rechargement par le disque, lent)
         return@flatMapLatest diskRepository.getFolderItemsLiteFlow(latestPath, sort)
             .runningFold(emptyList<Item>()) { acc, it -> acc + it }
@@ -329,6 +333,20 @@ class FolderContentComponent @Inject constructor(
             put(fullPath, newCache)
         }
     }
+
+    val _reloadType = MutableStateFlow(ReloadType.NONE)
+    override val reloadType = _reloadType.asStateFlow()
+
+    override fun setReloadType(type: ReloadType) {
+        _reloadType.update { type }
+    }
+}
+
+enum class ReloadType{
+    NONE,
+    CACHE,
+    SERVICE,
+    DISK,
 }
 
 data class Quadruple<A, B, C, D>(

@@ -41,7 +41,7 @@ fun NormalPage(
     currentScrollState: LazyGridState,
 
     ) {
-    val currentFolderFlow = folderContentComponent.currentFolderFlow
+    val currentFolderFlow = mainViewModel.folderContentComponent.currentFolderFlow
 
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
     val draggableStartPosition = mainViewModel.draggableStartPosition

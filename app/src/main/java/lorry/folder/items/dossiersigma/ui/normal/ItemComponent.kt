@@ -93,7 +93,7 @@ fun ItemComponent(
 
     ) {
 
-    val memo by folderContentComponent.currentFolderFlow
+    val memo by mainViewModel.folderContentComponent.currentFolderFlow
         .map { folder -> folder?.memo }
         .collectAsState(initial = "")
 
@@ -103,11 +103,11 @@ fun ItemComponent(
         }
     }
 
-    val tag by folderContentComponent.currentFolderFlow
+    val tag by mainViewModel.folderContentComponent.currentFolderFlow
         .map { folder -> folder?.tag }
         .collectAsState(initial = null)
 
-    val image by folderContentComponent.currentFolderFlow
+    val image by mainViewModel.folderContentComponent.currentFolderFlow
         .map { folder -> folder?.picture }
         .collectAsState(initial = null)
 
