@@ -20,23 +20,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # utile pour permaliens SHA et git ls-files
 
       - name: Generate index.html
+        shell: bash
         run: |
           set -euo pipefail
           mkdir -p public
 
           REPO="${GITHUB_REPOSITORY}"
-          BRANCH="${GITHUB_REF_NAME:-master}"
-          SHA="${GITHUB_SHA}"
+          # Branche par défaut du repo (robuste si master/main diffèrent)
+          BRANCH="$(git symbolic-ref --short HEAD || echo "${GITHUB_REF_NAME:-master}")"
+          SHA="$(git rev-parse HEAD)"
 
           BASE_BLOB="https://github.com/${REPO}/blob/${BRANCH}"
           BASE_RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
           BASE_PERMABLOB="https://github.com/${REPO}/blob/${SHA}"
           BASE_PERMARAW="https://raw.githubusercontent.com/${REPO}/${SHA}"
 
-          # Choisis les extensions que tu veux indexer :
-          exts="-name '*.kt' -o -name '*.kts' -o -name '*.xml' -o -name '*.md' -o -name '*.gradle' -o -name '*.pro'"
+          # Extensions à indexer
+          exts_regex='\.(kt|kts|xml|md|gradle|pro)$'
+
+          # Fichiers suivis par Git (filtrés par extensions)
+          mapfile -t FILES < <(git ls-files | grep -E "${exts_regex}" | sort || true)
+
+          # DEBUG (facultatif) : afficher combien de fichiers on a trouvé
+          echo "Files matched: ${#FILES[@]}"
 
           cat > public/index.html <<'HTML'
           <!doctype html>
@@ -46,7 +56,7 @@ jobs:
             <meta name="viewport" content="width=device-width,initial-scale=1">
             <title>dossier-sigma – Index des sources</title>
             <style>
-              body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.4; }
+              body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.45; }
               h1 { margin-bottom: .2rem; }
               .meta { color: #555; font-size: .95rem; margin-bottom: 1.2rem; }
               details { margin: .5rem 0 1rem; }
@@ -61,24 +71,23 @@ jobs:
             <h1>Dossier Sigma – Index des fichiers</h1>
             <div class="meta" id="meta"></div>
             <details open>
-              <summary>Fichiers détectés (liens “dernière version” et “permalien”)</summary>
+              <summary>Fichiers détectés (liens « dernière version » et « permalien »)</summary>
               <ul>
           HTML
 
-          # Boucle sur les fichiers
-          # shellcheck disable=SC2046
-          while IFS= read -r f; do
-            # échappe les & < > pour HTML
+          for f in "${FILES[@]}"; do
             f_html=$(printf '%s' "$f" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
-            echo "                <li><code>${f_html}</code><br>" >> public/index.html
-            echo "                  <span class=\"small\">" >> public/index.html
-            echo "                    <a href=\"${BASE_BLOB}/${f}\">Dernière (blob)</a> &middot; " >> public/index.html
-            echo "                    <a href=\"${BASE_RAW}/${f}\">Dernière (raw)</a> &middot; " >> public/index.html
-            echo "                    <a href=\"${BASE_PERMABLOB}/${f}\">Permalien (blob)</a> &middot; " >> public/index.html
-            echo "                    <a href=\"${BASE_PERMARAW}/${f}\">Permalien (raw)</a>" >> public/index.html
-            echo "                  </span>" >> public/index.html
-            echo "                </li>" >> public/index.html
-          done < <(eval find . -type f \( $exts \) | sed 's|^\./||' | sort)
+            {
+              echo "                <li><code>${f_html}</code><br>"
+              echo "                  <span class=\"small\">"
+              echo "                    <a href=\"${BASE_BLOB}/${f}\">Dernière (blob)</a> &middot; "
+              echo "                    <a href=\"${BASE_RAW}/${f}\">Dernière (raw)</a> &middot; "
+              echo "                    <a href=\"${BASE_PERMABLOB}/${f}\">Permalien (blob)</a> &middot; "
+              echo "                    <a href=\"${BASE_PERMARAW}/${f}\">Permalien (raw)</a>"
+              echo "                  </span>"
+              echo "                </li>"
+            } >> public/index.html
+          done
 
           cat >> public/index.html <<HTML
               </ul>
