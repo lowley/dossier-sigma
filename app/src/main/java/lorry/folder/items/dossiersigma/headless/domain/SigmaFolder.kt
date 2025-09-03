@@ -91,5 +91,17 @@ class SigmaFolder(
 
             return result
         }
+
+        val DUMMY = SigmaFolder(
+            items = listOf(),
+            fullPath = "",
+            picture = null,
+            modificationDate = 0L,
+            tag = null,
+            scale = null,
+            memo = null,
+        )
+
+
     }
 }

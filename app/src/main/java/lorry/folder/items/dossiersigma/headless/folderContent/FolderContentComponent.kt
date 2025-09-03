@@ -12,14 +12,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
@@ -32,7 +34,9 @@ import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.Fol
 import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
+import javax.inject.Singleton
 
+@Singleton
 class FolderContentComponent @Inject constructor(
     val diskRepository: IDiskRepository,
     val bottomTools: BottomTools,
@@ -40,7 +44,7 @@ class FolderContentComponent @Inject constructor(
     val context: Context
 ) : IFolderContentComponent {
 
-    companion object{
+    companion object {
         val TAG = "FoldCmp"
     }
 
@@ -142,10 +146,12 @@ class FolderContentComponent @Inject constructor(
             .flatMapLatest { path ->
                 dao.folderCacheEntryRepository()
                     .getFlowByPath(path)
+                    .onStart { emit(null) }
                     .distinctUntilChanged()
                     .onEach { Log.d("PathCrspd", "Room emit: $it for $path") }
             }
-            .shareIn(scope, SharingStarted.Eagerly, replay = 1) // optionnel si tu veux rejouer la dernière
+
+    val _savedPath = MutableStateFlow<String?>(null)
 
     //////////////////////////
     // dossier courant trié //
@@ -163,135 +169,165 @@ class FolderContentComponent @Inject constructor(
     ) { pathHistory, flagId, savedEntry, _, _ ->
         Triple(pathHistory.lastOrNull(), flagId, savedEntry)
     }.flatMapLatest { (origin, triple) ->
+        return@flatMapLatest flow {
 
-        val (latestPath, flagId, savedEntry) = triple
+            val (latestPath, flagId, savedEntry) = triple
 
-        if (latestPath == null)
-            return@flatMapLatest flowOf<SigmaFolder?>(null)
+            if (latestPath == null) {
+                emit(SigmaFolder.DUMMY)
+                return@flow
+            }
 
-        val cachedFolderFreshness = folderCacheFlow.value[latestPath]?.freshness
-        val realFolderFreshness = diskRepository.getFolderFreshness(latestPath)
-        val folderCache = folderCacheFlow.value
-        //le cache possède le tri actuel
-        //le tri si doit être modifié est une modification du cache
-        val sort = folderCache[latestPath]?.sort ?: SortingCriterion.ByDateDesc
+            if (_savedPath.value != null &&
+                _savedPath.value != latestPath) {
+                _savedPath.value = latestPath
+                emit(SigmaFolder.DUMMY)
+            }
 
-        //si c'est un refresh du dossier initié par un pullToRefresh
-        //on skippe le cache pour forcer un reload à partir du disque
+            val cachedFolderFreshness = folderCacheFlow.value[latestPath]?.freshness
+            val realFolderFreshness = diskRepository.getFolderFreshness(latestPath)
+            val folderCache = folderCacheFlow.value
+            //le cache possède le tri actuel
+            //le tri si doit être modifié est une modification du cache
+            val sort = folderCache[latestPath]?.sort ?: SortingCriterion.ByDateDesc
 
-        val cacheInclusion = folderCache.containsKey(latestPath)
-        val cacheEquality = cachedFolderFreshness?.isSameAs(realFolderFreshness) == true
+            //si c'est un refresh du dossier initié par un pullToRefresh
+            //on skippe le cache pour forcer un reload à partir du disque
 
-        val favorites = settingsManager.homeItemsFlow.first()
-        val favoriteInclusion = favorites.any { it.path == latestPath }
+            val cacheInclusion = folderCache.containsKey(latestPath)
+            val cacheEquality = cachedFolderFreshness?.isSameAs(realFolderFreshness) == true
 
-        val error = savedEntry != null && savedEntry.path != latestPath
-        val roomOk = savedEntry?.let { it.path == latestPath && it.freshness.isSameAs(realFolderFreshness) } == true
+            val favorites = settingsManager.homeItemsFlow.first()
+            val favoriteInclusion = favorites.any { it.path == latestPath }
 
-        // si favori et non refresh manuel
-        // && favoriteInclusion
-        if (origin != Origin.REFRESH_RELOAD_TRIGGER && roomOk) {
+            val error = savedEntry != null && savedEntry.path != latestPath
+            val roomOk =
+                savedEntry?.let {
+                    it.path == latestPath && it.freshness.isSameAs(
+                        realFolderFreshness
+                    )
+                } == true
 
-            val dao = FolderCacheEntryDB.get(context)
+            // si favori et non refresh manuel
+            // && favoriteInclusion
+            if (origin != Origin.REFRESH_RELOAD_TRIGGER && roomOk) {
+
+                emit(SigmaFolder.DUMMY)
+
+                val dao = FolderCacheEntryDB.get(context)
 //            val serviceEntry = dao.getByPath(latestPath, scope, context)
-            val serviceFreshness = savedEntry.freshness
+                val serviceFreshness = savedEntry.freshness
 //            val cachedFolderFreshness = folderCacheFlow.value[latestPath]?.freshness
 
-            //on reprend les items du service car freshness identiques
-            if (serviceFreshness?.isSameAs(realFolderFreshness) == true
-                && savedEntry != null) {
-                val serviceFolder = savedEntry.folder
-                val serviceItems = serviceFolder.items
+                //on reprend les items du service car freshness identiques
+                if (serviceFreshness?.isSameAs(realFolderFreshness) == true
+                    && savedEntry != null
+                ) {
+                    val serviceFolder = savedEntry.folder
+                    val serviceItems = serviceFolder.items
+
+                    val newItems = when (sort) {
+                        SortingCriterion.ByNameAsc ->
+                            serviceItems.sortedWith(
+                                compareBy<Item> { it.isFile() }
+                                    .thenBy { it.name.lowercase(java.util.Locale.getDefault()) }
+                            )
+
+                        SortingCriterion.ByDateDesc ->
+                            serviceItems.sortedWith(
+                                compareBy<Item> { it.isFile() }
+                                    .thenByDescending { it.modificationDate }
+                            )
+                    }
+
+                    val newFolder = serviceFolder.copy(
+                        items = newItems
+                    )
+
+                    setReloadType(ReloadType.SERVICE)
+                    //vient de room
+                    emit(newFolder)
+                    return@flow
+                }
+                //le déroulement naturel de la méthode
+                //entraîne une lecture du disque
+
+            }
+
+            //dans le cache et non refresh manuel
+            if (origin != Origin.REFRESH_RELOAD_TRIGGER && cacheInclusion && cacheEquality) {
+                emit(SigmaFolder.DUMMY)
+
+                val currentCachedFolder = folderCache[latestPath]
+                val oldFolder = currentCachedFolder?.folder ?: SigmaFolder.DUMMY
+                val oldItems = oldFolder?.items ?: emptyList()
 
                 val newItems = when (sort) {
                     SortingCriterion.ByNameAsc ->
-                        serviceItems.sortedWith(
+                        oldItems.sortedWith(
                             compareBy<Item> { it.isFile() }
                                 .thenBy { it.name.lowercase(java.util.Locale.getDefault()) }
                         )
 
                     SortingCriterion.ByDateDesc ->
-                        serviceItems.sortedWith(
+                        oldItems.sortedWith(
                             compareBy<Item> { it.isFile() }
                                 .thenByDescending { it.modificationDate }
                         )
                 }
 
-                val newFolder = serviceFolder?.copy(
-                    items = newItems ?: emptyList()
+                val newFolder = oldFolder.copy(
+                    items = newItems
                 )
 
-                setReloadType(ReloadType.SERVICE)
-                //vient de room
-                return@flatMapLatest flowOf(newFolder)
-            } else {
-                //le déroulement naturel de la méthode
-                //entraîne une lecture du disque
+                setReloadType(ReloadType.CACHE)
+                //vient du cache
+                emit(newFolder)
+                return@flow
             }
-        }
 
-        //dans le cache et non refresh manuel
-        if (origin != Origin.REFRESH_RELOAD_TRIGGER && cacheInclusion && cacheEquality) {
-            val currentCachedFolder = folderCache[latestPath]
-            val oldFolder = currentCachedFolder?.folder
-            val oldItems = oldFolder?.items ?: emptyList()
+            //les autres cas: refresh manuel ou pas de cache
+            //récupération avec tri
 
-            val newItems = when (sort) {
-                SortingCriterion.ByNameAsc ->
-                    oldItems.sortedWith(
-                        compareBy<Item> { it.isFile() }
-                            .thenBy { it.name.lowercase(java.util.Locale.getDefault()) }
+            setReloadType(ReloadType.DISK)
+            emit(SigmaFolder.DUMMY)
+
+            //vient du disque (rechargement par le disque, lent)
+            val flow = diskRepository.getFolderItemsLiteFlow(latestPath, sort)
+                .runningFold(emptyList<Item>()) { acc, it -> acc + it }
+                .flowOn(Dispatchers.IO)
+                //stockage dans cache
+                .onEach { items ->
+                    val realFresh = diskRepository.getFolderFreshness(latestPath)
+                    val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
+                        items = items,
+                        fullPath = latestPath,
                     )
-
-                SortingCriterion.ByDateDesc ->
-                    oldItems.sortedWith(
-                        compareBy<Item> { it.isFile() }
-                            .thenByDescending { it.modificationDate }
+                    val fc = FolderCacheEntry(
+                        folder = folder,
+                        sort = sort,
+                        freshness = realFresh,
+                        path = folder.fullPath
                     )
-            }
+                    _folderCacheFlow.value = folderCache.toMutableMap()
+                        .apply { put(latestPath, fc) }
+                }
+                //filtrage
+                .map { items ->
+                    val filtered =
+                        if (flagId == null) items else items.filter { it.tag?.id == flagId }
+                    filtered
+                }
+                //incorporation dans SigmaFolder
+                .map { items ->
+                    SigmaFolder.ofItemsAndPersistedSigmaFolder(
+                        items = items,
+                        fullPath = latestPath,
+                    )
+                }
 
-            val newFolder = oldFolder?.copy(
-                items = newItems ?: emptyList()
-            )
-
-            setReloadType(ReloadType.CACHE)
-            //vient du cache
-            return@flatMapLatest flowOf(newFolder)
+            emitAll(flow)
         }
-
-        //les autres cas: refresh manuel ou pas de cache
-        //récupération avec tri
-
-        setReloadType(ReloadType.DISK)
-        //vient du disque (rechargement par le disque, lent)
-        return@flatMapLatest diskRepository.getFolderItemsLiteFlow(latestPath, sort)
-            .runningFold(emptyList<Item>()) { acc, it -> acc + it }
-            .flowOn(Dispatchers.IO)
-            //stockage dans cache
-            .onEach { items ->
-                val realFresh = diskRepository.getFolderFreshness(latestPath)
-                val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
-                    items = items,
-                    fullPath = latestPath,
-                )
-                val fc = FolderCacheEntry(folder = folder, sort = sort, freshness = realFresh, path = folder.fullPath)
-                _folderCacheFlow.value = folderCache.toMutableMap()
-                    .apply { put(latestPath, fc) }
-            }
-            //filtrage
-            .map { items ->
-                val filtered =
-                    if (flagId == null) items else items.filter { it.tag?.id == flagId }
-                filtered
-            }
-            //incorporation dans SigmaFolder
-            .map { items ->
-                SigmaFolder.ofItemsAndPersistedSigmaFolder(
-                    items = items,
-                    fullPath = latestPath,
-                )
-            }
-
     }.stateIn(
         scope = scope,
         started = SharingStarted.Eagerly,
@@ -342,7 +378,7 @@ class FolderContentComponent @Inject constructor(
     }
 }
 
-enum class ReloadType{
+enum class ReloadType {
     NONE,
     CACHE,
     SERVICE,
