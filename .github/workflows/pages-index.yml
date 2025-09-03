@@ -1,0 +1,105 @@
+name: Build Pages Index
+
+on:
+  push:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate index.html
+        run: |
+          set -euo pipefail
+          mkdir -p public
+
+          REPO="${GITHUB_REPOSITORY}"
+          BRANCH="${GITHUB_REF_NAME:-master}"
+          SHA="${GITHUB_SHA}"
+
+          BASE_BLOB="https://github.com/${REPO}/blob/${BRANCH}"
+          BASE_RAW="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
+          BASE_PERMABLOB="https://github.com/${REPO}/blob/${SHA}"
+          BASE_PERMARAW="https://raw.githubusercontent.com/${REPO}/${SHA}"
+
+          # Choisis les extensions que tu veux indexer :
+          exts="-name '*.kt' -o -name '*.kts' -o -name '*.xml' -o -name '*.md' -o -name '*.gradle' -o -name '*.pro'"
+
+          cat > public/index.html <<'HTML'
+          <!doctype html>
+          <html lang="fr">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>dossier-sigma – Index des sources</title>
+            <style>
+              body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.4; }
+              h1 { margin-bottom: .2rem; }
+              .meta { color: #555; font-size: .95rem; margin-bottom: 1.2rem; }
+              details { margin: .5rem 0 1rem; }
+              summary { font-weight: 600; cursor: pointer; }
+              code { background:#f6f8fa; padding:.1rem .3rem; border-radius:4px; }
+              ul { margin:.3rem 0 1rem 1rem; }
+              li { margin:.15rem 0; }
+              .small { font-size:.9rem; color:#555; }
+            </style>
+          </head>
+          <body>
+            <h1>Dossier Sigma – Index des fichiers</h1>
+            <div class="meta" id="meta"></div>
+            <details open>
+              <summary>Fichiers détectés (liens “dernière version” et “permalien”)</summary>
+              <ul>
+          HTML
+
+          # Boucle sur les fichiers
+          # shellcheck disable=SC2046
+          while IFS= read -r f; do
+            # échappe les & < > pour HTML
+            f_html=$(printf '%s' "$f" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+            echo "                <li><code>${f_html}</code><br>" >> public/index.html
+            echo "                  <span class=\"small\">" >> public/index.html
+            echo "                    <a href=\"${BASE_BLOB}/${f}\">Dernière (blob)</a> &middot; " >> public/index.html
+            echo "                    <a href=\"${BASE_RAW}/${f}\">Dernière (raw)</a> &middot; " >> public/index.html
+            echo "                    <a href=\"${BASE_PERMABLOB}/${f}\">Permalien (blob)</a> &middot; " >> public/index.html
+            echo "                    <a href=\"${BASE_PERMARAW}/${f}\">Permalien (raw)</a>" >> public/index.html
+            echo "                  </span>" >> public/index.html
+            echo "                </li>" >> public/index.html
+          done < <(eval find . -type f \( $exts \) | sed 's|^\./||' | sort)
+
+          cat >> public/index.html <<HTML
+              </ul>
+            </details>
+            <script>
+              const sha = "${SHA}";
+              const branch = "${BRANCH}";
+              const repo = "${REPO}";
+              const date = new Date().toLocaleString('fr-FR');
+              document.getElementById('meta').textContent =
+                \`Repo: \${repo} — Branche: \${branch} — Commit: \${sha.slice(0,7)} — Généré le \${date}\`;
+            </script>
+          </body>
+          </html>
+          HTML
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
