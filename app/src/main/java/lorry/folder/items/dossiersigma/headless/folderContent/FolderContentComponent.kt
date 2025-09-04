@@ -94,7 +94,7 @@ class FolderContentComponent @Inject constructor(
     ////////////////////////
     private val refreshReloadTrigger = MutableStateFlow(0)
 
-    override fun reloadCurrentFolderByRefresh() {
+    override fun reloadCurrentFolderByRefresh2() {
         Log.d("badam", "reloadCurrentFolderByRefresh() called", Throwable())
         refreshReloadTrigger.value = refreshReloadTrigger.value + 1 // redéclenchement immédiat
     }
@@ -119,58 +119,12 @@ class FolderContentComponent @Inject constructor(
                 emit(DbState.Loading)
             }
             .distinctUntilChanged()
-//            .onEach { Log.d("PathCrspd", "Room emit: $it for $path") }
-
-//    val currentDatabaseFolderCacheEntry: Flow<DbState> =
-//        currentPath
-//            .filterNotNull()                 // pas de requête pour path = null
-//            .distinctUntilChanged()
-//            .onEach { Log.d("PathCrspd", "READ  path=$it") }
-//            .flatMapLatest { path ->
-//                dao.folderCacheEntryRepository()
-//                    .getFlowByPath(path)
-//                    .map { it?.let { DbState.Data(it)} ?: DbState.NotFound }
-//                    .flowOn(Dispatchers.IO)
-//                    .onStart { emit(DbState.Loading) }
-//                    .distinctUntilChanged()
-//                    .onEach { Log.d("PathCrspd", "Room emit: $it for $path") }
-//            }
 
     val _savedPath = MutableStateFlow<String?>(null)
 
     //////////////////////////
     // dossier courant trié //
     //////////////////////////
-    //on pourrait se dire: si le path n'a pas changé
-    //peut-être que le contenu non plus et combinée par flag/manuel/mémo ...
-    //d'où ne pas tout recharger, même pas depuis room
-
-//    private val paramsFlow: Flow<Params> =
-//        combineWithSource4(
-//            scope = scope,
-//            f1 = bottomTools.currentFlagId,
-//            f2 = currentDatabaseFolderCacheEntryFor(currentPath.value ?: ""),,
-//            f3 = refreshReloadTrigger,
-//            f4 = reloadTrigger,
-//        ) { pathHistory, flagId, savedEntry, _, _ ->
-//            Triple(pathHistory.lastOrNull(), flagId, savedEntry)
-//        }.map { (origin, triple) ->
-//            val (latestPath, flagId, savedEntry) = triple
-//
-//            Params(
-//                origin = origin,
-//                latestPath = latestPath,
-//                flagId = flagId,
-//                savedEntry = savedEntry
-//            )
-//        }.distinctUntilChanged { a, b ->
-//            a.latestPath == b.latestPath &&
-//                    a.flagId == b.flagId &&
-//                    a.savedEntry == b.savedEntry &&
-//                    a.origin == b.origin
-//        }
-    //a.savedEntry?.freshness == b.savedEntry?.freshness &&
-
     private fun folderContentFlow(params: Params): Flow<SigmaFolder?> = flow {
         val (origin, latestPath, flagId, savedEntry) = params
         // 1) Placeholder immédiat (vide l’écran)

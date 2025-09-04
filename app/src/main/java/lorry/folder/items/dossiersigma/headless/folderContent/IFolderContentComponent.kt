@@ -27,7 +27,7 @@ interface IFolderContentComponent{
     // reload pour refresh //
     /////////////////////////
 //    val refreshReloadTrigger: MutableStateFlow<Int>
-    fun reloadCurrentFolderByRefresh()
+    fun reloadCurrentFolderByRefresh2()
 
     /////////////////////////////////////////////////////
     // suivi du type de reload pour le dossier courant //
