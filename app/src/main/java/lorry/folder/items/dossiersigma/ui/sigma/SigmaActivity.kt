@@ -300,6 +300,10 @@ class SigmaActivity : ComponentActivity() {
                 val isSettingsPageVisible by mainViewModel.isSettingsPageVisible.collectAsState()
 
                 val dialogMessage = mainViewModel.dialogMessage.collectAsState()
+                val currentPath =
+                    mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
+                        initialValue = null
+                    )
 
                 SideEffect {
                     activity.window.statusBarColor = colors.primary.toArgb()
@@ -382,8 +386,6 @@ class SigmaActivity : ComponentActivity() {
                                 })
                             }
                     ) {
-                        Spacer(modifier = Modifier.height(20.dp))
-
                         /////////////////////////////////
                         // zone horizontale supérieure //
                         /////////////////////////////////
@@ -407,14 +409,15 @@ class SigmaActivity : ComponentActivity() {
                                 ///////////////////////////////////
                                 Row(
                                     modifier = Modifier
-                                        .height(IntrinsicSize.Min)
-                                        .padding(end = 0.dp),
+                                        .padding(end = 0.dp)
+                                        .height(40.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
 
                                     /////////////////
                                     // Home button //
                                     /////////////////
+
                                     HomeButtonIcon(
                                         icon = R.drawable.mouvement
                                     ) {
@@ -432,21 +435,24 @@ class SigmaActivity : ComponentActivity() {
                                     ////////////////
                                     // breadcrumb //
                                     ////////////////
+
                                     if (!homePageVisible)
-                                        Breadcrumb(
-                                            items = currentFolder?.fullPath?.split("/")
-                                                ?.filter { it != "" } ?: emptyList(),
-                                            onPathClick = { path ->
-                                                mainViewModel.goToFolder(path)
-                                            },
-                                            modifier = Modifier
-                                                .padding(start = 10.dp)
-                                                .align(Alignment.CenterVertically),
-                                            activeColor = Color(0xFF8697CB),
-                                            inactiveColor = Color(0xFF8697CB),
-                                            arrowColor = Color.Magenta,
-                                            transitionDuration = 200,
-                                        )
+                                        key(currentPath.value ?: "") {
+                                            Breadcrumb(
+                                                items = currentFolder?.fullPath?.split("/")
+                                                    ?.filter { it != "" } ?: emptyList(),
+                                                onPathClick = { path ->
+                                                    mainViewModel.goToFolder(path)
+                                                },
+                                                modifier = Modifier
+                                                    .padding(start = 10.dp)
+                                                    .align(Alignment.CenterVertically),
+                                                activeColor = Color(0xFF8697CB),
+                                                inactiveColor = Color(0xFF8697CB),
+                                                arrowColor = Color.Magenta,
+                                                transitionDuration = 200,
+                                            )
+                                        }
                                 }
                             }
 
@@ -461,7 +467,8 @@ class SigmaActivity : ComponentActivity() {
                                 ////////////////////////////////////////////////
                                 Box(
                                     modifier = Modifier
-                                        .padding(end = 10.dp)
+                                        .padding(end = 10.dp, bottom = 0.dp)
+                                        .height(40.dp)
                                 )
                                 {
                                     ////////////////////////////
@@ -470,6 +477,7 @@ class SigmaActivity : ComponentActivity() {
                                     Row(
                                         modifier = Modifier
                                             .width(IntrinsicSize.Min)
+                                            .height(IntrinsicSize.Min)
                                             .align(Alignment.CenterEnd),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
@@ -517,11 +525,8 @@ class SigmaActivity : ComponentActivity() {
                                         ///////////////////////
                                         Icon(
                                             modifier = Modifier
-                                                .size(50.dp)
-                                                .padding(
-                                                    start = 10.dp,
-                                                    end = 10.dp
-                                                )
+                                                .padding(horizontal = 10.dp)
+                                                .size(30.dp)
                                                 .pointerInput(true) {
                                                     detectTapGestures(
                                                         onTap = {
@@ -768,14 +773,10 @@ class SigmaActivity : ComponentActivity() {
                                                 }.toSet()
                                         )
                                     }
-                                }
+                                },
+                                modifier = Modifier
                             )
                         }
-
-                        val currentPath =
-                            mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
-                                initialValue = null
-                            )
 
                         /////////////////
                         // Normal page //

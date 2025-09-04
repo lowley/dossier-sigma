@@ -66,7 +66,8 @@ fun HomePage(
     onItemClicked: (HomeItem) -> Unit,
     onEditTapped: (HomeItem) -> Unit,
     onDeleteTapped: (HomeItem) -> Unit,
-    onItemsReordered: (List<HomeItem>) -> Unit
+    onItemsReordered: (List<HomeItem>) -> Unit,
+    modifier: Modifier
 ) {
     val homeItems by homeItemsInVM.collectAsState(emptyList())
 
@@ -83,7 +84,7 @@ fun HomePage(
     val itemPositions = remember { mutableMapOf<HomeItem, Offset>() }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
     ) {
         Image(
@@ -92,6 +93,8 @@ fun HomePage(
                 .align(Alignment.Center)
                 .alpha(0.2f),
             painter = painterResource(R.drawable.mesh_homepage),
+            alignment = Alignment.Center,
+            contentScale = ContentScale.Crop,
             contentDescription = "",
             colorFilter = ColorFilter.tint(SigmaColors.current.tertiary)
         )
