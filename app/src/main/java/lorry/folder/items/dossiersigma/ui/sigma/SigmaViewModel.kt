@@ -433,8 +433,9 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun goToFolder(folderPath: String, sorting: SortingCriterion? = null) {
-        DEFAULT.content().updateTools(emptyList<Tool>())
+        folderContentComponent.manuallyInvalidateItems()
 
+        DEFAULT.content().updateTools(emptyList<Tool>())
 
         viewModelScope.launch(Dispatchers.Main) {
 

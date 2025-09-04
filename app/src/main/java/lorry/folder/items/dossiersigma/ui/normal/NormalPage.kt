@@ -11,8 +11,9 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,9 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
-import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -39,12 +40,17 @@ fun NormalPage(
     onRefresh: () -> Unit,
     indexBar: IIndexBar,
     currentScrollState: LazyGridState,
+    path: String?,
 
     ) {
     val currentFolderFlow = mainViewModel.folderContentComponent.currentFolderFlow
 
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
     val draggableStartPosition = mainViewModel.draggableStartPosition
+    val waitingForItems =
+        mainViewModel.folderContentComponent.waitingForItems.collectAsStateWithLifecycle(
+            initialValue = false
+        )
 
     PullToRefreshContainer(
         onRefresh = onRefresh
@@ -56,41 +62,77 @@ fun NormalPage(
                     start = 0.dp,
                     end = 0.dp,
                     top = 0.dp,
-                    bottom = 0.dp)
+                    bottom = 0.dp
+                )
         ) {
+            val currentPath =
+                mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
+                    initialValue = null
+                )
+            val folder = mainViewModel.folderContentComponent.currentFolderFlow
+                .collectAsStateWithLifecycle(initialValue  = null)
 
-            val displayedItems = mainViewModel.folderContentComponent.currentFolderFlow
-                .map { it?.items ?: emptyList() }
-                .collectAsState(initial = emptyList())
+            val items = folder.value?.items.orEmpty()
+            val ready = folder.value?.fullPath == currentPath.value && items.isNotEmpty()
+            val pathMatches = folder.value?.fullPath == currentPath.value
 
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(150.dp),
-                modifier = Modifier
-                    .padding(start = 25.dp, end = 0.dp),
-                state = currentScrollState
-            ) {
-                lazyGridItems(displayedItems.value , key = {
-                    it.fullPath + "-" + it.id
-                }) { item ->
-                    ItemComponent(
-                        item = item,
+            LaunchedEffect(pathMatches) {
+                if (pathMatches && waitingForItems.value) {
+                    mainViewModel.folderContentComponent.setWaitingForItems(false)
+                }
+            }
+
+            when {
+                // 1) Nouveau path ou attente explicite -> placeholder
+                waitingForItems.value || !pathMatches -> {
+                    Text(
                         modifier = Modifier
-                            .padding(horizontal = 10.dp, vertical = 6.dp),
-                        onItemUpdated = { item ->
+                            .align(Alignment.Center),
+                        text = "Chargement...",
+                    )
+                }
+
+                // 2) Bon path reçu ET liste vide -> état "dossier vide"
+                items.isEmpty() -> {
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        text = "Dossier vide",
+                    )
+                }
+
+                // 3) Bon path reçu ET items présents -> affiche la grille
+                else -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(150.dp),
+                        modifier = Modifier
+                            .padding(start = 25.dp, end = 0.dp),
+                        state = currentScrollState
+                    ) {
+                        lazyGridItems(items, key = {
+                            it.fullPath + "-" + it.id
+                        }) { item ->
+                            ItemComponent(
+                                item = item,
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                onItemUpdated = { item ->
 //                                                mainViewModel.updateItemInList(item)
-                        },
+                                },
 //                                        onDrop = { tag: ColoredTag ->
 //                                            mainViewModel.assignColoredTagToItem(item, tag)
 //                                      }
-                        onHoveredNotHovered = onHoveredNotHovered,
-                        selectedItemFullPath = selectedItemFullPath,
-                        draggableStartPosition = draggableStartPosition,
-                        onItemTapped = onItemTapped,
-                        onItemLongPressed = onItemLongPressed,
-                        onTopLeftPanelClick = onTopLeftPanelClick,
-                        getInfoSup = getInfoSup,
-                        getInfoInf = getInfoInf
-                    )
+                                onHoveredNotHovered = onHoveredNotHovered,
+                                selectedItemFullPath = selectedItemFullPath,
+                                draggableStartPosition = draggableStartPosition,
+                                onItemTapped = onItemTapped,
+                                onItemLongPressed = onItemLongPressed,
+                                onTopLeftPanelClick = onTopLeftPanelClick,
+                                getInfoSup = getInfoSup,
+                                getInfoInf = getInfoInf
+                            )
+                        }
+                    }
                 }
             }
 
@@ -98,8 +140,9 @@ fun NormalPage(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .padding(start = 4.dp)
-                    .fillMaxHeight().width(20.dp)
-            ){
+                    .fillMaxHeight()
+                    .width(20.dp)
+            ) {
 
                 indexBar.display(currentScrollState = currentScrollState)
             }

@@ -50,6 +50,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -68,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.leinardi.android.speeddial.compose.SpeedDialOverlay
 import com.leinardi.android.speeddial.compose.SpeedDialState
@@ -309,14 +311,16 @@ class SigmaActivity : ComponentActivity() {
                     // -> auto lors des modifications du tri
 
                     mainViewModel.viewModelScope.launch {
-                        val last1 = mainViewModel.folderContentComponent.folderPathHistory.value.last()
+                        val last1 =
+                            mainViewModel.folderContentComponent.folderPathHistory.value.last()
 
                         //retour dans l'history
                         mainViewModel.folderContentComponent.removeLastFolderPathHistory()
 
-                        val last2 = mainViewModel.folderContentComponent.folderPathHistory.value.last()
+                        val last2 =
+                            mainViewModel.folderContentComponent.folderPathHistory.value.last()
                         mainViewModel.settingsManager.saveCurrentPath(last2)
-                        Log.d("Sact", last1 )
+                        Log.d("Sact", last1)
                     }
 
                     //récup sorting dans cache du tri
@@ -414,6 +418,13 @@ class SigmaActivity : ComponentActivity() {
                                     HomeButtonIcon(
                                         icon = R.drawable.mouvement
                                     ) {
+                                        if (!homePageVisible) {
+//                                            mainViewModel.folderContentComponent.manuallyInvalidateItems()
+                                            mainViewModel.folderContentComponent.setWaitingForItems(
+                                                true
+                                            )
+                                        }
+
                                         mainViewModel.setIsSettingsPageVisible(false)
                                         homeViewModel.toggleHomePageVisible()
                                     }
@@ -571,15 +582,15 @@ class SigmaActivity : ComponentActivity() {
                                             initial = false
                                         )
                                     val realFreshness by
-                                        settingsViewModel.settings.testFreshnessFlow.collectAsState(
-                                            null
-                                        )
+                                    settingsViewModel.settings.testFreshnessFlow.collectAsState(
+                                        null
+                                    )
                                     val theoricalFreshness by
-                                        mainViewModel.folderContentComponent.folderCacheFlow
-                                            .map {
-                                                it[mainViewModel.folderContentComponent.currentFolderFlow.value?.fullPath]
-                                                    ?.freshness
-                                            }.collectAsState(null)
+                                    mainViewModel.folderContentComponent.folderCacheFlow
+                                        .map {
+                                            it[mainViewModel.folderContentComponent.currentFolderFlow.value?.fullPath]
+                                                ?.freshness
+                                        }.collectAsState(null)
 
                                     Log.d(
                                         "SigmaActivitos",
@@ -595,7 +606,8 @@ class SigmaActivity : ComponentActivity() {
                                                 ctx.startDaemon()
                                         }
                                     ) {
-                                        val reloadType = mainViewModel.folderContentComponent.reloadType.collectAsState()
+                                        val reloadType =
+                                            mainViewModel.folderContentComponent.reloadType.collectAsState()
 
                                         Box(
                                             modifier = Modifier
@@ -614,10 +626,10 @@ class SigmaActivity : ComponentActivity() {
 //                                                )
                                                 .border(
                                                     2.dp,
-                                                    color = when(reloadType.value){
-                                                        ReloadType.DISK -> Color.Red
-                                                        ReloadType.CACHE -> Color.Green
-                                                        ReloadType.SERVICE -> Color.Yellow
+                                                    color = when (reloadType.value) {
+                                                        ReloadType.Disk -> Color.Red
+                                                        ReloadType.Cache -> Color.Green
+                                                        ReloadType.Room -> Color.Yellow
                                                         else -> Color.Black
                                                     },
 //                                                    if (realFreshness?.isSameAs(theoricalFreshness ?: FolderFreshness.DUMMY) == true)
@@ -700,6 +712,8 @@ class SigmaActivity : ComponentActivity() {
                             HomePage(
                                 homeItemsInVM = homeViewModel.homeItems,
                                 onItemClicked = { item: HomeItem ->
+                                    mainViewModel.folderContentComponent.manuallyInvalidateItems()
+                                    mainViewModel.folderContentComponent.setWaitingForItems(true)
                                     mainViewModel.goToFolder(
                                         item.path
                                     )
@@ -758,65 +772,73 @@ class SigmaActivity : ComponentActivity() {
                             )
                         }
 
+                        val currentPath =
+                            mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
+                                initialValue = null
+                            )
+
                         /////////////////
                         // Normal page //
                         /////////////////
                         if (!homePageVisible) {
-                            NormalPage(
-                                onHoveredNotHovered = { item ->
-                                    mainViewModel.setDragTargetItem(item)
-                                },
-                                onItemTapped = { item ->
-                                    run {
+                            key(currentPath.value ?: "") {
+                                NormalPage(
+                                    onHoveredNotHovered = { item ->
+                                        mainViewModel.setDragTargetItem(item)
+                                    },
+                                    onItemTapped = { item ->
+                                        run {
 
-                                        if (selectedItem != null) {
-                                            mainViewModel.setSelectedItem(null, true)
-                                            bottomTools.setCurrentContent(DEFAULT)
-                                            return@run
+                                            if (selectedItem != null) {
+                                                mainViewModel.setSelectedItem(null, true)
+                                                bottomTools.setCurrentContent(DEFAULT)
+                                                return@run
+                                            }
+
+                                            if (item.isFolder()) {
+                                                mainViewModel.goToFolder(item.fullPath)
+                                            }
+
+                                            if (item.isFile() &&
+                                                (item.name.endsWith(".mp4") ||
+                                                        item.name.endsWith(".mkv") ||
+                                                        item.name.endsWith(".mpg") ||
+                                                        item.name.endsWith(".iso") ||
+                                                        item.name.endsWith(".avi"))
+                                            ) {
+                                                mainViewModel.playVideoFile(item.fullPath)
+                                            }
+                                            if (item.isFile() && item.name.endsWith(".html")) {
+                                                mainViewModel.playHtmlFile(item.fullPath)
+                                            }
                                         }
 
-                                        if (item.isFolder()) {
-                                            mainViewModel.goToFolder(item.fullPath)
-                                        }
-
-                                        if (item.isFile() &&
-                                            (item.name.endsWith(".mp4") ||
-                                                    item.name.endsWith(".mkv") ||
-                                                    item.name.endsWith(".mpg") ||
-                                                    item.name.endsWith(".iso") ||
-                                                    item.name.endsWith(".avi"))
-                                        ) {
-                                            mainViewModel.playVideoFile(item.fullPath)
-                                        }
-                                        if (item.isFile() && item.name.endsWith(".html")) {
-                                            mainViewModel.playHtmlFile(item.fullPath)
-                                        }
-                                    }
-
-                                },
-                                onItemLongPressed = { item ->
-                                    mainViewModel.setSelectedItem(item.copy(), true)
-                                    bottomTools.setCurrentContent(Tools.FILE)
-                                },
-                                onTopLeftPanelClick = { item ->
-                                    /**
-                                     * suite dans MainActivity
-                                     */
-                                    mainViewModel.setSelectedItem(item.copy())
-                                    memo.toggleIsDisplayed()
-                                },
-                                getInfoSup = { item ->
-                                    mainViewModel.getInfoSup(item)
-                                },
-                                getInfoInf = { item ->
-                                    mainViewModel.getInfoInf(item)
-                                },
-                                onRefresh = {
-                                    mainViewModel.folderContentComponent.reloadCurrentFolder()
-                                },
-                                indexBar = indexBar,
-                                currentScrollState = currentScrollState,
-                            )
+                                    },
+                                    onItemLongPressed = { item ->
+                                        mainViewModel.setSelectedItem(item.copy(), true)
+                                        bottomTools.setCurrentContent(Tools.FILE)
+                                    },
+                                    onTopLeftPanelClick = { item ->
+                                        /**
+                                         * suite dans MainActivity
+                                         */
+                                        mainViewModel.setSelectedItem(item.copy())
+                                        memo.toggleIsDisplayed()
+                                    },
+                                    getInfoSup = { item ->
+                                        mainViewModel.getInfoSup(item)
+                                    },
+                                    getInfoInf = { item ->
+                                        mainViewModel.getInfoInf(item)
+                                    },
+                                    onRefresh = {
+                                        mainViewModel.folderContentComponent.reloadCurrentFolder()
+                                    },
+                                    indexBar = indexBar,
+                                    currentScrollState = currentScrollState,
+                                    path = currentPath.value
+                                )
+                            }
                         }
                     }
 

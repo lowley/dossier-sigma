@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.headless.folderContent
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
@@ -33,5 +34,12 @@ interface IFolderContentComponent{
     /////////////////////////////////////////////////////
     val reloadType: StateFlow<ReloadType>
     fun setReloadType(type: ReloadType)
+
+    fun manuallyInvalidateItems()
+    val currentPath: Flow<String?>
+
+    val waitingForItems: StateFlow<Boolean>
+    fun setWaitingForItems(value: Boolean)
+
 
 }
