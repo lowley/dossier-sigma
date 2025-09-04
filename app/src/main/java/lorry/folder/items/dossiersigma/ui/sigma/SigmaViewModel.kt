@@ -53,8 +53,6 @@ import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
-//adb install "C:\Users\olivier\progs\dossiersigma.apk"
-
 @HiltViewModel
 class SigmaViewModel @Inject constructor(
     val diskRepository: IDiskRepository,
