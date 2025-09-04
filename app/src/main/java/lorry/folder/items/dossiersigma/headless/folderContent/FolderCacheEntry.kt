@@ -18,4 +18,10 @@ data class FolderCacheEntry(
     val sort: SortingCriterion,
     val freshness: FolderFreshness,
     val cachedAt: Long = System.currentTimeMillis()
-)
+
+
+) {
+    override fun toString(): String {
+        return "FolderCacheEntry(path=${path.substringAfterLast("/")}, freshness=$freshness)"
+    }
+}

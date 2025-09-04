@@ -91,9 +91,10 @@ class FolderContentComponent @Inject constructor(
     ////////////////////////
     // reload par refresh //
     ////////////////////////
-    override val refreshReloadTrigger = MutableStateFlow(0)
+    private val refreshReloadTrigger = MutableStateFlow(0)
 
     override fun reloadCurrentFolderByRefresh() {
+        Log.d("badam", "reloadCurrentFolderByRefresh() called", Throwable())
         refreshReloadTrigger.value = refreshReloadTrigger.value + 1 // redéclenchement immédiat
     }
 
@@ -168,6 +169,11 @@ class FolderContentComponent @Inject constructor(
 
         if (latestPath == null) return@flow
 
+        if (savedEntry == DbState.Loading){
+            Log.d("fldDec", "   -> savedEntry LOADING -> on passe")
+            return@flow
+        }
+
         // 2) Récupérer fraîcheurs APRÈS le placeholder (concurrence structurée)
         val diskFresh = coroutineScope {
             async(Dispatchers.IO) { diskRepository.getFolderFreshness(latestPath) }
@@ -182,7 +188,7 @@ class FolderContentComponent @Inject constructor(
         val cacheInclusion = cacheEntry != null
         val cacheEquality = cachedFolderFreshness?.isSameAs(diskFresh) == true
 
-        val roomOk = savedEntry?.let { it.path == latestPath && it.freshness.isSameAs(diskFresh) } == true
+        val roomOk = savedEntry.let { it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(diskFresh) } == true
 
         // 3) Sélection de la source (cache-first si pas plus vieux)
         val decision = when {
@@ -214,7 +220,7 @@ class FolderContentComponent @Inject constructor(
 
             ReloadType.Room -> {
                 // Exemple : re-trier/mapper à partir de savedEntry (rapide)
-                val serviceFolder = savedEntry!!.folder
+                val serviceFolder = (savedEntry as DbState.Data).folderEntry.folder
                 val serviceItems = serviceFolder.items
                 val newItems = when (sort) {
                     SortingCriterion.ByNameAsc ->
