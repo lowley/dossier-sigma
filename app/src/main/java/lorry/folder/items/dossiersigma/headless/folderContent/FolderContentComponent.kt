@@ -10,18 +10,22 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -92,11 +96,11 @@ class FolderContentComponent @Inject constructor(
     ////////////////////////
     // reload par refresh //
     ////////////////////////
-    private val refreshReloadTrigger = MutableStateFlow(0)
+    private val refreshReloadTrigger2 = MutableStateFlow(0)
 
     override fun reloadCurrentFolderByRefresh2() {
         Log.d("badam", "reloadCurrentFolderByRefresh() called", Throwable())
-        refreshReloadTrigger.value = refreshReloadTrigger.value + 1 // redéclenchement immédiat
+        refreshReloadTrigger2.value = refreshReloadTrigger2.value + 1 // redéclenchement immédiat
     }
 
     private val _waitingForItems = MutableStateFlow(false)
@@ -130,7 +134,7 @@ class FolderContentComponent @Inject constructor(
         // 1) Placeholder immédiat (vide l’écran)
         emit(null)
 
-        Log.d("fldDec", "origin:$origin, latestPath:$latestPath, savedEntry:$savedEntry")
+        Log.d("fldDec", "origin:$origin, latestPath:$latestPath, savedEntry:$savedEntry, flagId:$flagId")
 
         if (latestPath == null) return@flow
 
@@ -151,18 +155,27 @@ class FolderContentComponent @Inject constructor(
         val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
 
         val cacheInclusion = cacheEntry != null
-        val cacheEquality = cachedFolderFreshness?.isSameAs(diskFresh) == true
+        val cacheAndDiskEquality = cachedFolderFreshness?.isSameAs(diskFresh) == true
 
         val roomOk = savedEntry.let {
             it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(
                 diskFresh
-            )
-        } == true
+            ) } == true
+
+        val cacheAndRoomEquality = cacheInclusion && savedEntry.let {
+            it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(
+                cachedFolderFreshness
+            ) } == true
+
+        Log.d("fldDec", "   -> PRISE DE DECISION: diskFreshness:$diskFresh, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:$cachedFolderFreshness")
 
         // 3) Sélection de la source (cache-first si pas plus vieux)
         val decision = when {
-            origin != Origin.REFRESH_RELOAD_TRIGGER && roomOk -> ReloadType.Room
-            origin != Origin.REFRESH_RELOAD_TRIGGER && cacheInclusion && cacheEquality -> ReloadType.Cache
+            origin == Origin.CURRENT_FLAG_ID -> ReloadType.Cache
+            origin == Origin.REFRESH_RELOAD_TRIGGER -> ReloadType.Disk
+            cacheAndRoomEquality -> ReloadType.Cache
+            roomOk -> ReloadType.Room
+            cacheInclusion && cacheAndDiskEquality -> ReloadType.Cache
             else -> ReloadType.Disk
         }
 
@@ -181,7 +194,7 @@ class FolderContentComponent @Inject constructor(
                     SortingCriterion.ByDateDesc ->
                         oldItems.sortedWith(compareBy<Item> { it.isFile() }
                             .thenByDescending { it.modificationDate })
-                }.let { items -> if (params.flagId == null) items else items.filter { it.tag?.id == params.flagId } }
+                }.let { items -> if (flagId == null) items else items.filter { it.tag?.id == flagId } }
 
                 Log.d("fldDec", "   -> fin calcul du cache et émission du flow")
                 emit(cacheEntry.folder.copy(items = newItems))
@@ -190,8 +203,11 @@ class FolderContentComponent @Inject constructor(
 
             ReloadType.Room -> {
                 // Exemple : re-trier/mapper à partir de savedEntry (rapide)
-                val serviceFolder = (savedEntry as DbState.Data).folderEntry.folder
+                val folderEntry = (savedEntry as DbState.Data).folderEntry
+                val serviceFolder = folderEntry.folder
                 val serviceItems = serviceFolder.items
+                _folderCacheFlow.update { it.toMutableMap().apply { put(latestPath, folderEntry) } }
+
                 val newItems = when (sort) {
                     SortingCriterion.ByNameAsc ->
                         serviceItems.sortedWith(compareBy<Item> { it.isFile() }
@@ -200,7 +216,7 @@ class FolderContentComponent @Inject constructor(
                     SortingCriterion.ByDateDesc ->
                         serviceItems.sortedWith(compareBy<Item> { it.isFile() }
                             .thenByDescending { it.modificationDate })
-                }.let { items -> if (params.flagId == null) items else items.filter { it.tag?.id == params.flagId } }
+                }.let { items -> if (flagId == null) items else items.filter { it.tag?.id == flagId } }
 
                 Log.d("fldDec", "   -> fin calcul de room et émission du flow")
                 emit(serviceFolder.copy(items = newItems))
@@ -276,10 +292,10 @@ class FolderContentComponent @Inject constructor(
                 val paramsFlowForPath: Flow<Params> =
                     combineWithSource4(
                         scope = scope,
-                        f1 = bottomTools.currentFlagId,
-                        f2 = dbFlow,
-                        f3 = refreshReloadTrigger,
-                        f4 = reloadTrigger,
+                        currentFlagId = bottomTools.currentFlagId,
+                        savedEntry = dbFlow,
+                        refreshReloadTrigger = refreshReloadTrigger2,
+                        reloadTrigger = reloadTrigger,
                     ) { flagId, savedEntry, _, _ ->
                         Params(
                             origin = Origin.CURRENT_FLAG_ID, // placeholder, sera écrasé par pair.first
@@ -350,6 +366,7 @@ enum class ReloadType {
     Cache,
     Room,
     Disk,
+    FlagId
 }
 
 data class Quadruple<A, B, C, D>(
@@ -403,63 +420,93 @@ fun <A, B, R> combineWithSource2(
     return sourceIdFlow.zip(combined) { src, value -> src to value }
 }
 
+private fun <T> Flow<T>.shared(scope: CoroutineScope): SharedFlow<T> =
+    this.shareIn(scope, started = SharingStarted.WhileSubscribed(5_000), replay = 1)
+
+// Utilitaire: lire la dernière valeur disponible (via replay=1)
+private suspend fun <T> SharedFlow<T>.latest(): T = first()
+
+// Si tu veux un "latestOrNull" pour éviter le blocage :
+private suspend fun <T> SharedFlow<T>.latestOrNull(): T? = firstOrNull()
+
 private fun <A, B, C, D, R> combineWithSource4(
     scope: CoroutineScope,
-    f1: Flow<A>,      // CURRENT_FLAG_ID
-    f2: Flow<B>,      // SAVED_ENTRY (DbState)
-    f3: Flow<C>,      // REFRESH_RELOAD_TRIGGER
-    f4: Flow<D>,      // RELOAD_TRIGGER
+    currentFlagId: Flow<A>,        // f1
+    savedEntry: Flow<B>,           // f2 (DbState)
+    refreshReloadTrigger: Flow<C>, // f3
+    reloadTrigger: Flow<D>,        // f4
     transform: (A, B, C, D) -> R
 ): Flow<Pair<Origin, R>> {
-    val s1 = f1.shareIn(scope, SharingStarted.Eagerly, replay = 1)
-    val s2 = f2.shareIn(scope, SharingStarted.Eagerly, replay = 1)
-    val s3 = f3.shareIn(scope, SharingStarted.Eagerly, replay = 1)
-    val s4 = f4.shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
-    val sourceIdFlow = merge(
-        s1.map { Origin.CURRENT_FLAG_ID },
-        // On peut éviter de bruiter l’origin si Room n’a pas encore de data :
-        s2.filter { it !is DbState.Loading }.map { Origin.SAVED_ENTRY },
-        s3.map { Origin.REFRESH_RELOAD_TRIGGER },
-        s4.map { Origin.RELOAD_TRIGGER },
+    // 1) Partager chaque source (replay=1 pour "latest()" immédiat)
+    val flagS   = currentFlagId.shared(scope)
+    val savedS0 = savedEntry.shared(scope)
+    val refS    = refreshReloadTrigger.shared(scope)
+    val relS    = reloadTrigger.shared(scope)
+
+    // 2) Filtre commun pour SAVED_ENTRY: on écarte Loading
+//    val savedIsNotLoading: (Any?) -> Boolean = { b ->
+//        (b as? DbState)?.let { it !is DbState.Loading } ?: true
+//    }
+
+    // "savedS" servira au DECLENCHEMENT et à la LECTURE (même filtre des deux côtés)
+    @Suppress("UNCHECKED_CAST")
+//    val savedS = savedS0.filter { savedIsNotLoading(it) } as SharedFlow<B>
+
+    // 3) Évènements d’origine (taggés par enum, pas par position)
+    val originEvents: Flow<Origin> = merge(
+        flagS.map { Origin.CURRENT_FLAG_ID },
+        savedS0.map { Origin.SAVED_ENTRY },
+        // On ignore l'impulsion initiale côté ÉVÈNEMENT pour éviter un faux "refresh" au démarrage
+        refS.drop(1).map { Origin.REFRESH_RELOAD_TRIGGER },
+        relS.drop(1).map { Origin.RELOAD_TRIGGER },
     )
 
-    val combined = combine(s1, s2, s3, s4) { a, b, c, d -> transform(a, b, c, d) }
-    return sourceIdFlow.zip(combined) { src, value -> src to value }
+    // 4) À chaque évènement, on prélève à la demande les dernières valeurs
+    //    (pas d'historique; lecture directe via latest()).
+    //    NB: pour éviter tout blocage, on NE "droppe" pas côté lecture des triggers.
+    return originEvents.mapLatest { origin ->
+        val a = flagS.latest()
+        val b = savedS0.latest()        // même filtre que côté évènement
+        val c = refS.latest()          // pas de drop côté lecture (sinon risque de blocage)
+        val d = relS.latest()
+
+        origin to transform(a, b, c, d)
+    }
 }
 
-fun <A, B, C, D, E, R> combineWithSource5(
-    scope: CoroutineScope,
-    f1: Flow<A>,
-    f2: Flow<B>,
-    f3: Flow<C>,
-    f4: Flow<D>,
-    f5: Flow<E>,
-    transform: (A, B, C, D, E) -> R
-): Flow<Pair<Origin, R>> {
-
-    // 1) Partager les sources si besoin (saute ceci si ce sont déjà des StateFlow/SharedFlow)
-    val s1 = f1.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
-    val s2 = f2.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
-    val s3 = f3.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
-    val s4 = f4.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
-    val s5 = f5.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
-
-    // 2) Flux des déclencheurs (qui a émis ?)
-    val sourceIdFlow = merge(
-        s1.map { Origin.FOLDER_PATH_HISTORY },
-        s2.map { Origin.CURRENT_FLAG_ID },
-        s3.filterNotNull().map { Origin.SAVED_ENTRY },
-        s4.map { Origin.REFRESH_RELOAD_TRIGGER },
-        s5.map { Origin.RELOAD_TRIGGER },
-    )
-
-    // 3) Valeur combinée
-    val combined = combine(s1, s2, s3, s4, s5) { a, b, c, d, e -> transform(a, b, c, d, e) }
-
-    // 4) Recolle déclencheur + résultat recalculé (une paire par déclenchement)
-    return sourceIdFlow.zip(combined) { src, value -> src to value }
-}
+//fun <A, B, C, D, E, R> combineWithSource5(
+//    scope: CoroutineScope,
+//    f1: Flow<A>,
+//    f2: Flow<B>,
+//    f3: Flow<C>,
+//    f4: Flow<D>,
+//    f5: Flow<E>,
+//    transform: (A, B, C, D, E) -> R
+//): Flow<Pair<Origin, R>> {
+//
+//    // 1) Partager les sources si besoin (saute ceci si ce sont déjà des StateFlow/SharedFlow)
+//    val s1 = f1.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+//    val s2 = f2.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+//    val s3 = f3.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+//    val s4 = f4.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+//    val s5 = f5.shareIn(scope, started = SharingStarted.Eagerly, replay = 1)
+//
+//    // 2) Flux des déclencheurs (qui a émis ?)
+//    val sourceIdFlow = merge(
+//        s1.map { Origin.FOLDER_PATH_HISTORY },
+//        s2.map { Origin.CURRENT_FLAG_ID },
+//        s3.filterNotNull().map { Origin.SAVED_ENTRY },
+//        s4.map { Origin.REFRESH_RELOAD_TRIGGER },
+//        s5.map { Origin.RELOAD_TRIGGER },
+//    )
+//
+//    // 3) Valeur combinée
+//    val combined = combine(s1, s2, s3, s4, s5) { a, b, c, d, e -> transform(a, b, c, d, e) }
+//
+//    // 4) Recolle déclencheur + résultat recalculé (une paire par déclenchement)
+//    return sourceIdFlow.zip(combined) { src, value -> src to value }
+//}
 
 sealed class DbState {
     object Loading : DbState()
@@ -483,3 +530,16 @@ sealed class DbState {
         is Data -> "(Data, path=${folderEntry.path.substringAfterLast("/")})"
     }
 }
+
+//val events = merge(
+//    s1.map { Origin.CURRENT_FLAG_ID },
+//    s2f.map { Origin.SAVED_ENTRY },
+//    s3.drop(1).map { Origin.REFRESH_RELOAD_TRIGGER },
+//    s4.drop(1).map { Origin.RELOAD_TRIGGER },
+//)
+//
+//// On “échantillonne” les dernières valeurs quand un event arrive
+//return events.flatMapLatest { origin ->
+//    combine(s1, s2f, s3, s4) { a, b, c, d -> origin to transform(a, b, c, d) }
+//        .take(1)  // ← on ne veut que le snapshot au moment de l’event
+//}

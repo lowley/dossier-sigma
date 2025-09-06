@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.FileObserver
 import android.os.IBinder
 import android.util.Log
@@ -194,7 +193,7 @@ class DaemonService : LifecycleService() {
         text?.let { latestNotificationMessage = it }
         color?.let { currentNotificationColor = it }
 
-        val smallIcon = when(color){
+        val smallIcon = when (color) {
             Color.Red -> R.drawable.engrenage_rouge
             Color.Blue -> R.drawable.engrenage_bleu
             Color.Green -> R.drawable.engrenage_vert
@@ -286,19 +285,16 @@ class DaemonService : LifecycleService() {
 
 
 fun Context.ensureDaemonChannel() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val mgr = getSystemService(NotificationManager::class.java)
-        val ch = NotificationChannel(
-            CHANNEL_ID, "Service en cours", NotificationManager.IMPORTANCE_LOW
-        ).apply { description = "Activité de fond en cours" }
-        mgr.createNotificationChannel(ch)
-    }
+    val mgr = getSystemService(NotificationManager::class.java)
+    val ch = NotificationChannel(
+        CHANNEL_ID, "Service en cours", NotificationManager.IMPORTANCE_LOW
+    ).apply { description = "Activité de fond en cours" }
+    mgr.createNotificationChannel(ch)
 }
 
 fun Context.startDaemon() {
     val i = Intent(this, DaemonService::class.java)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i)
-    else startService(i)
+    startForegroundService(i)
 }
 
 fun Context.stopDaemon() {
