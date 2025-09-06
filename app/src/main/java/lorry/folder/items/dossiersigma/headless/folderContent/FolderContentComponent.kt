@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
@@ -33,6 +32,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.zip
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
@@ -218,7 +218,7 @@ class FolderContentComponent @Inject constructor(
                             .thenByDescending { it.modificationDate })
                 }.let { items -> if (flagId == null) items else items.filter { it.tag?.id == flagId } }
 
-                Log.d("fldDec", "   -> fin calcul de room et émission du flow")
+                Log.d("fldDec", "   -> fin calcul de room et émission du flow. items:bruts(${serviceItems.size}), traités(${newItems.size}), flagId:$flagId")
                 emit(serviceFolder.copy(items = newItems))
                 setReloadType(ReloadType.Room)
             }
@@ -465,13 +465,10 @@ private fun <A, B, C, D, R> combineWithSource4(
     // 4) À chaque évènement, on prélève à la demande les dernières valeurs
     //    (pas d'historique; lecture directe via latest()).
     //    NB: pour éviter tout blocage, on NE "droppe" pas côté lecture des triggers.
-    return originEvents.mapLatest { origin ->
-        val a = flagS.latest()
-        val b = savedS0.latest()        // même filtre que côté évènement
-        val c = refS.latest()          // pas de drop côté lecture (sinon risque de blocage)
-        val d = relS.latest()
-
-        origin to transform(a, b, c, d)
+    return originEvents.flatMapLatest { origin ->
+        combine(flagS, savedS0, refS, relS) { a, b, c, d ->
+            origin to transform(a, b, c, d)
+        }.take(1)
     }
 }
 
