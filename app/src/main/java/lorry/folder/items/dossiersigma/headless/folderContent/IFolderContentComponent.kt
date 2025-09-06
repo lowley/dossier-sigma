@@ -38,6 +38,9 @@ interface IFolderContentComponent{
     fun manuallyInvalidateItems()
     val currentPath: Flow<String?>
 
+    val fastPath: StateFlow<String?>
+    fun setFastPath(path: String?)
+
     val waitingForItems: StateFlow<Boolean>
     fun setWaitingForItems(value: Boolean)
 

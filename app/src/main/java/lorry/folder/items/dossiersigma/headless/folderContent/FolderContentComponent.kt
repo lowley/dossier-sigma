@@ -84,6 +84,10 @@ class FolderContentComponent @Inject constructor(
         _folderPathHistory.value = currentHistory.dropLast(1)
     }
 
+    private val _fastPath = MutableStateFlow<String?>(null)
+    override val fastPath: StateFlow<String?> = _fastPath
+    override fun setFastPath(path: String?) { _fastPath.value = path }
+
     ///////////////////
     // reload manuel //
     ///////////////////

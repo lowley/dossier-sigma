@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.normal
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -69,40 +70,35 @@ fun NormalPage(
                 mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
                     initialValue = null
                 )
+
+            val fastPath = mainViewModel.folderContentComponent.fastPath.collectAsStateWithLifecycle(
+                initialValue = null)
+
             val folder = mainViewModel.folderContentComponent.currentFolderFlow
                 .collectAsStateWithLifecycle(initialValue  = null)
 
             val items = folder.value?.items.orEmpty()
-            val ready = folder.value?.fullPath == currentPath.value && items.isNotEmpty()
-            val pathMatches = folder.value?.fullPath == currentPath.value
+            val ready = folder.value?.fullPath == fastPath.value && items.isNotEmpty()
+            val pathMatches = samePath(folder.value?.fullPath, fastPath.value)
 
-            LaunchedEffect(pathMatches) {
+            Log.d("sgmact", "NormalPage: path actuel(${currentPath.value}), currentFolderFlow.Path(${folder.value?.fullPath}, fastPath(${fastPath.value}), currentFolderFlow.items(${items.size}))")
+
+            LaunchedEffect(pathMatches, items.size) {
+                Log.d("sgmact", "    -> LaunchedEffect: pathMatches($pathMatches), items.size(${items.size})")
                 if (pathMatches && waitingForItems.value) {
                     mainViewModel.folderContentComponent.setWaitingForItems(false)
                 }
+                Log.d("sgmact", "    -> LaunchedEffect: waitingForItems mis à false")
+
             }
 
+            Log.d("sgmact", "    -> et avant le choix: waitingForItems(${waitingForItems.value}), pathMatches($pathMatches)")
+
             when {
-                // 1) Nouveau path ou attente explicite -> placeholder
-                waitingForItems.value || !pathMatches -> {
-                    Text(
-                        modifier = Modifier
-                            .align(Alignment.Center),
-                        text = "Chargement...",
-                    )
-                }
+                // 1) Bon path reçu ET items présents -> affiche la grille
+                pathMatches && !waitingForItems.value && items.isNotEmpty() -> {
+                    Log.d("sgmact", "    -> affichage des items")
 
-                // 2) Bon path reçu ET liste vide -> état "dossier vide"
-                items.isEmpty() -> {
-                    Text(
-                        modifier = Modifier
-                            .align(Alignment.Center),
-                        text = "Dossier vide",
-                    )
-                }
-
-                // 3) Bon path reçu ET items présents -> affiche la grille
-                else -> {
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(150.dp),
                         modifier = Modifier
@@ -134,6 +130,30 @@ fun NormalPage(
                         }
                     }
                 }
+
+                // 2) Nouveau path ou attente explicite -> placeholder
+                waitingForItems.value || !pathMatches -> {
+                    Log.d("sgmact", "    -> affichage 'Chargement...'")
+
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        text = "Chargement...",
+                    )
+                }
+
+                // 3) Bon path reçu ET liste vide -> état "dossier vide"
+                else -> {
+                    Log.d("sgmact", "    -> affichage 'Dossier vide'")
+
+                    Text(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        text = "Dossier vide",
+                    )
+                }
+
+
             }
 
             Box(
@@ -158,6 +178,12 @@ fun <T> LazyGridScope.lazyGridItems(
     itemsIndexed(items, key = { index, item -> key?.invoke(item) ?: index }) { _, item ->
         itemContent(item)
     }
+}
+
+fun samePath(a: String?, b: String?): Boolean {
+    if (a == null || b == null) return false
+    fun norm(s: String) = s.trimEnd('/')
+    return norm(a) == norm(b)
 }
 
 @Composable
