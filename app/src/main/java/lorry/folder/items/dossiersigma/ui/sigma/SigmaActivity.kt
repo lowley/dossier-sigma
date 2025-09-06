@@ -15,7 +15,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -32,9 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -57,7 +54,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -80,8 +76,6 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
-import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.startDaemon
-import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.stopDaemon
 import lorry.folder.items.dossiersigma.headless.folderContent.ReloadType
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
@@ -602,54 +596,47 @@ class SigmaActivity : ComponentActivity() {
                                         "realF:${realFreshness.hashCode()}, theo:${theoricalFreshness.hashCode()}"
                                     )
 
-                                    Button(
-                                        modifier = Modifier,
-                                        onClick = {
-                                            if (isRunning.value)
-                                                ctx.stopDaemon()
-                                            else
-                                                ctx.startDaemon()
-                                        }
-                                    ) {
-                                        val reloadType =
-                                            mainViewModel.folderContentComponent.reloadType.collectAsState()
+//                                    Button(
+//                                        modifier = Modifier,
+//                                        onClick = {
+//                                            if (isRunning.value)
+//                                                ctx.stopDaemon()
+//                                            else
+//                                                ctx.startDaemon()
+//                                        }
+//                                    ) {
+                                    val reloadType =
+                                        mainViewModel.folderContentComponent.reloadType.collectAsState()
 
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(5.dp))
-                                                .background(
-                                                    if (isRunning.value) Color.Green else Color.Red
-                                                )
-//                                                .border(
-//                                                    1.dp,
-//                                                    lerp(
-//                                                        SigmaColors.current.secondary,
-//                                                        SigmaColors.current.primary,
-//                                                        0.7f
-//                                                    ),
-//                                                    shape = RoundedCornerShape(5.dp)
-//                                                )
-                                                .border(
-                                                    2.dp,
-                                                    color = when (reloadType.value) {
-                                                        ReloadType.Disk -> Color.Red
-                                                        ReloadType.Cache -> Color.Green
-                                                        ReloadType.Room -> Color.Yellow
-                                                        else -> Color.Black
-                                                    },
-//                                                    if (realFreshness?.isSameAs(theoricalFreshness ?: FolderFreshness.DUMMY) == true)
-//                                                        Color.Green else Color.Red,
-                                                    shape = RoundedCornerShape(5.dp)
-                                                )
-                                        ) {
-                                            Text(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 5.dp, vertical = 2.dp),
-                                                text = if (isRunning.value) "stop" else "start",
-                                                color = SigmaColors.current.onSecondary
-                                            )
-                                        }
+                                    val reloadIcon = when (reloadType.value) {
+                                        ReloadType.Disk -> R.drawable.disquette
+                                        ReloadType.Cache -> R.drawable.cpu
+                                        ReloadType.Room -> R.drawable.horloge
+                                        else -> R.drawable.point_dinterrogation
                                     }
+
+                                    Icon(
+                                        modifier = Modifier
+                                            .padding(end = 10.dp)
+                                            .size(20.dp)
+                                            .pointerInput(true) {
+                                                detectTapGestures(
+                                                    onTap = {
+
+                                                    }
+                                                )
+                                            },
+                                        painter = painterResource(reloadIcon),
+                                        tint = when (reloadType.value) {
+                                            ReloadType.Disk -> Color.Red
+                                            ReloadType.Cache -> Color.Green
+                                            ReloadType.Room -> Color.Yellow
+                                            else -> Color.Black
+                                        },
+                                        contentDescription = null
+                                    )
+
+//
 
                                     if (nasText != "1 -> NAS")
                                         Text(

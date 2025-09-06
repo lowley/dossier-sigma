@@ -1,9 +1,11 @@
 package lorry.folder.items.dossiersigma.headless.favoriteObservation.service
 
+import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.FileObserver
@@ -292,9 +294,34 @@ fun Context.ensureDaemonChannel() {
     mgr.createNotificationChannel(ch)
 }
 
+fun Context.isServiceRunning(serviceClass: Class<out Service>): Boolean {
+    val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    @Suppress("DEPRECATION")
+    for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+        if (serviceClass.name == service.service.className) {
+            return true
+        }
+    }
+    return false
+}
+
 fun Context.startDaemon() {
-    val i = Intent(this, DaemonService::class.java)
-    startForegroundService(i)
+
+    val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    var exists = false
+
+    for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+        if (DaemonService::class.java.name == service.service.className) {
+            exists = true
+        }
+    }
+
+    Log.d("FldSig", "at startup, daemon service exists?: $exists")
+
+    if (!exists) {
+        val i = Intent(this, DaemonService::class.java)
+        startForegroundService(i)
+    }
 }
 
 fun Context.stopDaemon() {
