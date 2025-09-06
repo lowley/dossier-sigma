@@ -48,9 +48,11 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,7 +73,7 @@ import com.leinardi.android.speeddial.compose.SpeedDialOverlay
 import com.leinardi.android.speeddial.compose.SpeedDialState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -412,8 +414,36 @@ class SigmaActivity : ComponentActivity() {
                                     // Home button //
                                     /////////////////
 
+                                    var reloadType =
+                                        mainViewModel.folderContentComponent.reloadType.collectAsState()
+                                    var secondary = SigmaColors.current.secondary
+
+                                    var reloadIcon by remember { mutableIntStateOf(R.drawable.mouvement) }
+                                    var reloadColor by remember { mutableStateOf(secondary) }
+
+                                    LaunchedEffect(reloadType.value) {
+                                        reloadIcon = when (reloadType.value) {
+                                            ReloadType.Disk -> R.drawable.disquette
+                                            ReloadType.Cache -> R.drawable.cpu
+                                            ReloadType.Room -> R.drawable.cloche
+                                            else -> R.drawable.mouvement
+                                        }
+
+                                        reloadColor = when (reloadType.value) {
+                                            ReloadType.Disk -> Color.Red
+                                            ReloadType.Cache -> Color.Green
+                                            ReloadType.Room -> Color.Yellow
+                                            else -> secondary
+                                        }
+
+                                        delay(5_000)
+                                        reloadIcon = R.drawable.mouvement
+                                        reloadColor = secondary
+                                    }
+
                                     HomeButtonIcon(
-                                        icon = R.drawable.mouvement
+                                        icon = reloadIcon,
+                                        tint = reloadColor,
                                     ) {
                                         if (!homePageVisible) {
 //                                            mainViewModel.folderContentComponent.manuallyInvalidateItems()
@@ -575,66 +605,67 @@ class SigmaActivity : ComponentActivity() {
                                             }
                                         }
                                 ) {
-                                    val ctx = LocalContext.current
-                                    val isRunning =
-                                        settingsViewModel.settings.isFileObserverEnabledFlow.collectAsState(
-                                            initial = false
-                                        )
-                                    val realFreshness by
-                                    settingsViewModel.settings.testFreshnessFlow.collectAsState(
-                                        null
-                                    )
-                                    val theoricalFreshness by
-                                    mainViewModel.folderContentComponent.folderCacheFlow
-                                        .map {
-                                            it[mainViewModel.folderContentComponent.currentFolderFlow.value?.fullPath]
-                                                ?.freshness
-                                        }.collectAsState(null)
-
-                                    Log.d(
-                                        "SigmaActivitos",
-                                        "realF:${realFreshness.hashCode()}, theo:${theoricalFreshness.hashCode()}"
-                                    )
-
-//                                    Button(
-//                                        modifier = Modifier,
-//                                        onClick = {
-//                                            if (isRunning.value)
-//                                                ctx.stopDaemon()
-//                                            else
-//                                                ctx.startDaemon()
-//                                        }
-//                                    ) {
-                                    val reloadType =
-                                        mainViewModel.folderContentComponent.reloadType.collectAsState()
-
-                                    val reloadIcon = when (reloadType.value) {
-                                        ReloadType.Disk -> R.drawable.disquette
-                                        ReloadType.Cache -> R.drawable.cpu
-                                        ReloadType.Room -> R.drawable.horloge
-                                        else -> R.drawable.point_dinterrogation
-                                    }
-
-                                    Icon(
-                                        modifier = Modifier
-                                            .padding(end = 10.dp)
-                                            .size(20.dp)
-                                            .pointerInput(true) {
-                                                detectTapGestures(
-                                                    onTap = {
-
-                                                    }
-                                                )
-                                            },
-                                        painter = painterResource(reloadIcon),
-                                        tint = when (reloadType.value) {
-                                            ReloadType.Disk -> Color.Red
-                                            ReloadType.Cache -> Color.Green
-                                            ReloadType.Room -> Color.Yellow
-                                            else -> Color.Black
-                                        },
-                                        contentDescription = null
-                                    )
+//                                    val ctx = LocalContext.current
+//                                    val isRunning =
+//                                        settingsViewModel.settings.isFileObserverEnabledFlow.collectAsState(
+//                                            initial = false
+//                                        )
+//                                    val realFreshness by
+//                                    settingsViewModel.settings.testFreshnessFlow.collectAsState(
+//                                        null
+//                                    )
+//                                    val theoricalFreshness by
+//                                    mainViewModel.folderContentComponent.folderCacheFlow
+//                                        .map {
+//                                            it[mainViewModel.folderContentComponent.currentFolderFlow.value?.fullPath]
+//                                                ?.freshness
+//                                        }.collectAsState(null)
+//
+//                                    Log.d(
+//                                        "SigmaActivitos",
+//                                        "realF:${realFreshness.hashCode()}, theo:${theoricalFreshness.hashCode()}"
+//                                    )
+//
+////                                    Button(
+////                                        modifier = Modifier,
+////                                        onClick = {
+////                                            if (isRunning.value)
+////                                                ctx.stopDaemon()
+////                                            else
+////                                                ctx.startDaemon()
+////                                        }
+////                                    ) {
+//
+//                                    val reloadType =
+//                                        mainViewModel.folderContentComponent.reloadType.collectAsState()
+//
+//                                    val reloadIcon = when (reloadType.value) {
+//                                        ReloadType.Disk -> R.drawable.disquette
+//                                        ReloadType.Cache -> R.drawable.cpu
+//                                        ReloadType.Room -> R.drawable.horloge
+//                                        else -> R.drawable.point_dinterrogation
+//                                    }
+//
+//                                    Icon(
+//                                        modifier = Modifier
+//                                            .padding(end = 10.dp)
+//                                            .size(20.dp)
+//                                            .pointerInput(true) {
+//                                                detectTapGestures(
+//                                                    onTap = {
+//
+//                                                    }
+//                                                )
+//                                            },
+//                                        painter = painterResource(reloadIcon),
+//                                        tint = when (reloadType.value) {
+//                                            ReloadType.Disk -> Color.Red
+//                                            ReloadType.Cache -> Color.Green
+//                                            ReloadType.Room -> Color.Yellow
+//                                            else -> Color.Black
+//                                        },
+//                                        contentDescription = null
+//                                    )
 
 //
 
