@@ -30,6 +30,7 @@ import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
 import lorry.folder.items.dossiersigma.headless.folderContent.FolderCacheEntry
+import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
@@ -51,6 +52,9 @@ class DaemonService : LifecycleService() {
     @Inject
     lateinit var diskRepository: IDiskRepository
 
+    @Inject
+    lateinit var folderContentComponent: IFolderContentComponent
+
     private var fileObserver: SigmaFileObserver? = null
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Default + job)
@@ -59,6 +63,8 @@ class DaemonService : LifecycleService() {
 
     private var currentNotificationColor: Color = Color.Red
     private var latestNotificationMessage: String? = null
+
+    val dao = FolderCacheEntryDB.get(this)
 
     override fun onCreate() {
         super.onCreate()
@@ -88,17 +94,17 @@ class DaemonService : LifecycleService() {
         val favorites = settingsManager.homeItemsFlow.firstOrNull()
         val currentAppFolder = settingsManager.currentPathFlow.first()
 
-        val directories = (favorites?.map { it.path }
+        val favoriteDirs = (favorites?.map { it.path }
             ?: LazyStringArrayList.emptyList() + currentAppFolder).filterNotNull()
-        Log.d(TAG, "envoi initial de ${directories.size} dossiers...")
+        Log.d(TAG, "envoi initial de ${favoriteDirs.size} dossiers...")
 
-        val dups = directories.groupBy { it }.filterValues { it.size > 1 }
+        val dups = favoriteDirs.groupBy { it }.filterValues { it.size > 1 }
         Log.d(
             TAG,
-            "paths=${directories.size}, distinct=${directories.distinct().size}, dups=${dups.keys}"
+            "paths=${favoriteDirs.size}, distinct=${favoriteDirs.distinct().size}, dups=${dups.keys}"
         )
 
-        for (path in directories) {
+        for (path in favoriteDirs) {
             computeAndSendFreshness(path, currentAppFolder)
         }
         Log.d(TAG, "envoi initial terminé")
@@ -129,12 +135,53 @@ class DaemonService : LifecycleService() {
         if (path != null) {
             val favorites = settingsManager.homeItemsFlow.firstOrNull()
             val currentAppFolder = settingsManager.currentPathFlow.first()
+            val parent = path.substringBeforeLast("/")
+
+            val isFile = File(path).isFile
+            val isFavorite = favorites?.any { it.path == path } ?: false
+            fun String.isCurrent() = currentAppFolder == this
 
             val eventType = convertEvent(event)
             updateNotification("$path : ${eventType.message}")
 
-            computeAndSendFreshness(path, currentAppFolder)
+            var CSRPath = false
+            var CSRParent = false
+
+            //algo
+            if (parent.isInRoom() || parent.isCurrent())
+                CSRParent = true
+
+            if (!isFile) {
+                if (path.isCurrent() || path.isInRoom())
+                    CSRPath = true
+            }
+
+            if (CSRPath) {
+                Log.d(
+                    TAG,
+                    "service envoie dans room: path=${path.substringAfterLast("/")}, isCurrent=${path.isCurrent()}, isInRoom=${path.isInRoom()}"
+                )
+                computeAndSendFreshness(path, currentAppFolder)
+            }
+
+            if (CSRParent) {
+                Log.d(
+                    TAG,
+                    "service envoie pour ${path.substringAfterLast("/")} dans room: parent=${
+                        parent.substringAfterLast("/")
+                    }, isCurrent=${parent.isCurrent()}, isInRoom=${parent.isInRoom()}"
+                )
+                computeAndSendFreshness(parent, currentAppFolder)
+            }
         }
+    }
+
+    suspend fun String.isInRoom(): Boolean {
+        return dao.getByPath(
+            path = this,
+            ctx = this@DaemonService,
+            scope = scope
+        ) != null
     }
 
     private suspend fun computeAndSendFreshness(path: String, currentAppFolder: String?) {
@@ -338,7 +385,7 @@ sealed class EventType(val message: String) {
     object CREATE : EventType("fichier/dossier créé")
     object DELETE : EventType("supprimé ")
     object MODIFY : EventType("contenu modifié")
-    object MOVED_FROM : EventType("déplacé/renommé depuis ce dossier")
+    object MOVED_FROM : EventType("déplacé/renommé ce fichier/depuis ce dossier")
     object MOVED_TO : EventType("déplacé/renommé vers ce dossier")
     object ATTRIB : EventType("métadonnées changées")
     object CLOSE_WRITE : EventType("fermé après écriture")

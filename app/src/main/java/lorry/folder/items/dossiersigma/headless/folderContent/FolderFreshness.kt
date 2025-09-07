@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.headless.folderContent
 
+import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -29,9 +30,28 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
     override fun hashCode(): Int {
         var result = path.hashCode()
         result = 31 * result + containerMtime.hashCode()
-        result = 31 * result + contentsMaxMtime.hashCode()
+        result = 37 * result + contentsMaxMtime.hashCode()
         return result
     }
 
+    override fun toString(): String {
+        return "FolderFreshness(path='$path', hashCode=${hashCode()})"
+    }
 
+
+}
+
+@OptIn(ExperimentalTime::class)
+fun SigmaFolder.computeFreshness(): FolderFreshness {
+    val containerMTime = Instant.fromEpochMilliseconds(this.modificationDate)
+    val contentMTime = this.items.maxBy { item ->
+        item.modificationDate
+    }.let { Instant.fromEpochMilliseconds(it.modificationDate) }
+    val path = this.path
+
+    return FolderFreshness(
+        path = path,
+        containerMtime = containerMTime,
+        contentsMaxMtime = contentMTime,
+    )
 }

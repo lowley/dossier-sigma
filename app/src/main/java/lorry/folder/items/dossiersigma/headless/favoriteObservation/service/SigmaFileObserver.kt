@@ -20,7 +20,7 @@ class SigmaFileObserver(
             FileObserver.MOVED_FROM,
     {
         val event = it.event
-        val path = it.childPath
+        val path = it.absolute.absolutePath
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
         scope.launch {

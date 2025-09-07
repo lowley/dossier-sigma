@@ -420,7 +420,7 @@ class SigmaActivity : ComponentActivity() {
                                     var stuff by remember { mutableStateOf(R.drawable.mouvement to secondary) }
 
                                     LaunchedEffect(reloadType.value) {
-                                        Log.d("reloadIcon", "reloadType: ${reloadType.value}, path: ${currentPath.value}")
+                                        Log.d("reloadIcon", "HomeButton: reloadType: ${reloadType.value.first}, path: ${currentPath.value}")
 
                                         val reloadIcon = when (reloadType.value.first) {
                                             ReloadType.Disk -> R.drawable.disquette

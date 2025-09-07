@@ -124,23 +124,6 @@ class FolderContentComponent @Inject constructor(
         dao.folderCacheEntryRepository()
             .getFlowByPath(path) // Flow<FolderCacheEntry?>
             .map { entry ->
-                Log.d("room", "étude flux émis par room: recherche mémos")
-
-                val filteredWithMemo = entry?.folder?.items?.filter { item ->
-                    item.memo != null
-                } ?: emptyList()
-
-                if (filteredWithMemo.size > 0)
-                    Log.d(
-                        "room",
-                        "   -> dans ${path.substringAfterLast("/")}, il y a ${filteredWithMemo.size} éléments avec mémo non vide"
-                    )
-                else
-                    Log.d(
-                        "room",
-                        "   -> dans ${path.substringAfterLast("/")}, pas d' élément avec mémo non vide"
-                    )
-
                 entry?.let { DbState.Data(it) } ?: DbState.NotFound
             }
             .onStart {
@@ -157,7 +140,7 @@ class FolderContentComponent @Inject constructor(
     private fun folderContentFlow(params: Params): Flow<SigmaFolder?> = flow {
         val (origin, latestPath, flagId, savedEntry) = params
         // 1) Placeholder immédiat (vide l’écran)
-        emit(null)
+//        emit(null)
 
         Log.d(
             "fldDec",
@@ -199,7 +182,7 @@ class FolderContentComponent @Inject constructor(
 
         Log.d(
             "fldDec",
-            "   -> PRISE DE DECISION: diskFreshness:$diskFresh, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:$cachedFolderFreshness"
+            "   folderContentFlow -> ELEMENTS DECISION: diskFreshness:${diskFresh.hashCode()}, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:${cachedFolderFreshness.hashCode()}"
         )
 
         // 3) Sélection de la source (cache-first si pas plus vieux)
@@ -209,7 +192,7 @@ class FolderContentComponent @Inject constructor(
             cacheAndRoomEquality -> ReloadType.Cache
             roomOk -> ReloadType.Room
             cacheInclusion && cacheAndDiskEquality -> ReloadType.Cache
-            else -> ReloadType.Disk
+            else -> ReloadType.NONE
         }
 
         Log.d("fldDec", "   -> decision:$decision")
@@ -229,7 +212,7 @@ class FolderContentComponent @Inject constructor(
                             .thenByDescending { it.modificationDate })
                 }.let { items -> if (flagId == null) items else items.filter { it.tag?.id == flagId } }
 
-                Log.d("fldDec", "   -> fin calcul du cache et émission du flow")
+                Log.d("fldDec", "   folderContentFlow -> fin calcul du cache et émission du flow. items traités(${newItems.size}), flagId:$flagId")
                 emit(cacheEntry.folder.copy(items = newItems))
                 setReloadType(ReloadType.Cache)
             }
@@ -253,7 +236,7 @@ class FolderContentComponent @Inject constructor(
 
                 Log.d(
                     "fldDec",
-                    "   -> fin calcul de room et émission du flow. items:bruts(${serviceItems.size}), traités(${newItems.size}), flagId:$flagId"
+                    "   folderContentFlow -> fin calcul de room et émission du flow. items traités(${newItems.size}), flagId:$flagId, freshness 1:${serviceFolder.computeFreshness().hashCode()}, freshness 2:${folderEntry.freshness.hashCode()}"
                 )
                 emit(serviceFolder.copy(items = newItems))
                 setReloadType(ReloadType.Room)
@@ -269,33 +252,35 @@ class FolderContentComponent @Inject constructor(
                             .runningFold(emptyList<Item>()) { acc, it -> acc + it }
                             .flowOn(Dispatchers.IO)
                             .onStart {
-                                Log.d("fldDec", "   -> début émission flow issu du disque")
+                                Log.d("fldDec", "   folderContentFlow -> début émission flow issu du disque")
                             }
                             .onEach { items -> lastItems = items }
                             .onCompletion { cause ->
+                                val realFresh = diskRepository.getFolderFreshness(latestPath)
+                                val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
+                                    lastItems,
+                                    latestPath
+                                )
+                                val fc = FolderCacheEntry(
+                                    folder = folder,
+                                    sort = sort,
+                                    freshness = realFresh,
+                                    path = folder.fullPath
+                                )
+
                                 if (cause == null) {
                                     // FIN NORMALE -> MAJ cache ATOMIQUE
-                                    val realFresh = diskRepository.getFolderFreshness(latestPath)
-                                    val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
-                                        lastItems,
-                                        latestPath
-                                    )
-                                    val fc = FolderCacheEntry(
-                                        folder = folder,
-                                        sort = sort,
-                                        freshness = realFresh,
-                                        path = folder.fullPath
-                                    )
+
                                     val snapshot = folderCacheFlow.value.toMutableMap()
                                         .apply { put(latestPath, fc) }
                                     _folderCacheFlow.value = snapshot
                                 } else {
                                     Log.d(
                                         "fldDec",
-                                        "   -> fin disque interrompue (cause=$cause) : cache intact"
+                                        "   folderContentFlow -> fin disque interrompue (cause=$cause) : cache intact"
                                     )
                                 }
-                                Log.d("fldDec", "   -> fin émission flow issu du disque")
+                                Log.d("fldDec", "   -> fin émission flow issu du disque. items envoyés: ${lastItems.size}. freshness:${realFresh.hashCode()}")
                             }
                             .map { items ->
                                 val filtered =
@@ -304,14 +289,13 @@ class FolderContentComponent @Inject constructor(
                             }
                             .collect { emit(it) }
                     }
-
                 )
             }
 
             else -> {
-                Log.d("fldDec", "   -> émission valeurs DUMMY + ReloadType.NONE ???")
-                emit(SigmaFolder.DUMMY)
-                setReloadType(ReloadType.NONE)
+//                Log.d("fldDec", "   -> émission valeurs DUMMY + ReloadType.NONE ???")
+//                emit(SigmaFolder.DUMMY)
+//                setReloadType(ReloadType.NONE)
             }
         }
 
