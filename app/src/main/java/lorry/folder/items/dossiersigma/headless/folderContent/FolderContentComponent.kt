@@ -357,11 +357,11 @@ class FolderContentComponent @Inject constructor(
         }
     }
 
-    val _reloadType = MutableStateFlow(ReloadType.NONE)
+    val _reloadType = MutableStateFlow(ReloadType.NONE to UUID.randomUUID())
     override val reloadType = _reloadType.asStateFlow()
 
     override fun setReloadType(type: ReloadType) {
-        _reloadType.update { type }
+        _reloadType.update { type to UUID.randomUUID() }
     }
 }
 

@@ -48,7 +48,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -418,32 +417,34 @@ class SigmaActivity : ComponentActivity() {
                                         mainViewModel.folderContentComponent.reloadType.collectAsState()
                                     var secondary = SigmaColors.current.secondary
 
-                                    var reloadIcon by remember { mutableIntStateOf(R.drawable.mouvement) }
-                                    var reloadColor by remember { mutableStateOf(secondary) }
+                                    var stuff by remember { mutableStateOf(R.drawable.mouvement to secondary) }
 
                                     LaunchedEffect(reloadType.value) {
-                                        reloadIcon = when (reloadType.value) {
+                                        Log.d("reloadIcon", "reloadType: ${reloadType.value}, path: ${currentPath.value}")
+
+                                        val reloadIcon = when (reloadType.value.first) {
                                             ReloadType.Disk -> R.drawable.disquette
                                             ReloadType.Cache -> R.drawable.cpu
                                             ReloadType.Room -> R.drawable.cloche
                                             else -> R.drawable.mouvement
                                         }
 
-                                        reloadColor = when (reloadType.value) {
+                                        val reloadColor = when (reloadType.value.first) {
                                             ReloadType.Disk -> Color.Red
                                             ReloadType.Cache -> Color.Green
                                             ReloadType.Room -> Color.Yellow
                                             else -> secondary
                                         }
 
+                                        stuff = reloadIcon to reloadColor
+
                                         delay(5_000)
-                                        reloadIcon = R.drawable.mouvement
-                                        reloadColor = secondary
+
+                                        stuff = R.drawable.mouvement to secondary
                                     }
 
                                     HomeButtonIcon(
-                                        icon = reloadIcon,
-                                        tint = reloadColor,
+                                        stuff = stuff
                                     ) {
                                         if (!homePageVisible) {
 //                                            mainViewModel.folderContentComponent.manuallyInvalidateItems()

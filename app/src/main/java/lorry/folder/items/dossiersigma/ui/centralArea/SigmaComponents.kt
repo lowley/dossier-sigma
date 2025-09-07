@@ -17,8 +17,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 @Composable
 context(RowScope)
 fun HomeButtonIcon(
-    icon: Int,
-    tint: Color,
+    stuff: Pair<Int,Color>,
     onTapAction: (Offset) -> Unit,
 ){
     MorphingIcon(
@@ -35,10 +34,10 @@ fun HomeButtonIcon(
                 end = 5.dp
             )
             .align(Alignment.Companion.CenterVertically),
-        current = icon,
+        current = stuff.first,
         size = 35.dp,
         durationMs = 620,
-        tint = tint,
+        tint = stuff.second,
     )
 
 //    Icon(

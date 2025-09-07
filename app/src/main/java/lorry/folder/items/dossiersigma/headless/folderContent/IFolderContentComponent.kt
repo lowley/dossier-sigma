@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
+import java.util.UUID
 
 interface IFolderContentComponent{
 
@@ -32,7 +33,7 @@ interface IFolderContentComponent{
     /////////////////////////////////////////////////////
     // suivi du type de reload pour le dossier courant //
     /////////////////////////////////////////////////////
-    val reloadType: StateFlow<ReloadType>
+    val reloadType: StateFlow<Pair<ReloadType, UUID>>
     fun setReloadType(type: ReloadType)
 
     fun manuallyInvalidateItems()

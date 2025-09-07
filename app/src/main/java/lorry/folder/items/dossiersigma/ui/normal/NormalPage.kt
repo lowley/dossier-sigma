@@ -62,7 +62,7 @@ fun NormalPage(
                 .padding(
                     start = 0.dp,
                     end = 0.dp,
-                    top = 0.dp,
+                    top = 10.dp,
                     bottom = 0.dp
                 )
         ) {

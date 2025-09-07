@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -90,7 +91,8 @@ fun SigmaActivity.SigmaFAB(
         ) {
 
             SpeedDial(
-                modifier = Modifier,
+                modifier = Modifier
+                    .alpha(0.6f),
                 state = fabState.value,
                 fabOpenedBackgroundColor = SigmaColors.current.secondary,
                 fabOpenedContentColor = SigmaColors.current.onSecondary,
