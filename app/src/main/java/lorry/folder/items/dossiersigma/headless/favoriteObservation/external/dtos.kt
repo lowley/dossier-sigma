@@ -16,6 +16,7 @@ data class PersistedItem(
     val picture: PictureStore?,
     val isFolder: Boolean,
     val fullPath: String,
+    val memo: String? = null
 //    val scale: ContentScale?
 )
 

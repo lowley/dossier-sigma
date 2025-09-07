@@ -36,7 +36,8 @@ object SigmaFolderMapping {
                     tagId = Gson().toJson(item.tag),
                     picture = pic,
                     isFolder = item.isFolder(),
-                    fullPath = item.fullPath
+                    fullPath = item.fullPath,
+                    memo = item.memo
                 )
             },
             meta = mapOf("name" to f.name) /* si tu as des métadonnées simples */
@@ -63,7 +64,8 @@ object SigmaFolderMapping {
                     picture = any,
                     fullPath = pi.fullPath,
                     scale = null,
-                    items = emptyList()
+                    items = emptyList(),
+                    memo = pi.memo
                 )
             else
                 SigmaFile(
@@ -72,7 +74,8 @@ object SigmaFolderMapping {
                     tag = pi.tagId?.let { Gson().fromJson(it, ColoredTag::class.java) },
                     picture = any,
                     fullPath = pi.fullPath,
-                    scale = null
+                    scale = null,
+                    memo = pi.memo
                 )
         }
 

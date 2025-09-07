@@ -68,9 +68,11 @@ fun SigmaActivity.MemoEditor(
 
         val selectedItemMemo by remember {
             derivedStateOf {
-                mainViewModel.folderContentComponent
-                    .currentFolderFlow?.value
+                val memo = mainViewModel.folderContentComponent
+                    .currentFolderFlow.value?.items
+                    ?.firstOrNull { it.fullPath == mainViewModel?.selectedItemFullPath?.value }
                     ?.memo
+                memo
             }
         }
 

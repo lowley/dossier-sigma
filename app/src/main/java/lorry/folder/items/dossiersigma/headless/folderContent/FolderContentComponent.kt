@@ -86,7 +86,9 @@ class FolderContentComponent @Inject constructor(
 
     private val _fastPath = MutableStateFlow<String?>(null)
     override val fastPath: StateFlow<String?> = _fastPath
-    override fun setFastPath(path: String?) { _fastPath.value = path }
+    override fun setFastPath(path: String?) {
+        _fastPath.value = path
+    }
 
     ///////////////////
     // reload manuel //
@@ -121,7 +123,26 @@ class FolderContentComponent @Inject constructor(
     private fun currentDatabaseFolderCacheEntryFor(path: String): Flow<DbState> =
         dao.folderCacheEntryRepository()
             .getFlowByPath(path) // Flow<FolderCacheEntry?>
-            .map { entry -> entry?.let { DbState.Data(it) } ?: DbState.NotFound }
+            .map { entry ->
+                Log.d("room", "étude flux émis par room: recherche mémos")
+
+                val filteredWithMemo = entry?.folder?.items?.filter { item ->
+                    item.memo != null
+                } ?: emptyList()
+
+                if (filteredWithMemo.size > 0)
+                    Log.d(
+                        "room",
+                        "   -> dans ${path.substringAfterLast("/")}, il y a ${filteredWithMemo.size} éléments avec mémo non vide"
+                    )
+                else
+                    Log.d(
+                        "room",
+                        "   -> dans ${path.substringAfterLast("/")}, pas d' élément avec mémo non vide"
+                    )
+
+                entry?.let { DbState.Data(it) } ?: DbState.NotFound
+            }
             .onStart {
 //                Log.d("PathCrspd", "lecture room de path=${path.substringAfterLast("/")}...")
                 emit(DbState.Loading)
@@ -138,7 +159,10 @@ class FolderContentComponent @Inject constructor(
         // 1) Placeholder immédiat (vide l’écran)
         emit(null)
 
-        Log.d("fldDec", "origin:$origin, latestPath:$latestPath, savedEntry:$savedEntry, flagId:$flagId")
+        Log.d(
+            "fldDec",
+            "origin:$origin, latestPath:$latestPath, savedEntry:$savedEntry, flagId:$flagId"
+        )
 
         if (latestPath == null) return@flow
 
@@ -164,14 +188,19 @@ class FolderContentComponent @Inject constructor(
         val roomOk = savedEntry.let {
             it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(
                 diskFresh
-            ) } == true
+            )
+        } == true
 
         val cacheAndRoomEquality = cacheInclusion && savedEntry.let {
             it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(
                 cachedFolderFreshness
-            ) } == true
+            )
+        } == true
 
-        Log.d("fldDec", "   -> PRISE DE DECISION: diskFreshness:$diskFresh, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:$cachedFolderFreshness")
+        Log.d(
+            "fldDec",
+            "   -> PRISE DE DECISION: diskFreshness:$diskFresh, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:$cachedFolderFreshness"
+        )
 
         // 3) Sélection de la source (cache-first si pas plus vieux)
         val decision = when {
@@ -222,7 +251,10 @@ class FolderContentComponent @Inject constructor(
                             .thenByDescending { it.modificationDate })
                 }.let { items -> if (flagId == null) items else items.filter { it.tag?.id == flagId } }
 
-                Log.d("fldDec", "   -> fin calcul de room et émission du flow. items:bruts(${serviceItems.size}), traités(${newItems.size}), flagId:$flagId")
+                Log.d(
+                    "fldDec",
+                    "   -> fin calcul de room et émission du flow. items:bruts(${serviceItems.size}), traités(${newItems.size}), flagId:$flagId"
+                )
                 emit(serviceFolder.copy(items = newItems))
                 setReloadType(ReloadType.Room)
             }
@@ -244,22 +276,30 @@ class FolderContentComponent @Inject constructor(
                                 if (cause == null) {
                                     // FIN NORMALE -> MAJ cache ATOMIQUE
                                     val realFresh = diskRepository.getFolderFreshness(latestPath)
-                                    val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(lastItems, latestPath)
+                                    val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
+                                        lastItems,
+                                        latestPath
+                                    )
                                     val fc = FolderCacheEntry(
                                         folder = folder,
                                         sort = sort,
                                         freshness = realFresh,
                                         path = folder.fullPath
                                     )
-                                    val snapshot = folderCacheFlow.value.toMutableMap().apply { put(latestPath, fc) }
+                                    val snapshot = folderCacheFlow.value.toMutableMap()
+                                        .apply { put(latestPath, fc) }
                                     _folderCacheFlow.value = snapshot
                                 } else {
-                                    Log.d("fldDec", "   -> fin disque interrompue (cause=$cause) : cache intact")
+                                    Log.d(
+                                        "fldDec",
+                                        "   -> fin disque interrompue (cause=$cause) : cache intact"
+                                    )
                                 }
                                 Log.d("fldDec", "   -> fin émission flow issu du disque")
                             }
                             .map { items ->
-                                val filtered = if (flagId == null) items else items.filter { it.tag?.id == flagId }
+                                val filtered =
+                                    if (flagId == null) items else items.filter { it.tag?.id == flagId }
                                 SigmaFolder.ofItemsAndPersistedSigmaFolder(filtered, latestPath)
                             }
                             .collect { emit(it) }
@@ -443,10 +483,10 @@ private fun <A, B, C, D, R> combineWithSource4(
 ): Flow<Pair<Origin, R>> {
 
     // 1) Partager chaque source (replay=1 pour "latest()" immédiat)
-    val flagS   = currentFlagId.shared(scope)
+    val flagS = currentFlagId.shared(scope)
     val savedS0 = savedEntry.shared(scope)
-    val refS    = refreshReloadTrigger.shared(scope)
-    val relS    = reloadTrigger.shared(scope)
+    val refS = refreshReloadTrigger.shared(scope)
+    val relS = reloadTrigger.shared(scope)
 
     // 2) Filtre commun pour SAVED_ENTRY: on écarte Loading
 //    val savedIsNotLoading: (Any?) -> Boolean = { b ->

@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -93,15 +92,15 @@ fun ItemComponent(
 
     ) {
 
-    val memo by mainViewModel.folderContentComponent.currentFolderFlow
-        .map { folder -> folder?.memo }
-        .collectAsState(initial = "")
+//    val memo by mainViewModel.folderContentComponent.currentFolderFlow
+//        .map { folder -> folder?.memo }
+//        .collectAsState(initial = "")
 
-    val memoEmpty by remember {
-        derivedStateOf {
-            memo?.isEmpty() ?: true
-        }
-    }
+    if (item.fullPath.contains("darkness"))
+        println("ok")
+
+    val memo = item.memo
+    val memoEmpty = memo?.isEmpty() ?: true
 
     val tag by mainViewModel.folderContentComponent.currentFolderFlow
         .map { folder -> folder?.tag }
