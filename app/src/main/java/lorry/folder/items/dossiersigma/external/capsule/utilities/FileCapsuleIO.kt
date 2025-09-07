@@ -122,7 +122,7 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
                     firstSeekTail.substring(firstSeekStartIndex + START_LENGTH.length, firstSeekEndIndex)
                         .trim().toLong()
                 else 0L
-            println("recherche length pour fichier ${filePath.substringAfterLast("/")}: $firstSeekResult")
+//            println("recherche length pour fichier ${filePath.substringAfterLast("/")}: $firstSeekResult")
 
             //////////////////////////
             // lecture du composite //
@@ -183,7 +183,7 @@ class FileCapsuleIO @Inject constructor() : ICapsuleIO{
                 firstSeekTail.substring(firstSeekStartIndex + START_LENGTH.length, firstSeekEndIndex).trim()
                     .toLong()
             else 0L
-        println("FICHIER ${filePath.substringAfterLast("/")}\t(${File(filePath).length()})\tcomposite $firstSeekResult")
+//        println("FICHIER ${filePath.substringAfterLast("/")}\t(${File(filePath).length()})\tcomposite $firstSeekResult")
 
         ////////////////////////
         // lecture du capsule //

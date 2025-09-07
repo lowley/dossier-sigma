@@ -36,8 +36,8 @@ class FileMetadataManager() : ICapsuleIO {
 
     private suspend fun readExistingMetadataInfo(raf: RandomAccessFile, fileLength: Long, fileName: String): ParsedMetadata? {
         if (fileLength < METADATA_LENGTH_LOOKBACK_BUFFER_SIZE) {
-            println("SIGMALOG Fichier $fileName readExistingMetadataInfo:  trop petit pour les balises de " +
-                    "longueur de métadonnées.")
+//            println("SIGMALOG Fichier $fileName readExistingMetadataInfo:  trop petit pour les balises de " +
+//                    "longueur de métadonnées.")
             return null
         }
 
@@ -52,17 +52,17 @@ class FileMetadataManager() : ICapsuleIO {
         val totalMetadataByteLengthString =
             extractLastContent(lengthSectionContent, START_METADATA_LENGTH_TAG, END_METADATA_LENGTH_TAG)
         if (totalMetadataByteLengthString == null) {
-            println("SIGMALOG fichier $fileName readExistingMetadataInfo:  Balises de longueur totale des " +
-                    "métadonnées " +
-                    "non trouvées.")
+//            println("SIGMALOG fichier $fileName readExistingMetadataInfo:  Balises de longueur totale des " +
+//                    "métadonnées " +
+//                    "non trouvées.")
             return null
         }
         val totalMetadataByteLength = totalMetadataByteLengthString.trim().toLongOrNull()
         if (totalMetadataByteLength == null || totalMetadataByteLength <= 0) {
-            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Longueur totale des métadonnées" +
-                    " " +
-                    "invalide: " +
-                    "'$totalMetadataByteLengthString'")
+//            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Longueur totale des métadonnées" +
+//                    " " +
+//                    "invalide: " +
+//                    "'$totalMetadataByteLengthString'")
             return null
         }
 
@@ -76,8 +76,8 @@ class FileMetadataManager() : ICapsuleIO {
             fileLength - actualLengthBlockBytesSize - totalMetadataByteLength
 
         if (actualCapsuleBlockStartOffset < 0 || totalMetadataByteLength > fileLength) {
-            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Calcul d'offset de métadonnées " +
-                    "invalide.")
+//            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Calcul d'offset de métadonnées " +
+//                    "invalide.")
             return null
         }
 
@@ -97,9 +97,9 @@ class FileMetadataManager() : ICapsuleIO {
             !capsuleBlockBuffer.copyOfRange(jsonEndOffset, capsuleBlockBuffer.size)
                 .contentEquals(END_CAPSULE_TAG_BYTES)
         ) {
-            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Balises de composite non " +
-                    "trouvées ou " +
-                    "corrompues dans le bloc lu.")
+//            println("SIGMALOG fichier $fileName readExistingMetadataInfo: , Balises de composite non " +
+//                    "trouvées ou " +
+//                    "corrompues dans le bloc lu.")
             // Cela pourrait indiquer un problème avec totalMetadataByteLength stocké
             return null
         }
@@ -110,9 +110,9 @@ class FileMetadataManager() : ICapsuleIO {
         val capsuleData = try {
             gson.fromJson(capsuleJsonString, CapsuleData::class.java)
         } catch (e: Exception) {
-            println("SIGMALOG fichier $fileName readExistingMetadataInfo:  Erreur de désérialisation du " +
-                    "JSON $capsuleJsonString: ${e
-                .message}")
+//            println("SIGMALOG fichier $fileName readExistingMetadataInfo:  Erreur de désérialisation du " +
+//                    "JSON $capsuleJsonString: ${e
+//                .message}")
             null
         }
 
@@ -136,23 +136,23 @@ class FileMetadataManager() : ICapsuleIO {
                     raf, fileLength, filePath
                 )?.capsuleData
 
-                println(
-                    "SIGMALOG fichier ${
-                        filePath.substringAfterLast("/").take(20).padEnd(20).padEnd(20)
-                    } getComposite: " +
-                            "lecture " +
-                            "composite: $composite"
-                )
+//                println(
+//                    "SIGMALOG fichier ${
+//                        filePath.substringAfterLast("/").take(20).padEnd(20).padEnd(20)
+//                    } getComposite: " +
+//                            "lecture " +
+//                            "composite: $composite"
+//                )
                 return composite
             }
         } catch (e: Exception) {
-            println(
-                "SIGMALOG fichier ${
-                    filePath.substringAfterLast("/").take(20).padEnd(20)
-                } getComposite: erreur " +
-                        "lecture " +
-                        "composite ($filePath): ${e.message}"
-            )
+//            println(
+//                "SIGMALOG fichier ${
+//                    filePath.substringAfterLast("/").take(20).padEnd(20)
+//                } getComposite: erreur " +
+//                        "lecture " +
+//                        "composite ($filePath): ${e.message}"
+//            )
             return null
         }
         
@@ -162,17 +162,17 @@ class FileMetadataManager() : ICapsuleIO {
     override suspend fun replaceCapsule(filePath: String, newCapsule: CapsuleData?): Boolean {
         val file = File(filePath)
         if (!file.exists() && !filePath.endsWith(".html", ignoreCase = true)) {
-            println("SIGMA fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Fichier " +
-                    "non trouvé (et n'est pas un HTML à créer) pour " +
-                    "remplacement")
+//            println("SIGMA fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Fichier " +
+//                    "non trouvé (et n'est pas un HTML à créer) pour " +
+//                    "remplacement")
             return false
         }
         if (filePath.endsWith(".html", ignoreCase = true) && !file.exists()) {
             // createFolderHtmlFile(filePath) // Si vous avez cette logique
-            println("SIGMALOG: fichier ${filePath.substringAfterLast("/")} replaceComposite Fichier HTML " +
-                    "créé. Ajout initial de " +
-                    "composite" +
-                    "...")
+//            println("SIGMALOG: fichier ${filePath.substringAfterLast("/")} replaceComposite Fichier HTML " +
+//                    "créé. Ajout initial de " +
+//                    "composite" +
+//                    "...")
             // Pour un nouveau fichier, pas de troncature, juste un ajout.
         }
 
@@ -211,9 +211,9 @@ class FileMetadataManager() : ICapsuleIO {
 
 
             if (positionToTruncate < fileLength) {
-                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Troncature à $positionToTruncate " +
-                        "(longueur" +
-                        " originale $fileLength)")
+//                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Troncature à $positionToTruncate " +
+//                        "(longueur" +
+//                        " originale $fileLength)")
                 raf.setLength(positionToTruncate)
             }
             raf.close()
@@ -235,8 +235,8 @@ class FileMetadataManager() : ICapsuleIO {
                 // Écrire le bloc composite
                 raf.write(capsuleBlockToWrite)
 
-                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
-                        "Ecrit composite #1: $capsuleJsonString")
+//                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
+//                        "Ecrit composite #1: $capsuleJsonString")
                 
                 // Préparer et écrire le bloc de longueur
                 val lengthValueString = totalCapsuleBlockByteLength.toString()
@@ -244,8 +244,8 @@ class FileMetadataManager() : ICapsuleIO {
                     "$START_METADATA_LENGTH_TAG\n$lengthValueString\n$END_METADATA_LENGTH_TAG\n"
                 val lengthBlockBytes = lengthBlockString.toByteArray(CHARSET)
                 raf.write(lengthBlockBytes)
-                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
-                        "Ecrit composite #2: $lengthBlockString")
+//                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
+//                        "Ecrit composite #2: $lengthBlockString")
             }
 
             raf.close()
@@ -256,15 +256,15 @@ class FileMetadataManager() : ICapsuleIO {
                 val verification = getCapsule(filePath)
                 val result = verification == newCapsule
                 
-                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
-                        "Vérification: $result")
+//                println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: " +
+//                        "Vérification: $result")
                 return result
             }
             return true // Succès (même si newComposite était null, la troncature a fonctionné)
 
         } catch (e: Exception) {
-            println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Erreur" +
-                    " ($filePath): ${e.message}")
+//            println("SIGMALOG fichier ${filePath.substringAfterLast("/").take(20).padEnd(20)} replaceComposite: Erreur" +
+//                    " ($filePath): ${e.message}")
             return false
         }
     }

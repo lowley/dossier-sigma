@@ -156,6 +156,7 @@ class SigmaActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT
 
         val permissionsManager = PermissionsManager()
         if (!permissionsManager.hasExternalStoragePermission())
@@ -239,7 +240,7 @@ class SigmaActivity : ComponentActivity() {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(65.dp)
-                                .background(Color.Transparent)
+                                .background(SigmaColors.current.primary)
                         ) {
                             Spacer(
                                 modifier = Modifier
@@ -255,9 +256,10 @@ class SigmaActivity : ComponentActivity() {
                             )
 
                             BottomAppBar(
-                                containerColor = Color.Transparent,
+                                containerColor = SigmaColors.current.primary,
                                 contentColor = colors.background,
-                                tonalElevation = 0.dp
+                                tonalElevation = 0.dp,
+
                             ) {
                                 bottomTools.BottomToolBar(activity = this@SigmaActivity)
                             }
@@ -852,7 +854,7 @@ class SigmaActivity : ComponentActivity() {
                                         mainViewModel.getInfoInf(item)
                                     },
                                     onRefresh = {
-                                        mainViewModel.folderContentComponent.reloadCurrentFolder()
+                                        mainViewModel.folderContentComponent.reloadCurrentFolderByRefresh2()
                                     },
                                     indexBar = indexBar,
                                     currentScrollState = currentScrollState,

@@ -159,7 +159,8 @@ class DiskRepository @Inject constructor(
         return FolderFreshness(
             path = folderPath,
             containerMtime = infos.first,
-            contentsMaxMtime = infos.second
+            contentsMaxMtime = infos.second,
+            secondLevelFolderPictureMTime = infos.third
         )
     }
 
@@ -432,28 +433,28 @@ class DiskRepository @Inject constructor(
         var result: Any
         val isFile = File(path).isFile()
 
-        println("recherche Image pour: $path")
+//        println("recherche Image pour: $path")
 
         result = when {
             isFile -> {
-                println("C'est un fichier")
+//                println("C'est un fichier")
                 val newCropped = newCapsule?.getCroppedPicture()
                 val newInitial = newCapsule?.getInitialPicture()
                 var image: Any? = newCropped ?: newInitial
                 val repo = VideoInfoEmbedder()
 
-                if (newCropped != null)
-                    println("trouvé newCropped")
-
-                if (newInitial != null)
-                    println("trouvé newInitial")
+//                if (newCropped != null)
+//                    println("trouvé newCropped")
+//
+//                if (newInitial != null)
+//                    println("trouvé newInitial")
 
                 image = image ?: R.drawable.document2
                 image
             }
 
             !isFile -> {
-                println("C'est un dossier")
+//                println("C'est un dossier")
                 var image: Any? = newCapsule?.getCroppedPicture() ?: newCapsule?.getInitialPicture()
 
                 if (image != null && !File("$path/.sigma").exists()) {

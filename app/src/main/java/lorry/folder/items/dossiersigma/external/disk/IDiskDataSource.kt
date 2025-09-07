@@ -9,6 +9,6 @@ interface IDiskDataSource {
 
     //* retourne paire d'instants: dernière modification du dossier, et max des fichiers
     @OptIn(ExperimentalTime::class)
-    suspend fun getFolderLiteContent(folderPath: String): Pair<Instant, Instant>
+    suspend fun getFolderLiteContent(folderPath: String): Triple<Instant, Instant, Instant>
 
 }

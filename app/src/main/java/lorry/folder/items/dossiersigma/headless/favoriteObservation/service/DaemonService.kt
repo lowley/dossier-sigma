@@ -136,6 +136,7 @@ class DaemonService : LifecycleService() {
             val favorites = settingsManager.homeItemsFlow.firstOrNull()
             val currentAppFolder = settingsManager.currentPathFlow.first()
             val parent = path.substringBeforeLast("/")
+            val grandParent = parent.substringBeforeLast("/")
 
             val isFile = File(path).isFile
             val isFavorite = favorites?.any { it.path == path } ?: false
@@ -146,6 +147,7 @@ class DaemonService : LifecycleService() {
 
             var CSRPath = false
             var CSRParent = false
+            var CSRGrandParent = false
 
             //algo
             if (parent.isInRoom() || parent.isCurrent())
@@ -154,6 +156,13 @@ class DaemonService : LifecycleService() {
             if (!isFile) {
                 if (path.isCurrent() || path.isInRoom())
                     CSRPath = true
+            }
+
+            if (path.endsWith(".folderPicture.html")){
+                //si modification memo, flag, ou scale
+                CSRParent = true
+
+                CSRGrandParent = true
             }
 
             if (CSRPath) {
@@ -172,6 +181,16 @@ class DaemonService : LifecycleService() {
                     }, isCurrent=${parent.isCurrent()}, isInRoom=${parent.isInRoom()}"
                 )
                 computeAndSendFreshness(parent, currentAppFolder)
+            }
+
+            if (CSRGrandParent) {
+                Log.d(
+                    TAG,
+                    "service envoie pour ${path.substringAfterLast("/")} dans room: grandParent=${
+                        grandParent.substringAfterLast("/")
+                    }, isCurrent=${grandParent.isCurrent()}, isInRoom=${grandParent.isInRoom()}"
+                )
+                computeAndSendFreshness(grandParent, currentAppFolder)
             }
         }
     }

@@ -50,7 +50,7 @@ class DiskDataSource @Inject constructor() : IDiskDataSource {
     }
 
     @OptIn(ExperimentalTime::class)
-    suspend override fun getFolderLiteContent(folderPath: String): Pair<Instant, Instant> {
+    suspend override fun getFolderLiteContent(folderPath: String): Triple<Instant, Instant, Instant> {
         val folder = File(folderPath)
         var items: List<ItemDTO>
 
@@ -61,14 +61,38 @@ class DiskDataSource @Inject constructor() : IDiskDataSource {
             }
         } catch (ex: SecurityException) {
             Log.d(TAG, "")
-            return Pair(Instant.fromEpochMilliseconds(0), Instant.fromEpochMilliseconds(0))
+            return Triple(Instant.fromEpochMilliseconds(0),
+                Instant.fromEpochMilliseconds(0),
+                Instant.fromEpochMilliseconds(0))
 
         }
 
-        val last = Instant.fromEpochMilliseconds(max ?: 0)
-        val first = Instant.fromEpochMilliseconds(folder.lastModified())
-        val pair: Pair<Instant, Instant> = Pair(first, last)
+        val maxLevel2FolderPictures = try {
+            withContext(Dispatchers.IO) {
+                val max = folder.listFiles()
+                    ?.flatMap<File, File> { file ->
+                        if (file.isDirectory)
+                            file.listFiles()
+                                ?.filter{ file2 -> file2.isFile == true && file2.path.endsWith(".folderPicture.html") }
+                                ?.toList()?: emptyList()
+                        else emptyList()
+                    }?.mapNotNull<File, Long> { file:File -> file.lastModified() }
+                    ?.maxOrNull()
+                max
+            }
+        } catch (ex: SecurityException) {
+            Log.d(TAG, "")
+            return Triple(Instant.fromEpochMilliseconds(0),
+                Instant.fromEpochMilliseconds(0),
+                Instant.fromEpochMilliseconds(0))
 
-        return pair
+        }
+
+        val first = Instant.fromEpochMilliseconds(folder.lastModified())
+        val last = Instant.fromEpochMilliseconds(max ?: 0)
+        val lastLevel2FolderPicture = Instant.fromEpochMilliseconds(maxLevel2FolderPictures ?: 0)
+        val result: Triple<Instant, Instant, Instant> = Triple(first, last, lastLevel2FolderPicture)
+
+        return result
     }
 }
