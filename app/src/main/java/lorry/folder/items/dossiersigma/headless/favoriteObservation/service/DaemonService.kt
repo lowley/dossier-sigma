@@ -262,12 +262,12 @@ class DaemonService : LifecycleService() {
         color?.let { currentNotificationColor = it }
 
         val smallIcon = when (color) {
-            Color.Red -> R.drawable.engrenage_rouge
-            Color.Blue -> R.drawable.engrenage_bleu
-            Color.Green -> R.drawable.engrenage_vert
-            Color.Black -> R.drawable.engrenage_noir
+            Color.Red -> R.drawable.collecte_de_donnees  //lecture disque
+            Color.Blue -> R.drawable.disque_dur //écriture en base
+            Color.Green -> R.drawable.coche //ok
+            Color.Black -> R.drawable.coche //ok
             Color.White -> R.drawable.engrenage_blanc
-            else -> R.drawable.engrenage_blanc
+            else -> R.drawable.coche
         }
 
 
