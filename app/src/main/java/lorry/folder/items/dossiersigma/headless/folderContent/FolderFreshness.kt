@@ -27,13 +27,15 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
         other != null &&
         path == other.path &&
         containerMtime.toString() == other.containerMtime.toString() &&
-        contentsMaxMtime.toString() == other.contentsMaxMtime.toString()
+        contentsMaxMtime.toString() == other.contentsMaxMtime.toString() &&
+        secondLevelFolderPictureMTime.toString() == other.secondLevelFolderPictureMTime.toString()
 
     @OptIn(ExperimentalTime::class)
     override fun hashCode(): Int {
         var result = path.hashCode()
         result = 31 * result + containerMtime.hashCode()
         result = 37 * result + contentsMaxMtime.hashCode()
+        result = 47 * result + secondLevelFolderPictureMTime.hashCode()
         return result
     }
 
