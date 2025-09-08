@@ -205,7 +205,7 @@ class FolderContentComponent @Inject constructor(
                 cacheAndRoomEquality -> ReloadType.Cache
                 roomOk -> ReloadType.Room
                 cacheInclusion && cacheAndDiskEquality -> ReloadType.Cache
-                else -> ReloadType.NONE
+                else -> ReloadType.Disk
             }
         }
 
