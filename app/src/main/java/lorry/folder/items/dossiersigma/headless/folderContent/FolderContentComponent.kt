@@ -138,69 +138,87 @@ class FolderContentComponent @Inject constructor(
     // dossier courant trié //
     //////////////////////////
     private fun folderContentFlow(params: Params): Flow<SigmaFolder?> = flow {
-        val (origin, latestPath, flagId, savedEntry) = params
+        val (origin, latestPath, flagId, savedEntry, sorting) = params
         // 1) Placeholder immédiat (vide l’écran)
 //        emit(null)
 
         Log.d(
             "fldDec",
-            "origin:$origin, latestPath:$latestPath, savedEntry:$savedEntry, flagId:$flagId"
+            "origin:$origin, latestPath:$latestPath, savedEntry:$savedEntry, flagId:$flagId, sorting:$sorting"
         )
 
         if (latestPath == null) return@flow
+
+        var decisionMade = false
+        var decision: ReloadType = ReloadType.NONE
+
+        if (origin == Origin.SORTING || origin == Origin.CURRENT_FLAG_ID) {
+            decisionMade = true
+            decision = ReloadType.Cache
+        }
+
+        if (origin == Origin.REFRESH_RELOAD_TRIGGER){
+            decisionMade = true
+            decision = ReloadType.Disk
+        }
 
         if (savedEntry == DbState.Loading) {
             Log.d("fldDec", "   -> savedEntry LOADING -> on passe")
             return@flow
         }
 
-        // 2) Récupérer fraîcheurs APRÈS le placeholder (concurrence structurée)
-        val diskFresh = coroutineScope {
-            async(Dispatchers.IO) { diskRepository.getFolderFreshness(latestPath) }
-                .await()
-        }
+        if (!decisionMade) {
 
-        val folderCache = folderCacheFlow.value
-        val cacheEntry = folderCache[latestPath]
-        val cachedFolderFreshness = cacheEntry?.freshness
-        val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
+            // 2) Récupérer fraîcheurs APRÈS le placeholder (concurrence structurée)
+            val diskFresh = coroutineScope {
+                async(Dispatchers.IO) { diskRepository.getFolderFreshness(latestPath) }
+                    .await()
+            }
 
-        val cacheInclusion = cacheEntry != null
-        val cacheAndDiskEquality = cachedFolderFreshness?.isSameAs(diskFresh) == true
+            val folderCache = folderCacheFlow.value
+            val cacheEntry = folderCache[latestPath]
+            val cachedFolderFreshness = cacheEntry?.freshness
+            val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
 
-        val roomOk = savedEntry.let {
-            it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(
-                diskFresh
+            val cacheInclusion = cacheEntry != null
+            val cacheAndDiskEquality = cachedFolderFreshness?.isSameAs(diskFresh) == true
+
+            val roomOk = savedEntry.let {
+                it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(
+                    diskFresh
+                )
+            } == true
+
+            val cacheAndRoomEquality = cacheInclusion && savedEntry.let {
+                it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(
+                    cachedFolderFreshness
+                )
+            } == true
+
+            Log.d(
+                "fldDec",
+                "   folderContentFlow -> ELEMENTS DECISION: diskFreshness:${diskFresh.hashCode()}, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:${cachedFolderFreshness.hashCode()}"
             )
-        } == true
 
-        val cacheAndRoomEquality = cacheInclusion && savedEntry.let {
-            it is DbState.Data && it.folderEntry.path == latestPath && it.folderEntry.freshness.isSameAs(
-                cachedFolderFreshness
-            )
-        } == true
-
-        Log.d(
-            "fldDec",
-            "   folderContentFlow -> ELEMENTS DECISION: diskFreshness:${diskFresh.hashCode()}, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:${cachedFolderFreshness.hashCode()}"
-        )
-
-        // 3) Sélection de la source (cache-first si pas plus vieux)
-        val decision = when {
-            origin == Origin.CURRENT_FLAG_ID -> ReloadType.Cache
-            origin == Origin.REFRESH_RELOAD_TRIGGER -> ReloadType.Disk
-            cacheAndRoomEquality -> ReloadType.Cache
-            roomOk -> ReloadType.Room
-            cacheInclusion && cacheAndDiskEquality -> ReloadType.Cache
-            else -> ReloadType.NONE
+            // 3) Sélection de la source (cache-first si pas plus vieux)
+            decision = when {
+                cacheAndRoomEquality -> ReloadType.Cache
+                roomOk -> ReloadType.Room
+                cacheInclusion && cacheAndDiskEquality -> ReloadType.Cache
+                else -> ReloadType.NONE
+            }
         }
 
         Log.d("fldDec", "   -> decision:$decision")
 
-
         // 4) Émettre la source choisie
         when (decision) {
             ReloadType.Cache -> {
+                val folderCache = folderCacheFlow.value
+                val cacheEntry = folderCache[latestPath]
+                val cachedFolderFreshness = cacheEntry?.freshness
+                val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
+
                 val oldItems = cacheEntry!!.folder.items
                 val newItems = when (sort) {
                     SortingCriterion.ByNameAsc ->
@@ -212,12 +230,20 @@ class FolderContentComponent @Inject constructor(
                             .thenByDescending { it.modificationDate })
                 }.let { items -> if (flagId == null) items else items.filter { it.tag?.id == flagId } }
 
-                Log.d("fldDec", "   folderContentFlow -> fin calcul du cache et émission du flow. items traités(${newItems.size}), flagId:$flagId")
+                Log.d(
+                    "fldDec",
+                    "   folderContentFlow -> fin calcul du cache et émission du flow. items traités(${newItems.size}), flagId:$flagId"
+                )
                 emit(cacheEntry.folder.copy(items = newItems))
                 setReloadType(ReloadType.Cache)
             }
 
             ReloadType.Room -> {
+                val folderCache = folderCacheFlow.value
+                val cacheEntry = folderCache[latestPath]
+                val cachedFolderFreshness = cacheEntry?.freshness
+                val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
+
                 // Exemple : re-trier/mapper à partir de savedEntry (rapide)
                 val folderEntry = (savedEntry as DbState.Data).folderEntry
                 val serviceFolder = folderEntry.folder
@@ -236,13 +262,20 @@ class FolderContentComponent @Inject constructor(
 
                 Log.d(
                     "fldDec",
-                    "   folderContentFlow -> fin calcul de room et émission du flow. items traités(${newItems.size}), flagId:$flagId, freshness 1:${serviceFolder.computeFreshness().hashCode()}, freshness 2:${folderEntry.freshness.hashCode()}"
+                    "   folderContentFlow -> fin calcul de room et émission du flow. items traités(${newItems.size}), flagId:$flagId, freshness 1:${
+                        serviceFolder.computeFreshness().hashCode()
+                    }, freshness 2:${folderEntry.freshness.hashCode()}"
                 )
                 emit(serviceFolder.copy(items = newItems))
                 setReloadType(ReloadType.Room)
             }
 
             ReloadType.Disk -> {
+                val folderCache = folderCacheFlow.value
+                val cacheEntry = folderCache[latestPath]
+                val cachedFolderFreshness = cacheEntry?.freshness
+                val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
+
                 setReloadType(ReloadType.Disk)
                 emitAll(
                     flow {
@@ -252,7 +285,10 @@ class FolderContentComponent @Inject constructor(
                             .runningFold(emptyList<Item>()) { acc, it -> acc + it }
                             .flowOn(Dispatchers.IO)
                             .onStart {
-                                Log.d("fldDec", "   folderContentFlow -> début émission flow issu du disque")
+                                Log.d(
+                                    "fldDec",
+                                    "   folderContentFlow -> début émission flow issu du disque"
+                                )
                             }
                             .onEach { items -> lastItems = items }
                             .onCompletion { cause ->
@@ -280,7 +316,10 @@ class FolderContentComponent @Inject constructor(
                                         "   folderContentFlow -> fin disque interrompue (cause=$cause) : cache intact"
                                     )
                                 }
-                                Log.d("fldDec", "   -> fin émission flow issu du disque. items envoyés: ${lastItems.size}. freshness:${realFresh.hashCode()}")
+                                Log.d(
+                                    "fldDec",
+                                    "   -> fin émission flow issu du disque. items envoyés: ${lastItems.size}. freshness:${realFresh.hashCode()}"
+                                )
                             }
                             .map { items ->
                                 val filtered =
@@ -318,18 +357,20 @@ class FolderContentComponent @Inject constructor(
 
                 // reconstruit Params *dans* le scope du path
                 val paramsFlowForPath: Flow<Params> =
-                    combineWithSource4(
+                    combineWithSource5(
                         scope = scope,
                         currentFlagId = bottomTools.currentFlagId,
                         savedEntry = dbFlow,
                         refreshReloadTrigger = refreshReloadTrigger2,
                         reloadTrigger = reloadTrigger,
-                    ) { flagId, savedEntry, _, _ ->
+                        sorting = sorting
+                    ) { flagId, savedEntry, _, _, sorting ->
                         Params(
                             origin = Origin.CURRENT_FLAG_ID, // placeholder, sera écrasé par pair.first
                             latestPath = path,
                             flagId = flagId,
-                            savedEntry = savedEntry
+                            savedEntry = savedEntry,
+                            sorting = sorting
                         )
                     }
                         .map { (origin, params) -> params.copy(origin = origin) }
@@ -337,7 +378,8 @@ class FolderContentComponent @Inject constructor(
                             a.latestPath == b.latestPath &&
                                     a.flagId == b.flagId &&
                                     a.savedEntry == b.savedEntry &&
-                                    a.origin == b.origin
+                                    a.origin == b.origin &&
+                                    a.sorting == b.sorting
                         }
 
                 // pour ce path, ne consomme que les flows du path
@@ -394,7 +436,7 @@ enum class ReloadType {
     Cache,
     Room,
     Disk,
-    FlagId
+    FlagId,
 }
 
 data class Quadruple<A, B, C, D>(
@@ -408,7 +450,8 @@ private data class Params(
     val origin: Origin,
     val latestPath: String?,
     val flagId: UUID?,
-    val savedEntry: DbState
+    val savedEntry: DbState,
+    val sorting: SortingCriterion
 )
 
 enum class Origin2 {
@@ -422,6 +465,7 @@ enum class Origin {
     REFRESH_RELOAD_TRIGGER,
     RELOAD_TRIGGER,
     SAVED_ENTRY,
+    SORTING
 }
 
 fun <A, B, R> combineWithSource2(
@@ -457,13 +501,14 @@ private suspend fun <T> SharedFlow<T>.latest(): T = first()
 // Si tu veux un "latestOrNull" pour éviter le blocage :
 private suspend fun <T> SharedFlow<T>.latestOrNull(): T? = firstOrNull()
 
-private fun <A, B, C, D, R> combineWithSource4(
+private fun <A, B, C, D, E, R> combineWithSource5(
     scope: CoroutineScope,
     currentFlagId: Flow<A>,        // f1
     savedEntry: Flow<B>,           // f2 (DbState)
     refreshReloadTrigger: Flow<C>, // f3
     reloadTrigger: Flow<D>,        // f4
-    transform: (A, B, C, D) -> R
+    sorting: Flow<E>,
+    transform: (A, B, C, D, E) -> R
 ): Flow<Pair<Origin, R>> {
 
     // 1) Partager chaque source (replay=1 pour "latest()" immédiat)
@@ -471,6 +516,7 @@ private fun <A, B, C, D, R> combineWithSource4(
     val savedS0 = savedEntry.shared(scope)
     val refS = refreshReloadTrigger.shared(scope)
     val relS = reloadTrigger.shared(scope)
+    val sortS = sorting.shared(scope)
 
     // 2) Filtre commun pour SAVED_ENTRY: on écarte Loading
 //    val savedIsNotLoading: (Any?) -> Boolean = { b ->
@@ -488,14 +534,15 @@ private fun <A, B, C, D, R> combineWithSource4(
         // On ignore l'impulsion initiale côté ÉVÈNEMENT pour éviter un faux "refresh" au démarrage
         refS.drop(1).map { Origin.REFRESH_RELOAD_TRIGGER },
         relS.drop(1).map { Origin.RELOAD_TRIGGER },
+        sortS.drop(1).map { Origin.SORTING },
     )
 
     // 4) À chaque évènement, on prélève à la demande les dernières valeurs
     //    (pas d'historique; lecture directe via latest()).
     //    NB: pour éviter tout blocage, on NE "droppe" pas côté lecture des triggers.
     return originEvents.flatMapLatest { origin ->
-        combine(flagS, savedS0, refS, relS) { a, b, c, d ->
-            origin to transform(a, b, c, d)
+        combine(flagS, savedS0, refS, relS, sortS) { a, b, c, d, e ->
+            origin to transform(a, b, c, d, e)
         }.take(1)
     }
 }

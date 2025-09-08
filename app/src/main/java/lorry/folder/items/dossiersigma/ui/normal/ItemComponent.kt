@@ -102,9 +102,10 @@ fun ItemComponent(
     val memo = item.memo
     val memoEmpty = memo?.isEmpty() ?: true
 
-    val tag by mainViewModel.folderContentComponent.currentFolderFlow
-        .map { folder -> folder?.tag }
-        .collectAsState(initial = null)
+    val tag = item.tag
+//    val tag by mainViewModel.folderContentComponent.currentFolderFlow
+//        .map { folder -> folder?.tag }
+//        .collectAsState(initial = null)
 
     val image by mainViewModel.folderContentComponent.currentFolderFlow
         .map { folder -> folder?.picture }
@@ -294,7 +295,7 @@ fun ItemComponent(
                                 .padding(0.dp)
                                 .height(textHeight),
                             text = infoSup,
-                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion
+                            fontWeight = if (memoEmpty) FontWeight.Companion.Normal else FontWeight.Companion
                                 .ExtraBold,
                             fontSize = 10.sp,
                             color = SigmaColors.current.onSecondary
@@ -308,7 +309,7 @@ fun ItemComponent(
                                 )
                                 .height(textHeight),
                             text = infoInf,
-                            fontWeight = if (memoEmpty) FontWeight.Companion.ExtraLight else FontWeight.Companion.ExtraBold,
+                            fontWeight = if (memoEmpty) FontWeight.Companion.Normal else FontWeight.Companion.ExtraBold,
                             fontSize = 10.sp,
                             color = SigmaColors.current.onSecondary
                         )

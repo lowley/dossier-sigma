@@ -108,6 +108,7 @@ class DaemonService : LifecycleService() {
             computeAndSendFreshness(path, currentAppFolder)
         }
         Log.d(TAG, "envoi initial terminé")
+        updateNotification(color = Color.Black)
 
         fileObserver = SigmaFileObserver(
             file = File("/storage/emulated/0/Movies"),
@@ -240,7 +241,7 @@ class DaemonService : LifecycleService() {
             Log.d(TAG, "   sauvegarde achevée")
         }
 
-        updateNotification(color = Color.Black)
+        updateNotification(color = Color.White)
     }
 
     private fun buildOngoingNotification(): Notification {
@@ -266,7 +267,7 @@ class DaemonService : LifecycleService() {
             Color.Blue -> R.drawable.disque_dur //écriture en base
             Color.Green -> R.drawable.coche //ok
             Color.Black -> R.drawable.coche //ok
-            Color.White -> R.drawable.engrenage_blanc
+            Color.White -> R.drawable.accepter
             else -> R.drawable.coche
         }
 
@@ -346,7 +347,7 @@ class DaemonService : LifecycleService() {
             freshness = realFresh
         )
 
-        updateNotification(color = Color.Black)
+        updateNotification(color = Color.White)
         return fc
     }
 }
