@@ -253,20 +253,28 @@ fun ItemComponent(
 //                        CircularProgressIndicator()
             } else {
                 val boxWidth = 45.dp
+                val shapeForInsert = RoundedCornerShape(
+                    topStart = 8.dp,
+                    bottomEnd = 8.dp
+                )
 
                 Box(
                     modifier = Modifier.Companion
                         .align(Alignment.Companion.TopStart)
                         .graphicsLayer {
-                            shape = RoundedCornerShape(
-                                topStart = 8.dp,
-                                bottomEnd = 8.dp
-                            )
+                            shape = shapeForInsert
                             clip = true
                             shadowElevation = 0f
                         }
                         .background(SigmaColors.current.secondary)
                         .width(boxWidth)
+                        .border(
+                            1.dp,
+                            lerp(
+                            SigmaColors.current.secondary,
+                                SigmaColors.current.primary,
+                                0.5f),
+                            shape = shapeForInsert)
                         .clickable {
                             onTopLeftPanelClick(item)
                         }

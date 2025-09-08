@@ -252,7 +252,7 @@ class SigmaActivity : ComponentActivity() {
                                     )
                                     .height(1.dp)
                                     .fillMaxWidth()
-                                    .background(SigmaColors.current.tertiary)
+                                    .background(SigmaColors.current.secondary)
                             )
 
                             BottomAppBar(
