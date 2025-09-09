@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.folderContent
+package lorry.folder.items.dossiersigma.headless.folderContentBack
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,7 +7,7 @@ import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID
 
-interface IFolderContentComponent{
+interface IFolderContentBackComponent{
 
     val sorting: StateFlow<SortingCriterion>
     fun setSorting(sorting: SortingCriterion)

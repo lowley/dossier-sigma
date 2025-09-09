@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.folderContent
+package lorry.folder.items.dossiersigma.headless.folderContentBack
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

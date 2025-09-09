@@ -15,7 +15,6 @@ interface IBrowser {
 
     @Composable
     fun rememberBrowserState(): BrowserState
-
 }
 
 // Extension utilitaire (pas override ⇒ défauts autorisés)

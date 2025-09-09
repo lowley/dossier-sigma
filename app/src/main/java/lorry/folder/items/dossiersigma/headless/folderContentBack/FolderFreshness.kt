@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.folderContent
+package lorry.folder.items.dossiersigma.headless.folderContentBack
 
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder

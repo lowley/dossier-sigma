@@ -29,8 +29,8 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
-import lorry.folder.items.dossiersigma.headless.folderContent.FolderCacheEntry
-import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderCacheEntry
+import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
@@ -53,7 +53,7 @@ class DaemonService : LifecycleService() {
     lateinit var diskRepository: IDiskRepository
 
     @Inject
-    lateinit var folderContentComponent: IFolderContentComponent
+    lateinit var folderContentComponent: IFolderContentBackComponent
 
     private var fileObserver: SigmaFileObserver? = null
     private val job = SupervisorJob()

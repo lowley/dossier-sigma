@@ -78,7 +78,7 @@ import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.folderContent.ReloadType
+import lorry.folder.items.dossiersigma.headless.folderContentBack.ReloadType
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
@@ -86,16 +86,16 @@ import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserBottomToolbar
-import lorry.folder.items.dossiersigma.ui.items.BottomTools
-import lorry.folder.items.dossiersigma.ui.items.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.items.FolderChooserDialog
-import lorry.folder.items.dossiersigma.ui.items.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.items.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.items.MobileSticker
-import lorry.folder.items.dossiersigma.ui.items.NormalPage
-import lorry.folder.items.dossiersigma.ui.items.Tool
-import lorry.folder.items.dossiersigma.ui.items.Tools
-import lorry.folder.items.dossiersigma.ui.items.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.Breadcrumb
+import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderChooserDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.HomeItemDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.folderContentFront.MobileSticker
+import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderContentFrontPage
+import lorry.folder.items.dossiersigma.ui.folderContentFront.Tool
+import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
@@ -805,7 +805,7 @@ class SigmaActivity : ComponentActivity() {
                         /////////////////
                         if (!homePageVisible) {
                             key(currentPath.value ?: "") {
-                                NormalPage(
+                                FolderContentFrontPage(
                                     onHoveredNotHovered = { item ->
                                         mainViewModel.setDragTargetItem(item)
                                     },

@@ -2,11 +2,11 @@ package lorry.folder.items.dossiersigma.headless.injections
 
 import android.app.Activity
 import android.content.Context
-import androidx.activity.ComponentActivity
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import dagger.Binds
 import dagger.Module
@@ -22,8 +22,8 @@ import lorry.folder.items.dossiersigma.external.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.external.clipboard.IClipboardRepository
 import lorry.folder.items.dossiersigma.external.disk.DiskRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
-import lorry.folder.items.dossiersigma.headless.folderContent.FolderContentComponent
-import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderContentBackComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveToNASComponent
@@ -32,11 +32,13 @@ import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
 import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
-import lorry.folder.items.dossiersigma.ui.items.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderContentFrontComponent
+import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderContentFrontPage
+import lorry.folder.items.dossiersigma.ui.folderContentFront.IFolderContentFrontComponent
 import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
 import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import javax.inject.Singleton
 
 
@@ -90,8 +92,8 @@ object AppModule {
         bottomTools: BottomTools,
         settingsManager: SettingsManager,
         context: Context
-    ): IFolderContentComponent {
-        return FolderContentComponent(
+    ): IFolderContentBackComponent {
+        return FolderContentBackComponent(
             diskRepository = diskRepository,
             bottomTools = bottomTools,
             settingsManager = settingsManager,
@@ -132,13 +134,22 @@ object OwnerModule {
     @Provides
     fun provideIMemoComponent(
         owner: ViewModelStoreOwner,
-        folderContentComponent: IFolderContentComponent,
+        folderContentComponent: IFolderContentBackComponent,
         context: Context
     ): IMemoComponent {
         return MemoComponent(
             owner = owner,
             folderContentComponent = folderContentComponent,
             context = context
+        )
+    }
+
+    @Provides
+    fun provideIFolderContentFrontComponent(
+        owner: ViewModelStoreOwner,
+    ): IFolderContentFrontComponent {
+        return FolderContentFrontComponent(
+            owner = owner,
         )
     }
 }

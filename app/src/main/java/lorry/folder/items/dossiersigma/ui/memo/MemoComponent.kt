@@ -32,14 +32,14 @@ import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import javax.inject.Inject
 import kotlin.getValue
 
 class MemoComponent @Inject constructor(
     private val owner: ViewModelStoreOwner,
-    private val folderContentComponent: IFolderContentComponent,
+    private val folderContentComponent: IFolderContentBackComponent,
     @ApplicationContext private val context: Context
 ): IMemoComponent {
 

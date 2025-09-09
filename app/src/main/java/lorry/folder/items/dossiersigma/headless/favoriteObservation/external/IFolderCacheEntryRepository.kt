@@ -6,7 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
-import lorry.folder.items.dossiersigma.headless.folderContent.FolderCacheEntry
+import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderCacheEntry
 
 @Dao
 interface IFolderCacheEntryRepository {

@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.items
+package lorry.folder.items.dossiersigma.ui.folderContentFront
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -31,7 +31,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
 context(SigmaActivity, ColumnScope)
-fun NormalPage(
+fun FolderContentFrontPage(
     onHoveredNotHovered: (Item?) -> Unit,
     onItemTapped: (Item) -> Unit,
     onItemLongPressed: (Item) -> Unit,

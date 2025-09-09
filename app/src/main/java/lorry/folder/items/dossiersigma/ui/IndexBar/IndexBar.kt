@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.Content
 import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.InfoType
@@ -46,7 +46,7 @@ import java.time.ZoneId
 import javax.inject.Inject
 
 class IndexBar @Inject constructor(
-    val folderContentComponent: IFolderContentComponent
+    val folderContentComponent: IFolderContentBackComponent
 ) : IIndexBar {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())

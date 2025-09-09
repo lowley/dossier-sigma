@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.folderContent
+package lorry.folder.items.dossiersigma.headless.folderContentBack
 
 import android.content.Context
 import android.util.Log
@@ -39,19 +39,19 @@ import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
-import lorry.folder.items.dossiersigma.ui.items.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID
 import javax.inject.Singleton
 
 @Singleton
-class FolderContentComponent @Inject constructor(
+class FolderContentBackComponent @Inject constructor(
     val diskRepository: IDiskRepository,
     val bottomTools: BottomTools,
     val settingsManager: SettingsManager,
     val context: Context
-) : IFolderContentComponent {
+) : IFolderContentBackComponent {
 
     companion object {
         val TAG = "FoldCmp"

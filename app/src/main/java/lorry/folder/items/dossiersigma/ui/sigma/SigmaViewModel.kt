@@ -1,12 +1,9 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
-import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
@@ -36,15 +33,14 @@ import lorry.folder.items.dossiersigma.external.playing.IPlayingDataSource
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
-import lorry.folder.items.dossiersigma.ui.items.BottomTools
-import lorry.folder.items.dossiersigma.ui.items.TagInfos
-import lorry.folder.items.dossiersigma.ui.items.Tool
-import lorry.folder.items.dossiersigma.ui.items.Tools
-import lorry.folder.items.dossiersigma.ui.items.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.TagInfos
+import lorry.folder.items.dossiersigma.ui.folderContentFront.Tool
+import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import java.io.File
 import java.util.UUID
 import javax.inject.Inject
@@ -56,7 +52,7 @@ class SigmaViewModel @Inject constructor(
     val playingDataSource: IPlayingDataSource,
     val base64Embedder: IVideoInfoEmbedder,
     val bottomTools: BottomTools,
-    val folderContentComponent: IFolderContentComponent,
+    val folderContentComponent: IFolderContentBackComponent,
     val settingsManager: SettingsManager,
 ) : ViewModel() {
 

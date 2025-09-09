@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.items
+package lorry.folder.items.dossiersigma.ui.folderContentFront
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
