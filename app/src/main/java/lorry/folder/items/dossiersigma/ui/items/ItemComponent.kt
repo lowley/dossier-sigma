@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.normal
+package lorry.folder.items.dossiersigma.ui.items
 
 import android.content.Context
 import android.graphics.Bitmap

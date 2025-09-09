@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.centralArea
+package lorry.folder.items.dossiersigma.ui.tinies
 
 import android.graphics.Rect
 import androidx.compose.animation.core.animateOffsetAsState

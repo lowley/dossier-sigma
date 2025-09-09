@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.normal
+package lorry.folder.items.dossiersigma.ui.items
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box

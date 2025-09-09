@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.sigma
+package lorry.folder.items.dossiersigma.ui.theme
 
 import androidx.compose.ui.graphics.Color
 import kotlin.math.max
@@ -41,8 +41,8 @@ data class ColorTheme(
 object ColorThemeGenerator {
 
     // Use standard Compose Colors
-    private val COLOR_WHITE: Color = Color.White
-    private val COLOR_BLACK: Color = Color.Black
+    private val COLOR_WHITE: Color = Color.Companion.White
+    private val COLOR_BLACK: Color = Color.Companion.Black
 
     /**
      * Generates a ColorTheme based on the provided baseColor.
@@ -54,7 +54,7 @@ object ColorThemeGenerator {
         val primary = baseColor
         val baseHsl = rgbToHsl(primary)
 
-        val primaryVariant = adjustHsl(primary, lightnessFactor = 0.8f) 
+        val primaryVariant = adjustHsl(primary, lightnessFactor = 0.8f)
 
         val secondaryHue = (baseHsl[0] + 30f / 360f) % 1.0f
         val secondary = hslToRgb(
@@ -77,7 +77,7 @@ object ColorThemeGenerator {
         )
 
         val background = desaturateAndLighten(primary, targetSaturation = 0.05f, targetLightness = 0.98f)
-        
+
         val surface = desaturateAndLighten(primary, targetSaturation = 0.1f, targetLightness = 0.94f)
 
         val onPrimary = getContrastingColor(primary)

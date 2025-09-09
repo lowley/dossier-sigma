@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.external.base64.IBase64DataSource
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CroppedPicture
@@ -39,14 +38,13 @@ import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
-import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.toIndexBarItemInfoList
-import lorry.folder.items.dossiersigma.ui.bottomArea.BottomTools
-import lorry.folder.items.dossiersigma.ui.bottomArea.TagInfos
-import lorry.folder.items.dossiersigma.ui.bottomArea.Tool
-import lorry.folder.items.dossiersigma.ui.bottomArea.Tools
-import lorry.folder.items.dossiersigma.ui.bottomArea.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.items.BottomTools
+import lorry.folder.items.dossiersigma.ui.items.TagInfos
+import lorry.folder.items.dossiersigma.ui.items.Tool
+import lorry.folder.items.dossiersigma.ui.items.Tools
+import lorry.folder.items.dossiersigma.ui.items.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import java.io.File
@@ -57,9 +55,7 @@ import javax.inject.Inject
 class SigmaViewModel @Inject constructor(
     val diskRepository: IDiskRepository,
     val changingPictureUseCase: ChangingPictureUseCase,
-    val changePathUseCase: ChangePathUseCase,
     val playingDataSource: IPlayingDataSource,
-    val base64DataSource: IBase64DataSource,
     val base64Embedder: IVideoInfoEmbedder,
     val bottomTools: BottomTools,
     val folderContentComponent: IFolderContentComponent,
@@ -76,32 +72,6 @@ class SigmaViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = emptyList()
     )
-
-//    ////////////////
-//// imageCache //
-//////////////////
-//    private val _imageCache = MutableStateFlow(mutableMapOf<String, Any?>())
-//    val imageCache: StateFlow<MutableMap<String, Any?>> = _imageCache
-//
-//    fun setImageCacheValue(key: String, image: Any?) {
-//        if (image != null) {
-//            val newMap = _imageCache.value.toMutableMap()
-//            newMap[key] = image
-//            _imageCache.value = newMap
-//
-//            println("ajout de clé dans imageCache: ${key.takeLast(20)}: $image")
-//            println("il y a ${_imageCache.value.size} clés")
-//        }
-//    }
-
-//    fun clearImageCache() {
-//        _imageCache.value.clear()
-//    }
-//
-//    fun removeImageFromCache(key: String?) {
-//        if (key != null)
-//            _imageCache.value.remove(key)
-//    }
 
     ////////////////
 // scaleCache //
@@ -125,59 +95,6 @@ class SigmaViewModel @Inject constructor(
 //
 //    val sortingCache = mutableMapOf<String, SortingCriterion>()
 //
-//    ///////////////
-//// flagCache //
-/////////////////
-//    private val _flagCache = MutableStateFlow(mutableMapOf<String, ColoredTag>())
-//    val flagCache: StateFlow<MutableMap<String, ColoredTag>> = _flagCache
-//
-//    fun setFlagCacheValue(key: String, tag: ColoredTag?) {
-//        if (tag == null)
-//            return
-//        _flagCache.value = _flagCache.value.toMutableMap().apply {
-//            put(key, tag)
-//            println("ajout de clé dans flagCache: ${key.takeLast(20)}: $tag")
-//            println("il y a ${_flagCache.value.size} clés")
-//        }
-//        println("ajout de clé dans flagCache, il y a ${_flagCache.value.size} clés")
-//    }
-//
-//    fun removeFlagCacheForKey(key: String): ColoredTag? {
-//        return _flagCache.value.remove(key)
-//    }
-//
-//    fun clearFlagCache() {
-//        _flagCache.value = mutableMapOf()
-//        println("clearFlagCache, il y a ${_flagCache.value.size} clés")
-//    }
-//
-//    ///////////////
-//// memoCache //
-/////////////////
-//    private val _memoCache = MutableStateFlow(mutableMapOf<String, String>())
-//    val memoCache: StateFlow<MutableMap<String, String>> = _memoCache
-//
-//    fun setMemoCacheValue(key: String, memo: String?) {
-//        if (memo == null)
-//            return
-//        _memoCache.value = _memoCache.value.toMutableMap().apply {
-//            put(key, memo)
-//            println("ajout de clé dans memoCache: ${key.takeLast(20)}: $memo")
-//            println("il y a ${_memoCache.value.size} clés")
-//        }
-//
-//        println("ajout de clé dans memoCache, il y a ${_memoCache.value.size} clés")
-//    }
-//
-//    fun removeMemoCacheForKey(key: String): String? {
-//        return _memoCache.value.remove(key)
-//    }
-//
-//    fun clearMemoCache() {
-//        _memoCache.value = mutableMapOf()
-//        println("clearMemoCache, il y a ${_memoCache.value.size} clés")
-//
-//    }
 
     //////////
 // mémo //

@@ -1,6 +1,5 @@
-package lorry.folder.items.dossiersigma.ui.bottomArea
+package lorry.folder.items.dossiersigma.ui.items
 
-//region
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -96,11 +95,9 @@ import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
-import lorry.folder.items.dossiersigma.headless.services.MoveToNASService
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
-import lorry.folder.items.dossiersigma.ui.normal.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -108,12 +105,10 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 import java.util.UUID
-import java.util.UUID.randomUUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.roundToInt
 
-//endregion
 /**
  * @startuml
  * (*) -> "BottomTools\n<color:red>  + Sticker" as A
@@ -185,7 +180,7 @@ class BottomTools @Inject constructor(
 
     /**
      * utilisé par
-     * @see MoveFileService.copy
+     * @see lorry.folder.items.dossiersigma.headless.services.MoveFileService.copy
      */
     fun updateProgress(value: Int) {
         _progress.value = value
@@ -203,7 +198,7 @@ class BottomTools @Inject constructor(
 
     /**
      * utilisé par
-     * @see MoveToNASService.copy
+     * @see lorry.folder.items.dossiersigma.headless.services.MoveToNASService.copy
      */
     fun updateNASProgress(
         percentage: Int,
@@ -291,7 +286,7 @@ class BottomTools @Inject constructor(
                         text = { tag.title },
                         icon = R.drawable.etiquette,
                         tint = tag.color,
-                        id = tag.id ?: randomUUID(),
+                        id = tag.id ?: UUID.randomUUID(),
                         onClick = { _, _ ->
                             // La logique est simplifiée : on change juste l'ID sélectionné.
                             // La recomposition se chargera de mettre à jour l'état "activated".
@@ -357,7 +352,7 @@ data class Tool(
     val onClick: suspend Tool.(SigmaViewModel, SigmaActivity) -> Unit,
     val visible: suspend (SigmaViewModel, SigmaActivity) -> Boolean = { _, _ -> true },
     val tint: Color? = null,
-    val id: UUID = randomUUID(),
+    val id: UUID = UUID.randomUUID(),
     val activated: Boolean = false
 ) {
     fun isActivated() = activated
@@ -416,7 +411,7 @@ sealed class Tools {
                                     val newFlag = ColoredTag(
                                         title = tagInfos.title,
                                         color = tagInfos.color,
-                                        id = randomUUID(),
+                                        id = UUID.randomUUID(),
                                     )
                                     capsuleMgr.save(
                                         Flag(newFlag),
@@ -1020,7 +1015,7 @@ sealed class Tools {
                             /**
                              * le fichier n'existe pas, on lance la copie,
                              * le reste est effectué dans
-                             * @see MoveFileService.onStartCommand
+                             * @see lorry.folder.items.dossiersigma.headless.services.MoveFileService.onStartCommand
                              */
 
                             //encode/decode en json
@@ -1066,13 +1061,13 @@ sealed class Tools {
                                 mainActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull()
                                     ?: ""
 
-                            val req = MoveToNASWorker.request(
+                            val req = MoveToNASWorker.Companion.request(
                                 manifestPath = manifestFile.absolutePath,
                                 target = nasDirectory,
                                 manifestUri = contentUri.toString()
                             )
 
-                            WorkManager.getInstance(mainActivity)
+                            WorkManager.Companion.getInstance(mainActivity)
                                 .enqueueUniqueWork(
                                     "move-to-nas",
                                     ExistingWorkPolicy.KEEP,
@@ -1447,7 +1442,7 @@ fun CustomTextDialog(
             Spacer(modifier = Modifier.Companion.height(8.dp))
 
             TextField(
-                modifier = Modifier
+                modifier = Modifier.Companion
                     .focusRequester(focusRequester),
                 value = editMessage.value,
                 onValueChange = { editMessage.value = it },
@@ -2280,7 +2275,7 @@ data class HomeItemInfosDTO(
 @Composable
 context(BottomTools, RowScope)
 fun FixedSticker(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.Companion,
     tool: Tool,
     activity: SigmaActivity,
 ) {
@@ -2295,15 +2290,15 @@ fun FixedSticker(
                 }
             }
     ) {
-        var globalOffset: Offset = Offset.Zero
+        var globalOffset: Offset = Offset.Companion.Zero
         //icône statique, toujours existante
         StickerIcon(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .padding(top = 0.dp)
-                .align(Alignment.TopCenter)
+                .align(Alignment.Companion.TopCenter)
                 .onGloballyPositioned { layoutCoordinates ->
                     val localOffset = layoutCoordinates.positionInRoot()
-                    globalOffset = layoutCoordinates.localToRoot(Offset.Zero)
+                    globalOffset = layoutCoordinates.localToRoot(Offset.Companion.Zero)
                 }
                 .pointerInput(Unit) {
                     detectDragGestures(
@@ -2355,7 +2350,7 @@ fun MobileSticker(
     val offset: Offset = dragState.offset
 
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .width(85.dp)
             .fillMaxHeight()
             .clickable {
@@ -2366,7 +2361,7 @@ fun MobileSticker(
             }
     ) {
         StickerIcon(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .offset {
                     IntOffset(
                         offset.x.roundToInt() - 60,
@@ -2400,7 +2395,7 @@ fun MobileSticker(
 
 @Composable
 fun StickerIcon(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.Companion,
     iconRes: Int,
     ringColor: Color,
     ringWidth: Dp,
@@ -2450,8 +2445,8 @@ fun StickerText(
     tool: Tool
 ) {
     Text(
-        modifier = Modifier
-            .align(Alignment.BottomCenter),
+        modifier = Modifier.Companion
+            .align(Alignment.Companion.BottomCenter),
         text = tool.text(),
         color = SigmaColors.current.onPrimary,
         fontSize = 12.sp

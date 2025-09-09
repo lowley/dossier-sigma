@@ -1,8 +1,12 @@
 package lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS
 
 import android.app.Service.START_NOT_STICKY
+import android.content.ClipData
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,8 +14,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.service.IServiceComponent
 import lorry.folder.items.dossiersigma.headless.service.utilities.parameter
-import lorry.folder.items.dossiersigma.headless.services.MoveToNASService.Companion.TAG
-import lorry.folder.items.dossiersigma.headless.services.sendMessageToThoApp
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import javax.inject.Inject
 
@@ -20,6 +22,10 @@ class MoveToNASComponent @Inject constructor(
     val service: IServiceComponent,
     val nasUtilities: NasUtilities,
 ): IMoveToNASComponent {
+
+    companion object{
+        const val TAG = "MvNasSvc"
+    }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -112,5 +118,41 @@ class MoveToNASComponent @Inject constructor(
 
             START_NOT_STICKY
         }
+    }
+}
+
+fun sendMessageToThoApp(context: Context, videoFile: String, manifestUri: String) {
+    try {
+        val uri = Uri.parse(manifestUri)
+
+        val intent = Intent("android.intent.action.USER_PRESENT").apply {
+            // L'action est la même, elle cible maintenant le BroadcastReceiver
+            action = "CopieurTho2.CREATE_SHORTCUT_RECEIVE_MESSAGE"
+            putExtra("Dossiersigma.EXTRA_MESSAGE_CONTENT", videoFile)
+            putExtra("Dossiersigma.EXTRA_FILE_URI", uri)
+
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+            // très important à partir d’Android 13 : attacher l’Uri dans clipData
+            clipData = ClipData.newUri(context.contentResolver, "manifest", uri)
+            // Spécifier le package est une bonne pratique pour la sécurité
+            setPackage("lorry.folder.items.copieurtho2")
+        }
+
+        context.grantUriPermission(
+            "lorry.folder.items.copieurtho2",
+            uri,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION
+        )
+        println("SIGMA2 envoi du broadcast...")
+        // LA CORRECTION CLÉ : On envoie un broadcast au lieu de démarrer un service.
+        // Cette action est autorisée depuis l'arrière-plan.
+        context.sendBroadcast(intent)
+        println("SIGMA2 broadcast envoyé")
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+        println("SIGMA2 envoi du broadcast en échec, ${e.message}")
+        Toast.makeText(context, "Erreur lors de l'envoi du message à CopieurTho2.", Toast.LENGTH_SHORT).show()
     }
 }

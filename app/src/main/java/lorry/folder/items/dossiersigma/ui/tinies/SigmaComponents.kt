@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.centralArea
+package lorry.folder.items.dossiersigma.ui.tinies
 
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.detectTapGestures
