@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.ui.items.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
+import lorry.folder.items.dossiersigma.UI.items.HomeItemInfos
+import lorry.folder.items.dossiersigma.UI.settings.SettingsManager
 import java.util.UUID
 import javax.inject.Inject
 

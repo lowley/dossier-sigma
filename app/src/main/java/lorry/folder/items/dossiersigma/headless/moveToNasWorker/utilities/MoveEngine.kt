@@ -6,7 +6,7 @@ import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.sendMessageToThoApp
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
+import lorry.folder.items.dossiersigma.UI.sigma.SigmaViewModel
 
 class MoveEngine @Inject constructor(
     private val dsFTP: DSI_FTP,

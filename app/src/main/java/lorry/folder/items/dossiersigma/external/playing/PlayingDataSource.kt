@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
-import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
+import lorry.folder.items.dossiersigma.UI.settings.SettingsManager
 import java.io.File
 import javax.inject.Inject
 
