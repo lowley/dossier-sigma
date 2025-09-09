@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.memo
 
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import javax.inject.Inject
+import kotlin.getValue
 
 class MemoComponent @Inject constructor(): IMemoComponent {
 
@@ -54,11 +56,13 @@ class MemoComponent @Inject constructor(): IMemoComponent {
     context(SigmaActivity, BoxScope)
     override fun Render(){
 
+        val memoViewModel: MemoViewModel by viewModels()
+
         val richTextState = rememberRichTextState()
 
         val isDisplayingMemo = this@MemoComponent.isDisplayingMemo.collectAsState()
         val isDisplayingPalette =
-            mainViewModel.isDisplayingMemoPalette.collectAsState()
+            memoViewModel.isDisplayingMemoPalette.collectAsState()
 
         if (isDisplayingMemo.value) {
             MemoEditor(
@@ -66,7 +70,8 @@ class MemoComponent @Inject constructor(): IMemoComponent {
                     .align(Alignment.Companion.TopCenter),
                 isRichText = isDisplayingMemo,
                 richTextState = richTextState,
-                closeMemo = this@MemoComponent::closeMemo
+                closeMemo = this@MemoComponent::closeMemo,
+                memoViewModel = memoViewModel
             )
         }
 
@@ -96,9 +101,9 @@ class MemoComponent @Inject constructor(): IMemoComponent {
                         verticalAlignment = VerticalAlignment.Middle,
                         horizontalAlignment = HorizontalAlignment.Center,
                         onColorSelected = { color ->
-                            mainViewModel.setIsDisplayingMemoPalette(false)
+                            memoViewModel.setIsDisplayingMemoPalette(false)
                             val saved =
-                                mainViewModel.savedSelectedRange.value
+                                memoViewModel.savedSelectedRange.value
                                     ?: return@Palette
                             richTextState.selection = saved
                             richTextState.addSpanStyle(

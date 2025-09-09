@@ -56,6 +56,7 @@ fun SigmaActivity.MemoEditor(
     isRichText: State<Boolean>,
     richTextState: RichTextState,
     closeMemo: () -> Unit,
+    memoViewModel: MemoViewModel,
 ) {
     val currentItemFlow = mainViewModel.selectedItem
 
@@ -275,7 +276,7 @@ fun SigmaActivity.MemoEditor(
                     iconRes = R.drawable.palette,
                     active = true
                 ) {
-                    mainViewModel.setSavedSelectedRange(richTextState.selection)
+                    memoViewModel.setSavedSelectedRange(richTextState.selection)
                     richTextState.selection = TextRange(
                         start = richTextState.selection.start,
                         end = richTextState.selection.start
@@ -288,7 +289,7 @@ fun SigmaActivity.MemoEditor(
 //                    ))
 //                    richTextState.addTextAfterSelection(" ")
 
-                    mainViewModel.setIsDisplayingMemoPalette(true)
+                    memoViewModel.setIsDisplayingMemoPalette(true)
                 }
 
                 EditorAction(

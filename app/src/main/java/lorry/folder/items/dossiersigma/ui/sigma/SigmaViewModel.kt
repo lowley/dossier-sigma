@@ -60,46 +60,6 @@ class SigmaViewModel @Inject constructor(
     val settingsManager: SettingsManager,
 ) : ViewModel() {
 
-    ////////////////
-// scaleCache //
-////////////////
-//    private val _scaleCache = MutableStateFlow(mutableMapOf<String, ContentScale>())
-//    val scaleCache: StateFlow<MutableMap<String, ContentScale>> = _scaleCache
-//
-//    fun setScaleCacheValue(key: String, scale: ContentScale?) {
-//        if (scale == null)
-//            return
-//        _scaleCache.value = _scaleCache.value.toMutableMap().apply {
-//            put(key, scale)
-//            println("ajout de clé dans scaleCache: ${key.takeLast(20)}: $scale")
-//            println("il y a ${_scaleCache.value.size} clés")
-//        }
-//    }
-//
-//    fun clearScalecache() {
-//        _scaleCache.value.clear()
-//    }
-//
-//    val sortingCache = mutableMapOf<String, SortingCriterion>()
-//
-
-    //////////
-// mémo //
-//////////
-    private val _isDisplayingMemoPalette = MutableStateFlow(false)
-    val isDisplayingMemoPalette: StateFlow<Boolean> = _isDisplayingMemoPalette
-
-    fun setIsDisplayingMemoPalette(isVisible: Boolean) {
-        _isDisplayingMemoPalette.value = isVisible
-    }
-
-    private val _savedSelectedRange = MutableStateFlow<TextRange?>(null)
-    val savedSelectedRange: StateFlow<TextRange?> = _savedSelectedRange
-
-    fun setSavedSelectedRange(newSelection: TextRange?) {
-        _savedSelectedRange.value = newSelection
-    }
-
     /////////////////
 // text dialog //
 /////////////////
