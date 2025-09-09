@@ -14,7 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.service.IServiceComponent
 import lorry.folder.items.dossiersigma.headless.service.utilities.parameter
-import lorry.folder.items.dossiersigma.UI.sigma.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import javax.inject.Inject
 
 class MoveToNASComponent @Inject constructor(

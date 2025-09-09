@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.UI.sigma.SortingCriterion
+import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 
 @Entity(
     tableName = "folder_cache_entry",

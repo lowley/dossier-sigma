@@ -25,12 +25,12 @@ import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
-import lorry.folder.items.dossiersigma.UI.IndexBar.IIndexBar
-import lorry.folder.items.dossiersigma.UI.IndexBar.IndexBar
-import lorry.folder.items.dossiersigma.UI.browser.Browser
-import lorry.folder.items.dossiersigma.UI.browser.IBrowser
-import lorry.folder.items.dossiersigma.UI.items.BottomTools
-import lorry.folder.items.dossiersigma.UI.settings.SettingsManager
+import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
+import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
+import lorry.folder.items.dossiersigma.ui.browser.Browser
+import lorry.folder.items.dossiersigma.ui.browser.IBrowser
+import lorry.folder.items.dossiersigma.ui.items.BottomTools
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import javax.inject.Singleton
 
 

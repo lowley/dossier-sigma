@@ -18,7 +18,7 @@ import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContent.FolderCacheEntry
 import lorry.folder.items.dossiersigma.headless.folderContent.FolderFreshness
-import lorry.folder.items.dossiersigma.UI.sigma.SortingCriterion
+import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 import java.time.Instant
 

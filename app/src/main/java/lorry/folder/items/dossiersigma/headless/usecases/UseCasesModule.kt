@@ -11,8 +11,8 @@ import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.usecases.clipboard.PastingPictureUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
-import lorry.folder.items.dossiersigma.UI.memo.IMemoComponent
-import lorry.folder.items.dossiersigma.UI.memo.MemoComponent
+import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
+import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 
 @Module
 @InstallIn(SingletonComponent::class)

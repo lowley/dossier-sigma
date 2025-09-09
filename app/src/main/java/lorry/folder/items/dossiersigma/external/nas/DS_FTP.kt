@@ -8,7 +8,7 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.UI.settings.SettingsManager
+import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
 import org.apache.commons.net.ftp.FTPReply

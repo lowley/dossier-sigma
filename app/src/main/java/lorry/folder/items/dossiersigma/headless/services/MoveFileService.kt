@@ -8,9 +8,9 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
-import lorry.folder.items.dossiersigma.UI.items.BottomTools
-import lorry.folder.items.dossiersigma.UI.items.Tools.DEFAULT
-import lorry.folder.items.dossiersigma.UI.sigma.SigmaViewModel
+import lorry.folder.items.dossiersigma.ui.items.BottomTools
+import lorry.folder.items.dossiersigma.ui.items.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -19,7 +19,7 @@ import kotlin.system.measureTimeMillis
 
 
 /**
- * Appelé par @see[lorry.folder.items.dossiersigma.UI.SigmaActivity.onCreate]
+ * Appelé par @see[lorry.folder.items.dossiersigma.ui.SigmaActivity.onCreate]
  * , déclaration de CustomMoveFileExistingDestinationDialog
  */
 @AndroidEntryPoint
