@@ -420,14 +420,6 @@ class SigmaViewModel @Inject constructor(
         val value = bytes.toDouble() / (1L shl (z * 10))
         return String.format("%.1f%c", value, " KMGTPE"[z])
     }
-
-    fun getClipboardText(context: Context): String? {
-        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clipData = clipboard.primaryClip
-        val text = clipData?.getItemAt(0)?.text?.toString()
-        Log.d(TAG, "getClipboardText: $text")
-        return text
-    }
 }
 
 enum class SortingCriterion {

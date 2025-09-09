@@ -40,9 +40,4 @@ class UseCasesModule {
     ): ChangePathUseCase {
         return ChangePathUseCase(diskRepository)
     }
-
-    @Provides
-    fun provideMemo(): IMemoComponent{
-        return MemoComponent()
-    }
 }

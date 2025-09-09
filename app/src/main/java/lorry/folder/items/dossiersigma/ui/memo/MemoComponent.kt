@@ -1,51 +1,62 @@
 package lorry.folder.items.dossiersigma.ui.memo
 
-import androidx.activity.viewModels
+import android.content.ClipboardManager
+import android.content.Context
+import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import com.elixer.palette.Presets
 import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
 import com.elixer.palette.constraints.VerticalAlignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import kotlinx.coroutines.flow.MutableStateFlow
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.folderContent.IFolderContentComponent
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
 import javax.inject.Inject
 import kotlin.getValue
 
-class MemoComponent @Inject constructor(): IMemoComponent {
+class MemoComponent @Inject constructor(
+    private val owner: ViewModelStoreOwner,
+    private val folderContentComponent: IFolderContentComponent,
+    @ApplicationContext private val context: Context
+): IMemoComponent {
 
-    //////////////////////
-    // isDisplayingMemo //
-    //////////////////////
-    val _isDisplayingMemo = MutableStateFlow(false)
-    override val isDisplayingMemo: StateFlow<Boolean> = _isDisplayingMemo
-
-    fun setIsDisplayingMemo(isVisible: Boolean) {
-        _isDisplayingMemo.value = isVisible
+    val memoViewModel: MemoViewModel by lazy {
+        ViewModelProvider(owner)[MemoViewModel::class.java]
     }
+
+    override val isDisplayingMemo: StateFlow<Boolean> = memoViewModel._isDisplayingMemo
 
     override fun isDisplayed() = isDisplayingMemo.value
 
     override fun closeMemo() {
-        _isDisplayingMemo.value = false
+        memoViewModel._isDisplayingMemo.value = false
     }
 
     override fun toggleIsDisplayed() {
-        setIsDisplayingMemo(!isDisplayingMemo.value)
+        memoViewModel.setIsDisplayingMemo(!isDisplayingMemo.value)
     }
 
 
@@ -53,10 +64,10 @@ class MemoComponent @Inject constructor(): IMemoComponent {
     // zoneUI //
     ////////////
     @Composable
-    context(SigmaActivity, BoxScope)
-    override fun Render(){
-
-        val memoViewModel: MemoViewModel by viewModels()
+    context(BoxScope)
+    override fun Render(
+        selectedItem: Item?,
+        setSelectedItem: (Item?) -> Unit) {
 
         val richTextState = rememberRichTextState()
 
@@ -71,7 +82,11 @@ class MemoComponent @Inject constructor(): IMemoComponent {
                 isRichText = isDisplayingMemo,
                 richTextState = richTextState,
                 closeMemo = this@MemoComponent::closeMemo,
-                memoViewModel = memoViewModel
+                memoViewModel = memoViewModel,
+                selectedItem = selectedItem,
+                setSelectedItem = setSelectedItem,
+                reloadCurrentFolder = folderContentComponent::reloadCurrentFolder,
+                context = context
             )
         }
 
@@ -114,6 +129,32 @@ class MemoComponent @Inject constructor(): IMemoComponent {
                         }
                     )
                 }
+            }
+        }
+    }
+
+    companion object{
+        fun getClipboardText(context: Context): String? {
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipData = clipboard.primaryClip
+            val text = clipData?.getItemAt(0)?.text?.toString()
+            Log.d(TAG, "getClipboardText: $text")
+            return text
+        }
+
+        @Composable
+        public fun EditorAction(
+            @DrawableRes iconRes: Int,
+            active: Boolean,
+            onClick: () -> Unit,
+        ) {
+            IconButton(onClick = onClick) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = iconRes),
+                    tint = if (active) Color.White else Color.Black,
+                    contentDescription = null
+                )
             }
         }
     }

@@ -77,6 +77,7 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
+import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.folderContent.ReloadType
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
@@ -882,7 +883,11 @@ class SigmaActivity : ComponentActivity() {
                     ////////////////////////////////
                     // memo + palette de couleurs //
                     ////////////////////////////////
-                    memo.Render()
+                    memo.Render(
+                        selectedItem = selectedItem,
+                        setSelectedItem = { item: Item? ->
+                            mainViewModel.setSelectedItem(item) }
+                    )
 
                     /////////////////////////////////
                     // étiquette mobile éventuelle //

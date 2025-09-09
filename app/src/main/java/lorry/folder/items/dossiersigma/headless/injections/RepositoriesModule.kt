@@ -1,10 +1,13 @@
 package lorry.folder.items.dossiersigma.headless.injections
 
+import android.app.Activity
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import androidx.lifecycle.ViewModelStoreOwner
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -30,7 +33,10 @@ import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
 import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.items.BottomTools
+import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
+import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import javax.inject.Singleton
 
 
@@ -102,6 +108,8 @@ abstract class BrowserModule {
     abstract fun bindBrowser(impl: Browser): IBrowser
 }
 
+
+
 @Module
 @InstallIn(SingletonComponent::class)
 object DataStoreModule {
@@ -113,4 +121,24 @@ object DataStoreModule {
         PreferenceDataStoreFactory.create {
             context.preferencesDataStoreFile("settings")
         }
+}
+
+@Module
+@InstallIn(ActivityComponent::class)
+object OwnerModule {
+    @Provides
+    fun provideOwner(activity: Activity): ViewModelStoreOwner = activity  as ViewModelStoreOwner
+
+    @Provides
+    fun provideIMemoComponent(
+        owner: ViewModelStoreOwner,
+        folderContentComponent: IFolderContentComponent,
+        context: Context
+    ): IMemoComponent {
+        return MemoComponent(
+            owner = owner,
+            folderContentComponent = folderContentComponent,
+            context = context
+        )
+    }
 }

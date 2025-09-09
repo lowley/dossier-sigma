@@ -10,6 +10,15 @@ import javax.inject.Inject
 @HiltViewModel
 class MemoViewModel @Inject constructor() : ViewModel() {
 
+    //////////////////////
+    // isDisplayingMemo //
+    //////////////////////
+    val _isDisplayingMemo = MutableStateFlow(false)
+
+    fun setIsDisplayingMemo(isVisible: Boolean) {
+        _isDisplayingMemo.value = isVisible
+    }
+
     ///////////////////////
     // affichage palette //
     ///////////////////////
@@ -29,6 +38,4 @@ class MemoViewModel @Inject constructor() : ViewModel() {
     fun setSavedSelectedRange(newSelection: TextRange?) {
         _savedSelectedRange.value = newSelection
     }
-
-
 }

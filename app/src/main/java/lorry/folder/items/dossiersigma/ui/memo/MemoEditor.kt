@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.memo
 
+import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,9 +20,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,26 +37,32 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.viewModelScope
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichTextEditor
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Memo
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.ui.memo.MemoComponent.Companion.EditorAction
 
 @Composable
-fun SigmaActivity.MemoEditor(
+fun MemoEditor(
     modifier: Modifier = Modifier,
     isRichText: State<Boolean>,
     richTextState: RichTextState,
     closeMemo: () -> Unit,
     memoViewModel: MemoViewModel,
+    selectedItem: Item?,
+    setSelectedItem: (Item?) -> Unit,
+    reloadCurrentFolder: () -> Unit,
+    context: Context,
 ) {
-    val currentItemFlow = mainViewModel.selectedItem
+    val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     Column(
         modifier = modifier
@@ -67,15 +71,7 @@ fun SigmaActivity.MemoEditor(
             .zIndex(15f)
     ) {
 
-        val selectedItemMemo by remember {
-            derivedStateOf {
-                val memo = mainViewModel.folderContentComponent
-                    .currentFolderFlow.value?.items
-                    ?.firstOrNull { it.fullPath == mainViewModel?.selectedItemFullPath?.value }
-                    ?.memo
-                memo
-            }
-        }
+        val selectedItemMemo = selectedItem?.memo
 
         LaunchedEffect(isRichText.value, selectedItemMemo) {
             if (isRichText.value) {
@@ -240,26 +236,25 @@ fun SigmaActivity.MemoEditor(
                         editorContent = ""
 
                     val currentItem =
-                        mainViewModel.selectedItem.value
+                        selectedItem
                             ?: return@IconButton
 
-                    mainViewModel.setSelectedItem(
+                    setSelectedItem(
                         currentItem.copy(memo = editorContent)
                     )
 
-                    mainViewModel.viewModelScope.launch(Dispatchers.IO) {
+                    scope.launch(Dispatchers.IO) {
 
                         val capsuleMgr = CapsuleComponent()
                         capsuleMgr.save(
                             Memo(editorContent),
                             currentItem.fullPath)
                         withContext(Dispatchers.Default) {
-                            mainViewModel.setSelectedItem(null)
+                            setSelectedItem(null)
                         }
                     }
 
-                    mainViewModel.folderContentComponent
-                        ?.reloadCurrentFolder()
+                    reloadCurrentFolder()
 
                     richTextState.clear()
                     closeMemo()
@@ -296,7 +291,7 @@ fun SigmaActivity.MemoEditor(
                     iconRes = R.drawable.paste,
                     active = true
                 ) {
-                    val clipboardContent = mainViewModel.getClipboardText(sigmaActivity)
+                    val clipboardContent = MemoComponent.getClipboardText(context)
                     if (clipboardContent == null)
                         return@EditorAction
 
@@ -314,7 +309,7 @@ fun SigmaActivity.MemoEditor(
 
                 IconButton(onClick = {
                     richTextState.clear()
-                    mainViewModel.setSelectedItem(null)
+                    setSelectedItem(null)
                     closeMemo()
 //
 //                                            val item = mainViewModel.selectedItem.value
@@ -342,21 +337,5 @@ fun SigmaActivity.MemoEditor(
                 }
             }
         }
-    }
-}
-
-@Composable
-public fun SigmaActivity.EditorAction(
-    @DrawableRes iconRes: Int,
-    active: Boolean,
-    onClick: () -> Unit,
-) {
-    IconButton(onClick = onClick) {
-        Icon(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(id = iconRes),
-            tint = if (active) Color.White else Color.Black,
-            contentDescription = null
-        )
     }
 }

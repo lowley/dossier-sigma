@@ -3,7 +3,7 @@ package lorry.folder.items.dossiersigma.ui.memo
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.flow.StateFlow
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.headless.domain.Item
 
 interface IMemoComponent {
 
@@ -13,7 +13,7 @@ interface IMemoComponent {
     fun toggleIsDisplayed()
 
     @Composable
-    context(SigmaActivity, BoxScope)
-    fun Render()
+    context(BoxScope)
+    fun Render(selectedItem: Item?, setSelectedItem: (Item?) -> Unit)
 
 }
