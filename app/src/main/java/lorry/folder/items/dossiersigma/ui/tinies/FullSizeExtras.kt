@@ -13,15 +13,15 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
-import lorry.folder.items.dossiersigma.ui.folderContentFront.CustomMoveFileExistingDestinationDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.CustomTextDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.CustomYesNoDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderChooserDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.folderContentFront.TagInfos
-import lorry.folder.items.dossiersigma.ui.folderContentFront.TagInfosDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.CustomMoveFileExistingDestinationDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.CustomTextDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.CustomYesNoDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.FolderChooserDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.HomeItemDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.TagInfos
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.TagInfosDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
@@ -37,7 +37,7 @@ fun FullSizeExtras(
     val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
     val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-    val currentTool by bottomTools.currentTool.collectAsState()
+    val currentTool by folderContentFrontComponent.currentTool.collectAsState()
     val browserState by browser.vm.state.collectAsState()
 
     if (isTextDialogVisible)
@@ -105,11 +105,11 @@ fun FullSizeExtras(
                     ).apply {
                         putExtra(
                             "source",
-                            bottomTools.movingItem?.fullPath ?: ""
+                            folderContentFrontComponent.movingItem?.fullPath ?: ""
                         )
                         putExtra(
                             "destination",
-                            bottomTools.movingItem?.fullPath ?: ""
+                            folderContentFrontComponent.movingItem?.fullPath ?: ""
                         )
                         putExtra("addSuffix", "")
                     }
@@ -117,13 +117,13 @@ fun FullSizeExtras(
                 mainViewModel.folderContentComponent.reloadCurrentFolder()
             },
             onCancel = {
-                bottomTools.setCurrentContent(DEFAULT)
-                val item = bottomTools.movingItem
+                folderContentFrontComponent.setCurrentContent(DEFAULT)
+                val item = folderContentFrontComponent.movingItem
                 val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                 if (movingParent != null)
                     mainViewModel.goToFolder(movingParent)
-                bottomTools.movingItem = null
+                folderContentFrontComponent.movingItem = null
                 mainViewModel.setSelectedItem(null, true)
                 mainViewModel.folderContentComponent.reloadCurrentFolder()
             },
@@ -135,11 +135,11 @@ fun FullSizeExtras(
                     ).apply {
                         putExtra(
                             "source",
-                            bottomTools.movingItem?.fullPath ?: ""
+                            folderContentFrontComponent.movingItem?.fullPath ?: ""
                         )
                         putExtra(
                             "destination",
-                            bottomTools.itemToMove?.fullPath
+                            folderContentFrontComponent.itemToMove?.fullPath
                         )
                         putExtra("addSuffix", " - copie")
                     }

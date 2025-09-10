@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContentFront
+package lorry.folder.items.dossiersigma.ui.folderContentFront.utils
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,12 +27,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
+import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderContentFrontComponent
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
 context(SigmaActivity, ColumnScope)
-fun FolderContentFrontPage(
+fun FolderContentFrontComponent.frontPage(
     onHoveredNotHovered: (Item?) -> Unit,
     onItemTapped: (Item) -> Unit,
     onItemLongPressed: (Item) -> Unit,
@@ -40,14 +43,20 @@ fun FolderContentFrontPage(
     getInfoInf: suspend (Item) -> String,
     onRefresh: () -> Unit,
     indexBar: IIndexBar,
-    currentScrollState: LazyGridState,
-    path: String?,
-
     ) {
-    val currentFolderFlow = mainViewModel.folderContentComponent.currentFolderFlow
+
+    val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsState(
+        null
+    )
+    val scrollStates =
+        remember { mutableMapOf<String, LazyGridState>() }
+    val currentScrollState =
+        scrollStates.getOrPut(currentFolder?.fullPath ?: "") {
+            LazyGridState()
+        }
 
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
-    val draggableStartPosition = mainViewModel.draggableStartPosition
+    val draggableStartPosition = frontViewModel.draggableStartPosition
     val waitingForItems =
         mainViewModel.folderContentComponent.waitingForItems.collectAsStateWithLifecycle(
             initialValue = false
@@ -57,7 +66,7 @@ fun FolderContentFrontPage(
         onRefresh = onRefresh
     ) {
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .padding(
                     start = 0.dp,
@@ -71,20 +80,28 @@ fun FolderContentFrontPage(
                     initialValue = null
                 )
 
-            val fastPath = mainViewModel.folderContentComponent.fastPath.collectAsStateWithLifecycle(
-                initialValue = null)
+            val fastPath =
+                mainViewModel.folderContentComponent.fastPath.collectAsStateWithLifecycle(
+                    initialValue = null
+                )
 
             val folder = mainViewModel.folderContentComponent.currentFolderFlow
-                .collectAsStateWithLifecycle(initialValue  = null)
+                .collectAsStateWithLifecycle(initialValue = null)
 
             val items = folder.value?.items.orEmpty()
             val ready = folder.value?.fullPath == fastPath.value && items.isNotEmpty()
             val pathMatches = samePath(folder.value?.fullPath, fastPath.value)
 
-            Log.d("sgmact", "NormalPage: path actuel(${currentPath.value}), currentFolderFlow.Path(${folder.value?.fullPath}, fastPath(${fastPath.value}), currentFolderFlow.items(${items.size}))")
+            Log.d(
+                "sgmact",
+                "NormalPage: path actuel(${currentPath.value}), currentFolderFlow.Path(${folder.value?.fullPath}, fastPath(${fastPath.value}), currentFolderFlow.items(${items.size}))"
+            )
 
             LaunchedEffect(pathMatches, items.size) {
-                Log.d("sgmact", "    -> LaunchedEffect: pathMatches($pathMatches), items.size(${items.size})")
+                Log.d(
+                    "sgmact",
+                    "    -> LaunchedEffect: pathMatches($pathMatches), items.size(${items.size})"
+                )
                 if (pathMatches && waitingForItems.value) {
                     mainViewModel.folderContentComponent.setWaitingForItems(false)
                 }
@@ -92,7 +109,10 @@ fun FolderContentFrontPage(
 
             }
 
-            Log.d("sgmact", "    -> et avant le choix: waitingForItems(${waitingForItems.value}), pathMatches($pathMatches)")
+            Log.d(
+                "sgmact",
+                "    -> et avant le choix: waitingForItems(${waitingForItems.value}), pathMatches($pathMatches)"
+            )
 
             when {
                 // 1) Bon path reçu ET items présents -> affiche la grille
@@ -101,7 +121,7 @@ fun FolderContentFrontPage(
 
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(150.dp),
-                        modifier = Modifier
+                        modifier = Modifier.Companion
                             .padding(start = 25.dp, end = 0.dp),
                         state = currentScrollState
                     ) {
@@ -110,7 +130,7 @@ fun FolderContentFrontPage(
                         }) { item ->
                             ItemComponent(
                                 item = item,
-                                modifier = Modifier
+                                modifier = Modifier.Companion
                                     .padding(horizontal = 10.dp, vertical = 6.dp),
                                 onItemUpdated = { item ->
 //                                                mainViewModel.updateItemInList(item)
@@ -136,8 +156,8 @@ fun FolderContentFrontPage(
                     Log.d("sgmact", "    -> affichage 'Chargement...'")
 
                     Text(
-                        modifier = Modifier
-                            .align(Alignment.Center),
+                        modifier = Modifier.Companion
+                            .align(Alignment.Companion.Center),
                         text = "Chargement...",
                     )
                 }
@@ -147,8 +167,8 @@ fun FolderContentFrontPage(
                     Log.d("sgmact", "    -> affichage 'Dossier vide'")
 
                     Text(
-                        modifier = Modifier
-                            .align(Alignment.Center),
+                        modifier = Modifier.Companion
+                            .align(Alignment.Companion.Center),
                         text = "Dossier vide",
                     )
                 }
@@ -157,8 +177,8 @@ fun FolderContentFrontPage(
             }
 
             Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
+                modifier = Modifier.Companion
+                    .align(Alignment.Companion.CenterStart)
                     .padding(start = 4.dp)
                     .fillMaxHeight()
                     .width(20.dp)
@@ -200,10 +220,9 @@ fun PullToRefreshContainer(
     )
 
     PullRefreshLayout(
-        modifier = Modifier,
+        modifier = Modifier.Companion,
         state = pullRefreshState
     ) {
         content()
     }
 }
-

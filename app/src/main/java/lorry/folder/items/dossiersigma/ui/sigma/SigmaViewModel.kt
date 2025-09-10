@@ -4,8 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,16 +30,14 @@ import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.external.playing.IPlayingDataSource
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
-import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.TagInfos
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Tool
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.TagInfos
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tool
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
-import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 
@@ -128,40 +124,6 @@ class SigmaViewModel @Inject constructor(
 
     fun toggleSettingsPageVisible() {
         _isSettingsPageVisible.value = !_isSettingsPageVisible.value
-    }
-
-    /////////////////
-// drag'n drop //
-/////////////////
-    private val _dragTargetItem = MutableStateFlow<Item?>(null)
-    val dragTargetItem: StateFlow<Item?> = _dragTargetItem
-
-    fun setDragTargetItem(item: Item?) {
-        _dragTargetItem.value = item
-    }
-
-    private val _dragState = MutableStateFlow<DragState?>(null)
-    val dragState: StateFlow<DragState?> = _dragState
-
-    fun beginDrag(tool: Tool, startOffset: Offset) {
-        _dragState.value = DragState(tool, startOffset)
-    }
-
-    fun addDragOffset(delta: Offset) {
-        _dragState.value?.let {
-            _dragState.value = it.copy(offset = it.offset + delta)
-        }
-    }
-
-    fun terminateDrag() {
-        _dragState.value = null
-    }
-
-    private val _draggableStartPosition = MutableStateFlow<Offset?>(null)
-    val draggableStartPosition: StateFlow<Offset?> = _draggableStartPosition
-
-    fun setDraggableStartPosition(position: Offset?) {
-        _draggableStartPosition.value = position
     }
 
     val tools = bottomTools.currentContent.map {
@@ -313,7 +275,6 @@ class SigmaViewModel @Inject constructor(
     }
 
     init {
-        bottomTools.viewModel = this
         viewModelScope.launch {
             bottomTools.progress.collect { p ->
                 if (p == 0 || p == 100)
@@ -387,34 +348,6 @@ class SigmaViewModel @Inject constructor(
 
             folderContentComponent.reloadCurrentFolder()
         }
-    }
-
-    suspend fun getInfoSup(item: Item): String {
-        return withContext(Dispatchers.IO) {
-            val infos = if (item is SigmaFolder) diskRepository
-                .countFilesAndFolders(File(item.fullPath)).component1().toString() else item.name
-                .substringAfterLast(".").toUpperCase(Locale.current)
-
-            infos
-        }
-    }
-
-    suspend fun getInfoInf(item: Item): String {
-        return withContext(Dispatchers.IO) {
-            val infos = if (item is SigmaFolder)
-                diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
-                    .toString()
-            else formatFileSizeShort(diskRepository.getSize(File(item.fullPath)))
-
-            infos
-        }
-    }
-
-    fun formatFileSizeShort(bytes: Long): String {
-        if (bytes < 1024) return "${bytes}B"
-        val z = (63 - java.lang.Long.numberOfLeadingZeros(bytes)) / 10
-        val value = bytes.toDouble() / (1L shl (z * 10))
-        return String.format("%.1f%c", value, " KMGTPE"[z])
     }
 }
 

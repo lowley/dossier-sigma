@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContentFront
+package lorry.folder.items.dossiersigma.ui.folderContentFront.utils
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -65,6 +65,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
@@ -107,6 +109,8 @@ import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.collections.get
+import kotlin.getValue
 import kotlin.math.roundToInt
 
 /**
@@ -128,7 +132,16 @@ import kotlin.math.roundToInt
 @Singleton
 class BottomTools @Inject constructor(
     val moveToNASComponent: IMoveToNASComponent,
+    private val owner: ViewModelStoreOwner,
 ) {
+    val sigmaViewModel: SigmaViewModel by lazy {
+        ViewModelProvider(owner)[SigmaViewModel::class.java]
+    }
+
+//    val frontViewModel: FolderContentFrontViewModel by lazy {
+//        ViewModelProvider(owner)[FolderContentFrontViewModel::class.java]
+//    }
+
     init {
         Tools.DEFAULT.bottomTools = this
         Tools.TAGS_MENU.bottomTools = this
@@ -139,7 +152,6 @@ class BottomTools @Inject constructor(
         Tools.CROP.bottomTools = this
     }
 
-    lateinit var viewModel: SigmaViewModel
     internal val defaultContent = BottomToolContent(emptyList(), "DEFAULT_CONTENT")
     private val _bottomToolsContent = MutableStateFlow<BottomToolContent?>(defaultContent)
     val currentContent: StateFlow<BottomToolContent?> = _bottomToolsContent
@@ -148,13 +160,12 @@ class BottomTools @Inject constructor(
         setCurrentFlagId(null)
         _bottomToolsContent.value = when (tools) {
             Tools.DEFAULT -> defaultContent
-            else -> tools.content(viewModel)
+            else -> tools.content(sigmaViewModel)
         }
     }
 
     //destiné à l'affichage par remontée dans MainActivity
-    private val _currentTool = MutableStateFlow<Tool?>(null)
-    val currentTool: StateFlow<Tool?> = _currentTool
+    val _currentTool = MutableStateFlow<Tool?>(null)
 
     fun setCurrentTool(tool: Tool?) {
         _currentTool.value = tool
@@ -180,7 +191,7 @@ class BottomTools @Inject constructor(
 
     /**
      * utilisé par
-     * @see lorry.folder.items.dossiersigma.headless.services.MoveFileService.copy
+     * @see MoveFileService.copy
      */
     fun updateProgress(value: Int) {
         _progress.value = value
@@ -212,23 +223,26 @@ class BottomTools @Inject constructor(
         )
     }
 
-    private val _copyNASText = MutableStateFlow("1 -> NAS")
+    val _copyNASText = MutableStateFlow("1 -> NAS")
     val copyNASText: StateFlow<String> = _copyNASText
 
     fun updateNASText(value: String) {
         _copyNASText.value = value
     }
 
-    private val _copyAllNASText = MutableStateFlow("Tous -> NAS")
-    val copyAllNASText: StateFlow<String> = _copyAllNASText
-
+    val _copyAllNASText = MutableStateFlow("Tous -> NAS")
     fun updateAllNASText(value: String) {
         _copyAllNASText.value = value
     }
 
     @Composable
     fun BottomToolBar(
-        activity: SigmaActivity
+        activity: SigmaActivity,
+        beginDrag: (Tool, Offset) -> Unit,
+        terminateDrag: () -> Unit,
+        setDragTargetItem: (Item?) -> Unit,
+        addDragOffset: (Offset) -> Unit,
+        dragTargetItem: StateFlow<Item?>
     ) {
         val content = currentContent.collectAsState().value
         val toolList = content?.tools?.collectAsState()?.value ?: emptyList()
@@ -260,20 +274,24 @@ class BottomTools @Inject constructor(
                 FixedSticker(
                     tool = tool,
                     activity = activity,
+                    beginDrag = beginDrag,
+                    terminateDrag = terminateDrag,
+                    setDragTargetItem = setDragTargetItem,
+                    addDragOffset = addDragOffset,
+                    dragTargetItem = dragTargetItem
                 )
             }
         }
     }
 
-    fun observeDefaultContent(viewModel: SigmaViewModel) {
-        this.viewModel = viewModel
-        viewModel.viewModelScope.launch {
+    fun observeDefaultContent() {
+        sigmaViewModel.viewModelScope.launch {
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
             // La lambda sera appelée si l'un ou l'autre change.
             combine(
                 currentFlagId,
-                viewModel.folderContentComponent.currentFolderFlow,
-                viewModel.folderContentComponent.reloadTrigger
+                sigmaViewModel.folderContentComponent.currentFolderFlow,
+                sigmaViewModel.folderContentComponent.reloadTrigger
             ) { selectedId, currentFolder, _ ->
                 val tags = currentFolder
                     ?.items
@@ -305,6 +323,59 @@ class BottomTools @Inject constructor(
                 defaultContent.updateTools(tagTools)
 
             }.collect() // Démarre la collecte du Flow combiné.
+        }
+    }
+
+    @Composable
+    context(BoxScope)
+    fun MobileSticker(
+        dragState: DragState,
+        activity: SigmaActivity,
+    ) {
+        val tool: Tool = dragState.tool
+        val offset: Offset = dragState.offset
+
+        Box(
+            modifier = Modifier.Companion
+                .width(85.dp)
+                .fillMaxHeight()
+                .clickable {
+                    setCurrentTool(tool)
+                    sigmaViewModel.viewModelScope.launch {
+                        tool.onClick(tool, sigmaViewModel, activity)
+                    }
+                }
+        ) {
+            StickerIcon(
+                modifier = Modifier.Companion
+                    .offset {
+                        IntOffset(
+                            offset.x.roundToInt() - 60,
+                            offset.y.roundToInt() - 70
+                        )
+                    }
+                    .pointerInput(Unit) {
+                        detectDragGestures(
+                            onDrag = { change, dragAmount ->
+                            },
+                            onDragEnd = {}
+                        )
+
+                    },
+                iconRes = tool.icon,
+                iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                    (tool.tint ?: Color(0xFFe9c46a)),
+                ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
+                    (tool.tint ?: Color(0xFFe9c46a)),
+                ringWidth = 2.dp,
+                ringSize = 85.dp,
+                iconSize = 70.dp,
+                isRingEnabled = true,
+            )
+
+            StickerText(
+                tool = tool
+            )
         }
     }
 }
@@ -1015,7 +1086,7 @@ sealed class Tools {
                             /**
                              * le fichier n'existe pas, on lance la copie,
                              * le reste est effectué dans
-                             * @see lorry.folder.items.dossiersigma.headless.services.MoveFileService.onStartCommand
+                             * @see MoveFileService.onStartCommand
                              */
 
                             //encode/decode en json
@@ -2278,6 +2349,11 @@ fun FixedSticker(
     modifier: Modifier = Modifier.Companion,
     tool: Tool,
     activity: SigmaActivity,
+    beginDrag: (Tool, Offset) -> Unit,
+    terminateDrag: () -> Unit,
+    setDragTargetItem: (Item?) -> Unit,
+    addDragOffset: (Offset) -> Unit,
+    dragTargetItem: StateFlow<Item?>,
 ) {
     Box(
         modifier = modifier
@@ -2285,8 +2361,8 @@ fun FixedSticker(
             .fillMaxHeight()
             .clickable {
                 setCurrentTool(tool)
-                viewModel.viewModelScope.launch {
-                    tool.onClick(tool, viewModel, activity)
+                sigmaViewModel.viewModelScope.launch {
+                    tool.onClick(tool, sigmaViewModel, activity)
                 }
             }
     ) {
@@ -2303,22 +2379,22 @@ fun FixedSticker(
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = {
-                            viewModel.beginDrag(tool, globalOffset)
+                            beginDrag(tool, globalOffset)
                         },
                         onDrag = { change: PointerInputChange, dragAmount: Offset ->
-                            viewModel.addDragOffset(dragAmount)
+                            addDragOffset(dragAmount)
                         },
                         onDragEnd = {
-                            val target = viewModel.dragTargetItem.value
+                            val target = dragTargetItem.value
 
                             if (target != null) {
-                                viewModel.assignColoredTagToItem(
+                                sigmaViewModel.assignColoredTagToItem(
                                     target,
                                     tool.toColoredTag()
                                 )
                             }
 
-                            viewModel.terminateDrag()
+                            terminateDrag()
                         },
                         onDragCancel = {},
                     )
@@ -2338,60 +2414,10 @@ fun FixedSticker(
             tool = tool
         )
     }
+
 }
 
-@Composable
-context(BottomTools, BoxScope)
-fun MobileSticker(
-    dragState: DragState,
-    activity: SigmaActivity,
-) {
-    val tool: Tool = dragState.tool
-    val offset: Offset = dragState.offset
 
-    Box(
-        modifier = Modifier.Companion
-            .width(85.dp)
-            .fillMaxHeight()
-            .clickable {
-                setCurrentTool(tool)
-                viewModel.viewModelScope.launch {
-                    tool.onClick(tool, viewModel, activity)
-                }
-            }
-    ) {
-        StickerIcon(
-            modifier = Modifier.Companion
-                .offset {
-                    IntOffset(
-                        offset.x.roundToInt() - 60,
-                        offset.y.roundToInt() - 70
-                    )
-                }
-                .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDrag = { change, dragAmount ->
-                        },
-                        onDragEnd = {}
-                    )
-
-                },
-            iconRes = tool.icon,
-            iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                (tool.tint ?: Color(0xFFe9c46a)),
-            ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                (tool.tint ?: Color(0xFFe9c46a)),
-            ringWidth = 2.dp,
-            ringSize = 85.dp,
-            iconSize = 70.dp,
-            isRingEnabled = true,
-        )
-
-        StickerText(
-            tool = tool
-        )
-    }
-}
 
 @Composable
 fun StickerIcon(

@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContentFront
+package lorry.folder.items.dossiersigma.ui.folderContentFront.utils
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -113,7 +113,7 @@ fun ItemComponent(
 
     val imageHeight = 160.dp
 
-    val dragState by mainViewModel.dragState.collectAsState()
+    val dragState by folderContentFrontComponent.dragState.collectAsState()
     var bounds by remember { mutableStateOf<Rect?>(null) }
 
     val isHovered = remember(dragState, bounds) {

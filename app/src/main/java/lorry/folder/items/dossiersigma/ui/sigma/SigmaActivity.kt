@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -86,16 +85,15 @@ import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserBottomToolbar
-import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderChooserDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.folderContentFront.MobileSticker
-import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderContentFrontPage
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Tool
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContentFront.IFolderContentFrontComponent
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Breadcrumb
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.FolderChooserDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.HomeItemDialog
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tool
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
@@ -130,7 +128,10 @@ class SigmaActivity : ComponentActivity() {
     lateinit var memo: IMemoComponent
 
     @Inject
-    lateinit var bottomTools: BottomTools
+    lateinit var folderContentFrontComponent: IFolderContentFrontComponent
+
+//    @Inject
+//    lateinit var bottomTools: BottomTools
 
     @Inject
     lateinit var browser: IBrowser
@@ -165,8 +166,7 @@ class SigmaActivity : ComponentActivity() {
 
         initializeFileIntentLauncher(mainViewModel)
 
-        bottomTools.viewModel = mainViewModel
-        bottomTools.observeDefaultContent(mainViewModel)
+        folderContentFrontComponent.observeDefaultContent()
 
         setContent {
 //            val myColorScheme by settingsViewModel.settingsManager.colorSchemeFlow.collectAsState(
@@ -214,12 +214,6 @@ class SigmaActivity : ComponentActivity() {
             )
             val currentSorting = mainViewModel.folderContentComponent.sorting
 
-            val scrollStates =
-                remember { mutableMapOf<String, LazyGridState>() }
-            val currentScrollState =
-                scrollStates.getOrPut(currentFolder?.fullPath ?: "") {
-                    LazyGridState()
-                }
             val browserState by browser.vm.state.collectAsState()
 
             Scaffold(
@@ -261,8 +255,8 @@ class SigmaActivity : ComponentActivity() {
                                 contentColor = colors.background,
                                 tonalElevation = 0.dp,
 
-                            ) {
-                                bottomTools.BottomToolBar(activity = this@SigmaActivity)
+                                ) {
+                                folderContentFrontComponent.BottomToolBar(activity = this@SigmaActivity)
                             }
                         }
 
@@ -345,7 +339,7 @@ class SigmaActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    bottomTools.setCurrentContent(DEFAULT)
+                    folderContentFrontComponent.setCurrentContent(DEFAULT)
                 }
 
                 //////////////////////////////
@@ -379,7 +373,7 @@ class SigmaActivity : ComponentActivity() {
                                 detectTapGestures(onTap = {
                                     if (selectedItem?.id != null) {
                                         mainViewModel.setSelectedItem(null, true)
-                                        bottomTools.setCurrentContent(DEFAULT)
+                                        folderContentFrontComponent.setCurrentContent(DEFAULT)
                                     }
                                 })
                             }
@@ -423,7 +417,10 @@ class SigmaActivity : ComponentActivity() {
                                     var stuff by remember { mutableStateOf(R.drawable.mouvement to secondary) }
 
                                     LaunchedEffect(reloadType.value) {
-                                        Log.d("reloadIcon", "HomeButton: reloadType: ${reloadType.value.first}, path: ${currentPath.value}")
+                                        Log.d(
+                                            "reloadIcon",
+                                            "HomeButton: reloadType: ${reloadType.value.first}, path: ${currentPath.value}"
+                                        )
 
                                         val reloadIcon = when (reloadType.value.first) {
                                             ReloadType.Disk -> R.drawable.disquette
@@ -586,8 +583,8 @@ class SigmaActivity : ComponentActivity() {
                                 // aire de l'avancement copie/déplacement //
                                 ////////////////////////////////////////////
 
-                                val nasText by bottomTools.copyNASText.collectAsState()
-                                val allNasText by bottomTools.copyAllNASText.collectAsState()
+                                val nasText by folderContentFrontComponent.copyNASText.collectAsState()
+                                val allNasText by folderContentFrontComponent.copyAllNASText.collectAsState()
 
                                 Row(
                                     modifier = Modifier
@@ -800,21 +797,20 @@ class SigmaActivity : ComponentActivity() {
                             )
                         }
 
-                        /////////////////
-                        // Normal page //
-                        /////////////////
+                        /////////////////////////
+                        // folder content page //
+                        /////////////////////////
                         if (!homePageVisible) {
                             key(currentPath.value ?: "") {
-                                FolderContentFrontPage(
-                                    onHoveredNotHovered = { item ->
-                                        mainViewModel.setDragTargetItem(item)
-                                    },
+                                folderContentFrontComponent.FolderContentFrontPage(
                                     onItemTapped = { item ->
                                         run {
 
                                             if (selectedItem != null) {
                                                 mainViewModel.setSelectedItem(null, true)
-                                                bottomTools.setCurrentContent(DEFAULT)
+                                                folderContentFrontComponent.setCurrentContent(
+                                                    DEFAULT
+                                                )
                                                 return@run
                                             }
 
@@ -839,7 +835,7 @@ class SigmaActivity : ComponentActivity() {
                                     },
                                     onItemLongPressed = { item ->
                                         mainViewModel.setSelectedItem(item.copy(), true)
-                                        bottomTools.setCurrentContent(Tools.FILE)
+                                        folderContentFrontComponent.setCurrentContent(Tools.FILE)
                                     },
                                     onTopLeftPanelClick = { item ->
                                         /**
@@ -848,18 +844,6 @@ class SigmaActivity : ComponentActivity() {
                                         mainViewModel.setSelectedItem(item.copy())
                                         memo.toggleIsDisplayed()
                                     },
-                                    getInfoSup = { item ->
-                                        mainViewModel.getInfoSup(item)
-                                    },
-                                    getInfoInf = { item ->
-                                        mainViewModel.getInfoInf(item)
-                                    },
-                                    onRefresh = {
-                                        mainViewModel.folderContentComponent.reloadCurrentFolderByRefresh2()
-                                    },
-                                    indexBar = indexBar,
-                                    currentScrollState = currentScrollState,
-                                    path = currentPath.value
                                 )
                             }
                         }
@@ -886,7 +870,8 @@ class SigmaActivity : ComponentActivity() {
                     memo.Render(
                         selectedItem = selectedItem,
                         setSelectedItem = { item: Item? ->
-                            mainViewModel.setSelectedItem(item) }
+                            mainViewModel.setSelectedItem(item)
+                        }
                     )
 
                     /////////////////////////////////
@@ -901,15 +886,13 @@ class SigmaActivity : ComponentActivity() {
                      * ViewModel --> Repository
                      * @enduml
                      */
-                    val dragState by mainViewModel.dragState.collectAsState()
+                    val dragState by folderContentFrontComponent.dragState.collectAsState()
                     dragState?.let { dragState ->
                         dragState.tool?.let { tool: Tool ->
-                            with(bottomTools) {
-                                MobileSticker(
-                                    dragState = dragState,
-                                    activity = this@SigmaActivity
-                                )
-                            }
+                            folderContentFrontComponent.MobileSticker(
+                                dragState = dragState,
+                                activity = this@SigmaActivity
+                            )
                         }
                     }
 

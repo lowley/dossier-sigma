@@ -39,7 +39,7 @@ import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
-import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.BottomTools
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID

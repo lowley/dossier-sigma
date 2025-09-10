@@ -8,8 +8,8 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
-import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import java.io.FileInputStream

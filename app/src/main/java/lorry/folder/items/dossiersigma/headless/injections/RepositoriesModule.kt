@@ -6,8 +6,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import com.elixer.palette.constraints.VerticalAlignment
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -32,9 +32,8 @@ import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
 import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
-import lorry.folder.items.dossiersigma.ui.folderContentFront.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.BottomTools
 import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderContentFrontComponent
-import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderContentFrontPage
 import lorry.folder.items.dossiersigma.ui.folderContentFront.IFolderContentFrontComponent
 import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
 import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
@@ -147,9 +146,28 @@ object OwnerModule {
     @Provides
     fun provideIFolderContentFrontComponent(
         owner: ViewModelStoreOwner,
+        diskRepository: IDiskRepository,
+        indexBar: IIndexBar,
+        folderContentBackComponent: IFolderContentBackComponent,
+        bottomTools: BottomTools
     ): IFolderContentFrontComponent {
         return FolderContentFrontComponent(
             owner = owner,
+            diskRepository = diskRepository,
+            indexBar = indexBar,
+            folderContentBackComponent = folderContentBackComponent,
+            bottomTools = bottomTools
+        )
+    }
+
+    @Provides
+    fun provideBottomTools(
+        owner: ViewModelStoreOwner,
+        moveToNASComponent: IMoveToNASComponent
+    ): BottomTools {
+        return BottomTools(
+            owner = owner,
+            moveToNASComponent = moveToNASComponent
         )
     }
 }
