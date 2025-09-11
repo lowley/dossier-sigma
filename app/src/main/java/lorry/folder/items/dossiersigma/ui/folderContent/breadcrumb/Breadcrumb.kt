@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContentFront.utils
+package lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -99,11 +99,13 @@ fun Breadcrumb(
                         val path = when {
                             item == "Local" -> "/storage/emulated/0"
                             item == "Carte SD" -> "/storage/${items.getOrNull(1) ?: ""}"
-                            else -> "/${items.take(
-                                actualIndex + 1 + if (items.isNotEmpty() && (items[0] == "Local" || items[0] ==
-                                            "Carte SD")
-                                ) 1 else 0
-                            ).joinToString("/")}"
+                            else -> "/${
+                                items.take(
+                                    actualIndex + 1 + if (items.isNotEmpty() && (items[0] == "Local" || items[0] ==
+                                                "Carte SD")
+                                    ) 1 else 0
+                                ).joinToString("/")
+                            }"
 
                         }
                         onPathClick(path)

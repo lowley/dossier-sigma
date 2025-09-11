@@ -32,11 +32,11 @@ import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.TagInfos
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tool
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfos
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
 import javax.inject.Inject
@@ -369,3 +369,5 @@ data class FolderKey(
     val path: String,
     val reloadTrigger: Int,
 )
+
+

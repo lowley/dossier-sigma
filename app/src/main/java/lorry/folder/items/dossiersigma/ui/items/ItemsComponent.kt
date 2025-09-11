@@ -1,116 +1,71 @@
-package lorry.folder.items.dossiersigma.ui.folderContentFront
+package lorry.folder.items.dossiersigma.ui.items
 
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.ComponentWithViewModel
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tool
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.frontPage
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.items.utils.ItemsPage
+import lorry.folder.items.dossiersigma.ui.items.utils.ItemsViewModel
 import javax.inject.Inject
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import java.io.File
-import kotlin.getValue
 
-class FolderContentFrontComponent @Inject constructor(
+class ItemsComponent @Inject constructor(
     private val owner: ViewModelStoreOwner,
     private val diskRepository: IDiskRepository,
     private val indexBar: IIndexBar,
     private val folderContentBackComponent: IFolderContentBackComponent,
     private val bottomTools: BottomTools,
-) : IFolderContentFrontComponent {
+) : IItemsComponent, ComponentWithViewModel<ItemsViewModel>() {
 
 
-    val frontViewModel: FolderContentFrontViewModel by lazy {
-        ViewModelProvider(owner)[FolderContentFrontViewModel::class.java]
-    }
+//    val itemsViewModel: ItemsViewModel by lazy {
+//        ViewModelProvider(owner)[ItemsViewModel::class.java]
+//    }
 
     /////////////////
     // drag'n drop //
     /////////////////
-    override val dragState: StateFlow<DragState?> = frontViewModel._dragState
+    override val dragState: StateFlow<DragState?> = viewModel._dragState
 
-    override val dragTargetItem: StateFlow<Item?> = frontViewModel._dragTargetItem
+    override val dragTargetItem: StateFlow<Item?> = viewModel._dragTargetItem
 
 
     override fun setDragTargetItem(item: Item?) {
-        frontViewModel._dragTargetItem.value = item
+        viewModel._dragTargetItem.value = item
     }
 
     override fun beginDrag(tool: Tool, startOffset: Offset) {
-        frontViewModel._dragState.value = DragState(tool, startOffset)
+        viewModel._dragState.value = DragState(tool, startOffset)
     }
 
     override fun addDragOffset(delta: Offset) {
-        frontViewModel._dragState.value?.let {
-            frontViewModel._dragState.value = it.copy(offset = it.offset + delta)
+        viewModel._dragState.value?.let {
+            viewModel._dragState.value = it.copy(offset = it.offset + delta)
         }
     }
 
     override fun terminateDrag() {
-        frontViewModel._dragState.value = null
+        viewModel._dragState.value = null
     }
 
     override fun setDraggableStartPosition(position: Offset?) {
-        frontViewModel._draggableStartPosition.value = position
+        viewModel._draggableStartPosition.value = position
     }
-
-    //////////////////
-    // bottom tools //
-    //////////////////
-    @Composable
-    override fun BottomToolBar(
-        activity: SigmaActivity
-    ){
-        bottomTools.BottomToolBar(
-            activity,
-            beginDrag = this::beginDrag,
-            terminateDrag = this::terminateDrag,
-            setDragTargetItem = this::setDragTargetItem,
-            addDragOffset = this::addDragOffset,
-            dragTargetItem = dragTargetItem
-            )
-    }
-
-    override fun observeDefaultContent() = bottomTools.observeDefaultContent()
-    override fun setCurrentContent(tools: Tools) = bottomTools.setCurrentContent(tools)
-    override val copyAllNASText: StateFlow<String> = bottomTools._copyAllNASText
-    override val copyNASText: StateFlow<String> = bottomTools._copyNASText
-
-    override fun updateNASProgress(
-        percentage: Int,
-        fileIndex: Int,
-        fileCount: Int
-    ) = bottomTools.updateNASProgress(percentage, fileIndex, fileCount)
-
-    @Composable
-    context(BoxScope)
-    override fun MobileSticker(
-        dragState: DragState,
-        activity: SigmaActivity,
-    ) = bottomTools.MobileSticker(
-        dragState = dragState,
-        activity = activity
-    )
-
-    override val currentTool: StateFlow<Tool?> = bottomTools._currentTool
-
-    override var movingItem: Item? = null
-    override var itemToMove: Item? = null
 
     /////////////////////
     // liste des items //
@@ -121,7 +76,7 @@ class FolderContentFrontComponent @Inject constructor(
         onItemTapped: (Item) -> Unit,
         onItemLongPressed: (Item) -> Unit,
         onTopLeftPanelClick: (Item) -> Unit,
-    ) = frontPage(
+    ) = ItemsPage(
         onHoveredNotHovered = { item ->
             folderContentFrontComponent.setDragTargetItem(item)
         },

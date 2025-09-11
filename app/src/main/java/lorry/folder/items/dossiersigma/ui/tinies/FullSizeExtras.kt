@@ -13,15 +13,15 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.CustomMoveFileExistingDestinationDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.CustomTextDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.CustomYesNoDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.FolderChooserDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.TagInfos
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.TagInfosDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.CustomMoveFileExistingDestinationDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.CustomTextDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.CustomYesNoDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.FolderChooserDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfos
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfosDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 

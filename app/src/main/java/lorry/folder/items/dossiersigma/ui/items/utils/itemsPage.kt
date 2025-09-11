@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContentFront.utils
+package lorry.folder.items.dossiersigma.ui.items.utils
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -27,14 +27,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
-import lorry.folder.items.dossiersigma.ui.folderContentFront.FolderContentFrontComponent
+import lorry.folder.items.dossiersigma.ui.items.ItemsComponent
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
 context(SigmaActivity, ColumnScope)
-fun FolderContentFrontComponent.frontPage(
+fun ItemsComponent.ItemsPage(
     onHoveredNotHovered: (Item?) -> Unit,
     onItemTapped: (Item) -> Unit,
     onItemLongPressed: (Item) -> Unit,
@@ -56,7 +55,7 @@ fun FolderContentFrontComponent.frontPage(
         }
 
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
-    val draggableStartPosition = frontViewModel.draggableStartPosition
+    val draggableStartPosition = itemsViewModel.draggableStartPosition
     val waitingForItems =
         mainViewModel.folderContentComponent.waitingForItems.collectAsStateWithLifecycle(
             initialValue = false

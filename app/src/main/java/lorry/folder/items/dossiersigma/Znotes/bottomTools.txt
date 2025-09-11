@@ -1,0 +1,16 @@
+/**
+ * @startuml
+ * (*) -> "BottomTools\n<color:red>  + Sticker" as A
+ * A -> "Nouveau ColoredTag\n    dans flagCache" as B
+ * B --> [  observeDefaultContent()] "MAJ BottomToolBar" as C
+ *
+ * C --> [  observation par BToolBar\n  de currentContextTools] "affichage des tags statiques" as D
+ *
+ * D --> [  si drag étiquette] "affichage tags mobiles\n<color:red> MOBILITE PASSIVE"
+ * D --> [  filtrage\n clic sur flag] "MAJ BT.currentFlagId" as E
+ *
+ * E -> [clic = cancel] "BT.currentFlagId = null" as F
+ * F -> [clic] E
+ *
+ * @enduml
+ */

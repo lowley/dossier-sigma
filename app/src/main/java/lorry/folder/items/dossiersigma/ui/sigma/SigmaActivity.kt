@@ -85,15 +85,14 @@ import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserBottomToolbar
-import lorry.folder.items.dossiersigma.ui.folderContentFront.IFolderContentFrontComponent
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.FolderChooserDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tool
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.items.IItemsComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.Breadcrumb
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.FolderChooserDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
@@ -128,7 +127,7 @@ class SigmaActivity : ComponentActivity() {
     lateinit var memo: IMemoComponent
 
     @Inject
-    lateinit var folderContentFrontComponent: IFolderContentFrontComponent
+    lateinit var folderContentFrontComponent: IItemsComponent
 
 //    @Inject
 //    lateinit var bottomTools: BottomTools

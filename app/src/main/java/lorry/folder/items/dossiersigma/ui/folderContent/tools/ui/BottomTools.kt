@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContentFront.utils
+package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui
 
 import android.content.Intent
 import android.graphics.Bitmap
@@ -65,8 +65,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.core.graphics.toColorInt
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
@@ -84,6 +82,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.ComponentWithViewModel
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
@@ -100,6 +99,8 @@ import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.IBottomComponent
+import lorry.folder.items.dossiersigma.ui.items.utils.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -110,7 +111,6 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.collections.get
-import kotlin.getValue
 import kotlin.math.roundToInt
 
 /**
@@ -132,11 +132,9 @@ import kotlin.math.roundToInt
 @Singleton
 class BottomTools @Inject constructor(
     val moveToNASComponent: IMoveToNASComponent,
-    private val owner: ViewModelStoreOwner,
-) {
-    val sigmaViewModel: SigmaViewModel by lazy {
-        ViewModelProvider(owner)[SigmaViewModel::class.java]
-    }
+    val component: IBottomComponent
+): ComponentWithViewModel<SigmaViewModel>() {
+
 
 //    val frontViewModel: FolderContentFrontViewModel by lazy {
 //        ViewModelProvider(owner)[FolderContentFrontViewModel::class.java]
@@ -150,89 +148,6 @@ class BottomTools @Inject constructor(
         Tools.COPY_FILE.bottomTools = this
         Tools.MOVE_FILE.bottomTools = this
         Tools.CROP.bottomTools = this
-    }
-
-    internal val defaultContent = BottomToolContent(emptyList(), "DEFAULT_CONTENT")
-    private val _bottomToolsContent = MutableStateFlow<BottomToolContent?>(defaultContent)
-    val currentContent: StateFlow<BottomToolContent?> = _bottomToolsContent
-
-    fun setCurrentContent(tools: Tools) {
-        setCurrentFlagId(null)
-        _bottomToolsContent.value = when (tools) {
-            Tools.DEFAULT -> defaultContent
-            else -> tools.content(sigmaViewModel)
-        }
-    }
-
-    //destiné à l'affichage par remontée dans MainActivity
-    val _currentTool = MutableStateFlow<Tool?>(null)
-
-    fun setCurrentTool(tool: Tool?) {
-        _currentTool.value = tool
-    }
-
-    ////////////////////////
-    // étiquette courante //
-    ////////////////////////
-
-    private val _currentFlagId = MutableStateFlow<UUID?>(null)
-    val currentFlagId: StateFlow<UUID?> = _currentFlagId
-
-    fun setCurrentFlagId(flagId: UUID?) {
-        _currentFlagId.value = flagId
-    }
-
-    var movingItem: Item? = null
-    var copyingItem: Item? = null
-    var itemToMove: Item? = null
-
-    private val _progress = MutableStateFlow(0)
-    val progress: StateFlow<Int> = _progress
-
-    /**
-     * utilisé par
-     * @see MoveFileService.copy
-     */
-    fun updateProgress(value: Int) {
-        _progress.value = value
-    }
-
-    private val _movePasteText = MutableStateFlow("Coller")
-    val movePasteText: StateFlow<String> = _movePasteText
-
-    fun updateMovePasteText(value: String) {
-        _movePasteText.value = value
-    }
-
-    private val _NASprogress = MutableStateFlow<OverallProgress?>(null)
-    val nasProgress: StateFlow<OverallProgress?> = _NASprogress
-
-    /**
-     * utilisé par
-     * @see lorry.folder.items.dossiersigma.headless.services.MoveToNASService.copy
-     */
-    fun updateNASProgress(
-        percentage: Int,
-        fileIndex: Int,
-        fileCount: Int
-    ) {
-        _NASprogress.value = OverallProgress(
-            progress = percentage,
-            fileIndex = fileIndex,
-            fileSize = fileCount
-        )
-    }
-
-    val _copyNASText = MutableStateFlow("1 -> NAS")
-    val copyNASText: StateFlow<String> = _copyNASText
-
-    fun updateNASText(value: String) {
-        _copyNASText.value = value
-    }
-
-    val _copyAllNASText = MutableStateFlow("Tous -> NAS")
-    fun updateAllNASText(value: String) {
-        _copyAllNASText.value = value
     }
 
     @Composable
@@ -284,47 +199,7 @@ class BottomTools @Inject constructor(
         }
     }
 
-    fun observeDefaultContent() {
-        sigmaViewModel.viewModelScope.launch {
-            // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
-            // La lambda sera appelée si l'un ou l'autre change.
-            combine(
-                currentFlagId,
-                sigmaViewModel.folderContentComponent.currentFolderFlow,
-                sigmaViewModel.folderContentComponent.reloadTrigger
-            ) { selectedId, currentFolder, _ ->
-                val tags = currentFolder
-                    ?.items
-                    ?.mapNotNull { it.tag }
-                    ?.distinctBy { it.id }
-                    ?: emptyList()
 
-                val tagTools = tags.map { tag ->
-                    Tool(
-                        text = { tag.title },
-                        icon = R.drawable.etiquette,
-                        tint = tag.color,
-                        id = tag.id ?: UUID.randomUUID(),
-                        onClick = { _, _ ->
-                            // La logique est simplifiée : on change juste l'ID sélectionné.
-                            // La recomposition se chargera de mettre à jour l'état "activated".
-                            if (this.activated) {
-                                setCurrentFlagId(null)
-                            } else {
-                                setCurrentFlagId(this.id)
-                            }
-                        },
-                        // L'état "activé" est dérivé directement de la comparaison des IDs.
-                        activated = selectedId != null && tag.id == selectedId
-                    )
-                }
-
-                // 3. On combine les deux listes et on met à jour le singleton.
-                defaultContent.updateTools(tagTools)
-
-            }.collect() // Démarre la collecte du Flow combiné.
-        }
-    }
 
     @Composable
     context(BoxScope)
@@ -341,8 +216,8 @@ class BottomTools @Inject constructor(
                 .fillMaxHeight()
                 .clickable {
                     setCurrentTool(tool)
-                    sigmaViewModel.viewModelScope.launch {
-                        tool.onClick(tool, sigmaViewModel, activity)
+                    viewModel.viewModelScope.launch {
+                        tool.onClick(tool, viewModel, activity)
                     }
                 }
         ) {
@@ -1086,7 +961,7 @@ sealed class Tools {
                             /**
                              * le fichier n'existe pas, on lance la copie,
                              * le reste est effectué dans
-                             * @see MoveFileService.onStartCommand
+                             * @see lorry.folder.items.dossiersigma.headless.services.MoveFileService.onStartCommand
                              */
 
                             //encode/decode en json
@@ -2361,8 +2236,8 @@ fun FixedSticker(
             .fillMaxHeight()
             .clickable {
                 setCurrentTool(tool)
-                sigmaViewModel.viewModelScope.launch {
-                    tool.onClick(tool, sigmaViewModel, activity)
+                viewModel.viewModelScope.launch {
+                    tool.onClick(tool, viewModel, activity)
                 }
             }
     ) {
@@ -2388,7 +2263,7 @@ fun FixedSticker(
                             val target = dragTargetItem.value
 
                             if (target != null) {
-                                sigmaViewModel.assignColoredTagToItem(
+                                viewModel.assignColoredTagToItem(
                                     target,
                                     tool.toColoredTag()
                                 )
@@ -2416,7 +2291,6 @@ fun FixedSticker(
     }
 
 }
-
 
 
 @Composable

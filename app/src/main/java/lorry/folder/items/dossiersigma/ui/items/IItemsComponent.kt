@@ -1,20 +1,15 @@
-package lorry.folder.items.dossiersigma.ui.folderContentFront
+package lorry.folder.items.dossiersigma.ui.items
 
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tool
-import lorry.folder.items.dossiersigma.ui.folderContentFront.utils.Tools
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
-interface IFolderContentFrontComponent {
+interface IItemsComponent {
 
     /////////////////
     // drag'n drop //
@@ -38,25 +33,6 @@ interface IFolderContentFrontComponent {
         onItemLongPressed: (Item) -> Unit,
         onTopLeftPanelClick: (Item) -> Unit,
         )
-
-    //////////////////
-    // bottom tools //
-    //////////////////
-    @Composable
-    fun BottomToolBar(
-        activity: SigmaActivity
-    )
-
-    fun observeDefaultContent()
-    fun setCurrentContent(tools: Tools)
-    val currentTool: StateFlow<Tool?>
-
-    @Composable
-    context(BoxScope)
-    fun MobileSticker(
-        dragState: DragState,
-        activity: SigmaActivity,
-    )
 
     /////////////////////////
     // copies/déplacements //
