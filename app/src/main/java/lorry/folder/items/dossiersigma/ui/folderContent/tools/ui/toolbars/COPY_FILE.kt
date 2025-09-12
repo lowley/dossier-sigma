@@ -1,0 +1,36 @@
+package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
+
+import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
+
+object COPY_FILE : Tools() {
+    override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+        listOf(
+            /////////////
+            // annuler //
+            /////////////
+            Tool(
+                text = { "Annuler" },
+                icon = R.drawable.annuler,
+                onClick = { viewModel, mainActivity ->
+                    bottomTools.setCurrentContent(DEFAULT)
+                }
+            ),
+            ////////////
+            // coller //
+            ////////////
+            Tool(
+                text = { "Coller" },
+                icon = R.drawable.coller,
+                onClick = { viewModel, mainActivity ->
+                    //vm.diskRepository.copyFile(sourceFile, destinationFile)
+                    bottomTools.setCurrentContent(DEFAULT)
+                }
+            )
+        ),
+        "COPY_FILE"
+    )
+}

@@ -1,11 +1,10 @@
-package lorry.folder.items.dossiersigma.ui.tinies
+package lorry.folder.items.dossiersigma.ui.fullSizeDialogs
 
 import android.content.Intent
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewModelScope
@@ -21,7 +20,6 @@ import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemDialog
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfos
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfosDialog
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.DEFAULT
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
@@ -208,8 +206,8 @@ fun FullSizeExtras(
 
     if (isFilePickerVisible) {
         FolderChooserDialog(
-            modifier = Modifier
-                .align(Alignment.Center),
+            modifier = Modifier.Companion
+                .align(Alignment.Companion.Center),
             viewModel = mainViewModel
         ) { path ->
             onFolderChosen(path)
@@ -220,7 +218,7 @@ fun FullSizeExtras(
     //modifié dans [[browserModification]]
     if (browserState.isOpen)
         browser.Render(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
         )
 }

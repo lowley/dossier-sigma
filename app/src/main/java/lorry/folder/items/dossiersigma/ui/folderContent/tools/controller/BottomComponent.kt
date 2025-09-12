@@ -157,6 +157,10 @@ class BottomComponent @Inject constructor(
     }
 
 
-
-
 }
+
+data class OverallProgress(
+    val progress: Int,
+    val fileIndex: Int,
+    val fileSize: Int
+)
