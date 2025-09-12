@@ -45,11 +45,6 @@ fun SigmaActivity.FolderChooserDialog(
     onDatasCompleted: (path: String?) -> Unit,
 ) {
 
-
-    /////////////////////////////////
-    // Code de FolderChooserDialog //
-    /////////////////////////////////
-
     var path = remember { mutableStateOf("/storage/emulated/0") }
     var items = remember { mutableStateOf(listOf<Item>()) }
 

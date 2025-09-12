@@ -22,8 +22,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.StickerIcon
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.StickerText
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toColoredTag
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -45,7 +43,7 @@ fun FixedSticker(
             .width(85.dp)
             .fillMaxHeight()
             .clickable {
-                setCurrentTool(tool)
+                this@BottomTools.component.setCurrentTool(tool)
                 viewModel.viewModelScope.launch {
                     tool.onClick(tool, viewModel, activity)
                 }

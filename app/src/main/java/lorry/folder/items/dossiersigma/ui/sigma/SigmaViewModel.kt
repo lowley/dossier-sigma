@@ -37,6 +37,7 @@ import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfos
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.TagInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
 import javax.inject.Inject

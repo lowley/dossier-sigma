@@ -9,7 +9,6 @@ import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
@@ -27,7 +26,7 @@ object FILE : Tools() {
                 icon = R.drawable.move,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.setCurrentContent(MOVES)
+                    bottomTools.component.setCurrentContent(MOVES)
                 }
             ),
             ///////////////
@@ -38,7 +37,7 @@ object FILE : Tools() {
                 icon = R.drawable.etiquette2,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.setCurrentContent(TAGS_MENU)
+                    bottomTools.component.setCurrentContent(TAGS_MENU)
                 }
             ),
             //////////////////
@@ -53,7 +52,7 @@ object FILE : Tools() {
                         if (selectedItem == null)
                             return@run
 
-                        bottomTools.setCurrentContent(DEFAULT)
+                        bottomTools.component.setCurrentContent(DEFAULT)
 
                         //le [[browserBody]] dépend de browserState (dataclass)
                         //ici il y a #[[browserModification]]
@@ -80,7 +79,7 @@ object FILE : Tools() {
                 icon = R.drawable.recadrer2,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.setCurrentContent(CROP)
+                    bottomTools.component.setCurrentContent(CROP)
                 }
             ),
             //////////////
@@ -131,7 +130,7 @@ object FILE : Tools() {
                             }
                         }
 
-                        bottomTools.setCurrentContent(DEFAULT)
+                        bottomTools.component.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
                     }
 
@@ -188,7 +187,7 @@ object FILE : Tools() {
                                     .show()
                         }
 
-                        bottomTools.setCurrentContent(DEFAULT)
+                        bottomTools.component.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
                     }
 
@@ -248,7 +247,7 @@ object FILE : Tools() {
                                 ).show()
                         }
 
-                        bottomTools.setCurrentContent(DEFAULT)
+                        bottomTools.component.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
 
                     }
@@ -303,7 +302,7 @@ object FILE : Tools() {
                         }
 
                         viewModel.folderContentComponent.reloadCurrentFolder()
-                        bottomTools.setCurrentContent(DEFAULT)
+                        bottomTools.component.setCurrentContent(DEFAULT)
                     }
 
                     viewModel.setIsYesNoDialogVisible(true)

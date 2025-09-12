@@ -1,23 +1,24 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.tools.controller
 
 import androidx.lifecycle.viewModelScope
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import lorry.folder.items.dossiersigma.ComponentWithViewModel
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.OverallProgress
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.Tools
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.util.UUID
-import javax.inject.Inject
 
 /**
  * Nécessite dans l'activity/OnCreate:
@@ -28,46 +29,48 @@ import javax.inject.Inject
  * ```
  */
 @ActivityRetainedScoped
-class BottomComponent @Inject constructor(
-
-): IBottomComponent, ComponentWithViewModel<ToolsViewModel>()
+class BottomComponent @AssistedInject constructor(
+    @Assisted override val toolsViewModel: ToolsViewModel,
+    @Assisted override val sigmaViewModel: SigmaViewModel
+): IBottomComponent
 {
-    var _sigmaViewModel: SigmaViewModel? = null
-    fun sigmaViewModel(): SigmaViewModel = _sigmaViewModel
-        ?: throw IllegalStateException("BottomComponent avec sigmaViewModel null")
+    @AssistedFactory
+    interface Factory{
+        fun create(viewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): IBottomComponent
+    }
 
     ////////////////////////
     // étiquette courante //
     ////////////////////////
-    override val currentFlagId: StateFlow<UUID?> = viewModel._currentFlagId
+    override val currentFlagId: StateFlow<UUID?> = toolsViewModel._currentFlagId
 
     override fun setCurrentFlagId(flagId: UUID?) {
-        viewModel._currentFlagId.value = flagId
+        toolsViewModel._currentFlagId.value = flagId
     }
 
     /////////////////////////////////
     // différentes barres d'outils //
     /////////////////////////////////
 
-    override val currentContent: StateFlow<BottomToolContent?> = viewModel._bottomToolsContent
-    val defaultContent = viewModel.defaultContent
+    override val currentContent: StateFlow<BottomToolContent?> = toolsViewModel._bottomToolsContent
+    override val defaultContent = toolsViewModel.defaultContent
 
     override fun setCurrentContent(tools: Tools) {
         setCurrentFlagId(null)
-        viewModel._bottomToolsContent.value = when (tools) {
-            Tools.DEFAULT -> defaultContent
-            else -> tools.content(sigmaViewModel())
+        toolsViewModel._bottomToolsContent.value = when (tools) {
+            DEFAULT -> defaultContent
+            else -> tools.content(sigmaViewModel)
         }
     }
 
     override fun observeDefaultContent() {
-        viewModel.viewModelScope.launch {
+        toolsViewModel.viewModelScope.launch {
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
             // La lambda sera appelée si l'un ou l'autre change.
             combine(
                 currentFlagId,
-                sigmaViewModel().folderContentComponent.currentFolderFlow,
-                sigmaViewModel().folderContentComponent.reloadTrigger
+                sigmaViewModel.folderContentComponent.currentFolderFlow,
+                sigmaViewModel.folderContentComponent.reloadTrigger
             ) { selectedId, currentFolder, _ ->
                 val tags = currentFolder
                     ?.items
@@ -105,26 +108,30 @@ class BottomComponent @Inject constructor(
     ///////////////////////
     // outil sélectionné //
     ///////////////////////
-    override val currentTool = viewModel._currentTool.asStateFlow()
+    override val currentTool = toolsViewModel._currentTool.asStateFlow()
 
     override fun setCurrentTool(tool: Tool?) {
-        viewModel._currentTool.value = tool
+        toolsViewModel._currentTool.value = tool
     }
 
     ///////////////////////////////////
     // copie/déplacement de fichiers //
     ///////////////////////////////////
-    override val progress: StateFlow<Int> = viewModel._progress.asStateFlow()
 
+    override var movingItem: Item? = toolsViewModel.movingItem
+    override var copyingItem: Item? = toolsViewModel.copyingItem
+    override var itemToMove: Item? = toolsViewModel.itemToMove
+
+    override val progress: StateFlow<Int> = toolsViewModel._progress.asStateFlow()
     /**
      * utilisé par
      * @see lorry.folder.items.dossiersigma.headless.services.MoveFileService.copy
      */
     override fun updateProgress(value: Int) {
-        viewModel._progress.value = value
+        toolsViewModel._progress.value = value
     }
 
-    override val nasProgress: StateFlow<OverallProgress?> = viewModel._NASprogress.asStateFlow()
+    override val nasProgress: StateFlow<OverallProgress?> = toolsViewModel._NASprogress.asStateFlow()
     /**
      * utilisé par
      * @see lorry.folder.items.dossiersigma.headless.services.MoveToNASService.copy
@@ -134,26 +141,26 @@ class BottomComponent @Inject constructor(
         fileIndex: Int,
         fileCount: Int
     ) {
-        viewModel._NASprogress.value = OverallProgress(
+        toolsViewModel._NASprogress.value = OverallProgress(
             progress = percentage,
             fileIndex = fileIndex,
             fileSize = fileCount
         )
     }
 
-    override val movePasteText: StateFlow<String> = viewModel._movePasteText.asStateFlow()
+    override val movePasteText: StateFlow<String> = toolsViewModel._movePasteText.asStateFlow()
     override fun updateMovePasteText(value: String) {
-        viewModel._movePasteText.value = value
+        toolsViewModel._movePasteText.value = value
     }
 
-    override val copyNASText: StateFlow<String> = viewModel._copyNASText.asStateFlow()
+    override val copyNASText: StateFlow<String> = toolsViewModel._copyNASText.asStateFlow()
     override fun updateNASText(value: String) {
-        viewModel._copyNASText.value = value
+        toolsViewModel._copyNASText.value = value
     }
 
-    override val copyAllNASText: StateFlow<String> = viewModel._copyAllNASText.asStateFlow()
+    override val copyAllNASText: StateFlow<String> = toolsViewModel._copyAllNASText.asStateFlow()
     override fun updateAllNASText(value: String) {
-        viewModel._copyAllNASText.value = value
+        toolsViewModel._copyAllNASText.value = value
     }
 
 

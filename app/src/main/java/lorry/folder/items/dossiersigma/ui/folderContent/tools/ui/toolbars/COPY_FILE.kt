@@ -3,7 +3,6 @@ package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
 object COPY_FILE : Tools() {
@@ -16,7 +15,7 @@ object COPY_FILE : Tools() {
                 text = { "Annuler" },
                 icon = R.drawable.annuler,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.setCurrentContent(DEFAULT)
+                    bottomTools.component.setCurrentContent(DEFAULT)
                 }
             ),
             ////////////
@@ -27,7 +26,7 @@ object COPY_FILE : Tools() {
                 icon = R.drawable.coller,
                 onClick = { viewModel, mainActivity ->
                     //vm.diskRepository.copyFile(sourceFile, destinationFile)
-                    bottomTools.setCurrentContent(DEFAULT)
+                    bottomTools.component.setCurrentContent(DEFAULT)
                 }
             )
         ),

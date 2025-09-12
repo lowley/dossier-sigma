@@ -1,13 +1,11 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
 
-import kotlinx.coroutines.flow.firstOrNull
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Flag
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.util.UUID
 import kotlin.collections.get
@@ -59,7 +57,7 @@ object TAGS_MENU : Tools(
                                 viewModel.folderContentComponent.reloadCurrentFolder()
                             }
 
-                            bottomTools.setCurrentContent(DEFAULT)
+                            bottomTools.component.setCurrentContent(DEFAULT)
                             viewModel.setSelectedItem(null, true)
                         }
 
@@ -156,7 +154,7 @@ object TAGS_MENU : Tools(
 
                         viewModel.setSelectedItem(null, true)
                         viewModel.folderContentComponent.reloadCurrentFolder()
-                        bottomTools.setCurrentContent(DEFAULT)
+                        bottomTools.component.setCurrentContent(DEFAULT)
 
 //                            viewModel.clearFlagCache()
 //                            DEFAULT.content().updateTools(emptyList<Tool>())
@@ -226,7 +224,7 @@ object TAGS_MENU : Tools(
 
                         viewModel.setSelectedItem(null, true)
 //                            viewModel.refreshCurrentFolder()
-                        bottomTools.setCurrentContent(DEFAULT)
+                        bottomTools.component.setCurrentContent(DEFAULT)
 
                         viewModel.folderContentComponent.reloadCurrentFolder()
                     }
@@ -294,7 +292,7 @@ object TAGS_MENU : Tools(
 
                             viewModel.setSelectedItem(null, true)
 //                            viewModel.refreshCurrentFolder()
-                            bottomTools.setCurrentContent(DEFAULT)
+                            bottomTools.component.setCurrentContent(DEFAULT)
 
                             viewModel.folderContentComponent.reloadCurrentFolder()
                         }

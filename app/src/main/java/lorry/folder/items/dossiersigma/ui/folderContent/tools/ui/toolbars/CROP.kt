@@ -13,8 +13,6 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Scale
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.changeCrop
 import lorry.folder.items.dossiersigma.ui.items.utils.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File

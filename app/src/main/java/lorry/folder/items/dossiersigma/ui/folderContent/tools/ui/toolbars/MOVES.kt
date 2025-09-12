@@ -11,8 +11,6 @@ import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.MOVE_FILE
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import kotlin.collections.get
@@ -39,8 +37,8 @@ object MOVES : Tools() {
                 text = { "Déplacer" },
                 icon = R.drawable.deplacer,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.movingItem = viewModel.selectedItem.value
-                    bottomTools.setCurrentContent(MOVE_FILE)
+                    bottomTools.component.movingItem = viewModel.selectedItem.value
+                    bottomTools.component.setCurrentContent(MOVE_FILE)
                     viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
                 }
             ),
@@ -49,15 +47,15 @@ object MOVES : Tools() {
             /////////////////////
             Tool(
                 text = {
-                    val nasText = bottomTools.copyNASText.value
+                    val nasText = bottomTools.component.copyNASText.value
                     nasText
                 },
                 icon = R.drawable.deplacer,
                 onClick = { viewModel, mainActivity ->
                     run {
-                        bottomTools.itemToMove = viewModel.selectedItem.value
+                        bottomTools.component.itemToMove = viewModel.selectedItem.value
 
-                        if (bottomTools.itemToMove == null)
+                        if (bottomTools.component.itemToMove == null)
                             return@run
 
                         //toast
@@ -85,7 +83,7 @@ object MOVES : Tools() {
                             viewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
                         else null
 
-                        val filesToTransfer = bottomTools.itemToMove?.fullPath?.let {
+                        val filesToTransfer = bottomTools.component.itemToMove?.fullPath?.let {
                             listOf(it to picture64)
                         } ?: emptyList()
 

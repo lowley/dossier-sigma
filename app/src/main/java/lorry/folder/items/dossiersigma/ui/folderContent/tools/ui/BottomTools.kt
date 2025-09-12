@@ -74,6 +74,9 @@ import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import com.google.gson.Gson
 import com.yalantis.ucrop.UCrop
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -99,7 +102,19 @@ import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.IBottomComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.COPY_FILE
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.CROP
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.FILE
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.MOVES
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.MOVE_FILE
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.TAGS_MENU
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.FixedSticker
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.StickerIcon
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.StickerText
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.items.utils.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -113,42 +128,24 @@ import javax.inject.Singleton
 import kotlin.collections.get
 import kotlin.math.roundToInt
 
-/**
- * @startuml
- * (*) -> "BottomTools\n<color:red>  + Sticker" as A
- * A -> "Nouveau ColoredTag\n    dans flagCache" as B
- * B --> [  observeDefaultContent()] "MAJ BottomToolBar" as C
- *
- * C --> [  observation par BToolBar\n  de currentContextTools] "affichage des tags statiques" as D
- *
- * D --> [  si drag étiquette] "affichage tags mobiles\n<color:red> MOBILITE PASSIVE"
- * D --> [  filtrage\n clic sur flag] "MAJ BT.currentFlagId" as E
- *
- * E -> [clic = cancel] "BT.currentFlagId = null" as F
- * F -> [clic] E
- *
- * @enduml
- */
-@Suppress("CONTEXT_RECEIVERS_DEPRECATED")
-@Singleton
-class BottomTools @Inject constructor(
-    val moveToNASComponent: IMoveToNASComponent,
-    val component: IBottomComponent
-): ComponentWithViewModel<SigmaViewModel>() {
-
-
-//    val frontViewModel: FolderContentFrontViewModel by lazy {
-//        ViewModelProvider(owner)[FolderContentFrontViewModel::class.java]
-//    }
-
+class BottomTools @AssistedInject constructor(
+    val component: IBottomComponent,
+    @Assisted val viewModel: SigmaViewModel,
+    var moveToNASComponent: IMoveToNASComponent
+) {
     init {
-        Tools.DEFAULT.bottomTools = this
-        Tools.TAGS_MENU.bottomTools = this
-        Tools.FILE.bottomTools = this
-        Tools.MOVES.bottomTools = this
-        Tools.COPY_FILE.bottomTools = this
-        Tools.MOVE_FILE.bottomTools = this
-        Tools.CROP.bottomTools = this
+        DEFAULT.bottomTools = this
+        TAGS_MENU.bottomTools = this
+        FILE.bottomTools = this
+        MOVES.bottomTools = this
+        COPY_FILE.bottomTools = this
+        MOVE_FILE.bottomTools = this
+        CROP.bottomTools = this
+    }
+
+    @AssistedFactory
+    interface Factory{
+        fun create(viewModel: SigmaViewModel): BottomTools
     }
 
     @Composable
@@ -312,94 +309,6 @@ fun Tool.toColoredTag(viewModel: SigmaViewModel? = null): ColoredTag = ColoredTa
     color = this.tint ?: Color.Companion.Unspecified,
 )
 
-sealed class Tools {
-
-    abstract fun content(viewModel: SigmaViewModel? = null): BottomToolContent
-    lateinit var bottomTools: BottomTools
-
-}
 
 
 
-@Composable
-fun CustomTextDialog(
-    text: String,
-    initialText: String,
-    viewModel: SigmaViewModel,
-    onOk: (String) -> Unit,
-) {
-    val editMessage = remember { mutableStateOf(initialText) }
-    val focusRequester = remember { FocusRequester() }
-
-    Box(
-        modifier = Modifier.Companion
-            .fillMaxSize()
-            .background(
-                color = contentColorFor(Color.Companion.White)
-                    .copy(alpha = 0.6f)
-            )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {
-                    viewModel.setIsTextDialogVisible(false)
-                }
-            ),
-        contentAlignment = Alignment.Companion.Center
-    ) {
-        Column(
-            modifier = Modifier.Companion
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Companion.White)
-                .padding(8.dp),
-        ) {
-
-            Text(
-                modifier = Modifier.Companion,
-                text = text,
-                color = Color.Companion.Black
-            )
-
-            Spacer(modifier = Modifier.Companion.height(8.dp))
-
-            TextField(
-                modifier = Modifier.Companion
-                    .focusRequester(focusRequester),
-                value = editMessage.value,
-                onValueChange = { editMessage.value = it },
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.Companion.height(8.dp))
-
-            Row(
-                modifier = Modifier.Companion.align(Alignment.Companion.End)
-            ) {
-                Button(
-                    onClick = {
-                        viewModel.setIsTextDialogVisible(false)
-                    }
-                ) {
-                    Text("Cancel")
-                }
-
-                Spacer(modifier = Modifier.Companion.width(8.dp))
-
-                Button(
-                    onClick = {
-                        onOk(editMessage.value)
-                        viewModel.setIsTextDialogVisible(false)
-                        viewModel.setDialogInitialText("")
-                    }
-                ) {
-                    Text("OK")
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        // après composition → demande le focus
-        focusRequester.requestFocus()
-    }
-}

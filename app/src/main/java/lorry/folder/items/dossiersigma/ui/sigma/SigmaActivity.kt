@@ -38,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -73,6 +74,7 @@ import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.ComponentWithViewModel
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
@@ -87,17 +89,19 @@ import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.items.IItemsComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.FolderChooserDialog
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.IBottomComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.FILE
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.FullSizeExtras
+import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.tinies.HomeButtonIcon
 import lorry.folder.items.dossiersigma.ui.tinies.HomePage
 import lorry.folder.items.dossiersigma.ui.tinies.SigmaFAB
@@ -129,14 +133,21 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var folderContentFrontComponent: IItemsComponent
 
+    @Inject
+    lateinit var bottomFactory: BottomComponent.Factory
+
+    @Inject
+    lateinit var bottomToolsFactory: BottomTools.Factory
+
+    //cd [[BottomComponent]]
+    @Inject
+    lateinit var toolsViewModel: ToolsViewModel
+
 //    @Inject
 //    lateinit var bottomTools: BottomTools
 
     @Inject
     lateinit var browser: IBrowser
-
-//    @Inject
-//    lateinit var folderContentComponent: IFolderContentComponent
 
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
@@ -156,6 +167,11 @@ class SigmaActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //#[[BottomComponent]] initialisation composant IBottomComponent
+//        (bottomComponent as ComponentWithViewModel<ToolsViewModel>).attach(toolsViewModel)
+//        bottomComponent.sigmaViewModel = mainViewModel
+
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT
 
@@ -165,8 +181,6 @@ class SigmaActivity : ComponentActivity() {
 
         initializeFileIntentLauncher(mainViewModel)
 
-        folderContentFrontComponent.observeDefaultContent()
-
         setContent {
 //            val myColorScheme by settingsViewModel.settingsManager.colorSchemeFlow.collectAsState(
 //                null
@@ -175,7 +189,7 @@ class SigmaActivity : ComponentActivity() {
 
             MaterialTheme(
                 colorScheme = colorScheme,
-                typography = androidx.compose.material3.Typography(),
+                typography = Typography(),
                 shapes = Shapes(),
             ) {
                 CompositionLocalProvider(SigmaColors provides colorScheme) {
@@ -188,6 +202,18 @@ class SigmaActivity : ComponentActivity() {
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun AppContent() {
+
+        val bottomComponent = remember { bottomFactory.create(
+            viewModel = toolsViewModel,
+            sigmaViewModel = mainViewModel
+        ) }
+
+        val bottomTools = remember { bottomToolsFactory.create(
+            viewModel = mainViewModel,
+        ) }
+
+        bottomComponent.observeDefaultContent()
+
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = colorScheme.background
@@ -255,7 +281,14 @@ class SigmaActivity : ComponentActivity() {
                                 tonalElevation = 0.dp,
 
                                 ) {
-                                folderContentFrontComponent.BottomToolBar(activity = this@SigmaActivity)
+                                bottomTools.BottomToolBar(
+                                    activity = this@SigmaActivity,
+                                    beginDrag = folderContentFrontComponent::beginDrag,
+                                    terminateDrag = folderContentFrontComponent::terminateDrag,
+                                    setDragTargetItem = folderContentFrontComponent::setDragTargetItem,
+                                    addDragOffset = folderContentFrontComponent::addDragOffset,
+                                    dragTargetItem = folderContentFrontComponent.dragTargetItem,
+                                )
                             }
                         }
 
@@ -338,7 +371,7 @@ class SigmaActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    folderContentFrontComponent.setCurrentContent(DEFAULT)
+                    bottomComponent.setCurrentContent(DEFAULT)
                 }
 
                 //////////////////////////////
@@ -372,7 +405,7 @@ class SigmaActivity : ComponentActivity() {
                                 detectTapGestures(onTap = {
                                     if (selectedItem?.id != null) {
                                         mainViewModel.setSelectedItem(null, true)
-                                        folderContentFrontComponent.setCurrentContent(DEFAULT)
+                                        bottomComponent.setCurrentContent(DEFAULT)
                                     }
                                 })
                             }
@@ -807,7 +840,7 @@ class SigmaActivity : ComponentActivity() {
 
                                             if (selectedItem != null) {
                                                 mainViewModel.setSelectedItem(null, true)
-                                                folderContentFrontComponent.setCurrentContent(
+                                                bottomComponent.setCurrentContent(
                                                     DEFAULT
                                                 )
                                                 return@run
@@ -834,7 +867,7 @@ class SigmaActivity : ComponentActivity() {
                                     },
                                     onItemLongPressed = { item ->
                                         mainViewModel.setSelectedItem(item.copy(), true)
-                                        folderContentFrontComponent.setCurrentContent(Tools.FILE)
+                                        bottomComponent.setCurrentContent(FILE)
                                     },
                                     onTopLeftPanelClick = { item ->
                                         /**
@@ -888,7 +921,7 @@ class SigmaActivity : ComponentActivity() {
                     val dragState by folderContentFrontComponent.dragState.collectAsState()
                     dragState?.let { dragState ->
                         dragState.tool?.let { tool: Tool ->
-                            folderContentFrontComponent.MobileSticker(
+                            bottomTools.MobileSticker(
                                 dragState = dragState,
                                 activity = this@SigmaActivity
                             )
