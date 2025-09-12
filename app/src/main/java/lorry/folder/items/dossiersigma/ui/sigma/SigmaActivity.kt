@@ -894,7 +894,9 @@ class SigmaActivity : ComponentActivity() {
                      * View2 -- Repo2
                      * @enduml
                      */
-                    FullSizeExtras(browser)
+                    FullSizeExtras(
+                        browser,
+                        bottomComponent = bottomComponent)
 
                     ////////////////////////////////
                     // memo + palette de couleurs //

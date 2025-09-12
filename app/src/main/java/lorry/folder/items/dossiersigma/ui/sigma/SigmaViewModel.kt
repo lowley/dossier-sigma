@@ -33,10 +33,9 @@ import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfos
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.FILE
 import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.TagInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
@@ -127,7 +126,7 @@ class SigmaViewModel @Inject constructor(
         _isSettingsPageVisible.value = !_isSettingsPageVisible.value
     }
 
-    val tools = bottomTools.currentContent.map {
+    val tools = bottomTools.component.currentContent.map {
         it?.tools?.value
     }.stateIn(
         scope = viewModelScope,
@@ -203,9 +202,9 @@ class SigmaViewModel @Inject constructor(
 
         if (!keepBottomToolsAsIs) {
             if (item != null)
-                bottomTools.setCurrentContent(Tools.FILE)
+                bottomTools.component.setCurrentContent(FILE)
             else
-                bottomTools.setCurrentContent(DEFAULT)
+                bottomTools.component.setCurrentContent(DEFAULT)
         }
     }
 
@@ -271,40 +270,40 @@ class SigmaViewModel @Inject constructor(
                 folderContentComponent.addFolderPathToHistory(folderPath)
             }
 
-            bottomTools.setCurrentFlagId(null)
+            bottomTools.component.setCurrentFlagId(null)
         }
     }
 
     init {
         viewModelScope.launch {
-            bottomTools.progress.collect { p ->
+            bottomTools.component.progress.collect { p ->
                 if (p == 0 || p == 100)
-                    bottomTools.updateMovePasteText("Coller")
+                    bottomTools.component.updateMovePasteText("Coller")
                 else
-                    bottomTools.updateMovePasteText("$p %")
+                    bottomTools.component.updateMovePasteText("$p %")
             }
         }
 
         viewModelScope.launch {
-            bottomTools.nasProgress.collect { copyProgress ->
+            bottomTools.component.nasProgress.collect { copyProgress ->
                 if (copyProgress == null)
                     return@collect
 
                 if (copyProgress.progress == 0 || copyProgress.progress == 100) {
-                    bottomTools.updateNASText("1 -> NAS")
-                    bottomTools.updateAllNASText("Tous -> NAS")
+                    bottomTools.component.updateNASText("1 -> NAS")
+                    bottomTools.component.updateAllNASText("Tous -> NAS")
                 } else {
-                    bottomTools.updateNASText(
+                    bottomTools.component.updateNASText(
                         "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
                     )
-                    bottomTools.updateAllNASText(
+                    bottomTools.component.updateAllNASText(
                         "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
                     )
                 }
             }
         }
 
-        bottomTools.setCurrentContent(DEFAULT)
+        bottomTools.component.setCurrentContent(DEFAULT)
     }
 
 //    init {

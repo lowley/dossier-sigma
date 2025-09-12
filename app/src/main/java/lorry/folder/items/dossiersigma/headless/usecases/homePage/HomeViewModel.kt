@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
 import javax.inject.Inject

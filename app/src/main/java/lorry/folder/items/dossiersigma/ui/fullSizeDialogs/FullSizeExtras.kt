@@ -13,14 +13,8 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.CustomMoveFileExistingDestinationDialog
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.CustomTextDialog
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.CustomYesNoDialog
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.FolderChooserDialog
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemDialog
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfos
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.TagInfosDialog
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.IBottomComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
@@ -28,6 +22,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 context(SigmaActivity, BoxScope)
 fun FullSizeExtras(
     browser: IBrowser,
+    bottomComponent: IBottomComponent
 ) {
     val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
     val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
@@ -36,7 +31,7 @@ fun FullSizeExtras(
     val isHomeItemDialogVisible by mainViewModel.isHomeItemDialogVisible.collectAsState()
     val isFilePickerVisible by mainViewModel.isFilePickerVisible.collectAsState()
     val dialogMessage = mainViewModel.dialogMessage.collectAsState()
-    val currentTool by folderContentFrontComponent.currentTool.collectAsState()
+    val currentTool by bottomComponent.currentTool.collectAsState()
     val browserState by browser.vm.state.collectAsState()
 
     if (isTextDialogVisible)
@@ -116,7 +111,7 @@ fun FullSizeExtras(
                 mainViewModel.folderContentComponent.reloadCurrentFolder()
             },
             onCancel = {
-                folderContentFrontComponent.setCurrentContent(DEFAULT)
+                bottomComponent.setCurrentContent(DEFAULT)
                 val item = folderContentFrontComponent.movingItem
                 val movingParent = item?.fullPath?.substringBeforeLast("/")
 
