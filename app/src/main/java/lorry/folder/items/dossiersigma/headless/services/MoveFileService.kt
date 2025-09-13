@@ -34,7 +34,7 @@ class MoveFileService @Inject constructor(
 ) : Service() {
 
     val bottomComponent = bottomComponentFactory.create(
-        viewModel = toolsViewModel,
+        toolsViewModel = toolsViewModel,
         sigmaViewModel = sigmaViewModel
     )
 

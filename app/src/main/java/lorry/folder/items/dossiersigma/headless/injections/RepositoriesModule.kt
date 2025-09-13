@@ -10,7 +10,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
+import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ActivityRetainedScoped
 import dagger.hilt.android.scopes.ActivityScoped
 import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
@@ -21,6 +23,7 @@ import lorry.folder.items.dossiersigma.external.disk.DiskRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
+import lorry.folder.items.dossiersigma.headless.service.IServiceComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.RawFeed
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.IRawFeed
 import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
@@ -31,6 +34,8 @@ import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
 import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
+import lorry.folder.items.dossiersigma.ui.items.IItemsComponent
+import lorry.folder.items.dossiersigma.ui.items.ItemsComponent
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import javax.inject.Singleton
 
@@ -60,9 +65,20 @@ abstract class RepositoriesModule {
     ): IIndexBar
 
     @Binds
-    abstract fun bindBackFeed(
+    @Singleton
+    abstract fun bindRawFeed(
         rawFeed: RawFeed
     ): IRawFeed
+
+    @Binds
+    abstract fun bindServiceComponent(
+        service: ServiceComponent
+    ): IServiceComponent
+
+//    @Binds
+//    abstract fun bindIItemsComponent(
+//        itemsComponent: ItemsComponent
+//    ): IItemsComponent
 }
 
 @Module
@@ -76,20 +92,11 @@ object AppModule {
     }
 
     @Provides
-    fun provideIMoveToNASComponent(
-        @ApplicationContext context: Context?,
-        service: ServiceComponent,
-        nasUtilities: NasUtilities,
-    ): IMoveToNASComponent {
-        return MoveToNASComponent(context!!, service, nasUtilities)
-    }
-
-    @Provides
     @Singleton
     fun provideIFolderContentComponent(
         diskRepository: IDiskRepository,
         settingsManager: SettingsManager,
-        context: Context,
+        @ApplicationContext context: Context,
         rawFeed: IRawFeed
     ): IFolderContentBackComponent {
         return FolderContentBackComponent(
@@ -109,8 +116,6 @@ abstract class BrowserModule {
     abstract fun bindBrowser(impl: Browser): IBrowser
 }
 
-
-
 @Module
 @InstallIn(SingletonComponent::class)
 object DataStoreModule {
@@ -124,3 +129,14 @@ object DataStoreModule {
         }
 }
 
+@Module
+@InstallIn(SingletonComponent::class)
+object MoveToNasModule {
+    @Provides
+    @Singleton
+    fun provideIMoveToNASComponent(
+        @ApplicationContext context: Context,
+        service: IServiceComponent,
+        nasUtilities: NasUtilities,
+    ): IMoveToNASComponent = MoveToNASComponent(context, service, nasUtilities)
+}

@@ -36,8 +36,8 @@ object MOVES : Tools() {
                 text = { "Déplacer" },
                 icon = R.drawable.deplacer,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.component.movingItem = viewModel.selectedItem.value
-                    bottomTools.component.setCurrentContent(MOVE_FILE)
+                    bottomTools.bottomComponent.toolsViewModel.movingItem = viewModel.selectedItem.value
+                    bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(MOVE_FILE)
                     viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
                 }
             ),
@@ -46,15 +46,15 @@ object MOVES : Tools() {
             /////////////////////
             Tool(
                 text = {
-                    val nasText = bottomTools.component.copyNASText.value
+                    val nasText = bottomTools.bottomComponent.toolsViewModel.rawFeed.copyNASText.value
                     nasText
                 },
                 icon = R.drawable.deplacer,
                 onClick = { viewModel, mainActivity ->
                     run {
-                        bottomTools.component.itemToMove = viewModel.selectedItem.value
+                        bottomTools.bottomComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
 
-                        if (bottomTools.component.itemToMove == null)
+                        if (bottomTools.bottomComponent.toolsViewModel.itemToMove == null)
                             return@run
 
                         //toast
@@ -82,7 +82,7 @@ object MOVES : Tools() {
                             viewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
                         else null
 
-                        val filesToTransfer = bottomTools.component.itemToMove?.fullPath?.let {
+                        val filesToTransfer = bottomTools.bottomComponent.toolsViewModel.itemToMove?.fullPath?.let {
                             listOf(it to picture64)
                         } ?: emptyList()
 

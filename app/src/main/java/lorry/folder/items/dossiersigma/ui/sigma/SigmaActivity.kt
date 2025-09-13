@@ -106,6 +106,10 @@ import lorry.folder.items.dossiersigma.ui.tinies.SigmaFAB
 import lorry.folder.items.dossiersigma.ui.tinies.SortingArea
 import lorry.folder.items.dossiersigma.ui.tinies.initializeFileIntentLauncher
 import javax.inject.Inject
+import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
+import lorry.folder.items.dossiersigma.ui.memo.MemoViewModel
+import lorry.folder.items.dossiersigma.ui.items.ItemsComponent
+import lorry.folder.items.dossiersigma.ui.items.utils.ItemsViewModel
 
 //endregion
 
@@ -126,10 +130,14 @@ class SigmaActivity : ComponentActivity() {
     lateinit var changePathUseCase: ChangePathUseCase
 
     @Inject
-    lateinit var memo: IMemoComponent
+    lateinit var memoFactory: MemoComponent.Factory
+
+    val memoViewModel: MemoViewModel by viewModels()
+
+    val itemsViewModel: ItemsViewModel by viewModels()
 
     @Inject
-    lateinit var folderContentFrontComponent: IItemsComponent
+    lateinit var itemsComponentFactory: ItemsComponent.Factory
 
     //cf [[BottomComponent]]
     @Inject
@@ -140,8 +148,7 @@ class SigmaActivity : ComponentActivity() {
     lateinit var bottomToolsFactory: BottomTools.Factory
 
     //cf [[BottomComponent]]
-    @Inject
-    lateinit var toolsViewModel: ToolsViewModel
+    val toolsViewModel: ToolsViewModel by viewModels()
 
 //    @Inject
 //    lateinit var bottomTools: BottomTools
@@ -200,9 +207,19 @@ class SigmaActivity : ComponentActivity() {
     @Composable
     fun AppContent() {
 
+        val memo = remember { memoFactory.create(
+            viewModel = memoViewModel,
+        ) }
+
+        val folderContentFrontComponent = remember { itemsComponentFactory.create(
+            sigmaViewModel = mainViewModel,
+            toolsViewModel = toolsViewModel,
+            itemsViewModel = itemsViewModel
+        ) }
+
         //ici c'est #[[BottomComponent]]
         val bottomComponent = remember { bottomComponentFactory.create(
-            viewModel = toolsViewModel,
+            toolsViewModel = toolsViewModel,
             sigmaViewModel = mainViewModel
         ) }
 
@@ -405,7 +422,9 @@ class SigmaActivity : ComponentActivity() {
                                 detectTapGestures(onTap = {
                                     if (selectedItem?.id != null) {
                                         mainViewModel.setSelectedItem(null, true)
-                                        bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                                        bottomComponent.toolsViewModel.rawFeed.setCurrentContent(
+                                            DEFAULT
+                                        )
                                     }
                                 })
                             }

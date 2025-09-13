@@ -70,6 +70,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.io.File
@@ -89,6 +90,7 @@ fun ItemComponent(
     onTopLeftPanelClick: (Item) -> Unit,
     getInfoSup: suspend (Item) -> String?,
     getInfoInf: suspend (Item) -> String?,
+    dragState: StateFlow<DragState?>,
 
     ) {
 
@@ -113,12 +115,12 @@ fun ItemComponent(
 
     val imageHeight = 160.dp
 
-    val dragState by folderContentFrontComponent.dragState.collectAsState()
+//    val dragState by dragState.collectAsState()
     var bounds by remember { mutableStateOf<Rect?>(null) }
 
     val isHovered = remember(dragState, bounds) {
-        if (dragState != null && bounds != null)
-            dragState != null && bounds?.contains(dragState!!.offset) == true
+        if (dragState != null && bounds != null && dragState.value?.offset != null)
+            dragState != null && bounds?.contains(dragState.value?.offset!!) == true
         else false
     }
 

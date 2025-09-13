@@ -20,8 +20,5 @@ class ItemsViewModel @Inject constructor() : ViewModel() {
     val _dragState = MutableStateFlow<DragState?>(null)
 
     val _draggableStartPosition = MutableStateFlow<Offset?>(null)
-    val draggableStartPosition: StateFlow<Offset?> = _draggableStartPosition
-
-
 
 }

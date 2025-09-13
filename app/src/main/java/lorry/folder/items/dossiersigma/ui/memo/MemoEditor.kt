@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.memo
 
 import android.content.Context
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll

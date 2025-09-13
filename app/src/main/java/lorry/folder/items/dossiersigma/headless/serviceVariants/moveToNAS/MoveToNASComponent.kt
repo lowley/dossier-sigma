@@ -17,7 +17,7 @@ import lorry.folder.items.dossiersigma.headless.service.utilities.parameter
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import javax.inject.Inject
 
-class MoveToNASComponent @Inject constructor(
+class MoveToNASComponent  constructor(
     val context: Context,
     val service: IServiceComponent,
     val nasUtilities: NasUtilities,

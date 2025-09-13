@@ -6,6 +6,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
 import androidx.lifecycle.ViewModelStoreOwner
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
@@ -14,8 +17,10 @@ import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
+import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.IBottomComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
@@ -27,18 +32,29 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 
-class ItemsComponent @Inject constructor(
+class ItemsComponent @AssistedInject constructor(
     private val diskRepository: IDiskRepository,
     private val indexBar: IIndexBar,
     private val folderContentBackComponent: IFolderContentBackComponent,
     val bottomToolsFactory: BottomTools.Factory,
     val bottomComponentFactory: BottomComponent.Factory,
-    val toolsViewModel: ToolsViewModel,
-    val sigmaViewModel: SigmaViewModel
-) : IItemsComponent, ComponentWithViewModel<ItemsViewModel>() {
+    @Assisted val toolsViewModel: ToolsViewModel,
+    @Assisted val sigmaViewModel: SigmaViewModel,
+    @Assisted val itemsViewModel: ItemsViewModel
+) : IItemsComponent {
+
+    @AssistedFactory
+    interface Factory{
+        fun create(
+            sigmaViewModel: SigmaViewModel,
+            toolsViewModel: ToolsViewModel,
+            itemsViewModel: ItemsViewModel
+        ): ItemsComponent
+    }
+
 
     val bottomComponent = bottomComponentFactory.create(
-        viewModel = toolsViewModel,
+        toolsViewModel = toolsViewModel,
         sigmaViewModel = sigmaViewModel
     )
 
@@ -55,31 +71,32 @@ class ItemsComponent @Inject constructor(
     /////////////////
     // drag'n drop //
     /////////////////
-    override val dragState: StateFlow<DragState?> = viewModel._dragState
+    override val dragState: StateFlow<DragState?> = itemsViewModel._dragState
 
-    override val dragTargetItem: StateFlow<Item?> = viewModel._dragTargetItem
-
+    override val dragTargetItem: StateFlow<Item?> = itemsViewModel._dragTargetItem
 
     override fun setDragTargetItem(item: Item?) {
-        viewModel._dragTargetItem.value = item
+        itemsViewModel._dragTargetItem.value = item
     }
 
     override fun beginDrag(tool: Tool, startOffset: Offset) {
-        viewModel._dragState.value = DragState(tool, startOffset)
+        itemsViewModel._dragState.value = DragState(tool, startOffset)
     }
 
     override fun addDragOffset(delta: Offset) {
-        viewModel._dragState.value?.let {
-            viewModel._dragState.value = it.copy(offset = it.offset + delta)
+        itemsViewModel._dragState.value?.let {
+            itemsViewModel._dragState.value = it.copy(offset = it.offset + delta)
         }
     }
 
     override fun terminateDrag() {
-        viewModel._dragState.value = null
+        itemsViewModel._dragState.value = null
     }
 
+    override val draggableStartPosition: StateFlow<Offset?> = itemsViewModel._draggableStartPosition
+
     override fun setDraggableStartPosition(position: Offset?) {
-        viewModel._draggableStartPosition.value = position
+        itemsViewModel._draggableStartPosition.value = position
     }
 
     /////////////////////
@@ -93,7 +110,7 @@ class ItemsComponent @Inject constructor(
         onTopLeftPanelClick: (Item) -> Unit,
     ) = ItemsPage(
         onHoveredNotHovered = { item ->
-            folderContentFrontComponent.setDragTargetItem(item)
+            setDragTargetItem(item)
         },
         onItemTapped = onItemTapped,
         onItemLongPressed = onItemLongPressed,

@@ -68,7 +68,7 @@ fun SigmaActivity.SigmaFAB(
             val index = active.progress.getInt(MoveToNASWorker.P_INDEX, 0)
             val pct = active.progress.getInt(MoveToNASWorker.P_PCT, 0)
 
-            folderContentFrontComponent.updateNASProgress(
+            toolsViewModel.rawFeed.updateNASProgress(
                 percentage = pct.coerceAtLeast(0),
                 fileIndex = index,
                 fileCount = items

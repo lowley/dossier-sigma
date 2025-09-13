@@ -28,7 +28,7 @@ import java.util.UUID
  * bottomComponent.sigmaViewModel = this@SigmaActivity.mainViewModel
  * ```
  */
-@ActivityRetainedScoped
+
 class BottomComponent @AssistedInject constructor(
     @Assisted override val toolsViewModel: ToolsViewModel,
     @Assisted override val sigmaViewModel: SigmaViewModel
@@ -36,7 +36,7 @@ class BottomComponent @AssistedInject constructor(
 {
     @AssistedFactory
     interface Factory{
-        fun create(viewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): IBottomComponent
+        fun create(toolsViewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): BottomComponent
     }
 
     override fun observeDefaultContent() {

@@ -31,6 +31,7 @@ import com.elixer.palette.constraints.VerticalAlignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
@@ -41,7 +42,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import javax.inject.Inject
 import kotlin.getValue
 
-class MemoComponent @Inject constructor(
+class MemoComponent @AssistedInject constructor(
     @Assisted val memoViewModel: MemoViewModel,
     private val folderContentComponent: IFolderContentBackComponent,
     @ApplicationContext private val context: Context

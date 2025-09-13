@@ -1,5 +1,6 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.tools.controller
 
+import dagger.assisted.Assisted
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
@@ -15,6 +16,7 @@ interface IBottomComponent {
     // viewmodels //
     ////////////////
     val sigmaViewModel: SigmaViewModel
+
     val toolsViewModel: ToolsViewModel
 
     /////////////////////////////////

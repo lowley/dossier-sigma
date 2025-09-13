@@ -47,8 +47,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID
 import javax.inject.Singleton
 
-@Singleton
-class FolderContentBackComponent @Inject constructor(
+class FolderContentBackComponent constructor(
     val diskRepository: IDiskRepository,
     val settingsManager: SettingsManager,
     val context: Context,

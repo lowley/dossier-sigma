@@ -55,7 +55,6 @@ fun ItemsComponent.ItemsPage(
         }
 
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
-    val draggableStartPosition = itemsViewModel.draggableStartPosition
     val waitingForItems =
         mainViewModel.folderContentComponent.waitingForItems.collectAsStateWithLifecycle(
             initialValue = false
@@ -144,7 +143,8 @@ fun ItemsComponent.ItemsPage(
                                 onItemLongPressed = onItemLongPressed,
                                 onTopLeftPanelClick = onTopLeftPanelClick,
                                 getInfoSup = getInfoSup,
-                                getInfoInf = getInfoInf
+                                getInfoInf = getInfoInf,
+                                dragState = dragState
                             )
                         }
                     }

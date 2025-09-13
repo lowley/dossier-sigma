@@ -99,11 +99,11 @@ fun FullSizeExtras(
                     ).apply {
                         putExtra(
                             "source",
-                            folderContentFrontComponent.movingItem?.fullPath ?: ""
+                            bottomComponent.toolsViewModel.movingItem?.fullPath ?: ""
                         )
                         putExtra(
                             "destination",
-                            folderContentFrontComponent.movingItem?.fullPath ?: ""
+                            bottomComponent.toolsViewModel.movingItem?.fullPath ?: ""
                         )
                         putExtra("addSuffix", "")
                     }
@@ -111,13 +111,13 @@ fun FullSizeExtras(
                 mainViewModel.folderContentComponent.reloadCurrentFolder()
             },
             onCancel = {
-                bottomComponent.setCurrentContent(DEFAULT)
-                val item = folderContentFrontComponent.movingItem
+                bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                val item = bottomComponent.toolsViewModel.movingItem
                 val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                 if (movingParent != null)
                     mainViewModel.goToFolder(movingParent)
-                folderContentFrontComponent.movingItem = null
+                bottomComponent.toolsViewModel.movingItem = null
                 mainViewModel.setSelectedItem(null, true)
                 mainViewModel.folderContentComponent.reloadCurrentFolder()
             },
@@ -129,11 +129,11 @@ fun FullSizeExtras(
                     ).apply {
                         putExtra(
                             "source",
-                            folderContentFrontComponent.movingItem?.fullPath ?: ""
+                            bottomComponent.toolsViewModel.movingItem?.fullPath ?: ""
                         )
                         putExtra(
                             "destination",
-                            folderContentFrontComponent.itemToMove?.fullPath
+                            bottomComponent.toolsViewModel.itemToMove?.fullPath
                         )
                         putExtra("addSuffix", " - copie")
                     }

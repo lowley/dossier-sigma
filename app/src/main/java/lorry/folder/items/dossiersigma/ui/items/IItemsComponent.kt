@@ -21,6 +21,7 @@ interface IItemsComponent {
     fun beginDrag(tool: Tool, startOffset: Offset)
     fun addDragOffset(delta: Offset)
     fun terminateDrag()
+    val draggableStartPosition: StateFlow<Offset?>
     fun setDraggableStartPosition(position: Offset?)
 
     ////////////////////
