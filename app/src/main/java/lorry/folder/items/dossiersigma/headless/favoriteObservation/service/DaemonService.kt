@@ -61,7 +61,7 @@ class DaemonService : LifecycleService() {
 
     private var index: Int = 0
 
-    private var currentNotificationColor: Color = Color.Red
+    private var currentNotificationColor: Color = Color.Blue
     private var latestNotificationMessage: String? = null
 
     val dao = FolderCacheEntryDB.get(this)
@@ -216,7 +216,7 @@ class DaemonService : LifecycleService() {
 
         val dao = FolderCacheEntryDB.get(this@DaemonService)
 
-        updateNotification(color = Color.Blue)
+        updateNotification(color = Color.Red)
 
         val oldFreshness = dao.getByPath(
             path, scope,
@@ -263,11 +263,11 @@ class DaemonService : LifecycleService() {
         color?.let { currentNotificationColor = it }
 
         val smallIcon = when (color) {
-            Color.Red -> R.drawable.collecte_de_donnees  //lecture disque
-            Color.Blue -> R.drawable.disque_dur //écriture en base
+            Color.Blue -> R.drawable.oeil  //lecture disque
+            Color.Red -> R.drawable.stylo //écriture en base
             Color.Green -> R.drawable.coche //ok
             Color.Black -> R.drawable.coche //ok
-            Color.White -> R.drawable.accepter
+            Color.White -> R.drawable.encrier
             else -> R.drawable.coche
         }
 
@@ -332,7 +332,7 @@ class DaemonService : LifecycleService() {
 
     private suspend fun generateFolderCacheEntry(fullPath: String): FolderCacheEntry {
 
-        updateNotification(color = Color.Red)
+        updateNotification(color = Color.Blue)
 
         val items = diskRepository.getFolderItems(fullPath, SortingCriterion.ByDateDesc)
         val realFresh = diskRepository.getFolderFreshness(fullPath)

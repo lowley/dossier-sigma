@@ -128,7 +128,7 @@ class ItemsComponent @AssistedInject constructor(
     )
 
     override val copyAllNASText: StateFlow<String> = toolsViewModel.rawFeed.copyAllNASText
-    override val copyNASText: StateFlow<String> = toolsViewModel.rawFeed.copyAllNASText
+    override val copyNASText: StateFlow<String> = toolsViewModel.rawFeed.copyNASText
 
     override fun updateNASProgress(
         percentage: Int,
