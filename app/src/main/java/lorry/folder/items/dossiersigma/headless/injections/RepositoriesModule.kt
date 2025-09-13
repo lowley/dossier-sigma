@@ -1,12 +1,10 @@
 package lorry.folder.items.dossiersigma.headless.injections
 
-import android.app.Activity
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import androidx.lifecycle.ViewModelStoreOwner
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -23,8 +21,8 @@ import lorry.folder.items.dossiersigma.external.disk.DiskRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
-import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.BackFeed
-import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.IBackFeed
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.RawFeed
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.IRawFeed
 import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveToNASComponent
@@ -34,10 +32,6 @@ import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
 import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.items.ItemsComponent
-import lorry.folder.items.dossiersigma.ui.items.IItemsComponent
-import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
-import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import javax.inject.Singleton
 
@@ -68,8 +62,8 @@ abstract class RepositoriesModule {
 
     @Binds
     abstract fun bindBackFeed(
-        backFeed: BackFeed
-    ): IBackFeed
+        rawFeed: RawFeed
+    ): IRawFeed
 }
 
 @Module

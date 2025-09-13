@@ -36,6 +36,8 @@ import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.FILE
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.IRawFeed
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.RawFeed
 import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.TagInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
@@ -47,9 +49,10 @@ class SigmaViewModel @Inject constructor(
     val changingPictureUseCase: ChangingPictureUseCase,
     val playingDataSource: IPlayingDataSource,
     val base64Embedder: IVideoInfoEmbedder,
-    val bottomTools: BottomTools,
+//    val bottomTools: BottomTools,
     val folderContentComponent: IFolderContentBackComponent,
     val settingsManager: SettingsManager,
+    val rawFeed: IRawFeed
 ) : ViewModel() {
 
     /////////////////
@@ -126,7 +129,7 @@ class SigmaViewModel @Inject constructor(
         _isSettingsPageVisible.value = !_isSettingsPageVisible.value
     }
 
-    val tools = bottomTools.component.currentContent.map {
+    val tools = rawFeed.currentContent.map {
         it?.tools?.value
     }.stateIn(
         scope = viewModelScope,
@@ -202,9 +205,9 @@ class SigmaViewModel @Inject constructor(
 
         if (!keepBottomToolsAsIs) {
             if (item != null)
-                bottomTools.component.setCurrentContent(FILE)
+                rawFeed.setCurrentContent(FILE)
             else
-                bottomTools.component.setCurrentContent(DEFAULT)
+                rawFeed.setCurrentContent(DEFAULT)
         }
     }
 
@@ -270,40 +273,40 @@ class SigmaViewModel @Inject constructor(
                 folderContentComponent.addFolderPathToHistory(folderPath)
             }
 
-            bottomTools.component.setCurrentFlagId(null)
+            rawFeed.setCurrentFlagId(null)
         }
     }
 
     init {
         viewModelScope.launch {
-            bottomTools.component.progress.collect { p ->
+            rawFeed.progress.collect { p ->
                 if (p == 0 || p == 100)
-                    bottomTools.component.updateMovePasteText("Coller")
+                    rawFeed.updateMovePasteText("Coller")
                 else
-                    bottomTools.component.updateMovePasteText("$p %")
+                    rawFeed.updateMovePasteText("$p %")
             }
         }
 
         viewModelScope.launch {
-            bottomTools.component.nasProgress.collect { copyProgress ->
+            rawFeed.nasProgress.collect { copyProgress ->
                 if (copyProgress == null)
                     return@collect
 
                 if (copyProgress.progress == 0 || copyProgress.progress == 100) {
-                    bottomTools.component.updateNASText("1 -> NAS")
-                    bottomTools.component.updateAllNASText("Tous -> NAS")
+                    rawFeed.updateNASText("1 -> NAS")
+                    rawFeed.updateAllNASText("Tous -> NAS")
                 } else {
-                    bottomTools.component.updateNASText(
+                    rawFeed.updateNASText(
                         "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
                     )
-                    bottomTools.component.updateAllNASText(
+                    rawFeed.updateAllNASText(
                         "${copyProgress.fileIndex + 1}/${copyProgress.fileSize}: ${copyProgress.progress} %"
                     )
                 }
             }
         }
 
-        bottomTools.component.setCurrentContent(DEFAULT)
+        rawFeed.setCurrentContent(DEFAULT)
     }
 
 //    init {

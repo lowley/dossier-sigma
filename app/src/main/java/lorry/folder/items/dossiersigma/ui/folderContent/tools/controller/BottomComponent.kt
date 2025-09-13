@@ -39,27 +39,12 @@ class BottomComponent @AssistedInject constructor(
         fun create(viewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): IBottomComponent
     }
 
-    /////////////////////////////////
-    // différentes barres d'outils //
-    /////////////////////////////////
-
-    override val currentContent: StateFlow<BottomToolContent?> = toolsViewModel._bottomToolsContent
-    override val defaultContent = toolsViewModel.defaultContent
-
-    override fun setCurrentContent(tools: Tools) {
-        toolsViewModel.backFeed.setCurrentFlagId(null)
-        toolsViewModel._bottomToolsContent.value = when (tools) {
-            DEFAULT -> defaultContent
-            else -> tools.content(sigmaViewModel)
-        }
-    }
-
     override fun observeDefaultContent() {
         toolsViewModel.viewModelScope.launch {
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
             // La lambda sera appelée si l'un ou l'autre change.
             combine(
-                toolsViewModel.backFeed.currentFlagId,
+                toolsViewModel.rawFeed.currentFlagId,
                 sigmaViewModel.folderContentComponent.currentFolderFlow,
                 sigmaViewModel.folderContentComponent.reloadTrigger
             ) { selectedId, currentFolder, _ ->
@@ -79,9 +64,9 @@ class BottomComponent @AssistedInject constructor(
                             // La logique est simplifiée : on change juste l'ID sélectionné.
                             // La recomposition se chargera de mettre à jour l'état "activated".
                             if (this.activated) {
-                                toolsViewModel.backFeed.setCurrentFlagId(null)
+                                toolsViewModel.rawFeed.setCurrentFlagId(null)
                             } else {
-                                toolsViewModel.backFeed.setCurrentFlagId(this.id)
+                                toolsViewModel.rawFeed.setCurrentFlagId(this.id)
                             }
                         },
                         // L'état "activé" est dérivé directement de la comparaison des IDs.
@@ -90,7 +75,7 @@ class BottomComponent @AssistedInject constructor(
                 }
 
                 // 3. On combine les deux listes et on met à jour le singleton.
-                defaultContent.updateTools(tagTools)
+                toolsViewModel.rawFeed.defaultContent.updateTools(tagTools)
 
             }.collect() // Démarre la collecte du Flow combiné.
         }
@@ -113,46 +98,6 @@ class BottomComponent @AssistedInject constructor(
     override var copyingItem: Item? = toolsViewModel.copyingItem
     override var itemToMove: Item? = toolsViewModel.itemToMove
 
-    override val progress: StateFlow<Int> = toolsViewModel._progress.asStateFlow()
-    /**
-     * utilisé par
-     * @see lorry.folder.items.dossiersigma.headless.services.MoveFileService.copy
-     */
-    override fun updateProgress(value: Int) {
-        toolsViewModel._progress.value = value
-    }
-
-    override val nasProgress: StateFlow<OverallProgress?> = toolsViewModel._NASprogress.asStateFlow()
-    /**
-     * utilisé par
-     * @see lorry.folder.items.dossiersigma.headless.services.MoveToNASService.copy
-     */
-    override fun updateNASProgress(
-        percentage: Int,
-        fileIndex: Int,
-        fileCount: Int
-    ) {
-        toolsViewModel._NASprogress.value = OverallProgress(
-            progress = percentage,
-            fileIndex = fileIndex,
-            fileSize = fileCount
-        )
-    }
-
-    override val movePasteText: StateFlow<String> = toolsViewModel._movePasteText.asStateFlow()
-    override fun updateMovePasteText(value: String) {
-        toolsViewModel._movePasteText.value = value
-    }
-
-    override val copyNASText: StateFlow<String> = toolsViewModel._copyNASText.asStateFlow()
-    override fun updateNASText(value: String) {
-        toolsViewModel._copyNASText.value = value
-    }
-
-    override val copyAllNASText: StateFlow<String> = toolsViewModel._copyAllNASText.asStateFlow()
-    override fun updateAllNASText(value: String) {
-        toolsViewModel._copyAllNASText.value = value
-    }
 
 
 }

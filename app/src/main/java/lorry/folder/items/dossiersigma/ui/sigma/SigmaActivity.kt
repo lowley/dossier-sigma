@@ -371,7 +371,7 @@ class SigmaActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
-                    bottomComponent.setCurrentContent(DEFAULT)
+                    bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                 }
 
                 //////////////////////////////
@@ -405,7 +405,7 @@ class SigmaActivity : ComponentActivity() {
                                 detectTapGestures(onTap = {
                                     if (selectedItem?.id != null) {
                                         mainViewModel.setSelectedItem(null, true)
-                                        bottomComponent.setCurrentContent(DEFAULT)
+                                        bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                                     }
                                 })
                             }
@@ -840,7 +840,7 @@ class SigmaActivity : ComponentActivity() {
 
                                             if (selectedItem != null) {
                                                 mainViewModel.setSelectedItem(null, true)
-                                                bottomComponent.setCurrentContent(
+                                                bottomComponent.toolsViewModel.rawFeed.setCurrentContent(
                                                     DEFAULT
                                                 )
                                                 return@run
@@ -867,7 +867,7 @@ class SigmaActivity : ComponentActivity() {
                                     },
                                     onItemLongPressed = { item ->
                                         mainViewModel.setSelectedItem(item.copy(), true)
-                                        bottomComponent.setCurrentContent(FILE)
+                                        bottomComponent.toolsViewModel.rawFeed.setCurrentContent(FILE)
                                     },
                                     onTopLeftPanelClick = { item ->
                                         /**

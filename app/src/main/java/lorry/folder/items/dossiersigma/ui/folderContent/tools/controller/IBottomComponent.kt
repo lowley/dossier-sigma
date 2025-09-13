@@ -17,15 +17,9 @@ interface IBottomComponent {
     val sigmaViewModel: SigmaViewModel
     val toolsViewModel: ToolsViewModel
 
-
-
     /////////////////////////////////
     // différentes barres d'outils //
     /////////////////////////////////
-
-    val currentContent: StateFlow<BottomToolContent?>
-    val defaultContent: BottomToolContent
-    fun setCurrentContent(tools: Tools)
     fun observeDefaultContent()
 
     /////////////////////////////////////////////////////////////////////////////
@@ -41,32 +35,7 @@ interface IBottomComponent {
     var movingItem: Item?
     var copyingItem: Item?
     var itemToMove: Item?
-    val progress: StateFlow<Int>
-    /**
-     * utilisé par
-     * @see lorry.folder.items.dossiersigma.headless.services.MoveFileService.copy
-     */
-    fun updateProgress(value: Int)
 
-    val nasProgress: StateFlow<OverallProgress?>
-    /**
-     * utilisé par
-     * @see lorry.folder.items.dossiersigma.headless.services.MoveToNASService.copy
-     */
-    fun updateNASProgress(
-        percentage: Int,
-        fileIndex: Int,
-        fileCount: Int
-    )
-
-    val copyNASText: StateFlow<String>
-    fun updateNASText(value: String)
-
-    val copyAllNASText: StateFlow<String>
-    fun updateAllNASText(value: String)
-
-    val movePasteText: StateFlow<String>
-    fun updateMovePasteText(value: String)
 
 
 }

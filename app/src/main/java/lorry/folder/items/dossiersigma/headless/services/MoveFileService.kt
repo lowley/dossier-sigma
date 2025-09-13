@@ -6,10 +6,13 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import androidx.compose.runtime.remember
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tools.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import java.io.FileInputStream
@@ -24,8 +27,22 @@ import kotlin.system.measureTimeMillis
  */
 @AndroidEntryPoint
 class MoveFileService @Inject constructor(
-    val bottomTools: BottomTools
+    val bottomToolsFactory: BottomTools.Factory,
+    val bottomComponentFactory: BottomComponent.Factory,
+    val toolsViewModel: ToolsViewModel,
+    val sigmaViewModel: SigmaViewModel
 ) : Service() {
+
+    val bottomComponent = bottomComponentFactory.create(
+        viewModel = toolsViewModel,
+        sigmaViewModel = sigmaViewModel
+    )
+
+    //ici c'est #[[BottomTools]]
+    val bottomTools = bottomToolsFactory.create(
+        viewModel = sigmaViewModel,
+        bottomComponent = bottomComponent
+    )
 
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "move_file_channel"
@@ -53,7 +70,7 @@ class MoveFileService @Inject constructor(
                 delete(source)
 
             SigmaViewModel.requestRefresh()
-            bottomTools.setCurrentContent(DEFAULT)
+            toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
             stopSelf()
         }.start()
 
@@ -75,7 +92,7 @@ class MoveFileService @Inject constructor(
                 if (sourceFile.isFile)
                     copyFileWithProgress(sourceFile, destinationFile) { p ->
 //                        println("progression: $p%")
-                        bottomTools.updateProgress(p)
+                        toolsViewModel.rawFeed.updateProgress(p)
                     }
 //                    sourceFile.copyTo(destinationFile, overwrite = true)
                 else

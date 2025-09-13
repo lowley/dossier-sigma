@@ -18,7 +18,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 
 object CROP : Tools() {
-    override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+    override fun content() = BottomToolContent(
         toolInit = listOf(
             Tool(
                 text = { "Aucun" },

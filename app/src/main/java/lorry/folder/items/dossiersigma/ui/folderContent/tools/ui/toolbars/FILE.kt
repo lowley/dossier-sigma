@@ -9,14 +9,13 @@ import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 import kotlin.text.substringAfterLast
 import kotlin.text.substringBeforeLast
 
 object FILE : Tools() {
-    override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+    override fun content() = BottomToolContent(
         toolInit = listOf(
             ///////////
             // moves //

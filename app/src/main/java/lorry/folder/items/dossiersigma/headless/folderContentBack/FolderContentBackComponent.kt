@@ -40,9 +40,8 @@ import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
-import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.IBackFeed
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.IRawFeed
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.computeFreshness
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID
@@ -53,7 +52,7 @@ class FolderContentBackComponent @Inject constructor(
     val diskRepository: IDiskRepository,
     val settingsManager: SettingsManager,
     val context: Context,
-    val backFeed: IBackFeed
+    val backFeed: IRawFeed
 ) : IFolderContentBackComponent {
 
     companion object {

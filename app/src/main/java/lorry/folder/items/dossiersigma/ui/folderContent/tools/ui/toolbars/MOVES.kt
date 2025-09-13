@@ -11,12 +11,11 @@ import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import kotlin.collections.get
 
 object MOVES : Tools() {
-    override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+    override fun content() = BottomToolContent(
         listOf(
             ////////////
             // copier //

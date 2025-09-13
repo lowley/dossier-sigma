@@ -5,11 +5,10 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 
 object MOVE_FILE : Tools() {
-    override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+    override fun content() = BottomToolContent(
         listOf(
             /////////////
             // annuler //

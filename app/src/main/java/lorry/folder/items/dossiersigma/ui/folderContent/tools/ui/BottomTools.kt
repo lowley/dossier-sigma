@@ -163,7 +163,7 @@ class BottomTools @AssistedInject constructor(
         addDragOffset: (Offset) -> Unit,
         dragTargetItem: StateFlow<Item?>
     ) {
-        val content = component.currentContent.collectAsState().value
+        val content = component.toolsViewModel.rawFeed.currentContent.collectAsState().value
         val toolList = content?.tools?.collectAsState()?.value ?: emptyList()
         val modifier = Modifier.Companion
             .padding(vertical = 0.dp)

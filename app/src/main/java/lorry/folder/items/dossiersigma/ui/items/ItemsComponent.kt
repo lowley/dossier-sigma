@@ -15,13 +15,16 @@ import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.items.utils.ItemsPage
 import lorry.folder.items.dossiersigma.ui.items.utils.ItemsViewModel
 import javax.inject.Inject
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 
 class ItemsComponent @Inject constructor(
@@ -29,9 +32,22 @@ class ItemsComponent @Inject constructor(
     private val diskRepository: IDiskRepository,
     private val indexBar: IIndexBar,
     private val folderContentBackComponent: IFolderContentBackComponent,
-    private val bottomTools: BottomTools,
+    val bottomToolsFactory: BottomTools.Factory,
+    val bottomComponentFactory: BottomComponent.Factory,
+    val toolsViewModel: ToolsViewModel,
+    val sigmaViewModel: SigmaViewModel
 ) : IItemsComponent, ComponentWithViewModel<ItemsViewModel>() {
 
+    val bottomComponent = bottomComponentFactory.create(
+        viewModel = toolsViewModel,
+        sigmaViewModel = sigmaViewModel
+    )
+
+    //ici c'est #[[BottomTools]]
+    val bottomTools = bottomToolsFactory.create(
+        viewModel = sigmaViewModel,
+        bottomComponent = bottomComponent
+    )
 
 //    val itemsViewModel: ItemsViewModel by lazy {
 //        ViewModelProvider(owner)[ItemsViewModel::class.java]
@@ -94,6 +110,22 @@ class ItemsComponent @Inject constructor(
         },
         indexBar = indexBar,
     )
+
+    override val copyAllNASText: StateFlow<String> = toolsViewModel.rawFeed.copyAllNASText
+    override val copyNASText: StateFlow<String> = toolsViewModel.rawFeed.copyAllNASText
+
+    override fun updateNASProgress(
+        percentage: Int,
+        fileIndex: Int,
+        fileCount: Int
+    ) = toolsViewModel.rawFeed.updateNASProgress(
+        percentage,
+        fileIndex,
+        fileCount
+    )
+
+    override var movingItem: Item? = toolsViewModel.movingItem
+    override var itemToMove: Item? = toolsViewModel.movingItem
 
     private suspend fun getInfoSup(item: Item): String {
         return withContext(Dispatchers.IO) {

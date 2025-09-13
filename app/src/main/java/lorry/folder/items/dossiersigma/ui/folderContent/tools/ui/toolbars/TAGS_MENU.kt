@@ -6,14 +6,13 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.Flag
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.util.UUID
 import kotlin.collections.get
 
 object TAGS_MENU : Tools(
 
 ) {
-    override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+    override fun content() = BottomToolContent(
         listOf(
             /////////////
             // ajouter //
@@ -124,7 +123,7 @@ object TAGS_MENU : Tools(
                         val selectedFolder = viewModel.folderContentComponent
                             .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
                         val selectedFolderTag = selectedFolder?.tag
-                        val tool = DEFAULT.content(viewModel)
+                        val tool = DEFAULT.content()
                             .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
 
                         if (tool == null) {
@@ -150,7 +149,7 @@ object TAGS_MENU : Tools(
                             ?.none { it.value?.folder?.tag?.id == tool.id } == true
 
                         if (none)
-                            DEFAULT.content(viewModel).removeTool(tool)
+                            DEFAULT.content().removeTool(tool)
 
                         viewModel.setSelectedItem(null, true)
                         viewModel.folderContentComponent.reloadCurrentFolder()
@@ -180,7 +179,7 @@ object TAGS_MENU : Tools(
                             .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
                         val selectedFolderTag = selectedFolder?.tag
 
-                        val tool = DEFAULT.content(viewModel)
+                        val tool = DEFAULT.content()
                             .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
 
                         if (tool == null) {
@@ -252,7 +251,7 @@ object TAGS_MENU : Tools(
                                 .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
                             val selectedFolderTag = selectedFolder?.tag
 
-                            val tool = DEFAULT.content(viewModel)
+                            val tool = DEFAULT.content()
                                 .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
 
                             if (tool == null) {

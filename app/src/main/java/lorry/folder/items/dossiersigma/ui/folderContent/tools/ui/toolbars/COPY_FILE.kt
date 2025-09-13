@@ -3,10 +3,9 @@ package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
 object COPY_FILE : Tools() {
-    override fun content(viewModel: SigmaViewModel?) = BottomToolContent(
+    override fun content() = BottomToolContent(
         listOf(
             /////////////
             // annuler //
