@@ -131,7 +131,6 @@ import kotlin.collections.get
 import kotlin.math.roundToInt
 
 class BottomTools @AssistedInject constructor(
-    val component: IBottomComponent,
     @Assisted val viewModel: SigmaViewModel,
     @Assisted val bottomComponent: IBottomComponent,
     var moveToNASComponent: IMoveToNASComponent
@@ -163,7 +162,7 @@ class BottomTools @AssistedInject constructor(
         addDragOffset: (Offset) -> Unit,
         dragTargetItem: StateFlow<Item?>
     ) {
-        val content = component.toolsViewModel.rawFeed.currentContent.collectAsState().value
+        val content = bottomComponent.toolsViewModel.rawFeed.currentContent.collectAsState().value
         val toolList = content?.tools?.collectAsState()?.value ?: emptyList()
         val modifier = Modifier.Companion
             .padding(vertical = 0.dp)
@@ -219,7 +218,7 @@ class BottomTools @AssistedInject constructor(
                 .width(85.dp)
                 .fillMaxHeight()
                 .clickable {
-                    component.setCurrentTool(tool)
+                    bottomComponent.setCurrentTool(tool)
                     viewModel.viewModelScope.launch {
                         tool.onClick(tool, viewModel, activity)
                     }
