@@ -49,7 +49,6 @@ class SigmaViewModel @Inject constructor(
     val changingPictureUseCase: ChangingPictureUseCase,
     val playingDataSource: IPlayingDataSource,
     val base64Embedder: IVideoInfoEmbedder,
-//    val bottomTools: BottomTools,
     val folderContentComponent: IFolderContentBackComponent,
     val settingsManager: SettingsManager,
     val rawFeed: IRawFeed

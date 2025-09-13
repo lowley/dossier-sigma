@@ -8,7 +8,7 @@ import androidx.core.content.ContextCompat
 import androidx.work.Configuration
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
-import jakarta.inject.Inject
+import javax.inject.Inject
 import lorry.folder.items.dossiersigma.external.capsule.utilities.AppContextProvider
 
 @HiltAndroidApp

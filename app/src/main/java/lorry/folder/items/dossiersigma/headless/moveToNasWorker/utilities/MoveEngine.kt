@@ -1,7 +1,7 @@
 package lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities
 
 import android.content.Context
-import jakarta.inject.Inject
+import javax.inject.Inject
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities

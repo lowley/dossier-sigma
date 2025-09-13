@@ -2,7 +2,7 @@ package lorry.folder.items.dossiersigma.headless.folderContentBack
 
 import android.content.Context
 import android.util.Log
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -52,7 +52,7 @@ class FolderContentBackComponent @Inject constructor(
     val diskRepository: IDiskRepository,
     val settingsManager: SettingsManager,
     val context: Context,
-    val backFeed: IRawFeed
+    val rawFeed: IRawFeed
 ) : IFolderContentBackComponent {
 
     companion object {
@@ -361,7 +361,7 @@ class FolderContentBackComponent @Inject constructor(
                 val paramsFlowForPath: Flow<Params> =
                     combineWithSource5(
                         scope = scope,
-                        currentFlagId = backFeed.currentFlagId,
+                        currentFlagId = rawFeed.currentFlagId,
                         savedEntry = dbFlow,
                         refreshReloadTrigger = refreshReloadTrigger2,
                         reloadTrigger = reloadTrigger,

@@ -28,7 +28,6 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 
 class ItemsComponent @Inject constructor(
-    private val owner: ViewModelStoreOwner,
     private val diskRepository: IDiskRepository,
     private val indexBar: IIndexBar,
     private val folderContentBackComponent: IFolderContentBackComponent,
