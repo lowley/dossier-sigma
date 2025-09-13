@@ -95,6 +95,8 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Scale
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderContentBackComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
@@ -131,6 +133,7 @@ import kotlin.math.roundToInt
 class BottomTools @AssistedInject constructor(
     val component: IBottomComponent,
     @Assisted val viewModel: SigmaViewModel,
+    @Assisted val bottomComponent: IBottomComponent,
     var moveToNASComponent: IMoveToNASComponent
 ) {
     init {
@@ -145,7 +148,10 @@ class BottomTools @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory{
-        fun create(viewModel: SigmaViewModel): BottomTools
+        fun create(
+            viewModel: SigmaViewModel,
+            bottomComponent: IBottomComponent
+        ): BottomTools
     }
 
     @Composable

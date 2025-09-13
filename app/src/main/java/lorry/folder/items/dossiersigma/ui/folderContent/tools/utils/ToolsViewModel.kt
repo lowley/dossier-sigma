@@ -5,6 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.IBackFeed
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.OverallProgress
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
@@ -13,14 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ToolsViewModel @Inject constructor(
-
+    val backFeed: IBackFeed
 ): ViewModel(){
-
-    ////////////////////////
-    // étiquette courante //
-    ////////////////////////
-
-    val _currentFlagId = MutableStateFlow<UUID?>(null)
 
     /////////////////////////////////
     // différentes barres d'outils //

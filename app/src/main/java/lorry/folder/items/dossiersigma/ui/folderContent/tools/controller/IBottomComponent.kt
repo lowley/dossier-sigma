@@ -17,11 +17,7 @@ interface IBottomComponent {
     val sigmaViewModel: SigmaViewModel
     val toolsViewModel: ToolsViewModel
 
-    ////////////////////////
-    // étiquette courante //
-    ////////////////////////
-    val currentFlagId: StateFlow<UUID?>
-    fun setCurrentFlagId(flagId: UUID?)
+
 
     /////////////////////////////////
     // différentes barres d'outils //

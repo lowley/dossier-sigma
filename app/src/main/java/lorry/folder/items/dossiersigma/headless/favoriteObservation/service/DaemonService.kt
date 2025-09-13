@@ -29,7 +29,7 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
-import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderCacheEntry
+import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity

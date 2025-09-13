@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID
 

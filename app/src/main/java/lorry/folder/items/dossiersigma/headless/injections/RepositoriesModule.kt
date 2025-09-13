@@ -23,6 +23,8 @@ import lorry.folder.items.dossiersigma.external.disk.DiskRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.BackFeed
+import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.IBackFeed
 import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveToNASComponent
@@ -63,6 +65,11 @@ abstract class RepositoriesModule {
     abstract fun bindIndexBar(
         indexBar: IndexBar
     ): IIndexBar
+
+    @Binds
+    abstract fun bindBackFeed(
+        backFeed: BackFeed
+    ): IBackFeed
 }
 
 @Module
@@ -123,50 +130,3 @@ object DataStoreModule {
         }
 }
 
-@Module
-@InstallIn(ActivityComponent::class)
-object OwnerModule {
-    @Provides
-    fun provideOwner(activity: Activity): ViewModelStoreOwner = activity  as ViewModelStoreOwner
-
-    @Provides
-    fun provideIMemoComponent(
-        owner: ViewModelStoreOwner,
-        folderContentComponent: IFolderContentBackComponent,
-        context: Context
-    ): IMemoComponent {
-        return MemoComponent(
-            owner = owner,
-            folderContentComponent = folderContentComponent,
-            context = context
-        )
-    }
-
-    @Provides
-    fun provideIFolderContentFrontComponent(
-        owner: ViewModelStoreOwner,
-        diskRepository: IDiskRepository,
-        indexBar: IIndexBar,
-        folderContentBackComponent: IFolderContentBackComponent,
-        bottomTools: BottomTools
-    ): IItemsComponent {
-        return ItemsComponent(
-            owner = owner,
-            diskRepository = diskRepository,
-            indexBar = indexBar,
-            folderContentBackComponent = folderContentBackComponent,
-            bottomTools = bottomTools
-        )
-    }
-
-    @Provides
-    fun provideBottomTools(
-        owner: ViewModelStoreOwner,
-        moveToNASComponent: IMoveToNASComponent
-    ): BottomTools {
-        return BottomTools(
-            owner = owner,
-            moveToNASComponent = moveToNASComponent
-        )
-    }
-}

@@ -74,7 +74,6 @@ import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import lorry.folder.items.dossiersigma.ComponentWithViewModel
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
@@ -90,7 +89,6 @@ import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserBottomToolbar
 import lorry.folder.items.dossiersigma.ui.items.IItemsComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.IBottomComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
@@ -133,13 +131,15 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var folderContentFrontComponent: IItemsComponent
 
+    //cf [[BottomComponent]]
     @Inject
-    lateinit var bottomFactory: BottomComponent.Factory
+    lateinit var bottomComponentFactory: BottomComponent.Factory
 
+    //cf [[BottomTools]]
     @Inject
     lateinit var bottomToolsFactory: BottomTools.Factory
 
-    //cd [[BottomComponent]]
+    //cf [[BottomComponent]]
     @Inject
     lateinit var toolsViewModel: ToolsViewModel
 
@@ -149,6 +149,7 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var browser: IBrowser
 
+    //cf [[BottomTools]]
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
     val settingsViewModel: SettingsViewModel by viewModels()
@@ -167,10 +168,6 @@ class SigmaActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        //#[[BottomComponent]] initialisation composant IBottomComponent
-//        (bottomComponent as ComponentWithViewModel<ToolsViewModel>).attach(toolsViewModel)
-//        bottomComponent.sigmaViewModel = mainViewModel
 
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         window.navigationBarDividerColor = android.graphics.Color.TRANSPARENT
@@ -203,13 +200,16 @@ class SigmaActivity : ComponentActivity() {
     @Composable
     fun AppContent() {
 
-        val bottomComponent = remember { bottomFactory.create(
+        //ici c'est #[[BottomComponent]]
+        val bottomComponent = remember { bottomComponentFactory.create(
             viewModel = toolsViewModel,
             sigmaViewModel = mainViewModel
         ) }
 
+        //ici c'est #[[BottomTools]]
         val bottomTools = remember { bottomToolsFactory.create(
             viewModel = mainViewModel,
+            bottomComponent = bottomComponent
         ) }
 
         bottomComponent.observeDefaultContent()

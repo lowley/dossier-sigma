@@ -39,15 +39,6 @@ class BottomComponent @AssistedInject constructor(
         fun create(viewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): IBottomComponent
     }
 
-    ////////////////////////
-    // étiquette courante //
-    ////////////////////////
-    override val currentFlagId: StateFlow<UUID?> = toolsViewModel._currentFlagId
-
-    override fun setCurrentFlagId(flagId: UUID?) {
-        toolsViewModel._currentFlagId.value = flagId
-    }
-
     /////////////////////////////////
     // différentes barres d'outils //
     /////////////////////////////////
@@ -56,7 +47,7 @@ class BottomComponent @AssistedInject constructor(
     override val defaultContent = toolsViewModel.defaultContent
 
     override fun setCurrentContent(tools: Tools) {
-        setCurrentFlagId(null)
+        toolsViewModel.backFeed.setCurrentFlagId(null)
         toolsViewModel._bottomToolsContent.value = when (tools) {
             DEFAULT -> defaultContent
             else -> tools.content(sigmaViewModel)
@@ -68,7 +59,7 @@ class BottomComponent @AssistedInject constructor(
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
             // La lambda sera appelée si l'un ou l'autre change.
             combine(
-                currentFlagId,
+                toolsViewModel.backFeed.currentFlagId,
                 sigmaViewModel.folderContentComponent.currentFolderFlow,
                 sigmaViewModel.folderContentComponent.reloadTrigger
             ) { selectedId, currentFolder, _ ->
@@ -88,9 +79,9 @@ class BottomComponent @AssistedInject constructor(
                             // La logique est simplifiée : on change juste l'ID sélectionné.
                             // La recomposition se chargera de mettre à jour l'état "activated".
                             if (this.activated) {
-                                setCurrentFlagId(null)
+                                toolsViewModel.backFeed.setCurrentFlagId(null)
                             } else {
-                                setCurrentFlagId(this.id)
+                                toolsViewModel.backFeed.setCurrentFlagId(this.id)
                             }
                         },
                         // L'état "activé" est dérivé directement de la comparaison des IDs.

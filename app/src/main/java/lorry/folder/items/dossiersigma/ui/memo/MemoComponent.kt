@@ -29,22 +29,27 @@ import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
 import com.elixer.palette.constraints.VerticalAlignment
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
+import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import javax.inject.Inject
 import kotlin.getValue
 
 class MemoComponent @Inject constructor(
-    private val owner: ViewModelStoreOwner,
+    @Assisted val memoViewModel: MemoViewModel,
     private val folderContentComponent: IFolderContentBackComponent,
     @ApplicationContext private val context: Context
 ): IMemoComponent {
 
-    val memoViewModel: MemoViewModel by lazy {
-        ViewModelProvider(owner)[MemoViewModel::class.java]
+    @AssistedFactory
+    interface Factory{
+        fun create(viewModel: MemoViewModel): MemoComponent
     }
 
     override val isDisplayingMemo: StateFlow<Boolean> = memoViewModel._isDisplayingMemo

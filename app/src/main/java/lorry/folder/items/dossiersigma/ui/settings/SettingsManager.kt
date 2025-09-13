@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderFreshness
+import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.HomeItemInfosDTO
 import javax.inject.Inject

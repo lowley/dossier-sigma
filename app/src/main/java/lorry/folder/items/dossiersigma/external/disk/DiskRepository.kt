@@ -36,7 +36,7 @@ import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.ItemDTO
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderFreshness
+import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import okhttp3.OkHttpClient
 import okhttp3.Request

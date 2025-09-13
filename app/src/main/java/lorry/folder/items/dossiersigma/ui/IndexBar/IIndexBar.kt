@@ -11,6 +11,4 @@ interface IIndexBar {
     context(BoxScope, SigmaActivity)
     fun display(currentScrollState: LazyGridState)
 
-
-
 }
