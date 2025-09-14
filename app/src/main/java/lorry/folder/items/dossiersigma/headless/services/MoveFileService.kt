@@ -6,13 +6,12 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import androidx.compose.runtime.remember
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.ToolbarComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import java.io.FileInputStream
@@ -27,19 +26,19 @@ import kotlin.system.measureTimeMillis
  */
 @AndroidEntryPoint
 class MoveFileService @Inject constructor(
-    val bottomToolsFactory: BottomTools.Factory,
-    val bottomComponentFactory: BottomComponent.Factory,
+    val toolBarManagerFactory: ToolBarManager.Factory,
+    val toolbarComponentFactory: ToolbarComponent.Factory,
     val toolsViewModel: ToolsViewModel,
     val sigmaViewModel: SigmaViewModel
 ) : Service() {
 
-    val bottomComponent = bottomComponentFactory.create(
+    val bottomComponent = toolbarComponentFactory.create(
         toolsViewModel = toolsViewModel,
         sigmaViewModel = sigmaViewModel
     )
 
     //ici c'est #[[BottomTools]]
-    val bottomTools = bottomToolsFactory.create(
+    val bottomTools = toolBarManagerFactory.create(
         viewModel = sigmaViewModel,
         bottomComponent = bottomComponent
     )

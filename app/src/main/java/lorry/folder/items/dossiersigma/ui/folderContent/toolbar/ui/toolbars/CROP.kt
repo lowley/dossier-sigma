@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars
 
 import android.net.Uri
 import androidx.compose.ui.layout.ContentScale
@@ -11,14 +11,14 @@ import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CroppedPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Scale
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.items.utils.imageAsAnyToTempUri
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.imageAsAnyToTempUri
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 
 object CROP : Tools() {
-    override fun content() = BottomToolContent(
+    override fun content() = ToolbarContent(
         toolInit = listOf(
             Tool(
                 text = { "Aucun" },

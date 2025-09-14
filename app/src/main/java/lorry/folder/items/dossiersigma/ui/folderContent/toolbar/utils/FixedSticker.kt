@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.utils
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -21,13 +21,13 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toColoredTag
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toColoredTag
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
-context(BottomTools, RowScope)
+context(ToolBarManager, RowScope)
 fun FixedSticker(
     modifier: Modifier = Modifier.Companion,
     tool: Tool,

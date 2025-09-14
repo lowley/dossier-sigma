@@ -1,11 +1,11 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars
 
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 
 object COPY_FILE : Tools() {
-    override fun content() = BottomToolContent(
+    override fun content() = ToolbarContent(
         listOf(
             /////////////
             // annuler //
@@ -14,7 +14,7 @@ object COPY_FILE : Tools() {
                 text = { "Annuler" },
                 icon = R.drawable.annuler,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                 }
             ),
             ////////////
@@ -25,7 +25,7 @@ object COPY_FILE : Tools() {
                 icon = R.drawable.coller,
                 onClick = { viewModel, mainActivity ->
                     //vm.diskRepository.copyFile(sourceFile, destinationFile)
-                    bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                 }
             )
         ),

@@ -2,7 +2,6 @@ package lorry.folder.items.dossiersigma.headless.folderContentBack
 
 import android.content.Context
 import android.util.Log
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -40,12 +39,11 @@ import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.IRawFeed
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.IRawFeed
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.computeFreshness
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID
-import javax.inject.Singleton
 
 class FolderContentBackComponent constructor(
     val diskRepository: IDiskRepository,

@@ -86,15 +86,13 @@ import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserBottomToolbar
-import lorry.folder.items.dossiersigma.ui.items.IItemsComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.Breadcrumb
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.FILE
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
-import lorry.folder.items.dossiersigma.ui.memo.IMemoComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.ToolbarComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.FILE
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
@@ -108,8 +106,8 @@ import lorry.folder.items.dossiersigma.ui.tinies.initializeFileIntentLauncher
 import javax.inject.Inject
 import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 import lorry.folder.items.dossiersigma.ui.memo.MemoViewModel
-import lorry.folder.items.dossiersigma.ui.items.ItemsComponent
-import lorry.folder.items.dossiersigma.ui.items.utils.ItemsViewModel
+import lorry.folder.items.dossiersigma.ui.folderContent.items.ItemsComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.ItemsViewModel
 
 //endregion
 
@@ -139,15 +137,15 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var itemsComponentFactory: ItemsComponent.Factory
 
-    //cf [[BottomComponent]]
+    //cf [[ToolbarComponent]]
     @Inject
-    lateinit var bottomComponentFactory: BottomComponent.Factory
+    lateinit var toolbarComponentFactory: ToolbarComponent.Factory
 
-    //cf [[BottomTools]]
+    //cf [[ToolBarManager]]
     @Inject
-    lateinit var bottomToolsFactory: BottomTools.Factory
+    lateinit var toolBarManagerFactory: ToolBarManager.Factory
 
-    //cf [[BottomComponent]]
+    //cf [[ToolbarComponent]]
     val toolsViewModel: ToolsViewModel by viewModels()
 
 //    @Inject
@@ -156,7 +154,7 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var browser: IBrowser
 
-    //cf [[BottomTools]]
+    //cf [[ToolBarManager]]
     val mainViewModel: SigmaViewModel by viewModels()
     val homeViewModel: HomeViewModel by viewModels()
     val settingsViewModel: SettingsViewModel by viewModels()
@@ -218,13 +216,13 @@ class SigmaActivity : ComponentActivity() {
         ) }
 
         //ici c'est #[[BottomComponent]]
-        val bottomComponent = remember { bottomComponentFactory.create(
+        val bottomComponent = remember { toolbarComponentFactory.create(
             toolsViewModel = toolsViewModel,
             sigmaViewModel = mainViewModel
         ) }
 
         //ici c'est #[[BottomTools]]
-        val bottomTools = remember { bottomToolsFactory.create(
+        val bottomTools = remember { toolBarManagerFactory.create(
             viewModel = mainViewModel,
             bottomComponent = bottomComponent
         ) }
@@ -298,7 +296,7 @@ class SigmaActivity : ComponentActivity() {
                                 tonalElevation = 0.dp,
 
                                 ) {
-                                bottomTools.BottomToolBar(
+                                bottomTools.ToolBar(
                                     activity = this@SigmaActivity,
                                     beginDrag = folderContentFrontComponent::beginDrag,
                                     terminateDrag = folderContentFrontComponent::terminateDrag,

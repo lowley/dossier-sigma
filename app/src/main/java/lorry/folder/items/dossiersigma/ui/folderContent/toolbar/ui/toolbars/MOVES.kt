@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars
 
 import android.graphics.Bitmap
 import androidx.core.content.FileProvider
@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.firstOrNull
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import java.io.File
 import kotlin.collections.get
 
 object MOVES : Tools() {
-    override fun content() = BottomToolContent(
+    override fun content() = ToolbarContent(
         listOf(
             ////////////
             // copier //
@@ -36,8 +36,8 @@ object MOVES : Tools() {
                 text = { "Déplacer" },
                 icon = R.drawable.deplacer,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.bottomComponent.toolsViewModel.movingItem = viewModel.selectedItem.value
-                    bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(MOVE_FILE)
+                    toolBarManager.bottomComponent.toolsViewModel.movingItem = viewModel.selectedItem.value
+                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(MOVE_FILE)
                     viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
                 }
             ),
@@ -46,15 +46,15 @@ object MOVES : Tools() {
             /////////////////////
             Tool(
                 text = {
-                    val nasText = bottomTools.bottomComponent.toolsViewModel.rawFeed.copyNASText.value
+                    val nasText = toolBarManager.bottomComponent.toolsViewModel.rawFeed.copyNASText.value
                     nasText
                 },
                 icon = R.drawable.deplacer,
                 onClick = { viewModel, mainActivity ->
                     run {
-                        bottomTools.bottomComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
+                        toolBarManager.bottomComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
 
-                        if (bottomTools.bottomComponent.toolsViewModel.itemToMove == null)
+                        if (toolBarManager.bottomComponent.toolsViewModel.itemToMove == null)
                             return@run
 
                         //toast
@@ -82,7 +82,7 @@ object MOVES : Tools() {
                             viewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
                         else null
 
-                        val filesToTransfer = bottomTools.bottomComponent.toolsViewModel.itemToMove?.fullPath?.let {
+                        val filesToTransfer = toolBarManager.bottomComponent.toolsViewModel.itemToMove?.fullPath?.let {
                             listOf(it to picture64)
                         } ?: emptyList()
 

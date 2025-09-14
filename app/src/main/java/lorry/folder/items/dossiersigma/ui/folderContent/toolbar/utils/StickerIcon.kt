@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.utils
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box

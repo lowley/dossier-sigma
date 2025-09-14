@@ -1,13 +1,13 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.utils
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.OverallProgress
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.Tools
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.OverallProgress
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.Tools
 import java.util.UUID
 import javax.inject.Singleton
 
@@ -30,8 +30,8 @@ class RawFeed @Inject constructor(
     /////////////////////////////////
     // différentes barres d'outils //
     /////////////////////////////////
-    override val defaultContent = BottomToolContent(emptyList(), "DEFAULT_CONTENT")
-    override val _bottomToolsContent = MutableStateFlow<BottomToolContent?>(defaultContent)
+    override val defaultContent = ToolbarContent(emptyList(), "DEFAULT_CONTENT")
+    override val _bottomToolsContent = MutableStateFlow<ToolbarContent?>(defaultContent)
 
     ///////////////////////////////////
     // copie/déplacement de fichiers //
@@ -88,7 +88,7 @@ class RawFeed @Inject constructor(
     /////////////////////////////////
     // différentes barres d'outils //
     /////////////////////////////////
-    override val currentContent: StateFlow<BottomToolContent?> = _bottomToolsContent
+    override val currentContent: StateFlow<ToolbarContent?> = _bottomToolsContent
 
     override fun setCurrentContent(tools: Tools) {
         setCurrentFlagId(null)

@@ -1,22 +1,17 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.controller
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller
 
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import dagger.hilt.android.scopes.ActivityRetainedScoped
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.Tools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.util.UUID
 
@@ -29,14 +24,14 @@ import java.util.UUID
  * ```
  */
 
-class BottomComponent @AssistedInject constructor(
+class ToolbarComponent @AssistedInject constructor(
     @Assisted override val toolsViewModel: ToolsViewModel,
     @Assisted override val sigmaViewModel: SigmaViewModel
-): IBottomComponent
+): IToolbarComponent
 {
     @AssistedFactory
     interface Factory{
-        fun create(toolsViewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): BottomComponent
+        fun create(toolsViewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): ToolbarComponent
     }
 
     override fun observeDefaultContent() {

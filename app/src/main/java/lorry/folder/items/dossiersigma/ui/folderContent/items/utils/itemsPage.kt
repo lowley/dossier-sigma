@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.items.utils
+package lorry.folder.items.dossiersigma.ui.folderContent.items.utils
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -28,7 +28,7 @@ import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
-import lorry.folder.items.dossiersigma.ui.items.ItemsComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.items.ItemsComponent
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable

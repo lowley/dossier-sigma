@@ -13,8 +13,8 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.IBottomComponent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.IToolbarComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.DEFAULT
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
@@ -22,7 +22,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 context(SigmaActivity, BoxScope)
 fun FullSizeExtras(
     browser: IBrowser,
-    bottomComponent: IBottomComponent
+    bottomComponent: IToolbarComponent
 ) {
     val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
     val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()

@@ -1,12 +1,10 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.utils
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.OverallProgress
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.Tools
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.OverallProgress
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.Tools
 import java.util.UUID
 
 interface IRawFeed {
@@ -20,8 +18,8 @@ interface IRawFeed {
     /////////////////////////////////
     // différentes barres d'outils //
     /////////////////////////////////
-    val defaultContent: BottomToolContent
-    val _bottomToolsContent: MutableStateFlow<BottomToolContent?>
+    val defaultContent: ToolbarContent
+    val _bottomToolsContent: MutableStateFlow<ToolbarContent?>
 
     ///////////////////////////////////
     // copie/déplacement de fichiers //
@@ -65,7 +63,7 @@ interface IRawFeed {
     // différentes barres d'outils //
     /////////////////////////////////
 
-    val currentContent: StateFlow<BottomToolContent?>
+    val currentContent: StateFlow<ToolbarContent?>
 
     fun setCurrentContent(tools: Tools)
 }

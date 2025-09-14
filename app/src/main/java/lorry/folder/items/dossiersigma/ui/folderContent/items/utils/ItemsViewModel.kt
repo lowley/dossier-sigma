@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.items.utils
+package lorry.folder.items.dossiersigma.ui.folderContent.items.utils
 
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel

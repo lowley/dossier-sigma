@@ -1,32 +1,27 @@
-package lorry.folder.items.dossiersigma.ui.items
+package lorry.folder.items.dossiersigma.ui.folderContent.items
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toUpperCase
-import androidx.lifecycle.ViewModelStoreOwner
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.ComponentWithViewModel
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
-import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.BottomComponent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.controller.IBottomComponent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.ToolsViewModel
-import lorry.folder.items.dossiersigma.ui.items.utils.ItemsPage
-import lorry.folder.items.dossiersigma.ui.items.utils.ItemsViewModel
-import javax.inject.Inject
+import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.ItemsPage
+import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.ItemsViewModel
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.ToolbarComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
@@ -36,8 +31,8 @@ class ItemsComponent @AssistedInject constructor(
     private val diskRepository: IDiskRepository,
     private val indexBar: IIndexBar,
     private val folderContentBackComponent: IFolderContentBackComponent,
-    val bottomToolsFactory: BottomTools.Factory,
-    val bottomComponentFactory: BottomComponent.Factory,
+    val toolBarManagerFactory: ToolBarManager.Factory,
+    val toolbarComponentFactory: ToolbarComponent.Factory,
     @Assisted val toolsViewModel: ToolsViewModel,
     @Assisted val sigmaViewModel: SigmaViewModel,
     @Assisted val itemsViewModel: ItemsViewModel
@@ -53,13 +48,13 @@ class ItemsComponent @AssistedInject constructor(
     }
 
 
-    val bottomComponent = bottomComponentFactory.create(
+    val bottomComponent = toolbarComponentFactory.create(
         toolsViewModel = toolsViewModel,
         sigmaViewModel = sigmaViewModel
     )
 
     //ici c'est #[[BottomTools]]
-    val bottomTools = bottomToolsFactory.create(
+    val bottomTools = toolBarManagerFactory.create(
         viewModel = sigmaViewModel,
         bottomComponent = bottomComponent
     )

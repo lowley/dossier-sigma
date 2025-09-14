@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars
 
 import android.widget.Toast
 import androidx.lifecycle.viewModelScope
@@ -7,15 +7,15 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 import kotlin.text.substringAfterLast
 import kotlin.text.substringBeforeLast
 
 object FILE : Tools() {
-    override fun content() = BottomToolContent(
+    override fun content() = ToolbarContent(
         toolInit = listOf(
             ///////////
             // moves //
@@ -25,7 +25,7 @@ object FILE : Tools() {
                 icon = R.drawable.move,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(MOVES)
+                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(MOVES)
                 }
             ),
             ///////////////
@@ -36,7 +36,7 @@ object FILE : Tools() {
                 icon = R.drawable.etiquette2,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(TAGS_MENU)
+                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(TAGS_MENU)
                 }
             ),
             //////////////////
@@ -51,7 +51,7 @@ object FILE : Tools() {
                         if (selectedItem == null)
                             return@run
 
-                        bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
 
                         //le [[browserBody]] dépend de browserState (dataclass)
                         //ici il y a #[[browserModification]]
@@ -78,7 +78,7 @@ object FILE : Tools() {
                 icon = R.drawable.recadrer2,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(CROP)
+                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(CROP)
                 }
             ),
             //////////////
@@ -129,7 +129,7 @@ object FILE : Tools() {
                             }
                         }
 
-                        bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
                     }
 
@@ -186,7 +186,7 @@ object FILE : Tools() {
                                     .show()
                         }
 
-                        bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
                     }
 
@@ -246,7 +246,7 @@ object FILE : Tools() {
                                 ).show()
                         }
 
-                        bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
 
                     }
@@ -301,7 +301,7 @@ object FILE : Tools() {
                         }
 
                         viewModel.folderContentComponent.reloadCurrentFolder()
-                        bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                     }
 
                     viewModel.setIsYesNoDialogVisible(true)

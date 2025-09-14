@@ -32,12 +32,11 @@ import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.DEFAULT
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars.FILE
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.IRawFeed
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.utils.RawFeed
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.FILE
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.IRawFeed
 import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.TagInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
@@ -336,7 +335,7 @@ class SigmaViewModel @Inject constructor(
      * se produit lors du drag'n drop d'une étiquette dans bottomTools
      * l'Item peut déjà contenir une étiquette -> modification
      * sinon -> ajout
-     * @see BottomTools.BottomToolBar
+     * @see ToolBarManager.ToolBar
      */
     fun assignColoredTagToItem(item: Item, tag: ColoredTag) {
 //        println("DRAG assignColoredTagToItem, item = ${item.name}, tag = ${tag.title}")

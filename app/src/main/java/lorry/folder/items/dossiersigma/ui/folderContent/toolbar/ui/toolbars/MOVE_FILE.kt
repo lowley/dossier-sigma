@@ -1,14 +1,14 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.toolbars
+package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars
 
 import android.content.Intent
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomToolContent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.Tool
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import java.io.File
 
 object MOVE_FILE : Tools() {
-    override fun content() = BottomToolContent(
+    override fun content() = ToolbarContent(
         listOf(
             /////////////
             // annuler //
@@ -17,13 +17,13 @@ object MOVE_FILE : Tools() {
                 text = { "Annuler" },
                 icon = R.drawable.annuler,
                 onClick = { viewModel, mainActivity ->
-                    bottomTools.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
-                    val item = bottomTools.bottomComponent.toolsViewModel.movingItem
+                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                    val item = toolBarManager.bottomComponent.toolsViewModel.movingItem
                     val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                     if (movingParent != null)
                         viewModel.goToFolder(movingParent)
-                    bottomTools.bottomComponent.toolsViewModel.movingItem = null
+                    toolBarManager.bottomComponent.toolsViewModel.movingItem = null
                     viewModel.setSelectedItem(null, true)
 //                        viewModel.refreshCurrentFolder()
                 }
@@ -33,14 +33,14 @@ object MOVE_FILE : Tools() {
             ////////////
             Tool(
                 text = {
-                    val movePasteText = bottomTools.bottomComponent.toolsViewModel.rawFeed.movePasteText.value
+                    val movePasteText = toolBarManager.bottomComponent.toolsViewModel.rawFeed.movePasteText.value
                     movePasteText
                 },
                 icon = R.drawable.coller,
                 onClick = { viewModel, mainActivity ->
                     run {
-                        bottomTools.bottomComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
-                        var dest = bottomTools.bottomComponent.toolsViewModel.itemToMove
+                        toolBarManager.bottomComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
+                        var dest = toolBarManager.bottomComponent.toolsViewModel.itemToMove
 
                         if (dest == null) {
                             return@run
@@ -51,7 +51,7 @@ object MOVE_FILE : Tools() {
                         //toast
                         println("MovingItem: choisir fichier destination")
                         //1.copie
-                        val sourceFile = File(bottomTools.bottomComponent.toolsViewModel.movingItem?.fullPath ?: "")
+                        val sourceFile = File(toolBarManager.bottomComponent.toolsViewModel.movingItem?.fullPath ?: "")
                         //créer service avec notification(avec avancement)
                         //dans le service: copie
                         //passer au service une lambda pour l'action de retour(2.+3.)
@@ -69,11 +69,11 @@ object MOVE_FILE : Tools() {
                         }
 
                         if (dest.isFolder()) {
-                            if (bottomTools.bottomComponent.toolsViewModel.movingItem == null)
+                            if (toolBarManager.bottomComponent.toolsViewModel.movingItem == null)
                                 return@run
                             val isItemExists = viewModel.diskRepository.isFileOrFolderExists(
                                 dest.fullPath,
-                                bottomTools.bottomComponent.toolsViewModel.movingItem!!
+                                toolBarManager.bottomComponent.toolsViewModel.movingItem!!
                             )
                             if (isItemExists) {
                                 viewModel.setIsMoveFileDialogVisible(true)
@@ -87,7 +87,7 @@ object MOVE_FILE : Tools() {
                          * @see MoveFileService.onStartCommand
                          */
                         val intent = Intent(mainActivity, MoveFileService::class.java).apply {
-                            putExtra("source", bottomTools.bottomComponent.toolsViewModel.movingItem?.fullPath ?: "")
+                            putExtra("source", toolBarManager.bottomComponent.toolsViewModel.movingItem?.fullPath ?: "")
                             putExtra("destination", dest.fullPath)
                             putExtra("addSuffix", "")
                         }

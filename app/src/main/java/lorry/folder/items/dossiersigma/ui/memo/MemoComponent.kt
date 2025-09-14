@@ -22,8 +22,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
 import com.elixer.palette.Presets
 import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
@@ -36,11 +34,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
-import lorry.folder.items.dossiersigma.ui.folderContent.tools.ui.BottomTools
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity.Companion.TAG
-import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
-import javax.inject.Inject
-import kotlin.getValue
 
 class MemoComponent @AssistedInject constructor(
     @Assisted val memoViewModel: MemoViewModel,
