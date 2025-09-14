@@ -35,6 +35,9 @@ import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import javax.inject.Singleton
 
+//////////////
+// external //
+//////////////
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -55,37 +58,33 @@ abstract class RepositoriesModule {
         mp4Base64Embedder: VideoInfoEmbedder
     ): IVideoInfoEmbedder
 
-    @Binds
-    abstract fun bindIndexBar(
-        indexBar: IndexBar
-    ): IIndexBar
-
-    @Binds
-    @Singleton
-    abstract fun bindRawFeed(
-        rawFeed: RawFeed
-    ): IRawFeed
-
-    @Binds
-    abstract fun bindServiceComponent(
-        service: ServiceComponent
-    ): IServiceComponent
-
-//    @Binds
-//    abstract fun bindIItemsComponent(
-//        itemsComponent: ItemsComponent
-//    ): IItemsComponent
+    @Provides @Singleton
+    fun providePreferencesDataStore(
+        @ApplicationContext context: Context
+    ): DataStore<Preferences> =
+        PreferenceDataStoreFactory.create {
+            context.preferencesDataStoreFile("settings")
+        }
 }
+
+//////////////
+// headless //
+//////////////
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
+abstract class HeadlessModule {
 
     @Provides
     @Singleton
     fun provideContext(@ApplicationContext context: Context): Context {
         return context
     }
+
+    @Binds
+    abstract fun bindServiceComponent(
+        service: ServiceComponent
+    ): IServiceComponent
 
     @Provides
     @Singleton
@@ -102,6 +101,35 @@ object AppModule {
             rawFeed = rawFeed
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideIMoveToNASComponent(
+        @ApplicationContext context: Context,
+        service: IServiceComponent,
+        nasUtilities: NasUtilities,
+    ): IMoveToNASComponent = MoveToNASComponent(context, service, nasUtilities)
+}
+
+///////////////////////////
+// interface utilisateur //
+///////////////////////////
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class UIModule {
+
+    @Binds
+    abstract fun bindIndexBar(
+        indexBar: IndexBar
+    ): IIndexBar
+
+    @Binds
+    @Singleton
+    abstract fun bindRawFeed(
+        rawFeed: RawFeed
+    ): IRawFeed
+
 }
 
 @Module
@@ -110,29 +138,4 @@ abstract class BrowserModule {
     @Binds
     @ActivityScoped
     abstract fun bindBrowser(impl: Browser): IBrowser
-}
-
-@Module
-@InstallIn(SingletonComponent::class)
-object DataStoreModule {
-
-    @Provides @Singleton
-    fun providePreferencesDataStore(
-        @ApplicationContext context: Context
-    ): DataStore<Preferences> =
-        PreferenceDataStoreFactory.create {
-            context.preferencesDataStoreFile("settings")
-        }
-}
-
-@Module
-@InstallIn(SingletonComponent::class)
-object MoveToNasModule {
-    @Provides
-    @Singleton
-    fun provideIMoveToNASComponent(
-        @ApplicationContext context: Context,
-        service: IServiceComponent,
-        nasUtilities: NasUtilities,
-    ): IMoveToNASComponent = MoveToNASComponent(context, service, nasUtilities)
 }
