@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.fullSizeDialogs
+package lorry.folder.items.dossiersigma.ui.dialogs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

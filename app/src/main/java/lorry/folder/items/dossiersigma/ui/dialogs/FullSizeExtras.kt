@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.fullSizeDialogs
+package lorry.folder.items.dossiersigma.ui.dialogs
 
 import android.content.Intent
 import androidx.compose.foundation.layout.BoxScope

@@ -96,8 +96,8 @@ import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewM
 import lorry.folder.items.dossiersigma.ui.settings.DefaultColorScheme
 import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
-import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.FullSizeExtras
-import lorry.folder.items.dossiersigma.ui.fullSizeDialogs.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.dialogs.FullSizeExtras
+import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.tinies.HomeButtonIcon
 import lorry.folder.items.dossiersigma.ui.tinies.HomePage
 import lorry.folder.items.dossiersigma.ui.tinies.SigmaFAB
