@@ -56,7 +56,7 @@ object TAGS_MENU : Tools(
                                 viewModel.folderContentComponent.reloadCurrentFolder()
                             }
 
-                            toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                            toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                             viewModel.setSelectedItem(null, true)
                         }
 
@@ -153,7 +153,7 @@ object TAGS_MENU : Tools(
 
                         viewModel.setSelectedItem(null, true)
                         viewModel.folderContentComponent.reloadCurrentFolder()
-                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
 
 //                            viewModel.clearFlagCache()
 //                            DEFAULT.content().updateTools(emptyList<Tool>())
@@ -223,7 +223,7 @@ object TAGS_MENU : Tools(
 
                         viewModel.setSelectedItem(null, true)
 //                            viewModel.refreshCurrentFolder()
-                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
 
                         viewModel.folderContentComponent.reloadCurrentFolder()
                     }
@@ -291,7 +291,7 @@ object TAGS_MENU : Tools(
 
                             viewModel.setSelectedItem(null, true)
 //                            viewModel.refreshCurrentFolder()
-                            toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                            toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
 
                             viewModel.folderContentComponent.reloadCurrentFolder()
                         }

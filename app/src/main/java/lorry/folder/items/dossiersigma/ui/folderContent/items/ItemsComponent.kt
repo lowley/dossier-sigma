@@ -15,7 +15,7 @@ import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
-import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
+import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.ItemsPage
 import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.ItemsViewModel
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.ToolbarComponent

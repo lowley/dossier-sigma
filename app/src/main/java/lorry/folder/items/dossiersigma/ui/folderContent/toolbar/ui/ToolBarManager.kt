@@ -49,7 +49,7 @@ import kotlin.math.roundToInt
 
 class ToolBarManager @AssistedInject constructor(
     @Assisted val viewModel: SigmaViewModel,
-    @Assisted val bottomComponent: IToolbarComponent,
+    @Assisted val toolbarComponent: IToolbarComponent,
     var moveToNASComponent: IMoveToNASComponent
 ) {
     init {
@@ -79,7 +79,7 @@ class ToolBarManager @AssistedInject constructor(
         addDragOffset: (Offset) -> Unit,
         dragTargetItem: StateFlow<Item?>
     ) {
-        val content = bottomComponent.toolsViewModel.rawFeed.currentContent.collectAsState().value
+        val content = toolbarComponent.toolsViewModel.rawFeed.currentContent.collectAsState().value
         val toolList = content?.tools?.collectAsState()?.value ?: emptyList()
         val modifier = Modifier.Companion
             .padding(vertical = 0.dp)
@@ -135,7 +135,7 @@ class ToolBarManager @AssistedInject constructor(
                 .width(85.dp)
                 .fillMaxHeight()
                 .clickable {
-                    bottomComponent.setCurrentTool(tool)
+                    toolbarComponent.setCurrentTool(tool)
                     viewModel.viewModelScope.launch {
                         tool.onClick(tool, viewModel, activity)
                     }

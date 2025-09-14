@@ -17,13 +17,13 @@ object MOVE_FILE : Tools() {
                 text = { "Annuler" },
                 icon = R.drawable.annuler,
                 onClick = { viewModel, mainActivity ->
-                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
-                    val item = toolBarManager.bottomComponent.toolsViewModel.movingItem
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                    val item = toolBarManager.toolbarComponent.toolsViewModel.movingItem
                     val movingParent = item?.fullPath?.substringBeforeLast("/")
 
                     if (movingParent != null)
                         viewModel.goToFolder(movingParent)
-                    toolBarManager.bottomComponent.toolsViewModel.movingItem = null
+                    toolBarManager.toolbarComponent.toolsViewModel.movingItem = null
                     viewModel.setSelectedItem(null, true)
 //                        viewModel.refreshCurrentFolder()
                 }
@@ -33,14 +33,14 @@ object MOVE_FILE : Tools() {
             ////////////
             Tool(
                 text = {
-                    val movePasteText = toolBarManager.bottomComponent.toolsViewModel.rawFeed.movePasteText.value
+                    val movePasteText = toolBarManager.toolbarComponent.toolsViewModel.rawFeed.movePasteText.value
                     movePasteText
                 },
                 icon = R.drawable.coller,
                 onClick = { viewModel, mainActivity ->
                     run {
-                        toolBarManager.bottomComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
-                        var dest = toolBarManager.bottomComponent.toolsViewModel.itemToMove
+                        toolBarManager.toolbarComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
+                        var dest = toolBarManager.toolbarComponent.toolsViewModel.itemToMove
 
                         if (dest == null) {
                             return@run
@@ -51,7 +51,7 @@ object MOVE_FILE : Tools() {
                         //toast
                         println("MovingItem: choisir fichier destination")
                         //1.copie
-                        val sourceFile = File(toolBarManager.bottomComponent.toolsViewModel.movingItem?.fullPath ?: "")
+                        val sourceFile = File(toolBarManager.toolbarComponent.toolsViewModel.movingItem?.fullPath ?: "")
                         //créer service avec notification(avec avancement)
                         //dans le service: copie
                         //passer au service une lambda pour l'action de retour(2.+3.)
@@ -69,11 +69,11 @@ object MOVE_FILE : Tools() {
                         }
 
                         if (dest.isFolder()) {
-                            if (toolBarManager.bottomComponent.toolsViewModel.movingItem == null)
+                            if (toolBarManager.toolbarComponent.toolsViewModel.movingItem == null)
                                 return@run
                             val isItemExists = viewModel.diskRepository.isFileOrFolderExists(
                                 dest.fullPath,
-                                toolBarManager.bottomComponent.toolsViewModel.movingItem!!
+                                toolBarManager.toolbarComponent.toolsViewModel.movingItem!!
                             )
                             if (isItemExists) {
                                 viewModel.setIsMoveFileDialogVisible(true)
@@ -87,7 +87,7 @@ object MOVE_FILE : Tools() {
                          * @see MoveFileService.onStartCommand
                          */
                         val intent = Intent(mainActivity, MoveFileService::class.java).apply {
-                            putExtra("source", toolBarManager.bottomComponent.toolsViewModel.movingItem?.fullPath ?: "")
+                            putExtra("source", toolBarManager.toolbarComponent.toolsViewModel.movingItem?.fullPath ?: "")
                             putExtra("destination", dest.fullPath)
                             putExtra("addSuffix", "")
                         }

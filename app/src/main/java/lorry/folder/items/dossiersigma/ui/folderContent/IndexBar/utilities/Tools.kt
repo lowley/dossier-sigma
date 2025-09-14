@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.IndexBar.utilities
+package lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.utilities
 
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.domain.Item

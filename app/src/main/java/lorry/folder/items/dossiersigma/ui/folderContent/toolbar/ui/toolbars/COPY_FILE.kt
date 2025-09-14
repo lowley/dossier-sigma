@@ -14,7 +14,7 @@ object COPY_FILE : Tools() {
                 text = { "Annuler" },
                 icon = R.drawable.annuler,
                 onClick = { viewModel, mainActivity ->
-                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                 }
             ),
             ////////////
@@ -25,7 +25,7 @@ object COPY_FILE : Tools() {
                 icon = R.drawable.coller,
                 onClick = { viewModel, mainActivity ->
                     //vm.diskRepository.copyFile(sourceFile, destinationFile)
-                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                 }
             )
         ),

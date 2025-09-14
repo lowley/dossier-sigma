@@ -25,7 +25,7 @@ object FILE : Tools() {
                 icon = R.drawable.move,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(MOVES)
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(MOVES)
                 }
             ),
             ///////////////
@@ -36,7 +36,7 @@ object FILE : Tools() {
                 icon = R.drawable.etiquette2,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(TAGS_MENU)
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(TAGS_MENU)
                 }
             ),
             //////////////////
@@ -51,7 +51,7 @@ object FILE : Tools() {
                         if (selectedItem == null)
                             return@run
 
-                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
 
                         //le [[browserBody]] dépend de browserState (dataclass)
                         //ici il y a #[[browserModification]]
@@ -78,7 +78,7 @@ object FILE : Tools() {
                 icon = R.drawable.recadrer2,
                 isColoredIcon = true,
                 onClick = { viewModel, mainActivity ->
-                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(CROP)
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(CROP)
                 }
             ),
             //////////////
@@ -129,7 +129,7 @@ object FILE : Tools() {
                             }
                         }
 
-                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
                     }
 
@@ -186,7 +186,7 @@ object FILE : Tools() {
                                     .show()
                         }
 
-                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
                     }
 
@@ -246,7 +246,7 @@ object FILE : Tools() {
                                 ).show()
                         }
 
-                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                         viewModel.setSelectedItem(null, true)
 
                     }
@@ -301,7 +301,7 @@ object FILE : Tools() {
                         }
 
                         viewModel.folderContentComponent.reloadCurrentFolder()
-                        toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                        toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                     }
 
                     viewModel.setIsYesNoDialogVisible(true)

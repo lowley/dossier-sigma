@@ -28,8 +28,8 @@ import lorry.folder.items.dossiersigma.headless.service.ServiceComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.MoveToNASComponent
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
-import lorry.folder.items.dossiersigma.ui.IndexBar.IIndexBar
-import lorry.folder.items.dossiersigma.ui.IndexBar.IndexBar
+import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.IIndexBar
+import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.IndexBar
 import lorry.folder.items.dossiersigma.ui.browser.Browser
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager

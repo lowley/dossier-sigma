@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.IndexBar
+package lorry.folder.items.dossiersigma.ui.folderContent.IndexBar
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -36,9 +36,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.Content
-import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.InfoType
-import lorry.folder.items.dossiersigma.ui.IndexBar.utilities.toIndexBarItemInfoList
+import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.utilities.Content
+import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.utilities.InfoType
+import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.utilities.toIndexBarItemInfoList
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.time.Instant

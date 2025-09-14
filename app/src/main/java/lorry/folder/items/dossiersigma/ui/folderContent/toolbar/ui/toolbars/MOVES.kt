@@ -36,8 +36,8 @@ object MOVES : Tools() {
                 text = { "Déplacer" },
                 icon = R.drawable.deplacer,
                 onClick = { viewModel, mainActivity ->
-                    toolBarManager.bottomComponent.toolsViewModel.movingItem = viewModel.selectedItem.value
-                    toolBarManager.bottomComponent.toolsViewModel.rawFeed.setCurrentContent(MOVE_FILE)
+                    toolBarManager.toolbarComponent.toolsViewModel.movingItem = viewModel.selectedItem.value
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(MOVE_FILE)
                     viewModel.setSelectedItem(null, keepBottomToolsAsIs = true)
                 }
             ),
@@ -46,15 +46,15 @@ object MOVES : Tools() {
             /////////////////////
             Tool(
                 text = {
-                    val nasText = toolBarManager.bottomComponent.toolsViewModel.rawFeed.copyNASText.value
+                    val nasText = toolBarManager.toolbarComponent.toolsViewModel.rawFeed.copyNASText.value
                     nasText
                 },
                 icon = R.drawable.deplacer,
                 onClick = { viewModel, mainActivity ->
                     run {
-                        toolBarManager.bottomComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
+                        toolBarManager.toolbarComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
 
-                        if (toolBarManager.bottomComponent.toolsViewModel.itemToMove == null)
+                        if (toolBarManager.toolbarComponent.toolsViewModel.itemToMove == null)
                             return@run
 
                         //toast
@@ -82,7 +82,7 @@ object MOVES : Tools() {
                             viewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
                         else null
 
-                        val filesToTransfer = toolBarManager.bottomComponent.toolsViewModel.itemToMove?.fullPath?.let {
+                        val filesToTransfer = toolBarManager.toolbarComponent.toolsViewModel.itemToMove?.fullPath?.let {
                             listOf(it to picture64)
                         } ?: emptyList()
 
