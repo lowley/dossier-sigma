@@ -90,7 +90,7 @@ class DiskRepository @Inject constructor(
         emitAll(
             sorted.asFlow()
                 .onStart { Log.d(TAG, "START items=${sorted.size} path=$folderPath") }
-                .onEach { dto -> Log.d(TAG, "DTO -> ${dto.name}") }
+                //.onEach { dto -> Log.d(TAG, "DTO -> ${dto.name}") }
                 .map { dto ->
                     val itemPath = "${dto.path}/${dto.name}"
                     val capsule = capsuleManager.getCapsule(itemPath)
@@ -141,7 +141,7 @@ class DiskRepository @Inject constructor(
                         )
                     }
                 }
-                .onEach { item -> Log.d(TAG, "ITEM -> ${item.name}") } // ③ atteint seulement si le map a produit
+                //.onEach { item -> Log.d(TAG, "ITEM -> ${item.name}") } // ③ atteint seulement si le map a produit
                 .onCompletion { cause ->
                     Log.d(TAG, if (cause == null) "COMPLETE ok" else "COMPLETE with error: ${cause.message}")
                 }

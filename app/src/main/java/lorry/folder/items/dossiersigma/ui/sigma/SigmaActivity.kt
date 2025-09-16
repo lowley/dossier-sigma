@@ -17,6 +17,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -93,7 +94,6 @@ import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.browser.ui.BrowserBottomToolbar
-import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.Breadcrumb
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.ToolbarComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
@@ -105,6 +105,7 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.dialogs.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.BreadcrumbItems
 import lorry.folder.items.dossiersigma.ui.tinies.HomeButtonIcon
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomePage
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeUiState
@@ -179,6 +180,7 @@ class SigmaActivity : ComponentActivity() {
     @Inject
     lateinit var indexBar: IIndexBar
 
+    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -209,6 +211,7 @@ class SigmaActivity : ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     fun AppContent() {
@@ -526,21 +529,27 @@ class SigmaActivity : ComponentActivity() {
                                     // breadcrumb //
                                     ////////////////
 
-                                    if (!homePageVisible)
-                                        key(currentPath.value ?: "") {
-                                            Breadcrumb(
-                                                items = currentFolder?.fullPath?.split("/")
-                                                    ?.filter { it != "" } ?: emptyList(),
-                                                onPathClick = { path ->
+                                    val path by remember { derivedStateOf { currentPath.value.orEmpty() } }
+
+                                    val items = remember(path) {
+                                        path.split('/').filter { it.isNotEmpty() }
+                                    }
+
+                                    if (!homePageVisible && !path.isNullOrEmpty())
+                                        key(path ?: "") {
+                                            BreadcrumbItems(
+                                                path = items,
+                                                onClick = { index ->
+                                                    val path = items.take(index + 1).joinToString("/")
                                                     mainViewModel.goToFolder(path)
                                                 },
-                                                modifier = Modifier
-                                                    .padding(start = 10.dp)
-                                                    .align(Alignment.CenterVertically),
-                                                activeColor = Color(0xFF8697CB),
-                                                inactiveColor = Color(0xFF8697CB),
-                                                arrowColor = Color.Magenta,
-                                                transitionDuration = 200,
+//                                                modifier = Modifier
+//                                                    .padding(start = 10.dp)
+//                                                    .align(Alignment.CenterVertically),
+//                                                activeColor = Color(0xFF8697CB),
+//                                                inactiveColor = Color(0xFF8697CB),
+//                                                arrowColor = Color.Magenta,
+//                                                totalDuration = 200,
                                             )
                                         }
                                 }

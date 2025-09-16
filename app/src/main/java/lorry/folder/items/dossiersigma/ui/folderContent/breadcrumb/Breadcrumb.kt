@@ -1,294 +1,251 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb
 
-import androidx.compose.animation.ExperimentalAnimationApi
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.foundation.border
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalAnimationApi::class)
-@Composable
-fun Breadcrumb(
-    items: List<String>,
-    onPathClick: (String) -> Unit,
-    modifier: Modifier = Modifier.Companion,
-    activeColor: Color = Color.Companion.Blue,
-    inactiveColor: Color = Color.Companion.Gray,
-    arrowColor: Color = Color.Companion.Gray,
-    transitionDuration: Int = 600
-) {
-    val displayedItems = run {
-        val newItems = mutableListOf<String>()
-
-        when {
-            items.size >= 3 && items[0] == "storage" && items[1] == "emulated" && items[2] == "0" -> {
-                newItems += "Local"
-                newItems += items.drop(3)
-            }
-            items.size >= 2 && items[0] == "storage" && items[1].matches(Regex
-                ("""[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}""")) -> {
-                newItems += "Carte SD"
-                newItems += items.drop(2)
-            }
-            else -> {
-                newItems += items
-            }
-        }
-
-        newItems.toMutableStateList()
-    }
-
-    val previousItems = remember { mutableStateListOf<String>() }
-
-    LaunchedEffect(items) {
-        delay(transitionDuration.toLong())
-        previousItems.clear()
-        previousItems.addAll(displayedItems)
-    }
-
-    Row(modifier = modifier) {
-        displayedItems.forEachIndexed { index, item ->
-            key(item) {
-                BreadcrumbItem(
-                    text = item,
-                    isActive = index == displayedItems.lastIndex,
-                    activeColor = activeColor,
-                    inactiveColor = inactiveColor,
-                    arrowColor = arrowColor,
-                    onClick = {
-                        val actualIndex = when {
-                            items.startsWithLocal() -> index + 2
-                            items.startsWithSDCard() -> index + 1
-                            else -> index
-                        }
-                        val path = when {
-                            item == "Local" -> "/storage/emulated/0"
-                            item == "Carte SD" -> "/storage/${items.getOrNull(1) ?: ""}"
-                            else -> "/${
-                                items.take(
-                                    actualIndex + 1 + if (items.isNotEmpty() && (items[0] == "Local" || items[0] ==
-                                                "Carte SD")
-                                    ) 1 else 0
-                                ).joinToString("/")
-                            }"
-
-                        }
-                        onPathClick(path)
-                    },
-                    animationState = when {
-                        item in displayedItems && item !in previousItems -> AnimationState.Appearing
-                        item !in displayedItems && item in previousItems -> AnimationState.Disappearing
-                        else -> AnimationState.Stable
-                    },
-                    duration = transitionDuration
-                )
-            }
-        }
-    }
-}
+//@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+//@Composable
+//fun Breadcrumb(
+//    items: List<String>,
+//    onPathClick: (String) -> Unit,
+//    modifier: Modifier = Modifier.Companion,
+//    activeColor: Color = Color.Companion.Blue,
+//    inactiveColor: Color = Color.Companion.Gray,
+//    arrowColor: Color = Color.Companion.Gray,
+//    totalDuration: Int = 1000
+//) {
+//    BreadcrumbItems(
+//        items = items,
+//        totalDuration = totalDuration,
+//        onPathClick = onPathClick,
+//    )
+//}
 
 enum class AnimationState { Appearing, Disappearing, Stable }
 
+
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
-fun BreadcrumbItem(
-    text: String,
-    isActive: Boolean,
-    activeColor: Color,
-    inactiveColor: Color,
-    arrowColor: Color,
-    onClick: () -> Unit,
-    animationState: AnimationState,
-    duration: Int
+fun BreadcrumbItems(
+    path: List<String>,
+    onClick: (index: Int) -> Unit
 ) {
-    val startAnimation = animationState != AnimationState.Disappearing
+    // État : on retient le précédent chemin
+    var prev by remember { mutableStateOf(path) }
 
-    var animationTriggered by remember { mutableStateOf(animationState == AnimationState.Stable) }
+    // LCP = longueur du plus long préfixe commun
+    val lcp = remember(prev, path) {
+        val n = minOf(prev.size, path.size)
+        var i = 0
+        while (i < n && prev[i] == path[i]) i++
+        i
+    }
 
-    LaunchedEffect(animationState) {
-        if (animationState == AnimationState.Appearing) {
-            animationTriggered = false
-            delay(50)
-            animationTriggered = true
-        } else if (animationState == AnimationState.Disappearing) {
-            animationTriggered = false
-        } else {
-            animationTriggered = true
+    // Suffixe visible (partie animée)
+    val suffix = remember { mutableStateListOf<String>() }
+    // Visibilité par item (clé = segment)
+    val vis = remember { mutableStateMapOf<String, MutableTransitionState<Boolean>>() }
+    val anim = remember { mutableStateMapOf<String, AnimationState>() }
+
+    // Orchestration quand la cible change
+    LaunchedEffect(path) {
+        // initialise le suffixe courant à l'ancien (au-delà du LCP)
+        suffix.clear()
+        suffix.addAll(prev.drop(lcp))
+
+        // 1) Disparitions (de droite vers gauche)
+        for (i in prev.size - 1 downTo lcp) {
+            val id = prev[i]
+            val st = vis.getOrPut(id) { MutableTransitionState(true) }
+            st.targetState = false                  // déclenche l'animation de sortie
+            anim[id] = AnimationState.Disappearing
+            delay(90)                               // rythme (ajuste à ton goût)
+            suffix.removeLast()                     // retire visuellement après l'anim
+            vis.remove(id)
+            anim.remove(id)
         }
+
+        // 2) Apparitions (de gauche vers droite après le LCP)
+        for (i in lcp until path.size) {
+            val id = path[i]
+            suffix.add(id)                          // ajoute l’item (invisible au début)
+            vis[id] = MutableTransitionState(false).also { it.targetState = true }
+            anim[id] = AnimationState.Appearing
+            delay(90)
+        }
+
+        prev = path
     }
 
-    val transition = updateTransition(animationTriggered, label = "itemClipTransition")
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        // --- Préfixe stable, jamais masqué ---
+        for (i in 0 until lcp) {
+            BreadcrumbChip(
+                text = prev[i],
+                path = prev.take(i + 1).joinToString("/"),
+            ) { onClick(i) }
+            if (i < lcp - 1) Separator()
+        }
+        if (lcp > 0 && suffix.isNotEmpty()) Separator()
 
-    val clipFraction by transition.animateFloat(
-        transitionSpec = { tween(durationMillis = duration, easing = FastOutSlowInEasing) }
-    ) { visible ->
-        if (visible) 1f else 0f
-    }
-
-    Row(
-        verticalAlignment = Alignment.Companion.CenterVertically,
-        modifier = Modifier.Companion
-            .clipToBounds()
-            .drawWithContent {
-                val width = size.width
-                when (animationState) {
-                    AnimationState.Appearing -> {
-                        clipRect(right = width * clipFraction) {
-                            this@drawWithContent.drawContent()
-                        }
-                    }
-
-                    AnimationState.Disappearing -> {
-                        clipRect(right = width * clipFraction) {
-                            this@drawWithContent.drawContent()
-                        }
-                    }
-
-                    AnimationState.Stable -> drawContent()
+        // --- Suffixe animé ---
+        suffix.forEachIndexed { idx, seg ->
+            key(seg) {
+                AnimatedVisibility(
+                    visibleState = vis.getValue(seg),
+                    enter = expandHorizontally(expandFrom = Alignment.Start),
+                    exit = shrinkHorizontally(shrinkTowards = Alignment.End)
+                ) {
+                    BreadcrumbChip(
+                        text = seg,
+                        path = path.take(lcp + idx + 1).joinToString("/"),
+                    ) { onClick(lcp + idx) }
+//                }
+                    if (idx < suffix.lastIndex) Separator()
                 }
             }
-            .clickable(onClick = onClick)
-    ) {
-        Surface(
-            shape = ParallelogramShape(),
-            color = Color(0xFFF3F4E3),
-            modifier = Modifier.Companion
-                .border(2.dp, Color(0xFF8697CB), ParallelogramShape())
-        ) {
-            Text(
-                text = text,
-                modifier = Modifier.Companion.padding(horizontal = 15.dp),
-                fontSize = 16.sp,
-                //fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-                color = if (isActive) activeColor else inactiveColor,
-                fontFamily = FontFamily.Companion.Monospace, // ou custom comme JetBrainsMono
-                fontWeight = FontWeight.Companion.Medium,
-                //fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Companion.Ellipsis
+        }
+    }
+}
+
+@Composable
+fun BreadcrumbChip(
+    modifier: Modifier = Modifier,
+    text: String,
+    path: String,
+    onClick: () -> Unit
+) {
+    Text(
+        text = text,
+        modifier = modifier.clickable { onClick() }
+    )
+}
+
+@Composable
+fun Separator() {
+    Text(text = "/")
+}
+
+
+@Composable
+fun AnimatedBreadcrumbItems(
+    modifier: Modifier,
+    newItemTexts: List<String>,
+    duration: Int,
+    stateOfLastElement: AnimationState,
+    onPathClick: (String) -> Unit
+) {
+    var acc = ""
+    newItemTexts.forEachIndexed { index, newItemText ->
+        acc = if (acc.isEmpty()) newItemText else "$acc/$newItemText"
+
+        key(acc) {
+            val isLast = index == newItemTexts.lastIndex
+            BreadcrumbItem(
+                content = { Text(text = newItemText) },
+                animationState = if (isLast) stateOfLastElement else AnimationState.Stable,
+                duration = duration,
+                onPathClick = onPathClick,
+                pathItems = newItemTexts.take(index + 1),
+                text = newItemText
             )
         }
     }
 }
 
-private fun List<String>.startsWithLocal(): Boolean {
-    return this.size >= 3 && this[0] == "storage" && this[1] == "emulated" && this[2] == "0"
-}
+@Composable
+fun BreadcrumbItem(
+    content: @Composable () -> Unit,
+    animationState: AnimationState,
+    duration: Int,
+    onPathClick: (String) -> Unit,
+    pathItems: List<String>,
+    text: String,
+) {
+    // Déterminer si l'item est "nouveau" (doit apparaître) ou existant
+    val shouldStartVisible = animationState != AnimationState.Appearing
 
-private fun List<String>.startsWithSDCard(): Boolean {
-    return this.size >= 2 && this[0] == "storage" && this[1].matches(Regex
-        ("""[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}"""))
-}
+    // IMPORTANT : initial = visible? 1 sinon 0
+    val st = remember(text) { MutableTransitionState(shouldStartVisible) }
 
-class ParallelogramShape(
-    private val skew: Dp = 10.dp,
-    private val cornerRadius: Dp = 4.dp
-) : Shape {
-    override fun createOutline(
-        size: Size,
-        layoutDirection: LayoutDirection,
-        density: Density
-    ): Outline {
-        val skewPx = with(density) { skew.toPx() }
-        val radiusPx = with(density) { cornerRadius.toPx().coerceAtMost(size.minDimension / 2) }
-
-        val path = Path().apply {
-            // Point 1 (haut gauche, après le biseau)
-            moveTo(skewPx + radiusPx, 0f)
-
-            // Ligne jusqu’au coin haut droit avec arrondi
-            lineTo(size.width - radiusPx, 0f)
-            arcTo(
-                rect = Rect(
-                    left = size.width - 2 * radiusPx,
-                    top = 0f,
-                    right = size.width,
-                    bottom = 2 * radiusPx
-                ),
-                startAngleDegrees = -90f,
-                sweepAngleDegrees = 90f,
-                forceMoveTo = false
-            )
-
-            // Ligne jusqu’au coin bas droit avec arrondi
-            lineTo(size.width - skewPx, size.height - radiusPx)
-            arcTo(
-                rect = Rect(
-                    left = size.width - skewPx - radiusPx * 2,
-                    top = size.height - 2 * radiusPx,
-                    right = size.width - skewPx,
-                    bottom = size.height
-                ),
-                startAngleDegrees = 0f,
-                sweepAngleDegrees = 90f,
-                forceMoveTo = false
-            )
-
-            // Ligne jusqu’au coin bas gauche avec arrondi
-            lineTo(radiusPx, size.height)
-            arcTo(
-                rect = Rect(
-                    left = 0f,
-                    top = size.height - 2 * radiusPx,
-                    right = 2 * radiusPx,
-                    bottom = size.height
-                ),
-                startAngleDegrees = 90f,
-                sweepAngleDegrees = 90f,
-                forceMoveTo = false
-            )
-
-            // Ligne jusqu’au coin haut gauche (début du biseau)
-            lineTo(skewPx + radiusPx, 0f)
-            arcTo(
-                rect = Rect(
-                    left = skewPx,
-                    top = 0f,
-                    right = skewPx + 2 * radiusPx,
-                    bottom = 2 * radiusPx
-                ),
-                startAngleDegrees = 180f,
-                sweepAngleDegrees = 90f,
-                forceMoveTo = false
-            )
-
-            close()
+    // On ne touche qu'à targetState (public)
+    LaunchedEffect(animationState, text) {
+        st.targetState = when (animationState) {
+            AnimationState.Appearing -> true   // 0 -> 1
+            AnimationState.Disappearing -> false  // 1 -> 0
+            AnimationState.Stable -> true
         }
+    }
 
-        return Outline.Generic(path)
+    val transition = updateTransition(st, label = "itemClipTransition")
+    val clipFraction by transition.animateFloat(
+        transitionSpec = { tween(durationMillis = duration, easing = FastOutSlowInEasing) }
+    ) { visible -> if (visible) 1f else 0f }
+
+    BreadcrumbItemFraction(
+        content = content,
+        clipFraction = clipFraction,
+        modifier = Modifier,
+        onPathClick = onPathClick,
+        text = text,
+        newItemTexts = pathItems
+    )
+}
+
+
+@Composable
+fun BreadcrumbItemFraction(
+    content: @Composable () -> Unit,
+    clipFraction: Float,
+    modifier: Modifier,
+    onPathClick: (String) -> Unit,
+    text: String,
+    newItemTexts: List<String>,
+) {
+
+    Row(
+        modifier = modifier
+            .clipToBounds()
+            .clickable {
+                onPathClick("/${newItemTexts.joinToString("/")}")
+            }
+            .drawWithContent {
+                val w = size.width
+
+                clipRect(right = w * clipFraction) {
+                    this@drawWithContent.drawContent()
+                }
+            },
+    ) {
+        content()
     }
 }

@@ -13,7 +13,7 @@ interface IFolderCacheEntryRepository {
     @Query("SELECT * FROM folder_cache_entry ORDER BY id DESC")
     fun getAll(): Flow<List<FolderCacheEntry>>   // réémet à chaque changement
 
-    @Query("SELECT * FROM folder_cache_entry WHERE id = :path")
+    @Query("SELECT * FROM folder_cache_entry WHERE path = :path")
     suspend fun getByPath(path: String): FolderCacheEntry?
 
     @Query("SELECT * FROM folder_cache_entry WHERE path = :path LIMIT 1")
