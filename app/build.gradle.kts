@@ -85,10 +85,10 @@ dependencies {
     kspTest(libs.hilt.android.compiler)
 
     // --- Android instrumented tests (androidTestImplementation) ---
-    androidTestImplementation(libs.androidx.junit)              // AndroidX JUnit 1.2.1 :contentReference[oaicite:1]{index=1}
-    androidTestImplementation(platform(libs.androidx.compose.bom)) // BOM Compose 2025.04.01 :contentReference[oaicite:3]{index=3}
-    androidTestImplementation(libs.androidx.ui.test.junit4)     // Tests UI Compose :contentReference[oaicite:4]{index=4}
-    debugImplementation(libs.androidx.ui.test.manifest)         // Manifeste de test Compose :contentReference[oaicite:5]{index=5}
+    androidTestImplementation(libs.androidx.junit)              // AndroidX JUnit 1.2.1
+    androidTestImplementation(platform(libs.androidx.compose.bom)) // BOM Compose 2025.04.01
+    androidTestImplementation(libs.androidx.ui.test.junit4)     // Tests UI Compose
+    debugImplementation(libs.androidx.ui.test.manifest)         // Manifeste de test Compose
     androidTestImplementation("io.mockk:mockk-android:1.13.12")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.56.2")
     kspAndroidTest(libs.hilt.android.compiler)

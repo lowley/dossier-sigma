@@ -41,19 +41,19 @@ fun BreadcrumbItems(
     val commonPart = computeCommonPart(prev, path)
 
     // Suffixe visible (partie animée)
-    val suffix = remember { mutableStateListOf<String>() }
+    val visibleSuffix = remember { mutableStateListOf<String>() }
     // Visibilité par item (clé = segment)
     val vis = remember { mutableStateMapOf<String, MutableTransitionState<Boolean>>() }
 
     LaunchedEffect(path) {
-        prev = manageUI(suffix, prev, commonPart, vis, path)
+        prev = manageUI(visibleSuffix, prev, commonPart, vis, path)
     }
 
-    UI(commonPart, prev, onClick, suffix, vis, path)
+    UI(commonPart, prev, onClick, visibleSuffix, vis, path)
 }
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-private suspend fun manageUI(
+suspend fun manageUI(
     suffix: SnapshotStateList<String>,
     prev: List<String>,
     commonPart: Int,
