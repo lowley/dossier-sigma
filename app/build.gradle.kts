@@ -62,9 +62,32 @@ android {
     buildFeatures {
         compose = true
     }
+
+    packaging{
+        resources {
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE-notice.md"
+        }
+    }
 }
 
 dependencies {
+
+    // --- Unit tests (testImplementation) ---
+    testImplementation(libs.junit)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    testImplementation("app.cash.turbine:turbine:1.1.0")        // test des Flow
+    testImplementation("io.mockk:mockk:1.13.12")
+
+    // --- Android instrumented tests (androidTestImplementation) ---
+    androidTestImplementation(libs.androidx.junit)              // AndroidX JUnit 1.2.1 :contentReference[oaicite:1]{index=1}
+    androidTestImplementation(libs.androidx.espresso.core)      // Espresso 3.6.1 :contentReference[oaicite:2]{index=2}
+    androidTestImplementation(platform(libs.androidx.compose.bom)) // BOM Compose 2025.04.01 :contentReference[oaicite:3]{index=3}
+    androidTestImplementation(libs.androidx.ui.test.junit4)     // Tests UI Compose :contentReference[oaicite:4]{index=4}
+    debugImplementation(libs.androidx.ui.test.manifest)         // Manifeste de test Compose :contentReference[oaicite:5]{index=5}
+    androidTestImplementation("io.mockk:mockk-android:1.13.12")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.56.2")
+    kspAndroidTest(libs.hilt.android.compiler) // si tu es full KSP
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -79,11 +102,7 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.compose.livedata)
     implementation(libs.androidx.lifecycle.service)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.hilt.android)
