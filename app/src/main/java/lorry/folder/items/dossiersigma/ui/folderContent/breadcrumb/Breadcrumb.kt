@@ -9,8 +9,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -24,34 +22,14 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import kotlinx.coroutines.delay
-
-//@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-//@Composable
-//fun Breadcrumb(
-//    items: List<String>,
-//    onPathClick: (String) -> Unit,
-//    modifier: Modifier = Modifier.Companion,
-//    activeColor: Color = Color.Companion.Blue,
-//    inactiveColor: Color = Color.Companion.Gray,
-//    arrowColor: Color = Color.Companion.Gray,
-//    totalDuration: Int = 1000
-//) {
-//    BreadcrumbItems(
-//        items = items,
-//        totalDuration = totalDuration,
-//        onPathClick = onPathClick,
-//    )
-//}
-
-enum class AnimationState { Appearing, Disappearing, Stable }
-
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
@@ -59,63 +37,75 @@ fun BreadcrumbItems(
     path: List<String>,
     onClick: (index: Int) -> Unit
 ) {
-    // État : on retient le précédent chemin
     var prev by remember { mutableStateOf(path) }
-
-    // LCP = longueur du plus long préfixe commun
-    val lcp = remember(prev, path) {
-        val n = minOf(prev.size, path.size)
-        var i = 0
-        while (i < n && prev[i] == path[i]) i++
-        i
-    }
+    val commonPart = computeCommonPart(prev, path)
 
     // Suffixe visible (partie animée)
     val suffix = remember { mutableStateListOf<String>() }
     // Visibilité par item (clé = segment)
     val vis = remember { mutableStateMapOf<String, MutableTransitionState<Boolean>>() }
-    val anim = remember { mutableStateMapOf<String, AnimationState>() }
 
-    // Orchestration quand la cible change
     LaunchedEffect(path) {
-        // initialise le suffixe courant à l'ancien (au-delà du LCP)
-        suffix.clear()
-        suffix.addAll(prev.drop(lcp))
-
-        // 1) Disparitions (de droite vers gauche)
-        for (i in prev.size - 1 downTo lcp) {
-            val id = prev[i]
-            val st = vis.getOrPut(id) { MutableTransitionState(true) }
-            st.targetState = false                  // déclenche l'animation de sortie
-            anim[id] = AnimationState.Disappearing
-            delay(90)                               // rythme (ajuste à ton goût)
-            suffix.removeLast()                     // retire visuellement après l'anim
-            vis.remove(id)
-            anim.remove(id)
-        }
-
-        // 2) Apparitions (de gauche vers droite après le LCP)
-        for (i in lcp until path.size) {
-            val id = path[i]
-            suffix.add(id)                          // ajoute l’item (invisible au début)
-            vis[id] = MutableTransitionState(false).also { it.targetState = true }
-            anim[id] = AnimationState.Appearing
-            delay(90)
-        }
-
-        prev = path
+        prev = manageUI(suffix, prev, commonPart, vis, path)
     }
 
+    UI(commonPart, prev, onClick, suffix, vis, path)
+}
+
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+private suspend fun manageUI(
+    suffix: SnapshotStateList<String>,
+    prev: List<String>,
+    commonPart: Int,
+    vis: SnapshotStateMap<String, MutableTransitionState<Boolean>>,
+    path: List<String>
+): List<String> {
+    // initialise le suffixe courant à l'ancien (au-delà du LCP)
+    var prev1 = prev
+    suffix.clear()
+    suffix.addAll(prev1.drop(commonPart))
+
+    // 1) Disparitions (de droite vers gauche)
+    for (i in prev1.size - 1 downTo commonPart) {
+        val id = prev1[i]
+        val st = vis.getOrPut(id) { MutableTransitionState(true) }
+        st.targetState = false                  // déclenche l'animation de sortie
+        delay(90)                               // rythme (ajuste à ton goût)
+        suffix.removeLast()                     // retire visuellement après l'anim
+        vis.remove(id)
+    }
+
+    // 2) Apparitions (de gauche vers droite après le LCP)
+    for (i in commonPart until path.size) {
+        val id = path[i]
+        suffix.add(id)                          // ajoute l’item (invisible au début)
+        vis[id] = MutableTransitionState(false).also { it.targetState = true }
+        delay(90)
+    }
+
+    prev1 = path
+    return prev1
+}
+
+@Composable
+private fun UI(
+    commonPart: Int,
+    prev: List<String>,
+    onClick: (Int) -> Unit,
+    suffix: SnapshotStateList<String>,
+    vis: SnapshotStateMap<String, MutableTransitionState<Boolean>>,
+    path: List<String>
+) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         // --- Préfixe stable, jamais masqué ---
-        for (i in 0 until lcp) {
+        for (i in 0 until commonPart) {
             BreadcrumbChip(
                 text = prev[i],
                 path = prev.take(i + 1).joinToString("/"),
             ) { onClick(i) }
-            if (i < lcp - 1) Separator()
+            if (i < commonPart - 1) Separator()
         }
-        if (lcp > 0 && suffix.isNotEmpty()) Separator()
+        if (commonPart > 0 && suffix.isNotEmpty()) Separator()
 
         // --- Suffixe animé ---
         suffix.forEachIndexed { idx, seg ->
@@ -127,14 +117,25 @@ fun BreadcrumbItems(
                 ) {
                     BreadcrumbChip(
                         text = seg,
-                        path = path.take(lcp + idx + 1).joinToString("/"),
-                    ) { onClick(lcp + idx) }
+                        path = path.take(commonPart + idx + 1).joinToString("/"),
+                    ) { onClick(commonPart + idx) }
 //                }
                     if (idx < suffix.lastIndex) Separator()
                 }
             }
         }
     }
+}
+
+@Composable
+private fun computeCommonPart(
+    prev: List<String>,
+    path: List<String>
+): Int = remember(prev, path) {
+    val n = minOf(prev.size, path.size)
+    var i = 0
+    while (i < n && prev[i] == path[i]) i++
+    i
 }
 
 @Composable
@@ -249,3 +250,5 @@ fun BreadcrumbItemFraction(
         content()
     }
 }
+
+enum class AnimationState { Appearing, Disappearing, Stable }
