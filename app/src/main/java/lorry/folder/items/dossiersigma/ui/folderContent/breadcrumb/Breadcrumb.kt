@@ -37,8 +37,7 @@ import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.UI2
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
 fun BreadcrumbItems(
-    path: List<String>,
-    onClick: (index: Int) -> Unit
+    path: List<String>, onClick: (index: Int) -> Unit
 ) {
 //    var prev by remember { mutableStateOf(path) }
 //    val commonPart = computeCommonPart(prev, path)
@@ -49,18 +48,41 @@ fun BreadcrumbItems(
 //    val vis = remember { mutableStateMapOf<String, MutableTransitionState<Boolean>>() }
 
     var state = remember { mutableStateOf<BreadcrumbUIState?>(null) }
+    val animDuration = 500
+
     LaunchedEffect(path) {
         state.value = manageUITest(
             path = path
         )
+
+        val suffixIndexes = (state.value?.lastCommonIndex ?: 0) + 1 .. (state.value?.chain?.size ?: 0) - 1
+        if (!suffixIndexes.isEmpty()){
+            suffixIndexes.forEach { suffixIndex ->
+                val itemState = state?.value?.modifyingItemState
+//                val itemSuffixState = itemState?.get(suffixIndex)
+//                itemSuffixState?.targetState = true
+                itemState?.get(suffixIndex)?.targetState = true
+
+                if (itemState == null)
+                    return@forEach
+
+                state.value = state.value?.copy(
+                    modifyingItemIndex = suffixIndex,
+                    modifyingItemState = itemState!!
+                )
+
+                delay(animDuration.toLong())
+            }
+        }
     }
 
-    if (state != null)
-        UI2(state = state.value, onClick = { index ->
-            state.value = state?.value?.copy(modifyingItemIndex = index)
-            state?.value?.modifyingItemState[index]?.targetState =
-                !state?.value?.modifyingItemState[index]!!.currentState
-        }
+    if (state != null) UI2(
+        state = state.value,
+        onClick = { index ->
+        state.value = state?.value?.copy(modifyingItemIndex = index)
+        state?.value?.modifyingItemState[index]?.targetState =
+            !state?.value?.modifyingItemState[index]!!.currentState },
+        animDuration = animDuration
         )
 }
 
@@ -68,14 +90,14 @@ data class BreadcrumbUIState(
     val chain: List<String>,
     val lastCommonIndex: Int,
     val modifyingItemIndex: Int,
-    val modifyingItemState: MutableMap<Int, MutableTransitionState<Boolean>> =
-        (0..lastCommonIndex).associateWith { MutableTransitionState(true) }.plus
-            ((lastCommonIndex + 1 until chain.size).associateWith {
-            MutableTransitionState(
-                false
-            ).apply { this.targetState = true }
-        })
-            .toMutableMap()
+    val modifyingItemState: MutableMap<Int, MutableTransitionState<Boolean>> = (0..lastCommonIndex).associateWith {
+        MutableTransitionState(true)
+    }.plus((lastCommonIndex + 1 until chain.size).associateWith {
+        MutableTransitionState(
+            false
+        )
+//                .apply { this.targetState = true }
+    }).toMutableMap()
 )
 
 
@@ -130,9 +152,9 @@ suspend fun manageUI(
 private fun UI2(
     state: BreadcrumbUIState?,
     onClick: (Int) -> Unit,
+    animDuration: Int
 ) {
-    if (state == null)
-        return
+    if (state == null) return
 
     val suffix = state.chain.takeLast(state.chain.size - state.lastCommonIndex - 1)
 
@@ -150,25 +172,20 @@ private fun UI2(
         // --- Suffixe animé ---
         suffix.forEachIndexed { idx, seg ->
             key(seg) {
-                val thisState = state.modifyingItemState.getValue(state.modifyingItemIndex)
+                val thisState = state.modifyingItemState.getValue(state.lastCommonIndex + 1 + idx)
                 AnimatedVisibility(
-                    visibleState = thisState,
-                    enter = expandHorizontally(
-                        expandFrom = Alignment.Start,
-                        animationSpec = tween(durationMillis = 500)
-                    ),
-                    exit = shrinkHorizontally(
-                        shrinkTowards = Alignment.End,
-                        animationSpec = tween(durationMillis = 500)
+                    visibleState = thisState, enter = expandHorizontally(
+                        expandFrom = Alignment.Start, animationSpec = tween(durationMillis = animDuration)
+                    ), exit = shrinkHorizontally(
+                        shrinkTowards = Alignment.End, animationSpec = tween(durationMillis = animDuration)
                     )
                 ) {
                     Row(
-                       modifier = Modifier
-                           .wrapContentWidth()
+                        modifier = Modifier.wrapContentWidth()
                     ) {
                         BreadcrumbChip(
                             text = seg,
-                        ) { onClick(state.modifyingItemIndex) }
+                        ) { onClick(state.lastCommonIndex + 1 + idx) }
 
                         if (idx < suffix.lastIndex) Separator()
                     }
@@ -220,8 +237,7 @@ private fun UI(
 
 @Composable
 private fun computeCommonPart(
-    prev: List<String>,
-    path: List<String>
+    prev: List<String>, path: List<String>
 ): Int = remember(prev, path) {
     val n = minOf(prev.size, path.size)
     var i = 0
@@ -231,16 +247,12 @@ private fun computeCommonPart(
 
 @Composable
 fun BreadcrumbChip(
-    modifier: Modifier = Modifier,
-    text: String,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier, text: String, onClick: () -> Unit
 ) {
     Text(
-        text = text,
-        modifier = modifier.clickable {
+        text = text, modifier = modifier.clickable {
             onClick()
-        }
-    )
+        })
 }
 
 @Composable
@@ -301,8 +313,12 @@ fun BreadcrumbItem(
 
     val transition = updateTransition(st, label = "itemClipTransition")
     val clipFraction by transition.animateFloat(
-        transitionSpec = { tween(durationMillis = duration, easing = FastOutSlowInEasing) }
-    ) { visible -> if (visible) 1f else 0f }
+        transitionSpec = {
+            tween(
+                durationMillis = duration,
+                easing = FastOutSlowInEasing
+            )
+        }) { visible -> if (visible) 1f else 0f }
 
     BreadcrumbItemFraction(
         content = content,
