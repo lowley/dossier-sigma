@@ -12,6 +12,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.clipRect
+import kotlinx.coroutines.NonCancellable.key
 import kotlinx.coroutines.delay
+import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.UI2
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
@@ -37,19 +40,55 @@ fun BreadcrumbItems(
     path: List<String>,
     onClick: (index: Int) -> Unit
 ) {
-    var prev by remember { mutableStateOf(path) }
-    val commonPart = computeCommonPart(prev, path)
+//    var prev by remember { mutableStateOf(path) }
+//    val commonPart = computeCommonPart(prev, path)
+//
+//    // Suffixe visible (partie animée)
+//    val visibleSuffix = remember { mutableStateListOf<String>() }
+//    // Visibilité par item (clé = segment)
+//    val vis = remember { mutableStateMapOf<String, MutableTransitionState<Boolean>>() }
 
-    // Suffixe visible (partie animée)
-    val visibleSuffix = remember { mutableStateListOf<String>() }
-    // Visibilité par item (clé = segment)
-    val vis = remember { mutableStateMapOf<String, MutableTransitionState<Boolean>>() }
-
+    var state = remember { mutableStateOf<BreadcrumbUIState?>(null) }
     LaunchedEffect(path) {
-        prev = manageUI(visibleSuffix, prev, commonPart, vis, path)
+        state.value = manageUITest(
+            path = path
+        )
     }
 
-    UI(commonPart, prev, onClick, visibleSuffix, vis, path)
+    if (state != null)
+        UI2(state = state.value, onClick = { index ->
+            state.value = state?.value?.copy(modifyingItemIndex = index)
+            state?.value?.modifyingItemState[index]?.targetState =
+                !state?.value?.modifyingItemState[index]!!.currentState
+        }
+        )
+}
+
+data class BreadcrumbUIState(
+    val chain: List<String>,
+    val lastCommonIndex: Int,
+    val modifyingItemIndex: Int,
+    val modifyingItemState: MutableMap<Int, MutableTransitionState<Boolean>> =
+        (0..lastCommonIndex).associateWith { MutableTransitionState(true) }.plus
+            ((lastCommonIndex + 1 until chain.size).associateWith {
+            MutableTransitionState(
+                false
+            ).apply { this.targetState = true }
+        })
+            .toMutableMap()
+)
+
+
+@RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+suspend fun manageUITest(
+    path: List<String>
+): BreadcrumbUIState {
+
+    return BreadcrumbUIState(
+        chain = listOf("ceci", "est", "un", "vrai", "test", "qui", "arrache", "un", "max"),
+        lastCommonIndex = 2,
+        modifyingItemIndex = 3,
+    )
 }
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
@@ -88,12 +127,64 @@ suspend fun manageUI(
 }
 
 @Composable
+private fun UI2(
+    state: BreadcrumbUIState?,
+    onClick: (Int) -> Unit,
+) {
+    if (state == null)
+        return
+
+    val suffix = state.chain.takeLast(state.chain.size - state.lastCommonIndex - 1)
+
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        // --- Préfixe stable, jamais masqué ---
+        for (i in 0 until state.lastCommonIndex + 1) {
+            BreadcrumbChip(
+                text = state.chain[i],
+//                path = state.chain.take(i + 1).joinToString("/"),
+            ) { onClick(i) }
+            if (i < state.lastCommonIndex) Separator()
+        }
+        if (state.lastCommonIndex > 0 && suffix.isNotEmpty()) Separator()
+
+        // --- Suffixe animé ---
+        suffix.forEachIndexed { idx, seg ->
+            key(seg) {
+                val thisState = state.modifyingItemState.getValue(state.modifyingItemIndex)
+                AnimatedVisibility(
+                    visibleState = thisState,
+                    enter = expandHorizontally(
+                        expandFrom = Alignment.Start,
+                        animationSpec = tween(durationMillis = 500)
+                    ),
+                    exit = shrinkHorizontally(
+                        shrinkTowards = Alignment.End,
+                        animationSpec = tween(durationMillis = 500)
+                    )
+                ) {
+                    Row(
+                       modifier = Modifier
+                           .wrapContentWidth()
+                    ) {
+                        BreadcrumbChip(
+                            text = seg,
+                        ) { onClick(state.modifyingItemIndex) }
+
+                        if (idx < suffix.lastIndex) Separator()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun UI(
-    commonPart: Int,
+    commonPart: Int, //commonPart = nmbre d'éléments communs dans prev
     prev: List<String>,
     onClick: (Int) -> Unit,
     suffix: SnapshotStateList<String>,
-    vis: SnapshotStateMap<String, MutableTransitionState<Boolean>>,
+    vis: SnapshotStateMap<String, MutableTransitionState<Boolean>>, // map visibilité ds suffix
     path: List<String>
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -101,7 +192,7 @@ private fun UI(
         for (i in 0 until commonPart) {
             BreadcrumbChip(
                 text = prev[i],
-                path = prev.take(i + 1).joinToString("/"),
+//                path = prev.take(i + 1).joinToString("/"),
             ) { onClick(i) }
             if (i < commonPart - 1) Separator()
         }
@@ -117,7 +208,7 @@ private fun UI(
                 ) {
                     BreadcrumbChip(
                         text = seg,
-                        path = path.take(commonPart + idx + 1).joinToString("/"),
+//                        path = path.take(commonPart + idx + 1).joinToString("/"),
                     ) { onClick(commonPart + idx) }
 //                }
                     if (idx < suffix.lastIndex) Separator()
@@ -142,12 +233,13 @@ private fun computeCommonPart(
 fun BreadcrumbChip(
     modifier: Modifier = Modifier,
     text: String,
-    path: String,
     onClick: () -> Unit
 ) {
     Text(
         text = text,
-        modifier = modifier.clickable { onClick() }
+        modifier = modifier.clickable {
+            onClick()
+        }
     )
 }
 
