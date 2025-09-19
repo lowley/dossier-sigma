@@ -205,27 +205,35 @@ class SigmaActivity : ComponentActivity() {
     @Composable
     fun AppContent() {
 
-        val memo = remember { memoFactory.create(
-            viewModel = memoViewModel,
-        ) }
+        val memo = remember {
+            memoFactory.create(
+                viewModel = memoViewModel,
+            )
+        }
 
-        val folderContentFrontComponent = remember { itemsComponentFactory.create(
-            sigmaViewModel = mainViewModel,
-            toolsViewModel = toolsViewModel,
-            itemsViewModel = itemsViewModel
-        ) }
+        val folderContentFrontComponent = remember {
+            itemsComponentFactory.create(
+                sigmaViewModel = mainViewModel,
+                toolsViewModel = toolsViewModel,
+                itemsViewModel = itemsViewModel
+            )
+        }
 
         //ici c'est #[[BottomComponent]]
-        val bottomComponent = remember { toolbarComponentFactory.create(
-            toolsViewModel = toolsViewModel,
-            sigmaViewModel = mainViewModel
-        ) }
+        val bottomComponent = remember {
+            toolbarComponentFactory.create(
+                toolsViewModel = toolsViewModel,
+                sigmaViewModel = mainViewModel
+            )
+        }
 
         //ici c'est #[[BottomTools]]
-        val bottomTools = remember { toolBarManagerFactory.create(
-            viewModel = mainViewModel,
-            bottomComponent = bottomComponent
-        ) }
+        val bottomTools = remember {
+            toolBarManagerFactory.create(
+                viewModel = mainViewModel,
+                bottomComponent = bottomComponent
+            )
+        }
 
         bottomComponent.observeDefaultContent()
 
@@ -884,7 +892,9 @@ class SigmaActivity : ComponentActivity() {
                                     },
                                     onItemLongPressed = { item ->
                                         mainViewModel.setSelectedItem(item.copy(), true)
-                                        bottomComponent.toolsViewModel.rawFeed.setCurrentContent(FILE)
+                                        bottomComponent.toolsViewModel.rawFeed.setCurrentContent(
+                                            FILE
+                                        )
                                     },
                                     onTopLeftPanelClick = { item ->
                                         /**

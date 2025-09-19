@@ -43,7 +43,7 @@ fun FixedSticker(
             .width(85.dp)
             .fillMaxHeight()
             .clickable {
-                this@BottomTools.bottomComponent.setCurrentTool(tool)
+                this@ToolBarManager.toolbarComponent.setCurrentTool(tool)
                 viewModel.viewModelScope.launch {
                     tool.onClick(tool, viewModel, activity)
                 }

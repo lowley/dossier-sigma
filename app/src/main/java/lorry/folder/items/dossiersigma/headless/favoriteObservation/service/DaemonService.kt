@@ -16,26 +16,34 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.protobuf.LazyStringArrayList
 import androidx.lifecycle.LifecycleService
+import androidx.room.Transaction
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable.isActive
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
+import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 import javax.inject.Inject
+import kotlin.system.measureTimeMillis
 
 private const val CHANNEL_ID = "daemon"
 
@@ -64,11 +72,12 @@ class DaemonService : LifecycleService() {
     private var currentNotificationColor: Color = Color.Blue
     private var latestNotificationMessage: String? = null
 
-    val dao = FolderCacheEntryDB.get(this)
+    private lateinit var dao: FolderCacheEntryDB
 
     override fun onCreate() {
         super.onCreate()
         applicationContext.ensureDaemonChannel()
+        dao = FolderCacheEntryDB.get(applicationContext)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -104,9 +113,12 @@ class DaemonService : LifecycleService() {
             "paths=${favoriteDirs.size}, distinct=${favoriteDirs.distinct().size}, dups=${dups.keys}"
         )
 
-        for (path in favoriteDirs) {
-            computeAndSendFreshness(path, currentAppFolder)
-        }
+        recomputeAndSaveAll(favoriteDirs)
+
+//        for (path in favoriteDirs) {
+//            computeAndSendFreshness(path, currentAppFolder, timeMeasurement = true)
+//        }
+
         Log.d(TAG, "envoi initial terminé")
         updateNotification(color = Color.Black)
 
@@ -171,7 +183,7 @@ class DaemonService : LifecycleService() {
                     TAG,
                     "service envoie dans room: path=${path.substringAfterLast("/")}, isCurrent=${path.isCurrent()}, isInRoom=${path.isInRoom()}"
                 )
-                computeAndSendFreshness(path, currentAppFolder)
+                computeAndSendFreshness(path, currentAppFolder,)
             }
 
             if (CSRParent) {
@@ -181,7 +193,7 @@ class DaemonService : LifecycleService() {
                         parent.substringAfterLast("/")
                     }, isCurrent=${parent.isCurrent()}, isInRoom=${parent.isInRoom()}"
                 )
-                computeAndSendFreshness(parent, currentAppFolder)
+                computeAndSendFreshness(parent, currentAppFolder,)
             }
 
             if (CSRGrandParent) {
@@ -191,7 +203,7 @@ class DaemonService : LifecycleService() {
                         grandParent.substringAfterLast("/")
                     }, isCurrent=${grandParent.isCurrent()}, isInRoom=${grandParent.isInRoom()}"
                 )
-                computeAndSendFreshness(grandParent, currentAppFolder)
+                computeAndSendFreshness(grandParent, currentAppFolder,)
             }
         }
     }
@@ -204,38 +216,71 @@ class DaemonService : LifecycleService() {
         ) != null
     }
 
-    private suspend fun computeAndSendFreshness(path: String, currentAppFolder: String?) {
+    private suspend fun computeAndSendFreshness(
+        path: String,
+        currentAppFolder: String?,
+        timeMeasurement: Boolean = false
+    ) {
         var fc: FolderCacheEntry? = null
+        var newFreshness: FolderFreshness? = null
 
-        fc = generateFolderCacheEntry(path)
-        if (fc == null) {
-            updateNotification("fc null")
-            Log.d(TAG, "envoi de Freshness: ${fc!!.freshness.hashCode()}")
-            return
+        measureTimeMillis {
+            fc = generateFolderCacheEntry(path)
+            newFreshness = fc!!.freshness
+        }.let {
+            if (timeMeasurement)
+                Log.d(TAG, "favori:$path, calcul freshness: $it ms")
         }
-
-        val dao = FolderCacheEntryDB.get(this@DaemonService)
 
         updateNotification(color = Color.Red)
 
-        val oldFreshness = dao.getByPath(
-            path, scope,
-            this@DaemonService
-        )?.freshness
+        var oldFreshness: FolderFreshness? = null
 
-        val newFreshness = fc!!.freshness
+        measureTimeMillis {
+            oldFreshness = dao.getByPath(
+                path,
+                scope,
+                this@DaemonService
+            )?.freshness
+        }.let {
+            if (timeMeasurement)
+                Log.d(TAG, "favori:$path, recup freshness de base: $it ms")
+        }
 
-        if (!newFreshness.isSameAs(oldFreshness)) {
+        if (newFreshness == null)
+            return
+
+        var same = false
+        measureTimeMillis {
+            same = newFreshness!!.isSameAs(oldFreshness)
+        }.let {
+            if (timeMeasurement)
+                Log.d(TAG, "favori:$path, comparaison des 2: $it ms")
+        }
+
+        if (!same) {
             Log.d(TAG, "   sauvegarde de FolderCacheEntry pour $path")
             Log.d("PathCrspd", "      fc: path=${fc!!.path}, id=${fc!!.id}")
-            dao.saveFolderCacheEntry(fc!!, this@DaemonService)
+
+            measureTimeMillis {
+                dao.saveFolderCacheEntry(fc!!, this@DaemonService)
+            }.let {
+                if (timeMeasurement)
+                    Log.d(TAG, "favori:$path, écriture en base car <>: $it ms")
+            }
 
             if (path == currentAppFolder) {
                 Log.d(
                     TAG,
                     "   envoi de Freshness de currentAppFolder: ${fc!!.freshness.hashCode()} pour $currentAppFolder"
                 )
-                settingsManager.saveTestFreshness(fc!!.freshness)
+
+                measureTimeMillis {
+                    settingsManager.saveTestFreshness(fc!!.freshness)
+                }.let {
+                    if (timeMeasurement)
+                        Log.d(TAG, "favori:$path, dossier courant -> datastore: $it ms")
+                }
             }
 
             Log.d(TAG, "   sauvegarde achevée")
@@ -350,8 +395,44 @@ class DaemonService : LifecycleService() {
         updateNotification(color = Color.White)
         return fc
     }
-}
 
+    @Transaction
+    suspend fun recomputeAndSaveAll(favorites: List<String>) {
+        // 1) compute freshness en parallèle limitée (voir §3)
+        updateNotification(color = Color.Blue)
+        val computed: Map<String, FolderCacheEntry> = computeAllFreshness(favorites)
+
+        // 2) lecture unique
+        updateNotification(color = Color.White)
+        val existing = dao.folderCacheEntryRepository().getAllByPaths(favorites).associateBy { it.path }
+
+        // 3) diff en mémoire
+        val toWrite = buildList {
+            for ((path, new) in computed) {
+                val old = existing[path]
+                if (old == null || !new.freshness.isSameAs(old.freshness)) add(new)
+            }
+        }
+        updateNotification(color = Color.Red)
+        if (toWrite.isNotEmpty()) dao.folderCacheEntryRepository().upsertAll(toWrite)
+
+        updateNotification(color = Color.Black)
+    }
+
+    suspend fun computeAllFreshness(paths: List<String>): Map<String, FolderCacheEntry> =
+        coroutineScope {
+            // limite de parallélisme
+            val sem = Semaphore(permits = 6)
+            paths.map { path ->
+                async(Dispatchers.IO) {
+                    sem.withPermit {
+                        // ← ta fonction actuelle, pure disque
+                        path to generateFolderCacheEntry(path)
+                    }
+                }
+            }.awaitAll().toMap()
+        }
+}
 
 fun Context.ensureDaemonChannel() {
     val mgr = getSystemService(NotificationManager::class.java)

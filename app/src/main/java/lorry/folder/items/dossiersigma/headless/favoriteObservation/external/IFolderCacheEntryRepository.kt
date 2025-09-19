@@ -19,6 +19,12 @@ interface IFolderCacheEntryRepository {
     @Query("SELECT * FROM folder_cache_entry WHERE path = :path LIMIT 1")
     fun getFlowByPath(path: String): Flow<FolderCacheEntry?>
 
+    @Query("SELECT * FROM folder_cache_entry WHERE path IN (:paths)")
+    suspend fun getAllByPaths(paths: List<String>): List<FolderCacheEntry>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(entries: List<FolderCacheEntry>)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(entry: FolderCacheEntry): Long
 

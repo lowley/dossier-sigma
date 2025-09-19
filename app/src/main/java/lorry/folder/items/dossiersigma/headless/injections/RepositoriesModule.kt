@@ -41,7 +41,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class RepositoriesModule {
+abstract class RepositoriesModule1 {
 
     @Binds
     abstract fun bindDiskRepository(
@@ -57,6 +57,11 @@ abstract class RepositoriesModule {
     abstract fun bindMp4Base64Embedder(
         mp4Base64Embedder: VideoInfoEmbedder
     ): IVideoInfoEmbedder
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+class RepositoriesModule2 {
 
     @Provides @Singleton
     fun providePreferencesDataStore(
@@ -73,18 +78,13 @@ abstract class RepositoriesModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class HeadlessModule {
+class HeadlessModule1 {
 
     @Provides
     @Singleton
     fun provideContext(@ApplicationContext context: Context): Context {
         return context
     }
-
-    @Binds
-    abstract fun bindServiceComponent(
-        service: ServiceComponent
-    ): IServiceComponent
 
     @Provides
     @Singleton
@@ -109,6 +109,16 @@ abstract class HeadlessModule {
         service: IServiceComponent,
         nasUtilities: NasUtilities,
     ): IMoveToNASComponent = MoveToNASComponent(context, service, nasUtilities)
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class HeadlessModule2 {
+
+    @Binds
+    abstract fun bindServiceComponent(
+        service: ServiceComponent
+    ): IServiceComponent
 }
 
 ///////////////////////////
