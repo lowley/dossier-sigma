@@ -40,6 +40,8 @@ android {
         }
     }
 
+
+
     tasks.withType<KotlinCompile>().configureEach {
         compilerOptions {
             freeCompilerArgs.add("-Xcontext-receivers")
@@ -70,6 +72,13 @@ android {
         resources {
             excludes += "/META-INF/LICENSE.md"
             excludes += "/META-INF/LICENSE-notice.md"
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            // Exclut libpenguin.so pour toutes les architectures
+            excludes.add("**/libpenguin.so")
         }
     }
 }
