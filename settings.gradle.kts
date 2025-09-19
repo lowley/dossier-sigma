@@ -14,7 +14,7 @@ pluginManagement {
 
 dependencyResolutionManagement { }
 
-rootProject.name = "Dossier Sigma"
+rootProject.name = "Dossier Sigma Master"
 include(":app")
 
 
