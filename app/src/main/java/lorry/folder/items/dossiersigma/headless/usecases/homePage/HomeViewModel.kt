@@ -3,15 +3,19 @@ package lorry.folder.items.dossiersigma.headless.usecases.homePage
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.FilesAccessibleChannel
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.util.UUID
@@ -20,10 +24,15 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     val homeUseCase: HomeUseCase,
-    val context: Context
+    val context: Context,
+    val settings: SettingsManager,
+    val filesAccessibleCommunicator: FilesAccessibleChannel
 ) : ViewModel() {
 
-    @Inject lateinit var settings: SettingsManager
+//    @Inject lateinit var settings: SettingsManager
+
+    private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
+    val uiState = _uiState.asStateFlow()
 
     private val _homePageVisible = MutableStateFlow<Boolean>(true)
     val homePageVisible: StateFlow<Boolean> = _homePageVisible
@@ -46,36 +55,54 @@ class HomeViewModel @Inject constructor(
         _dialogHomeItemInfos.value = infos
     }
 
-    private val _homeItems = MutableStateFlow<List<HomeItem>>(emptyList())
-    val homeItems: StateFlow<List<HomeItem>> = _homeItems
-
     fun setHomeItems(items: List<HomeItem>) {
-        _homeItems.value = items
+        _uiState.update { uiState ->
+            if (uiState is HomeUiState.Ready) {
+                uiState.copy(items = items)
+            } else
+                uiState
+        }
     }
 
     fun addHomeItem(item: HomeItem) {
-        _homeItems.value = homeItems.value + item
+        _uiState.update { uiState ->
+            if (uiState is HomeUiState.Ready) {
+                val existings = uiState.items.toMutableList()
+                existings.add(item)
+                uiState.copy(items = existings)
+            } else
+                uiState
+        }
     }
 
     fun removeHomeItem(item: HomeItem) {
-        val existings = homeItems.value.toMutableList()
-        existings.remove(item)
-        _homeItems.value = existings
-    }
-
-    fun StateFlow<List<HomeItem>>.replaceWith(newItem: HomeItem) {
-        val existings = homeItems.value.toMutableList()
-        existings.removeIf { item -> item.id == newItem.id }
-        existings.add(newItem)
-        _homeItems.value = existings
+        _uiState.update { uiState ->
+            if (uiState is HomeUiState.Ready) {
+                val existings = uiState.items.toMutableList()
+                existings.remove(item)
+                uiState.copy(items = existings)
+            } else
+                uiState
+        }
     }
 
     fun StateFlow<List<HomeItem>>.clear() {
-        _homeItems.value = emptyList<HomeItem>()
+        _uiState.update { uiState ->
+            if (uiState is HomeUiState.Ready) {
+                uiState.copy(items = emptyList())
+            } else
+                uiState
+        }
     }
 
     init {
         viewModelScope.launch {
+            refreshAfterPermission()
+        }
+    }
+
+    private suspend fun computeElements() {
+        try {
             // On bascule sur un thread I/O pour la tâche longue (c'est correct).
             val homeItemsFromSettings = withContext(Dispatchers.IO) {
                 settings.homeItemsFlow.firstOrNull() ?: emptyList()
@@ -91,7 +118,20 @@ class HomeViewModel @Inject constructor(
                     picture = it.picture
                 )
             }
-            setHomeItems(homeItemsList)
+
+            _uiState.value = HomeUiState.Ready(settings, homeItemsList)
+            //            setHomeItems(homeItemsList)
+        } catch (e: Exception) {
+            _uiState.value = HomeUiState.Error(e)
+        }
+    }
+
+    fun refreshAfterPermission() {
+        viewModelScope.launch {
+            filesAccessibleCommunicator.isActivated.collect {
+                computeElements()
+                return@collect
+            }
         }
     }
 }
@@ -105,6 +145,11 @@ data class HomeItem(
     val index: Int = 0
 )
 
+sealed class HomeUiState {
+    object Loading : HomeUiState()
+    data class Ready(val settings: SettingsManager, val items: List<HomeItem>) : HomeUiState()
+    data class Error(val cause: Throwable) : HomeUiState()
+}
 
 
 

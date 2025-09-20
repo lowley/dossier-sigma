@@ -13,7 +13,7 @@ class PermissionsManager {
     }
     
     fun requestExternalStoragePermission(context: Context) : Boolean{
-        val uri = Uri.parse("package:lorry.folder.items.dossiersigma")
+        val uri = Uri.parse("package:"+context.applicationContext.packageName)
         
         try {
             startActivity(

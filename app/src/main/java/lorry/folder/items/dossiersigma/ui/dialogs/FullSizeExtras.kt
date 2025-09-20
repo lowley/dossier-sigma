@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
+import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeUiState
 import lorry.folder.items.dossiersigma.ui.browser.IBrowser
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.IToolbarComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.DEFAULT
@@ -166,7 +167,12 @@ fun FullSizeExtras(
             onDatasCompleted = { infos: HomeItemInfos? ->
                 if (infos?.newTitle == null || infos.path == null)
                     return@HomeItemDialog
-                val items = homeViewModel.homeItems.value
+
+                val uiState = homeViewModel.uiState.value
+                if (uiState !is HomeUiState.Ready)
+                    return@HomeItemDialog
+
+                val items = (uiState as HomeUiState.Ready).items
                 if (infos.oldTitle in items.map { it.title }) {
                     //modifier
                     homeViewModel.setHomeItems(

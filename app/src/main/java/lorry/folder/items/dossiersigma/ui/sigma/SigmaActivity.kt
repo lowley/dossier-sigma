@@ -1,11 +1,14 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
 //region imports
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewTreeObserver
@@ -46,6 +49,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +67,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -73,6 +79,7 @@ import com.leinardi.android.speeddial.compose.SpeedDialState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -99,7 +106,8 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.dialogs.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.tinies.HomeButtonIcon
-import lorry.folder.items.dossiersigma.ui.tinies.HomePage
+import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomePage
+import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeUiState
 import lorry.folder.items.dossiersigma.ui.tinies.SigmaFAB
 import lorry.folder.items.dossiersigma.ui.tinies.SortingArea
 import lorry.folder.items.dossiersigma.ui.tinies.initializeFileIntentLauncher
@@ -578,7 +586,10 @@ class SigmaActivity : ComponentActivity() {
                                                     detectTapGestures(
                                                         onTap = {
                                                             val homeItemCount =
-                                                                homeViewModel.homeItems.value.size
+                                                                (homeViewModel.uiState
+                                                                    .value as? HomeUiState.Ready)
+                                                                    ?.items?.size ?: 0
+
                                                             homeViewModel.setDialogHomeItemInfos(
                                                                 HomeItemInfos(
                                                                     oldTitle = "",
@@ -596,7 +607,8 @@ class SigmaActivity : ComponentActivity() {
                                                     )
                                                 },
                                             painter = painterResource(R.drawable.plus),
-                                            tint = SigmaColors.current.secondary,
+                                            tint = Color.Red,
+//                                            tint = SigmaColors.current.secondary,
                                             contentDescription = null
                                         )
 
@@ -790,8 +802,11 @@ class SigmaActivity : ComponentActivity() {
                         ///////////////
                         if (homePageVisible) {
 
+                            val state by homeViewModel.uiState.collectAsState()
+                            val items = (state as? HomeUiState.Ready)?.items ?: emptyList()
+
                             HomePage(
-                                homeItemsInVM = homeViewModel.homeItems,
+                                homeItems = items,
                                 onItemClicked = { item: HomeItem ->
                                     mainViewModel.folderContentComponent.manuallyInvalidateItems()
                                     mainViewModel.folderContentComponent.setWaitingForItems(true)
@@ -818,7 +833,8 @@ class SigmaActivity : ComponentActivity() {
                                     homeViewModel.removeHomeItem(item)
                                     mainViewModel.viewModelScope.launch {
                                         settingsViewModel.settings.saveHomeItems(
-                                            homeViewModel.homeItems.value
+                                            ((homeViewModel.uiState?.value as? HomeUiState.Ready)
+                                                ?.items ?: emptyList())
                                                 .toSet()
                                                 .map {
                                                     HomeItemInfos(
@@ -923,7 +939,8 @@ class SigmaActivity : ComponentActivity() {
                      */
                     FullSizeExtras(
                         browser,
-                        bottomComponent = bottomComponent)
+                        bottomComponent = bottomComponent
+                    )
 
                     ////////////////////////////////
                     // memo + palette de couleurs //

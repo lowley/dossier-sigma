@@ -44,6 +44,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
+import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeUiState
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -248,13 +249,21 @@ fun SigmaActivity.HomeItemDialog(
                                 path = homeInfos!!.path,
                                 picture = homeInfos!!.picture,
                                 index = homeItemInfos.value?.index
-                                    ?: sigmaActivity.homeViewModel.homeItems.value.size
+                                    ?: (sigmaActivity.homeViewModel.uiState as? HomeUiState.Ready)
+                                        ?.items?.size ?: 0
+
                             )
 
                             mainViewModel.viewModelScope.launch {
                                 onDatasCompleted(newHomeItem)
 
-                                val existingHomeItems = sigmaActivity.homeViewModel.homeItems.value
+                                val existingHomeItems = (sigmaActivity.homeViewModel.uiState
+                                    .value as? HomeUiState.Ready)
+                                    ?.items
+
+                                if (existingHomeItems.isNullOrEmpty())
+                                    return@launch
+
                                 val newHomeItems = existingHomeItems.toMutableList()
                                     .map {
                                         if (it.title == homeInfos!!.newTitle) homeInfos!! else HomeItemInfos(
@@ -263,7 +272,9 @@ fun SigmaActivity.HomeItemDialog(
                                             path = it.path,
                                             picture = it.picture,
                                             index = homeItemInfos.value?.index
-                                                ?: sigmaActivity.homeViewModel.homeItems.value.size
+                                                ?: (sigmaActivity.homeViewModel.uiState
+                                                    .value as? HomeUiState.Ready)
+                                                    ?.items?.size ?: 0
                                         )
                                     }.toSet()
 

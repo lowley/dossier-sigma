@@ -26,8 +26,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -43,6 +46,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.system.measureTimeMillis
 
 private const val CHANNEL_ID = "daemon"
@@ -63,6 +67,9 @@ class DaemonService : LifecycleService() {
     @Inject
     lateinit var folderContentComponent: IFolderContentBackComponent
 
+    @Inject
+    lateinit var filesAccessibleCommunicator: FilesAccessibleChannel
+
     private var fileObserver: SigmaFileObserver? = null
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Default + job)
@@ -76,6 +83,15 @@ class DaemonService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+
+        val i = Intent(this, PermissionActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(i)
+
+        // c'est pour homeViewModel : les settings sont maintenant accessibles
+        filesAccessibleCommunicator.activate()
+
         applicationContext.ensureDaemonChannel()
         dao = FolderCacheEntryDB.get(applicationContext)
     }
@@ -491,4 +507,17 @@ sealed class EventType(val message: String) {
     object ATTRIB : EventType("métadonnées changées")
     object CLOSE_WRITE : EventType("fermé après écriture")
     object UNKNOWN : EventType("???")
+}
+
+@Singleton
+class FilesAccessibleChannel @Inject constructor() {
+    // sera complété une seule fois
+//    val deferred = CompletableDeferred<Unit>()
+
+    private val _ready = MutableStateFlow(false)
+    val isActivated = _ready.asStateFlow()
+
+    fun activate(){
+        _ready.update { true }
+    }
 }

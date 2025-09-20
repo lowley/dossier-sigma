@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.tinies
+package lorry.folder.items.dossiersigma.headless.usecases.homePage
 
 import android.graphics.Rect
 import androidx.compose.animation.core.animateOffsetAsState
@@ -55,22 +55,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
+import kotlin.collections.indexOf
 import kotlin.math.roundToInt
 
 @Composable
 context(ColumnScope)
 fun HomePage(
-    homeItemsInVM: StateFlow<List<HomeItem>>,
+    homeItems: List<HomeItem>,
     onItemClicked: (HomeItem) -> Unit,
     onEditTapped: (HomeItem) -> Unit,
     onDeleteTapped: (HomeItem) -> Unit,
     onItemsReordered: (List<HomeItem>) -> Unit,
     modifier: Modifier
 ) {
-    val homeItems by homeItemsInVM.collectAsState(emptyList())
-
     // --- NOUVEAUX ÉTATS POUR LE SCROLL ---
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
@@ -88,15 +86,15 @@ fun HomePage(
             .fillMaxSize()
     ) {
         Image(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
-                .align(Alignment.Center)
+                .align(Alignment.Companion.Center)
                 .alpha(0.2f),
             painter = painterResource(R.drawable.mesh_homepage),
-            alignment = Alignment.Center,
-            contentScale = ContentScale.Crop,
+            alignment = Alignment.Companion.Center,
+            contentScale = ContentScale.Companion.Crop,
             contentDescription = "",
-            colorFilter = ColorFilter.tint(SigmaColors.current.tertiary)
+            colorFilter = ColorFilter.Companion.tint(SigmaColors.current.tertiary)
         )
 
         LazyVerticalGrid(
@@ -105,7 +103,7 @@ fun HomePage(
             modifier = Modifier.Companion
                 .fillMaxSize()
                 .padding(horizontal = 10.dp, vertical = 10.dp)
-                .background(Color.Transparent)
+                .background(Color.Companion.Transparent)
                 .onGloballyPositioned { layoutCoordinates ->
                     // On récupère les dimensions et la position de la grille à l'écran
                     val rect = layoutCoordinates.localToRoot(Offset.Companion.Zero).let {
@@ -183,7 +181,7 @@ fun HomePage(
                             val toIndex = homeItems.indexOf(dropTarget)
                             if (fromIndex != -1 && toIndex != -1 && fromIndex != toIndex) {
                                 val newList = homeItems.toMutableList().apply {
-                                    add(toIndex, removeAt(fromIndex))
+                                    this.add(toIndex, this.removeAt(fromIndex))
                                 }
                                     .mapIndexed { index, homeItem ->
                                         homeItem.copy(index = index)
@@ -231,7 +229,7 @@ fun DraggableItem(
     val animatedOffset by animateOffsetAsState(targetValue = if (isDragging) dragOffset else Offset.Companion.Zero)
 
     Box(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .onGloballyPositioned { layoutCoordinates ->
                 onPositioned(layoutCoordinates.localToRoot(Offset.Companion.Zero))
             }
@@ -273,7 +271,7 @@ fun HomeItemContent(
     val _10Color = SigmaColors.current.tertiary
 
     Card(
-        modifier = Modifier
+        modifier = Modifier.Companion
             .padding(
                 start = 10.dp,
                 end = 10.dp,
@@ -291,7 +289,7 @@ fun HomeItemContent(
         border = BorderStroke(2.dp, lerp(_60Color, SigmaColors.current.primary, 0.4f)),
     ) {
         Box(
-            modifier = Modifier
+            modifier = Modifier.Companion
                 .fillMaxSize()
                 .clip(androidx.compose.foundation.shape.RoundedCornerShape(13.dp))
         ) {
