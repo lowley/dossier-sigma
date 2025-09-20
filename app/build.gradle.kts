@@ -14,18 +14,13 @@ android {
     compileSdk = 35
 
     defaultConfig {
-//        applicationId = "lorry.folder.items.dossiersigma"
+        applicationId = "lorry.folder.items.dossiersigma.master"
         minSdk = 33
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-
-    val localGradleFile = rootProject.file("local.gradle.kts")
-    if (localGradleFile.exists()) {
-        apply(from = localGradleFile)
     }
 
     buildTypes {
