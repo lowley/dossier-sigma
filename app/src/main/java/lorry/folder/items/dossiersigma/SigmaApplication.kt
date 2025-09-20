@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.os.StrictMode
 import androidx.core.content.ContextCompat
 import androidx.work.Configuration
 import dagger.hilt.android.EntryPointAccessors
@@ -17,6 +18,13 @@ class SigmaApplication() : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        StrictMode.setVmPolicy(
+            StrictMode.VmPolicy.Builder()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .build()
+        )
 
         val channel = NotificationChannel(
             "clipboard_channel",

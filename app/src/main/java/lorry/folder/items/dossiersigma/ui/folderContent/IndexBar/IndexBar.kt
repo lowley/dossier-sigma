@@ -125,7 +125,8 @@ class IndexBar @Inject constructor(
                                         }
                                     },
                                 text = info.content.text,
-                                color = if (info.infoType == InfoType.MAJOR) SigmaColors.current.tertiary else SigmaColors.current.secondary
+                                color = SigmaColors.current.secondary
+//                                color = if (info.infoType == InfoType.MAJOR) SigmaColors.current.tertiary else SigmaColors.current.secondary
                             )
 
                         }

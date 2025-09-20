@@ -477,7 +477,7 @@ fun SigmaActivity.SettingsPage(
                     defaultColor = baseColorEffective.value,
 //                    defaultColor = Color(0xFF363E4C),
                     buttonSize = 100.dp,
-                    swatches = Palettes.mixedPalettes,
+                    swatches = if (themeEffective.isDark()) Palettes.darkPalettes else Palettes.lightPalettes,
                     innerRadius = 400f,
                     strokeWidth = 120f,
                     spacerRotation = 5f,
@@ -553,207 +553,245 @@ object Palettes {
     val darkPalettes: List<List<Color>> = listOf(
         // 0) Noirs & gris neutres
         listOf(
+            Color(0xFF080809),
             Color(0xFF0F0F10),
-            Color(0xFF1A1B1D),
-            Color(0xFF27292C),
-            Color(0xFF36393D),
-            Color(0xFF4A4E53)
+            Color(0xFF171718),
+            Color(0xFF232425),
+            Color(0xFF2F3032),
+            Color(0xFF3B3C3E)
         ),
+
         // 1) Gris chauds
         listOf(
-            Color(0xFF1A1715),
-            Color(0xFF2A2623),
-            Color(0xFF3B3632),
-            Color(0xFF4C4641),
-            Color(0xFF5E5751)
+            Color(0xFF151210),
+            Color(0xFF1D1917),
+            Color(0xFF27221F),
+            Color(0xFF322B26),
+            Color(0xFF3E352F),
+            Color(0xFF4A413A)
         ),
 
         // 2) Bleus "nuit"
         listOf(
-            Color(0xFF031225),
-            Color(0xFF07203A),
-            Color(0xFF0C2E50),
-            Color(0xFF123B66),
-            Color(0xFF1B4A7D)
+            Color(0xFF00121B),
+            Color(0xFF03202B),
+            Color(0xFF07343F),
+            Color(0xFF0B4A55),
+            Color(0xFF11656F),
+            Color(0xFF1A7F8A)
         ),
+
         // 3) Bleus profonds
         listOf(
-            Color(0xFF081633),
-            Color(0xFF0E224A),
-            Color(0xFF173060),
-            Color(0xFF213E76),
-            Color(0xFF2B4C8C)
+            Color(0xFF041426),
+            Color(0xFF0A2138),
+            Color(0xFF13314E),
+            Color(0xFF1C3F64),
+            Color(0xFF274F7A),
+            Color(0xFF335F91)
         ),
+
         // 4) Bleus froids vifs
         listOf(
-            Color(0xFF0A213F),
-            Color(0xFF0E2F58),
-            Color(0xFF143D72),
-            Color(0xFF1D4C8C),
-            Color(0xFF2A5AA6)
+            Color(0xFF061A31),
+            Color(0xFF0D2A47),
+            Color(0xFF14395E),
+            Color(0xFF1C4A76),
+            Color(0xFF255E8F),
+            Color(0xFF3072A8)
         ),
+
         // 5) Bleus grisés (blue-gray)
         listOf(
-            Color(0xFF0F1A24),
-            Color(0xFF172635),
-            Color(0xFF203445),
-            Color(0xFF2A4256),
-            Color(0xFF355066)
+            Color(0xFF0A1116),
+            Color(0xFF121921),
+            Color(0xFF1B2430),
+            Color(0xFF243242),
+            Color(0xFF2E4054),
+            Color(0xFF394D66)
         ),
 
         // 6) Cyan profonds
         listOf(
-            Color(0xFF042127),
-            Color(0xFF07363F),
-            Color(0xFF0A4A58),
-            Color(0xFF0F5F72),
-            Color(0xFF16748B)
+            Color(0xFF021F22),
+            Color(0xFF063038),
+            Color(0xFF0A4750),
+            Color(0xFF0E5E69),
+            Color(0xFF147E86),
+            Color(0xFF18A0AA)
         ),
+
         // 7) Teal / bleu-vert
         listOf(
-            Color(0xFF05221D),
-            Color(0xFF08342B),
-            Color(0xFF0C4639),
-            Color(0xFF115847),
-            Color(0xFF176B56)
+            Color(0xFF071E1A),
+            Color(0xFF0B2C24),
+            Color(0xFF0F3A30),
+            Color(0xFF155340),
+            Color(0xFF1A6C53),
+            Color(0xFF21866A)
         ),
+
         // 8) Turquoises doux
         listOf(
-            Color(0xFF06201F),
-            Color(0xFF0B3432),
-            Color(0xFF134846),
-            Color(0xFF1C5C5A),
-            Color(0xFF26716F)
+            Color(0xFF061715),
+            Color(0xFF0C2B29),
+            Color(0xFF123E3C),
+            Color(0xFF185352),
+            Color(0xFF206A69),
+            Color(0xFF2B827F)
         ),
 
         // 9) Verts forêt
         listOf(
-            Color(0xFF0A1D0F),
-            Color(0xFF0F2C18),
-            Color(0xFF153B22),
-            Color(0xFF1D4B2D),
-            Color(0xFF265C38)
+            Color(0xFF06170C),
+            Color(0xFF0A2A14),
+            Color(0xFF0F3C1E),
+            Color(0xFF184F2A),
+            Color(0xFF236236),
+            Color(0xFF2F7442)
         ),
+
         // 10) Verts olive
         listOf(
-            Color(0xFF1A1F0C),
-            Color(0xFF232A10),
-            Color(0xFF2E3616),
-            Color(0xFF39431D),
-            Color(0xFF465127)
+            Color(0xFF101306),
+            Color(0xFF161B0A),
+            Color(0xFF212612),
+            Color(0xFF2B351B),
+            Color(0xFF364422),
+            Color(0xFF43532A)
         ),
 
         // 11) Jaunes ambrés (dark-friendly)
         listOf(
-            Color(0xFF231A02),
-            Color(0xFF342607),
-            Color(0xFF48330D),
-            Color(0xFF5E4215),
-            Color(0xFF75531F)
+            Color(0xFF241A03),
+            Color(0xFF2F2206),
+            Color(0xFF3D2D0B),
+            Color(0xFF4B3810),
+            Color(0xFF5B4416),
+            Color(0xFF6C511E)
         ),
+
         // 12) Or vieilli / laiton
         listOf(
-            Color(0xFF221C05),
-            Color(0xFF32290A),
-            Color(0xFF423612),
-            Color(0xFF53441B),
-            Color(0xFF655226)
+            Color(0xFF201B05),
+            Color(0xFF2A2309),
+            Color(0xFF352C0F),
+            Color(0xFF423512),
+            Color(0xFF52421A),
+            Color(0xFF615024)
         ),
 
         // 13) Oranges bruns
         listOf(
-            Color(0xFF2A1407),
-            Color(0xFF3D1E0B),
-            Color(0xFF532910),
-            Color(0xFF6B3516),
-            Color(0xFF85411D)
+            Color(0xFF2A1207),
+            Color(0xFF361A0A),
+            Color(0xFF452112),
+            Color(0xFF5A2C18),
+            Color(0xFF6E391F),
+            Color(0xFF834725)
         ),
+
         // 14) Oranges cuivrés
         listOf(
-            Color(0xFF2B1209),
-            Color(0xFF3F1A0E),
-            Color(0xFF562315),
-            Color(0xFF6E2E1D),
-            Color(0xFF883926)
+            Color(0xFF2A1108),
+            Color(0xFF36180C),
+            Color(0xFF4A2313),
+            Color(0xFF5E2F1A),
+            Color(0xFF7A3E24),
+            Color(0xFF97502F)
         ),
 
         // 15) Rouges bordeaux
         listOf(
-            Color(0xFF26060B),
-            Color(0xFF3A0B13),
-            Color(0xFF4F111B),
-            Color(0xFF661826),
-            Color(0xFF7F2031)
+            Color(0xFF24060B),
+            Color(0xFF330A11),
+            Color(0xFF431218),
+            Color(0xFF571922),
+            Color(0xFF6B212B),
+            Color(0xFF7F2833)
         ),
+
         // 16) Rouges profonds
         listOf(
-            Color(0xFF2A0707),
-            Color(0xFF3F0D0D),
-            Color(0xFF561515),
-            Color(0xFF6F1E1E),
-            Color(0xFF892828)
+            Color(0xFF240808),
+            Color(0xFF341010),
+            Color(0xFF451818),
+            Color(0xFF5A2121),
+            Color(0xFF6F2929),
+            Color(0xFF853131)
         ),
 
         // 17) Magentas sourds
         listOf(
-            Color(0xFF230818),
-            Color(0xFF330D23),
-            Color(0xFF45132F),
-            Color(0xFF591A3D),
-            Color(0xFF6E224C)
+            Color(0xFF220615),
+            Color(0xFF2D0E20),
+            Color(0xFF3D172B),
+            Color(0xFF4F2138),
+            Color(0xFF602B45),
+            Color(0xFF733553)
         ),
+
         // 18) Fuchsias froids
         listOf(
-            Color(0xFF1B0A1D),
-            Color(0xFF290F2B),
-            Color(0xFF38143A),
-            Color(0xFF491A4B),
-            Color(0xFF5C215E)
+            Color(0xFF160615),
+            Color(0xFF241022),
+            Color(0xFF33142F),
+            Color(0xFF44163D),
+            Color(0xFF56174C),
+            Color(0xFF69205E)
         ),
 
         // 19) Violets profonds
         listOf(
-            Color(0xFF140A25),
-            Color(0xFF1F1036),
-            Color(0xFF2B1748),
-            Color(0xFF391F5C),
-            Color(0xFF472870)
+            Color(0xFF10061A),
+            Color(0xFF1A0F2B),
+            Color(0xFF27183E),
+            Color(0xFF341F53),
+            Color(0xFF41266A),
+            Color(0xFF4F2E82)
         ),
+
         // 20) Violets bleutés
         listOf(
-            Color(0xFF0F0C27),
-            Color(0xFF19143A),
-            Color(0xFF231D4E),
-            Color(0xFF2F2763),
-            Color(0xFF3B3280)
+            Color(0xFF0C0B1C),
+            Color(0xFF16132B),
+            Color(0xFF221E40),
+            Color(0xFF2E2856),
+            Color(0xFF3A3170),
+            Color(0xFF484089)
         ),
 
         // 21) Bruns terre
         listOf(
-            Color(0xFF1A100A),
-            Color(0xFF26170F),
-            Color(0xFF331E14),
-            Color(0xFF42261A),
-            Color(0xFF523020)
+            Color(0xFF160E0A),
+            Color(0xFF21130E),
+            Color(0xFF2C1C14),
+            Color(0xFF38271C),
+            Color(0xFF463321),
+            Color(0xFF533F28)
         ),
+
         // 22) Bruns chocolat
         listOf(
-            Color(0xFF160C07),
-            Color(0xFF22130C),
-            Color(0xFF2F1B11),
-            Color(0xFF3D2417),
-            Color(0xFF4C2E1E)
+            Color(0xFF120906),
+            Color(0xFF1C120D),
+            Color(0xFF291A12),
+            Color(0xFF361F17),
+            Color(0xFF432720),
+            Color(0xFF51312A)
         ),
 
         // 23) Neutres bleutés (slate)
         listOf(
-            Color(0xFF0D1116),
-            Color(0xFF171C24),
-            Color(0xFF222935),
-            Color(0xFF2E3747),
-            Color(0xFF3B475B)
+            Color(0xFF0B0F14),
+            Color(0xFF12171D),
+            Color(0xFF1B222A),
+            Color(0xFF24313A),
+            Color(0xFF2D3E4A),
+            Color(0xFF374B59)
         )
     )
+
 
     /**
      * Chaque sous-liste = 1 famille.
@@ -763,205 +801,242 @@ object Palettes {
     val lightPalettes: List<List<Color>> = listOf(
         // 0) Neutres froids (gris bleutés)
         listOf(
+            Color(0xFFFDFEFF),
             Color(0xFFF7F9FB),
-            Color(0xFFE9EEF3),
-            Color(0xFFD8DFE7),
-            Color(0xFFC4CDD8),
-            Color(0xFFAFBBC9)
+            Color(0xFFEEF4F8),
+            Color(0xFFE5EBF0),
+            Color(0xFFD7DEE6),
+            Color(0xFFC9D1DB)
         ),
+
         // 1) Neutres chauds (gris beiges)
         listOf(
-            Color(0xFFFAF8F6),
-            Color(0xFFF0ECE8),
-            Color(0xFFE5DFD8),
-            Color(0xFFD8D1C8),
-            Color(0xFFCBC3B8)
+            Color(0xFFFCFBF9),
+            Color(0xFFFAF6F2),
+            Color(0xFFF2ECE6),
+            Color(0xFFE8E0D8),
+            Color(0xFFDCCFC6),
+            Color(0xFFCFBFB5)
         ),
 
         // 2) Bleus clairs “ciel”
         listOf(
-            Color(0xFFF2F7FE),
-            Color(0xFFE3EEFD),
-            Color(0xFFCFE2FB),
-            Color(0xFFB9D4F7),
-            Color(0xFFA1C5F3)
+            Color(0xFFFBFEFF),
+            Color(0xFFF2F9FF),
+            Color(0xFFE6F0FF),
+            Color(0xFFD8E6FF),
+            Color(0xFFC6DBFF),
+            Color(0xFFB2CFFF)
         ),
+
         // 3) Bleus moyens “UI”
         listOf(
-            Color(0xFFF3F7FC),
-            Color(0xFFE4EDFA),
-            Color(0xFFD0E0F7),
-            Color(0xFFBAD1F2),
-            Color(0xFFA3C1ED)
+            Color(0xFFFBFCFF),
+            Color(0xFFF1F7FF),
+            Color(0xFFE4EEFF),
+            Color(0xFFD3E2FF),
+            Color(0xFFBDD6FF),
+            Color(0xFFA7C8FF)
         ),
+
         // 4) Bleus gris (blue-gray)
         listOf(
-            Color(0xFFF5F8FB),
-            Color(0xFFE8EEF4),
-            Color(0xFFD8E0E9),
-            Color(0xFFC6D0DD),
-            Color(0xFFB2BFCE)
+            Color(0xFFFBFCFD),
+            Color(0xFFF3F7F9),
+            Color(0xFFE9EEF2),
+            Color(0xFFDDE6EC),
+            Color(0xFFCFE0E8),
+            Color(0xFFC0D7E0)
         ),
+
         // 5) Bleus vifs (accents)
         listOf(
-            Color(0xFFEDF5FF),
-            Color(0xFFD9EAFF),
-            Color(0xFFC1DBFF),
-            Color(0xFFA7CBFF),
-            Color(0xFF8DBAFF)
+            Color(0xFFFBFDFF),
+            Color(0xFFF0F7FF),
+            Color(0xFFE0EEFF),
+            Color(0xFFCCE2FF),
+            Color(0xFFB6D4FF),
+            Color(0xFF9EC6FF)
         ),
 
         // 6) Cyans clairs
         listOf(
-            Color(0xFFECFAFB),
-            Color(0xFFD6F2F5),
-            Color(0xFFBEE7EB),
-            Color(0xFFA6DBE1),
-            Color(0xFF8DCED6)
+            Color(0xFFFBFFFE),
+            Color(0xFFECFDFC),
+            Color(0xFFDFF8F8),
+            Color(0xFFCFF0EE),
+            Color(0xFFBFE7E4),
+            Color(0xFFAEDDDC)
         ),
+
         // 7) Teal (bleu-vert doux)
         listOf(
-            Color(0xFFEDF9F7),
-            Color(0xFFD8F1EC),
-            Color(0xFFC2E6DF),
-            Color(0xFFA9D9D0),
-            Color(0xFF92CCC2)
+            Color(0xFFFBFEFD),
+            Color(0xFFF0FBF8),
+            Color(0xFFE4F6F1),
+            Color(0xFFD6EFE7),
+            Color(0xFFC6E7DD),
+            Color(0xFFB6DFD3)
         ),
+
         // 8) Turquoises pastels
         listOf(
-            Color(0xFFEDFAF9),
-            Color(0xFFD9F2EF),
-            Color(0xFFC3E8E4),
-            Color(0xFFAEDDD9),
-            Color(0xFF98D2CE)
+            Color(0xFFFCFEFD),
+            Color(0xFFF2FBFA),
+            Color(0xFFE6F6F4),
+            Color(0xFFD8F0EE),
+            Color(0xFFC8E9E7),
+            Color(0xFFB6E1DE)
         ),
 
         // 9) Verts frais
         listOf(
-            Color(0xFFF1FBF3),
-            Color(0xFFDEF6E4),
-            Color(0xFFC9EED4),
-            Color(0xFFB3E5C4),
-            Color(0xFF9BDBB3)
+            Color(0xFFFBFFFC),
+            Color(0xFFF2FBF5),
+            Color(0xFFE6F6EA),
+            Color(0xFFD7F0DE),
+            Color(0xFFC6E9D1),
+            Color(0xFFB4E1C4)
         ),
+
         // 10) Olive clair (lisible en clair)
         listOf(
-            Color(0xFFFAFBF2),
-            Color(0xFFF0F3E0),
-            Color(0xFFE5EAD0),
-            Color(0xFFD9E0C1),
-            Color(0xFFCBD5B1)
+            Color(0xFFFBFDF6),
+            Color(0xFFFAFCEA),
+            Color(0xFFF1F6DF),
+            Color(0xFFE6EBCF),
+            Color(0xFFDADFBF),
+            Color(0xFFCFD4AF)
         ),
 
         // 11) Jaunes ambrés doux
         listOf(
-            Color(0xFFFFFCF1),
-            Color(0xFFFEF6D9),
-            Color(0xFFFBEEC0),
-            Color(0xFFF6E3A8),
-            Color(0xFFF0D88F)
+            Color(0xFFFFFEFB),
+            Color(0xFFFFFBF0),
+            Color(0xFFFFF5DF),
+            Color(0xFFFFEBC6),
+            Color(0xFFF7E2A7),
+            Color(0xFFEED98A)
         ),
+
         // 12) Laiton / or vieilli clairs
         listOf(
-            Color(0xFFFBF8EE),
-            Color(0xFFF4EED8),
-            Color(0xFFEDE4C3),
-            Color(0xFFE3D8AE),
-            Color(0xFFD8CB99)
+            Color(0xFFFFFDF8),
+            Color(0xFFFBF5E8),
+            Color(0xFFF6ECD6),
+            Color(0xFFF0E1C3),
+            Color(0xFFE6D5AD),
+            Color(0xFFDCC89A)
         ),
 
         // 13) Oranges doux
         listOf(
-            Color(0xFFFFF6F1),
-            Color(0xFFFFE9DB),
-            Color(0xFFFFDCC7),
-            Color(0xFFFFCFB4),
-            Color(0xFFFEC3A3)
+            Color(0xFFFFFCFB),
+            Color(0xFFFFF5F0),
+            Color(0xFFFFEAD9),
+            Color(0xFFFFDAC0),
+            Color(0xFFFFCBA6),
+            Color(0xFFFFBD8D)
         ),
+
         // 14) Cuivres clairs
         listOf(
-            Color(0xFFFEF6F3),
-            Color(0xFFFBE7DE),
-            Color(0xFFF6D7CB),
-            Color(0xFFEFC6B7),
-            Color(0xFFE7B4A3)
+            Color(0xFFFFFBFA),
+            Color(0xFFFDF3ED),
+            Color(0xFFF9E6DC),
+            Color(0xFFF2D6C6),
+            Color(0xFFE9C5B0),
+            Color(0xFFDEB199)
         ),
 
         // 15) Rouges rosés (UI non agressifs)
         listOf(
-            Color(0xFFFFF4F5),
-            Color(0xFFFFE4E7),
-            Color(0xFFFFD2D7),
-            Color(0xFFFFBFC7),
-            Color(0xFFFFACB7)
+            Color(0xFFFFFBFC),
+            Color(0xFFFFF3F5),
+            Color(0xFFFFE7EA),
+            Color(0xFFFFD9DE),
+            Color(0xFFFFCCD1),
+            Color(0xFFFFBDC4)
         ),
+
         // 16) Rouges corail
         listOf(
-            Color(0xFFFEF4F3),
-            Color(0xFFFDE4E1),
-            Color(0xFFFBD2CD),
-            Color(0xFFF7BFBA),
-            Color(0xFFF2ABA6)
+            Color(0xFFFFFBFA),
+            Color(0xFFFDF3F2),
+            Color(0xFFFCE6E4),
+            Color(0xFFF9D6D3),
+            Color(0xFFF6C5C0),
+            Color(0xFFF2B3AD)
         ),
 
         // 17) Magentas pastels
         listOf(
-            Color(0xFFFEF5FA),
-            Color(0xFFFBE6F2),
-            Color(0xFFF7D5E9),
-            Color(0xFFF1C3DF),
-            Color(0xFFEAB1D5)
+            Color(0xFFFFFBFE),
+            Color(0xFFFEF5FB),
+            Color(0xFFFBE9F6),
+            Color(0xFFF6D9F0),
+            Color(0xFFF0C8EA),
+            Color(0xFFE9B6E1)
         ),
+
         // 18) Fuchsias doux
         listOf(
-            Color(0xFFFEF6FE),
-            Color(0xFFF9E6FB),
-            Color(0xFFF3D5F6),
-            Color(0xFFEBC3F0),
-            Color(0xFFE2B1E9)
+            Color(0xFFFFFBFF),
+            Color(0xFFFDF2FB),
+            Color(0xFFF9E5F6),
+            Color(0xFFF4D6F0),
+            Color(0xFFEDC6EA),
+            Color(0xFFE4B5E1)
         ),
 
         // 19) Violets lavande
         listOf(
-            Color(0xFFFAF7FF),
-            Color(0xFFF0E8FE),
-            Color(0xFFE4D8FB),
-            Color(0xFFD6C7F6),
-            Color(0xFFC7B6F0)
+            Color(0xFFFFFBFF),
+            Color(0xFFF8F4FF),
+            Color(0xFFF0E8FF),
+            Color(0xFFE6DBFF),
+            Color(0xFFDCCFFB),
+            Color(0xFFD2C4F6)
         ),
+
         // 20) Violets bleutés (pervenche)
         listOf(
-            Color(0xFFF6F7FF),
-            Color(0xFFE8EAFF),
-            Color(0xFFD9DCFE),
-            Color(0xFFC9CDFB),
-            Color(0xFFB8BFF6)
+            Color(0xFFFEFDFF),
+            Color(0xFFF6F8FF),
+            Color(0xFFEEF2FF),
+            Color(0xFFE5E9FF),
+            Color(0xFFDBDEFF),
+            Color(0xFFD1D4FF)
         ),
 
         // 21) Bruns sable
         listOf(
-            Color(0xFFFBF8F5),
-            Color(0xFFF2E9E2),
-            Color(0xFFE7DBD1),
-            Color(0xFFDCCDBF),
-            Color(0xFFD0C0AF)
+            Color(0xFFFFFBFA),
+            Color(0xFFFBF3EE),
+            Color(0xFFF3E7DD),
+            Color(0xFFE9D9C9),
+            Color(0xFFDECBBA),
+            Color(0xFFD2BDAA)
         ),
+
         // 22) Bruns clairs (cappuccino)
         listOf(
-            Color(0xFFFCF7F4),
-            Color(0xFFF3E9E3),
-            Color(0xFFE8DBD3),
-            Color(0xFFDDCEC4),
-            Color(0xFFD2C1B6)
+            Color(0xFFFFFBFA),
+            Color(0xFFF7F0EE),
+            Color(0xFFF0E2DD),
+            Color(0xFFE6D2C6),
+            Color(0xFFDCC0B1),
+            Color(0xFFD0AF9E)
         ),
 
         // 23) Neutres “paper” (gris très légers)
         listOf(
             Color(0xFFFFFFFF),
-            Color(0xFFFAFBFC),
-            Color(0xFFF5F6F8),
-            Color(0xFFEFF1F4),
-            Color(0xFFE8EBEF)
+            Color(0xFFFEFEFF),
+            Color(0xFFF8FAFC),
+            Color(0xFFF1F4F7),
+            Color(0xFFEAEFF3),
+            Color(0xFFE3E9EE)
         )
     )
 
