@@ -105,6 +105,7 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.dialogs.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
+import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.BreadcrumbComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.BreadcrumbItems
 import lorry.folder.items.dossiersigma.ui.tinies.HomeButtonIcon
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomePage
@@ -162,6 +163,9 @@ class SigmaActivity : ComponentActivity() {
 
     @Inject
     lateinit var browser: IBrowser
+
+    @Inject
+    lateinit var breadcrumbComponent: BreadcrumbComponent
 
     //cf [[ToolBarManager]]
     val mainViewModel: SigmaViewModel by viewModels()
@@ -535,14 +539,13 @@ class SigmaActivity : ComponentActivity() {
                                         path.split('/').filter { it.isNotEmpty() }
                                     }
 
+
                                     if (!homePageVisible && !path.isNullOrEmpty())
-                                        key(path ?: "") {
-                                            BreadcrumbItems(
-                                                path = items,
-                                                onClick = { index ->
-                                                    val path = items.take(index + 1).joinToString("/")
-                                                    mainViewModel.goToFolder(path)
-                                                },
+                                        breadcrumbComponent.Breadcrumb(
+                                            path = items,
+                                            onClick = { path ->
+                                                mainViewModel.goToFolder(path)
+                                            },
 //                                                modifier = Modifier
 //                                                    .padding(start = 10.dp)
 //                                                    .align(Alignment.CenterVertically),
@@ -550,8 +553,7 @@ class SigmaActivity : ComponentActivity() {
 //                                                inactiveColor = Color(0xFF8697CB),
 //                                                arrowColor = Color.Magenta,
 //                                                totalDuration = 200,
-                                            )
-                                        }
+                                        )
                                 }
                             }
 

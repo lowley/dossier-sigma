@@ -247,7 +247,9 @@ private fun computeCommonPart(
 
 @Composable
 fun BreadcrumbChip(
-    modifier: Modifier = Modifier, text: String, onClick: () -> Unit
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit
 ) {
     Text(
         text = text, modifier = modifier.clickable {

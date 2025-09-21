@@ -40,26 +40,28 @@ class FileCapsuleManager @Inject constructor(
 
         //branchement enregistrement en fichier pour dossiers
         val pictureDir = File(targetPath.replaceAfterLast("/", ".sigma"))
-        if(!pictureDir.exists())
+        if (!pictureDir.exists())
             pictureDir.mkdirs()
 
-        if (forFolder && element is InitialPicture && element.initialPicture != null){
+        if (forFolder && element is InitialPicture && element.initialPicture != null) {
             val file = File(targetPath.replaceAfterLast("/", ".sigma/initialPicture.webp"))
 
             FileOutputStream(file).use<FileOutputStream, Unit> { out ->
                 (element.initialPicture as Bitmap).compress(
-                        Bitmap.CompressFormat.WEBP_LOSSLESS, // or WEBP_LOSSY
-                        100,out)
+                    Bitmap.CompressFormat.WEBP_LOSSLESS, // or WEBP_LOSSY
+                    100, out
+                )
             }
         }
 
-        if (forFolder && element is CroppedPicture && element.croppedPicture != null){
+        if (forFolder && element is CroppedPicture && element.croppedPicture != null) {
             val file = File(targetPath.replaceAfterLast("/", ".sigma/croppedPicture.webp"))
 
             FileOutputStream(file).use<FileOutputStream, Unit> { out ->
                 (element.croppedPicture as Bitmap).compress(
                     Bitmap.CompressFormat.WEBP_LOSSLESS, // or WEBP_LOSSY
-                    100,out)
+                    100, out
+                )
             }
         }
     }
@@ -80,15 +82,15 @@ class FileCapsuleManager @Inject constructor(
             return firstMelt
 
         val initialWebp = File(targetPath.replaceAfterLast("/", ".sigma/initialPicture.webp"))
-        val secondMeltInitial = try {val inputStream: InputStream = FileInputStream(initialWebp)
+        val secondMeltInitial = try {
+            val inputStream: InputStream = FileInputStream(initialWebp)
             val bufferedInputStream = BufferedInputStream(inputStream)
             val bmp = BitmapFactory.decodeStream(bufferedInputStream)
             if (bmp != null) {
                 val videoInfoEmbedder = VideoInfoEmbedder()
                 val b64 = videoInfoEmbedder.bitmapToBase64(bmp)
                 b64
-            }
-            else null
+            } else null
         } catch (e: IOException) {
             e.printStackTrace()
             null
@@ -96,15 +98,19 @@ class FileCapsuleManager @Inject constructor(
 
         val croppedWebp = File(targetPath.replaceAfterLast("/", ".sigma/croppedPicture.webp"))
         val secondMeltCropped = try {
-            val inputStream: InputStream = FileInputStream(croppedWebp)
-            val bufferedInputStream = BufferedInputStream(inputStream)
-            val bmp = BitmapFactory.decodeStream(bufferedInputStream)
-            if (bmp != null) {
-                val videoInfoEmbedder = VideoInfoEmbedder()
-                val b64 = videoInfoEmbedder.bitmapToBase64(bmp)
-                b64
+            var result: String? = null
+            FileInputStream(croppedWebp).use{ inputStream ->
+                BufferedInputStream(inputStream).use{ bufferedInputStream ->
+                    val bmp = BitmapFactory.decodeStream(bufferedInputStream)
+                    result = if (bmp != null) {
+                        val videoInfoEmbedder = VideoInfoEmbedder()
+                        val b64 = videoInfoEmbedder.bitmapToBase64(bmp)
+                        b64
+                    } else null
+
+                    result
+                }
             }
-            else null
         } catch (e: IOException) {
             e.printStackTrace()
             null

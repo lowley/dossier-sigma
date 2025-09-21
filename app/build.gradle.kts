@@ -92,6 +92,8 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.12")
     testImplementation("com.google.dagger:hilt-android-testing:2.56.2")
     kspTest(libs.hilt.android.compiler)
+    //tester si méthode existe
+    testImplementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
 
     // --- Android instrumented tests (androidTestImplementation) ---
     androidTestImplementation(libs.androidx.junit)              // AndroidX JUnit 1.2.1
@@ -179,6 +181,8 @@ dependencies {
     implementation("androidx.room:room-runtime:$room")
     implementation("androidx.room:room-ktx:$room")   // coroutines, Flow, transactions suspend
     ksp("androidx.room:room-compiler:$room") // annotation processor (remplace kapt)
+
+
 }
 
 ksp {
