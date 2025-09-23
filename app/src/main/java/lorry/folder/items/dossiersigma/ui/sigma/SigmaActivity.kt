@@ -1,10 +1,8 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
 //region imports
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -105,11 +103,10 @@ import lorry.folder.items.dossiersigma.ui.settings.SettingsPage
 import lorry.folder.items.dossiersigma.ui.settings.SettingsViewModel
 import lorry.folder.items.dossiersigma.ui.dialogs.FullSizeExtras
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
-import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.BreadcrumbComponent
-import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.BreadcrumbItems
 import lorry.folder.items.dossiersigma.ui.tinies.HomeButtonIcon
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomePage
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeUiState
+import lorry.folder.items.dossiersigma.ui.folderContent.breadcrumb.BreadcrumbComponent
 import lorry.folder.items.dossiersigma.ui.tinies.SigmaFAB
 import lorry.folder.items.dossiersigma.ui.tinies.SortingArea
 import lorry.folder.items.dossiersigma.ui.tinies.initializeFileIntentLauncher
