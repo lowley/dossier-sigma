@@ -1,0 +1,77 @@
+# Gradle
+.gradle/
+**/build/
+build/
+
+# Gradle Wrapper (les scripts restent dans le repo)
+gradle/wrapper/*.jar
+gradle/wrapper/*.properties
+
+# Local configuration (SDK path, secrets)
+local.properties
+key.properties
+
+# Keystores / signing
+*.jks
+*.keystore
+*.pem
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# User-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# Captures / screenshots from Android Studio
+captures/
+
+# Native / NDK
+.externalNativeBuild/
+.cxx/
+obj/
+*.so
+*.o
+
+# Build outputs / packages
+*.apk
+*.ap_
+*.aab
+outputs/
+bundle/
+
+# Generated files
+generated/
+*.class
+*.dex
+output.json
+
+# Kotlin
+*.kotlin_module
+
+# Kotlin/Gradle caches
+/.gradle/
+/**/.gradle/
+
+# Proguard / R8
+proguard/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/README.md
+
+# Misc
+*.keystore
+.env
+.env.local
+
+# Optional: JetBrains specific caches (uncomment if desired)
+# .idea/caches/
+# .idea/libraries/
+# .idea/workspace.xml
