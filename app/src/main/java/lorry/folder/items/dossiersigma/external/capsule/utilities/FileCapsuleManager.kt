@@ -82,22 +82,29 @@ class FileCapsuleManager @Inject constructor(
             return firstMelt
 
         val initialWebp = File(targetPath.replaceAfterLast("/", ".sigma/initialPicture.webp"))
-        val secondMeltInitial = try {
-            val inputStream: InputStream = FileInputStream(initialWebp)
-            val bufferedInputStream = BufferedInputStream(inputStream)
-            val bmp = BitmapFactory.decodeStream(bufferedInputStream)
-            if (bmp != null) {
-                val videoInfoEmbedder = VideoInfoEmbedder()
-                val b64 = videoInfoEmbedder.bitmapToBase64(bmp)
-                b64
-            } else null
+        val initialWebpExists = initialWebp.exists()
+        val secondMeltInitial = if (initialWebpExists) try {
+            var result: String? = null
+            FileInputStream(initialWebp).use{ inputStream ->
+                BufferedInputStream(inputStream).use{ bufferedInputStream ->
+                    val bmp = BitmapFactory.decodeStream(bufferedInputStream)
+                    result = if (bmp != null) {
+                        val videoInfoEmbedder = VideoInfoEmbedder()
+                        val b64 = videoInfoEmbedder.bitmapToBase64(bmp)
+                        b64
+                    } else null
+
+                    result
+                }
+            }
         } catch (e: IOException) {
             e.printStackTrace()
             null
-        }
+        } else null
 
         val croppedWebp = File(targetPath.replaceAfterLast("/", ".sigma/croppedPicture.webp"))
-        val secondMeltCropped = try {
+        val croppedWebpExists = croppedWebp.exists()
+        val secondMeltCropped = if (croppedWebpExists) try {
             var result: String? = null
             FileInputStream(croppedWebp).use{ inputStream ->
                 BufferedInputStream(inputStream).use{ bufferedInputStream ->
@@ -115,6 +122,7 @@ class FileCapsuleManager @Inject constructor(
             e.printStackTrace()
             null
         }
+        else null
 
         if (secondMeltInitial != null || secondMeltCropped != null) {
             return firstMelt.copy(
