@@ -100,6 +100,7 @@ fun ItemComponent(
     val memoEmpty = memo?.isEmpty() ?: true
 
     val tag = item.tag
+    val scale = item.scale
 
     val image by mainViewModel.folderContentComponent.currentFolderFlow
         .map { folder -> folder?.picture }
@@ -229,8 +230,8 @@ fun ItemComponent(
                     ),
                 image = image ?: item.picture,
 //                image = if (item.isFile()) R.drawable.document2 else R.drawable.folder234full,
-//                scale = scale,
-                scale = null,
+                scale = scale,
+//                scale = null,
                 name = item.name,
                 areShortcutsDisplayed = areShortcutsDisplayed
             )

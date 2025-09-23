@@ -4,7 +4,9 @@ import android.net.Uri
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.viewModelScope
 import com.yalantis.ucrop.UCrop
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
@@ -126,13 +128,14 @@ object CROP : Tools() {
         val item = viewModel.selectedItem.value ?: return
         viewModel.setSelectedItem(item.copy(scale = scale))
 
-        if (item.isFile() &&
-            item.fullPath.endsWith(".mp4") ||
-            item.fullPath.endsWith(".avi") ||
-            item.fullPath.endsWith(".mpg") ||
-            item.fullPath.endsWith(".html") ||
-            item.fullPath.endsWith(".iso") ||
-            item.fullPath.endsWith(".mkv")
+        if (item.isFile()
+//            &&
+//            item.fullPath.endsWith(".mp4") ||
+//            item.fullPath.endsWith(".avi") ||
+//            item.fullPath.endsWith(".mpg") ||
+//            item.fullPath.endsWith(".html") ||
+//            item.fullPath.endsWith(".iso") ||
+//            item.fullPath.endsWith(".mkv")
         ) {
             viewModel.viewModelScope.launch {
                 val capsuleMgr = CapsuleComponent()
@@ -140,26 +143,36 @@ object CROP : Tools() {
                     Scale(scale),
                     item.fullPath
                 )
+
+                withContext(Dispatchers.Main) {
+                    viewModel.folderContentComponent.reloadCurrentFolder()
+                    viewModel.setSelectedItem(null)
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                }
             }
         }
 
         if (item.isFolder()) {
             viewModel.viewModelScope.launch {
                 val file = File(item.fullPath + "/.folderPicture.html")
-                if (!file.exists())
-                    viewModel.diskRepository.createFolderHtmlFile(item)
+//                if (!file.exists())
+//                    viewModel.diskRepository.createFolderHtmlFile(item)
 
                 val capsuleMgr = CapsuleComponent()
                 capsuleMgr.save(
                     Scale(scale),
                     item.fullPath
                 )
-//            viewModel.refreshCurrentFolder()
+
+                withContext(Dispatchers.Main){
+                    viewModel.folderContentComponent.reloadCurrentFolder()
+                    viewModel.setSelectedItem(null)
+                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                }
             }
         }
 
 //    viewModel.notifyPictureUpdated()
 //    viewModel.setSelectedItem(null)
-//    BottomTools.setCurrentContent(DEFAULT)
     }
 }

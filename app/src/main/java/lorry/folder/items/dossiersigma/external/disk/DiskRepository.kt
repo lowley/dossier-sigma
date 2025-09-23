@@ -99,6 +99,7 @@ class DiskRepository @Inject constructor(
                     val memo = capsule?.memo2
 
                     val basePicture = getImage(path = itemPath, newCapsule = capsule)
+                    val scale = capsule?.getScale()
 
                     if (dto.isFile) {
                         val nameLower = dto.name.lowercase(java.util.Locale.getDefault())
@@ -125,7 +126,7 @@ class DiskRepository @Inject constructor(
                             picture = picture,
                             modificationDate = dto.lastModified,
                             tag = tag,
-                            scale = null,
+                            scale = scale,
                             memo = memo,
                         )
                     } else {
@@ -136,7 +137,7 @@ class DiskRepository @Inject constructor(
                             items = emptyList(),
                             modificationDate = dto.lastModified,
                             tag = tag,
-                            scale = null,
+                            scale = scale,
                             memo = memo,
                         )
                     }

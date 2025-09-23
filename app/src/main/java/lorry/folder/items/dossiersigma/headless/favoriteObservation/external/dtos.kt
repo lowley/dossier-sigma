@@ -1,5 +1,7 @@
 package lorry.folder.items.dossiersigma.headless.favoriteObservation.external
 
+import androidx.compose.ui.layout.ContentScale
+
 // Exemple d’un miroir minimal, à adapter à tes champs réels :
 @kotlinx.serialization.Serializable
 data class PersistedSigmaFolder(
@@ -16,8 +18,8 @@ data class PersistedItem(
     val picture: PictureStore?,
     val isFolder: Boolean,
     val fullPath: String,
-    val memo: String? = null
-//    val scale: ContentScale?
+    val memo: String? = null,
+    val scale: String?
 )
 
 // On évite de stocker un Bitmap en DB : on le met en cache fichier et on stocke le chemin.

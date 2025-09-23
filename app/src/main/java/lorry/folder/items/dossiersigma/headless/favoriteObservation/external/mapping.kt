@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.headless.favoriteObservation.external
 
 import android.graphics.Bitmap
+import androidx.compose.ui.layout.ContentScale
 import com.google.gson.Gson
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
@@ -37,7 +38,16 @@ object SigmaFolderMapping {
                     picture = pic,
                     isFolder = item.isFolder(),
                     fullPath = item.fullPath,
-                    memo = item.memo
+                    memo = item.memo,
+                    scale = when(item.scale){
+                        ContentScale.Fit -> "Fit"
+                        ContentScale.Crop -> "Crop"
+                        ContentScale.FillBounds -> "FillBounds"
+                        ContentScale.FillHeight -> "FillHeight"
+                        ContentScale.FillWidth -> "FillWidth"
+                        ContentScale.Inside -> "Inside"
+                        else -> null
+                    }
                 )
             },
             meta = mapOf("name" to f.name) /* si tu as des métadonnées simples */
@@ -55,7 +65,6 @@ object SigmaFolderMapping {
                 PictureStore.Kind.BITMAP_FILE -> pi.picture.filePath?.let(loadBitmap)
                 else -> null
             }
-            // Reconstruis ton Item “métier” (sans changer sa classe)
             if (pi.isFolder)
                 SigmaFolder(
 //                    name = pi.name,
@@ -63,7 +72,15 @@ object SigmaFolderMapping {
                     tag = pi.tagId?.let { Gson().fromJson(it, ColoredTag::class.java) },
                     picture = any,
                     fullPath = pi.fullPath,
-                    scale = null,
+                    scale = when (pi.scale){
+                        "Fit" -> ContentScale.Fit
+                        "Crop" -> ContentScale.Crop
+                        "FillBounds" -> ContentScale.FillBounds
+                        "FillHeight" -> ContentScale.FillHeight
+                        "FillWidth" -> ContentScale.FillWidth
+                        "Inside" -> ContentScale.Inside
+                        else -> null
+                    },
                     items = emptyList(),
                     memo = pi.memo
                 )
@@ -74,7 +91,15 @@ object SigmaFolderMapping {
                     tag = pi.tagId?.let { Gson().fromJson(it, ColoredTag::class.java) },
                     picture = any,
                     fullPath = pi.fullPath,
-                    scale = null,
+                    scale = when (pi.scale){
+                        "Fit" -> ContentScale.Fit
+                        "Crop" -> ContentScale.Crop
+                        "FillBounds" -> ContentScale.FillBounds
+                        "FillHeight" -> ContentScale.FillHeight
+                        "FillWidth" -> ContentScale.FillWidth
+                        "Inside" -> ContentScale.Inside
+                        else -> null
+                    },
                     memo = pi.memo
                 )
         }
@@ -89,7 +114,14 @@ object SigmaFolderMapping {
         Gson().toJson(toPersisted(f, saveBitmap), PersistedSigmaFolder::class.java)
 
     fun decodeFromString(s: String, loadBitmap: (String) -> android.graphics.Bitmap?): SigmaFolder {
-        val p = Gson().fromJson(s, PersistedSigmaFolder::class.java)
-        return fromPersisted(p, loadBitmap)
+        var result: SigmaFolder? = null
+        try {
+            val p = Gson().fromJson(s, PersistedSigmaFolder::class.java)
+            result = fromPersisted(p, loadBitmap)
+        }catch (e: Exception) {
+            println("erreur scale, fichier:$s, ${e.message}")
+        }
+
+        return result ?: SigmaFolder.DUMMY
     }
 }
