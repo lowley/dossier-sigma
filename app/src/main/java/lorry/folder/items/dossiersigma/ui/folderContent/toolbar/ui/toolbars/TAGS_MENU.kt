@@ -120,16 +120,16 @@ object TAGS_MENU : Tools(
                         if (currentItem == null)
                             return@run
 
-                        val selectedFolder = viewModel.folderContentComponent
-                            .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
-                        val selectedFolderTag = selectedFolder?.tag
-                        val tool = DEFAULT.content()
-                            .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
-
-                        if (tool == null) {
-                            println("problème, tool inexistant")
-                            return@run
-                        }
+//                        val selectedFolder = viewModel.folderContentComponent
+//                            .currentFolderFlow.value
+//                        val selectedFolderTag = selectedFolder?.tag
+//                        val tool = DEFAULT.content()
+//                            .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
+//
+//                        if (tool == null) {
+//                            println("problème, tool inexistant")
+//                            return@run
+//                        }
 
                         //inutile car refresh plus loin
 //                            if (viewModel.removeFlagCacheForKey(currentItem.fullPath) == null) {
@@ -143,13 +143,14 @@ object TAGS_MENU : Tools(
                             currentItem.fullPath
                         )
 
-                        val none = viewModel.folderContentComponent
-                            .folderCacheFlow
-                            ?.value
-                            ?.none { it.value?.folder?.tag?.id == tool.id } == true
-
-                        if (none)
-                            DEFAULT.content().removeTool(tool)
+                        //d'office dans [[observeDefaultContent()]]
+//                        val none = viewModel.folderContentComponent
+//                            .currentFolderFlow
+//                            ?.value
+//                            ?.none { it.value?.folder?.tag?.id == tool.id } == true
+//
+//                        if (none)
+//                            DEFAULT.content().removeTool(tool)
 
                         viewModel.setSelectedItem(null, true)
                         viewModel.folderContentComponent.reloadCurrentFolder()

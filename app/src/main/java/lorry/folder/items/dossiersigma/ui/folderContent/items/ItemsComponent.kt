@@ -59,10 +59,6 @@ class ItemsComponent @AssistedInject constructor(
         bottomComponent = bottomComponent
     )
 
-//    val itemsViewModel: ItemsViewModel by lazy {
-//        ViewModelProvider(owner)[ItemsViewModel::class.java]
-//    }
-
     /////////////////
     // drag'n drop //
     /////////////////
