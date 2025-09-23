@@ -107,7 +107,6 @@ object TAGS_MENU : Tools(
                 text = { "item" },
                 icon = R.drawable.moins,
                 visible = { viewModel, mainActivity ->
-                    val currentFolder = viewModel.folderContentComponent.currentFolderFlow.value
                     val selectedFolder = viewModel.folderContentComponent
                         .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
                     val selectedFolderTag = selectedFolder?.tag
@@ -116,26 +115,7 @@ object TAGS_MENU : Tools(
                 },
                 onClick = { viewModel, mainActivity ->
                     run {
-                        val currentItem = viewModel.selectedItem.value
-                        if (currentItem == null)
-                            return@run
-
-                        val selectedFolder = viewModel.folderContentComponent
-                            .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
-                        val selectedFolderTag = selectedFolder?.tag
-                        val tool = DEFAULT.content()
-                            .tools.value.firstOrNull { it.id == selectedFolderTag?.id }
-
-                        if (tool == null) {
-                            println("problème, tool inexistant")
-                            return@run
-                        }
-
-                        //inutile car refresh plus loin
-//                            if (viewModel.removeFlagCacheForKey(currentItem.fullPath) == null) {
-//                                println("problème, suppression de tag impossible")
-//                                return@run
-//                            }
+                        val currentItem = viewModel.selectedItem.value ?: return@run
 
                         val capsuleMgr = CapsuleComponent()
                         capsuleMgr.save(
@@ -143,20 +123,9 @@ object TAGS_MENU : Tools(
                             currentItem.fullPath
                         )
 
-                        val none = viewModel.folderContentComponent
-                            .folderCacheFlow
-                            ?.value
-                            ?.none { it.value?.folder?.tag?.id == tool.id } == true
-
-                        if (none)
-                            DEFAULT.content().removeTool(tool)
-
                         viewModel.setSelectedItem(null, true)
                         viewModel.folderContentComponent.reloadCurrentFolder()
                         toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
-
-//                            viewModel.clearFlagCache()
-//                            DEFAULT.content().updateTools(emptyList<Tool>())
                     }
                 }
             ),

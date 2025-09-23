@@ -34,6 +34,7 @@ class ToolbarComponent @AssistedInject constructor(
         fun create(toolsViewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): ToolbarComponent
     }
 
+    //#[[observeDefaultContent()]]
     override fun observeDefaultContent() {
         toolsViewModel.viewModelScope.launch {
             // On combine les deux sources de données : le cache des tags et l'ID du tag sélectionné.
