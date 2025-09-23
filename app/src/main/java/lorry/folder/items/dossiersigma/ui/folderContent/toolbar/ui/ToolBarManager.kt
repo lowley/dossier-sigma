@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -93,7 +94,7 @@ class ToolBarManager @AssistedInject constructor(
 //        -right-> "Second Action"
 //        --> "Third Action"
 //        -left-> (*)
-        @enduml
+//        @enduml
          */
 
         Row(
@@ -126,9 +127,15 @@ class ToolBarManager @AssistedInject constructor(
     fun MobileSticker(
         dragState: DragState,
         activity: SigmaActivity,
+        beginDrag: (Tool, Offset) -> Unit,
+        terminateDrag: () -> Unit,
+        setDragTargetItem: (Item?) -> Unit,
+        addDragOffset: (Offset) -> Unit,
+        dragTargetItem: StateFlow<Item?>,
     ) {
         val tool: Tool = dragState.tool
         val offset: Offset = dragState.offset
+        val dragTarget by dragTargetItem.collectAsState()
 
         Box(
             modifier = Modifier.Companion
@@ -151,11 +158,18 @@ class ToolBarManager @AssistedInject constructor(
                     }
                     .pointerInput(Unit) {
                         detectDragGestures(
-                            onDrag = { change, dragAmount ->
+                            onDragStart = {
+                                beginDrag(tool, it)
                             },
-                            onDragEnd = {}
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                addDragOffset(dragAmount)
+                            },
+                            onDragEnd = {
+                                setDragTargetItem(null)
+                                terminateDrag()
+                            }
                         )
-
                     },
                 iconRes = tool.icon,
                 iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else

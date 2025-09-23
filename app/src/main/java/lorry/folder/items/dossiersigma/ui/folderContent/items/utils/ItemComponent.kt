@@ -93,11 +93,6 @@ fun ItemComponent(
     dragState: StateFlow<DragState?>,
 
     ) {
-
-//    val memo by mainViewModel.folderContentComponent.currentFolderFlow
-//        .map { folder -> folder?.memo }
-//        .collectAsState(initial = "")
-
     if (item.fullPath.contains("darkness"))
         println("ok")
 
@@ -105,9 +100,6 @@ fun ItemComponent(
     val memoEmpty = memo?.isEmpty() ?: true
 
     val tag = item.tag
-//    val tag by mainViewModel.folderContentComponent.currentFolderFlow
-//        .map { folder -> folder?.tag }
-//        .collectAsState(initial = null)
 
     val image by mainViewModel.folderContentComponent.currentFolderFlow
         .map { folder -> folder?.picture }
@@ -115,12 +107,12 @@ fun ItemComponent(
 
     val imageHeight = 160.dp
 
-//    val dragState by dragState.collectAsState()
     var bounds by remember { mutableStateOf<Rect?>(null) }
+    val state by dragState.collectAsState()
 
-    val isHovered = remember(dragState, bounds) {
-        if (dragState != null && bounds != null && dragState.value?.offset != null)
-            dragState != null && bounds?.contains(dragState.value?.offset!!) == true
+    val isHovered = remember(state, bounds) {
+        if (state != null && bounds != null && state?.offset != null)
+            state != null && bounds?.contains(state?.offset!!) == true
         else false
     }
 
@@ -273,10 +265,12 @@ fun ItemComponent(
                         .border(
                             1.dp,
                             lerp(
-                            SigmaColors.current.secondary,
+                                SigmaColors.current.secondary,
                                 SigmaColors.current.primary,
-                                0.5f),
-                            shape = shapeForInsert)
+                                0.5f
+                            ),
+                            shape = shapeForInsert
+                        )
                         .clickable {
                             onTopLeftPanelClick(item)
                         }

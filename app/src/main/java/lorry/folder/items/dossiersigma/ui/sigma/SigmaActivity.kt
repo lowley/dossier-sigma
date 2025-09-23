@@ -66,8 +66,6 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -78,7 +76,6 @@ import com.leinardi.android.speeddial.compose.SpeedDialState
 import com.yalantis.ucrop.UCrop
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
@@ -977,7 +974,12 @@ class SigmaActivity : ComponentActivity() {
                         dragState.tool?.let { tool: Tool ->
                             bottomTools.MobileSticker(
                                 dragState = dragState,
-                                activity = this@SigmaActivity
+                                activity = this@SigmaActivity,
+                                beginDrag = folderContentFrontComponent::beginDrag,
+                                terminateDrag = folderContentFrontComponent::terminateDrag,
+                                setDragTargetItem = folderContentFrontComponent::setDragTargetItem,
+                                addDragOffset = folderContentFrontComponent::addDragOffset,
+                                dragTargetItem = folderContentFrontComponent.dragTargetItem,
                             )
                         }
                     }
