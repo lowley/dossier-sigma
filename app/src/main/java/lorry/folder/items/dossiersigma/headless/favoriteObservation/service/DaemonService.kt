@@ -100,17 +100,19 @@ class DaemonService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         scope.launch(Dispatchers.IO) {
+            delay(3_000)
+
             settingsManager.saveIsFileObserverEnabled(true)
+
+            // 1) Démarrer au premier plan rapidement
+            startForeground(30215, buildOngoingNotification())
+
+            // 2) Démarrer ta boucle “daemon”
+            scope.launch {
+                runDaemonLoop()
+            }
+
         }
-
-        // 1) Démarrer au premier plan rapidement
-        startForeground(30215, buildOngoingNotification())
-
-        // 2) Démarrer ta boucle “daemon”
-        scope.launch {
-            runDaemonLoop()
-        }
-
         // Conseil : START_STICKY pour relance automatique après kill système
         return START_STICKY
     }
