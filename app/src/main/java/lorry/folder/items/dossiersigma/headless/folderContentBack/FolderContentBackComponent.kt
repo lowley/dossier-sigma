@@ -54,6 +54,7 @@ class FolderContentBackComponent constructor(
 
     companion object {
         val TAG = "FoldCmp"
+        val TGfldw = "folderFlow"
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -141,32 +142,42 @@ class FolderContentBackComponent constructor(
         // 1) Placeholder immédiat (vide l’écran)
 //        emit(null)
 
-        Log.d(
-            "fldDec",
-            "origin:$origin, latestPath:$latestPath, savedEntry:$savedEntry, flagId:$flagId, sorting:$sorting"
-        )
+        Log.d(TGfldw, "#########################")
+        Log.d(TGfldw, "## FOLDERCONTENTFLOW() ##")
+        Log.d(TGfldw, "#########################")
+        Log.d(TGfldw, "---> path=$latestPath, origin=$origin, flagId=$flagId, savedEntry=${savedEntry is DbState.Data}, sorting=$sorting")
 
-        if (latestPath == null) return@flow
-
-        var decisionMade = false
         var decision: ReloadType = ReloadType.NONE
 
+        if (latestPath == null) {
+            Log.d(TGfldw, "  -> COURT-CIRCUIT DECISION: latestPath null -> *on passe*")
+            Log.d(TGfldw, "-------------------------------------------")
+
+            return@flow
+        }
+
         if (origin == Origin.SORTING || origin == Origin.CURRENT_FLAG_ID) {
-            decisionMade = true
+            Log.d(TGfldw, "  -> COURT-CIRCUIT DECISION: origin=$origin soit SORTING soit FLAG_ID -> *CACHE*")
+            Log.d(TGfldw, "     (cache=${folderCacheFlow.value[latestPath]})")
+
             decision = ReloadType.Cache
         }
 
         if (origin == Origin.REFRESH_RELOAD_TRIGGER){
-            decisionMade = true
+            Log.d(TGfldw, "  -> COURT-CIRCUIT DECISION: origin=$origin -> *DISK*")
+            Log.d(TGfldw, "     (cache=${folderCacheFlow.value[latestPath]})")
+
             decision = ReloadType.Disk
         }
 
         if (savedEntry == DbState.Loading) {
-            Log.d("fldDec", "   -> savedEntry LOADING -> on passe")
+            Log.d(TGfldw, "  -> COURT-CIRCUIT DECISION: cache en LOADING -> *on passe*")
+            Log.d(TGfldw, "-------------------------------------------")
+
             return@flow
         }
 
-        if (!decisionMade) {
+        if (decision == ReloadType.NONE) {
 
             // 2) Récupérer fraîcheurs APRÈS le placeholder (concurrence structurée)
             val diskFresh = coroutineScope {
@@ -180,6 +191,9 @@ class FolderContentBackComponent constructor(
             val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
 
             val cacheInclusion = cacheEntry != null
+            Log.d("fldDecErr",
+                "   calcul décision -> latestPath=$latestPath, cacheInclusion:$cacheInclusion, items:${cacheEntry?.folder?.items?.size}")
+
             val cacheAndDiskEquality = cachedFolderFreshness?.isSameAs(diskFresh) == true
 
             val roomOk = savedEntry.let {
@@ -194,21 +208,44 @@ class FolderContentBackComponent constructor(
                 )
             } == true
 
+            Log.d(TGfldw,"  -> *** Calcul de la décision ***")
             Log.d(
-                "fldDec",
-                "   folderContentFlow -> ELEMENTS DECISION: diskFreshness:${diskFresh.hashCode()}, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:${cachedFolderFreshness.hashCode()}"
+                TGfldw,
+                "      -> ELEMENTS: diskFreshness:${diskFresh.hashCode()}, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:${cachedFolderFreshness.hashCode()}"
             )
 
             // 3) Sélection de la source (cache-first si pas plus vieux)
             decision = when {
-                cacheAndRoomEquality -> ReloadType.Cache
-                roomOk -> ReloadType.Room
-                cacheInclusion && cacheAndDiskEquality -> ReloadType.Cache
-                else -> ReloadType.Disk
+                cacheAndRoomEquality -> {
+                    Log.d(TGfldw, "      -> DECISION: cacheAndRoomEquality -> *CACHE*")
+                    Log.d(TGfldw, "         (cache=${folderCacheFlow.value[latestPath]})")
+
+                    ReloadType.Cache
+                }
+                roomOk -> {
+                    Log.d(TGfldw, "      -> DECISION: roomOk -> *ROOM*")
+
+                    ReloadType.Room
+                }
+                cacheInclusion && cacheAndDiskEquality -> {
+                    Log.d(TGfldw, "      -> DECISION: cacheInclusion && cacheAndDiskEquality -> *CACHE*")
+                    Log.d(TGfldw, "         (cache=${folderCacheFlow.value[latestPath]})")
+
+                    ReloadType.Cache
+                }
+                else -> {
+                    Log.d(TGfldw, "      -> DECISION: ni cache ni room -> *DISK*")
+                    Log.d(TGfldw, "         (cache=${folderCacheFlow.value[latestPath]})")
+
+                    ReloadType.Disk
+                }
             }
         }
 
-        Log.d("fldDec", "   -> decision:$decision")
+        if (decision == ReloadType.Cache && !folderCacheFlow.value.containsKey(latestPath)) {
+            Log.d("TGfldw", "      -> POST-DECISION: Pas de cache pour $latestPath alors que Cache choisi -> fallback Disk")
+            decision = ReloadType.Disk
+        }
 
         // 4) Émettre la source choisie
         when (decision) {
@@ -218,7 +255,13 @@ class FolderContentBackComponent constructor(
                 val cachedFolderFreshness = cacheEntry?.freshness
                 val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
 
-                val oldItems = cacheEntry!!.folder.items
+                if (cacheEntry == null) {
+                    Log.d("fldDecErr",
+                        "   ReloadType.Cache -> cache vide ne devrait pas -> on passe")
+                    Log.d("fldDecErr",
+                        "                    -> latestPath=$latestPath, items:${cacheEntry?.folder?.items?.size}")
+                }
+                val oldItems = cacheEntry?.folder?.items ?: emptyList()
                 val newItems = when (sort) {
                     SortingCriterion.ByNameAsc ->
                         oldItems.sortedWith(compareBy<Item> { it.isFile() }
@@ -230,10 +273,11 @@ class FolderContentBackComponent constructor(
                 }.let { items -> if (flagId == null) items else items.filter { it.tag?.id == flagId } }
 
                 Log.d(
-                    "fldDec",
+                    TGfldw,
                     "   folderContentFlow -> fin calcul du cache et émission du flow. items traités(${newItems.size}), flagId:$flagId"
                 )
-                emit(cacheEntry.folder.copy(items = newItems))
+                if (cacheEntry != null)
+                    emit(cacheEntry.folder.copy(items = newItems))
                 setReloadType(ReloadType.Cache)
             }
 
@@ -260,7 +304,7 @@ class FolderContentBackComponent constructor(
                 }.let { items -> if (flagId == null) items else items.filter { it.tag?.id == flagId } }
 
                 Log.d(
-                    "fldDec",
+                    TGfldw,
                     "   folderContentFlow -> fin calcul de room et émission du flow. items traités(${newItems.size}), flagId:$flagId, freshness 1:${
                         serviceFolder.computeFreshness().hashCode()
                     }, freshness 2:${folderEntry.freshness.hashCode()}"
@@ -285,7 +329,7 @@ class FolderContentBackComponent constructor(
                             .flowOn(Dispatchers.IO)
                             .onStart {
                                 Log.d(
-                                    "fldDec",
+                                    TGfldw,
                                     "   folderContentFlow -> début émission flow issu du disque"
                                 )
                             }
@@ -311,12 +355,12 @@ class FolderContentBackComponent constructor(
                                     _folderCacheFlow.value = snapshot
                                 } else {
                                     Log.d(
-                                        "fldDec",
+                                        TGfldw,
                                         "   folderContentFlow -> fin disque interrompue (cause=$cause) : cache intact"
                                     )
                                 }
                                 Log.d(
-                                    "fldDec",
+                                    TGfldw,
                                     "   -> fin émission flow issu du disque. items envoyés: ${lastItems.size}. freshness:${realFresh.hashCode()}"
                                 )
                             }
@@ -331,13 +375,13 @@ class FolderContentBackComponent constructor(
             }
 
             else -> {
-//                Log.d("fldDec", "   -> émission valeurs DUMMY + ReloadType.NONE ???")
+//                Log.d(TGfldw, "   -> émission valeurs DUMMY + ReloadType.NONE ???")
 //                emit(SigmaFolder.DUMMY)
 //                setReloadType(ReloadType.NONE)
             }
         }
 
-        Log.d("fldDec", "-------------------------------------------")
+        Log.d(TGfldw, "-------------------------------------------")
     }
 
     val _manualInvalidateFlow = MutableStateFlow(UUID.randomUUID())
@@ -528,12 +572,12 @@ private fun <A, B, C, D, E, R> combineWithSource5(
 
     // 3) Évènements d’origine (taggés par enum, pas par position)
     val originEvents: Flow<Origin> = merge(
-        flagS.map { Origin.CURRENT_FLAG_ID },
-        savedS0.map { Origin.SAVED_ENTRY },
+        flagS.distinctUntilChanged().drop(1).map { Origin.CURRENT_FLAG_ID },
+        savedS0.distinctUntilChanged().drop(1).map { Origin.SAVED_ENTRY },
         // On ignore l'impulsion initiale côté ÉVÈNEMENT pour éviter un faux "refresh" au démarrage
         refS.drop(1).map { Origin.REFRESH_RELOAD_TRIGGER },
         relS.drop(1).map { Origin.RELOAD_TRIGGER },
-        sortS.drop(1).map { Origin.SORTING },
+        sortS.distinctUntilChanged().drop(1).map { Origin.SORTING },
     )
 
     // 4) À chaque évènement, on prélève à la demande les dernières valeurs

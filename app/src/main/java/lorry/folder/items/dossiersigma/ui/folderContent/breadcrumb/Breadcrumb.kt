@@ -32,7 +32,7 @@ fun BreadcrumbComponent.UI(
         segs?.dropLast(1)?.forEachIndexed { i, seg ->
             BreadcrumbChip(
                 text = seg,
-            ) { onClick(segs.slice(0..i).joinToString("/")) }
+            ) { onClick("/" + segs.slice(0..i).joinToString("/")) }
 
             if (i < segs.size - 1) Separator()
         }

@@ -311,7 +311,6 @@ class SigmaActivity : ComponentActivity() {
                                 containerColor = SigmaColors.current.primary,
                                 contentColor = colors.background,
                                 tonalElevation = 0.dp,
-
                                 ) {
                                 bottomTools.ToolBar(
                                     activity = this@SigmaActivity,

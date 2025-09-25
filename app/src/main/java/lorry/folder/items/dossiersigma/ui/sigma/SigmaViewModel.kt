@@ -267,7 +267,6 @@ class SigmaViewModel @Inject constructor(
             else {
                 //lèvera un event dans le service si différent
                 settingsManager.saveCurrentPath(folderPath)
-
                 folderContentComponent.addFolderPathToHistory(folderPath)
             }
 
