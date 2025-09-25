@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.material.internal.ViewUtils.hideKeyboard
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserCommand
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 

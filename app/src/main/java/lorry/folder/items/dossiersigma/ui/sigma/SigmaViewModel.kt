@@ -54,8 +54,8 @@ class SigmaViewModel @Inject constructor(
 ) : ViewModel() {
 
     /////////////////
-// text dialog //
-/////////////////
+    // text dialog //
+    /////////////////
     private val _isTextDialogVisible = MutableStateFlow(false)
     val isTextDialogVisible: StateFlow<Boolean> = _isTextDialogVisible
 
@@ -64,8 +64,8 @@ class SigmaViewModel @Inject constructor(
     }
 
     ///////////////////
-// yes/no dialog //
-///////////////////
+    // yes/no dialog //
+    ///////////////////
     private val _isYesNoDialogVisible = MutableStateFlow(false)
     val isYesNoDialogVisible: StateFlow<Boolean> = _isYesNoDialogVisible
 
@@ -74,8 +74,8 @@ class SigmaViewModel @Inject constructor(
     }
 
     //////////////////////
-// move file dialog //
-//////////////////////
+    // move file dialog //
+    //////////////////////
     private val _isMoveFileDialogVisible = MutableStateFlow(false)
     val isMoveFileDialogVisible: StateFlow<Boolean> = _isMoveFileDialogVisible
 
@@ -84,8 +84,8 @@ class SigmaViewModel @Inject constructor(
     }
 
     //////////////////////
-// tag infos dialog //
-//////////////////////
+    // tag infos dialog //
+    //////////////////////
     private val _isTagInfosDialogVisible = MutableStateFlow(false)
     val isTagInfosDialogVisible: StateFlow<Boolean> = _isTagInfosDialogVisible
 
@@ -94,8 +94,8 @@ class SigmaViewModel @Inject constructor(
     }
 
     //////////////////////
-// Home item dialog //
-//////////////////////
+    // Home item dialog //
+    //////////////////////
     private val _isHomeItemDialogVisible = MutableStateFlow(false)
     val isHomeItemDialogVisible: StateFlow<Boolean> = _isHomeItemDialogVisible
 
@@ -104,8 +104,8 @@ class SigmaViewModel @Inject constructor(
     }
 
     /////////////////
-// File picker //
-/////////////////
+    // File picker //
+    /////////////////
     private val _isFilePickerVisible = MutableStateFlow(false)
     val isFilePickerVisible: StateFlow<Boolean> = _isFilePickerVisible
 
@@ -114,8 +114,8 @@ class SigmaViewModel @Inject constructor(
     }
 
     //////////////
-// settings //
-//////////////
+    // settings //
+    //////////////
     private val _isSettingsPageVisible = MutableStateFlow(false)
     val isSettingsPageVisible: StateFlow<Boolean> = _isSettingsPageVisible
 
@@ -136,8 +136,8 @@ class SigmaViewModel @Inject constructor(
     )
 
     ////////////////////
-// maj de l'image //
-////////////////////
+    // maj de l'image //
+    ////////////////////
 
     val currentMemo: StateFlow<String?> =
         folderContentComponent.currentFolderFlow
@@ -170,8 +170,8 @@ class SigmaViewModel @Inject constructor(
     }
 
     ////////////////////////
-// boîtes de dialogue //
-////////////////////////
+    // boîtes de dialogue //
+    ////////////////////////
     private val _dialogMessage = MutableStateFlow("")
     val dialogMessage: StateFlow<String?> = _dialogMessage
 
@@ -262,7 +262,8 @@ class SigmaViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Main) {
 
             if (folderPath == folderContentComponent.currentFolderFlow
-                .value?.fullPath)
+                    .value?.fullPath
+            )
                 folderContentComponent.reloadCurrentFolder()
             else {
                 //lèvera un event dans le service si différent

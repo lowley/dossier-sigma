@@ -25,9 +25,11 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -62,6 +64,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -272,6 +276,13 @@ class SigmaActivity : ComponentActivity() {
             val currentSorting = mainViewModel.folderContentComponent.sorting
 
             val browserState by browser.vm.state.collectAsState()
+            val keyboardController = LocalSoftwareKeyboardController.current
+
+            LaunchedEffect(browserState.isOpen) {
+                if (!browserState.isOpen){
+                    keyboardController?.hide()
+                }
+            }
 
             Scaffold(
                 containerColor = Color.Transparent,
@@ -364,22 +375,27 @@ class SigmaActivity : ComponentActivity() {
                     activity.window.statusBarColor = colors.primary.toArgb()
                 }
 
+                val keyboardController = LocalSoftwareKeyboardController.current
+
                 BackHandler(enabled = true) {
 
                     //stockage de sorting actuel dans le cache
                     // -> auto lors des modifications du tri
 
+                    if (isKeyboardVisible){
+                        keyboardController?.hide()
+
+                        return@BackHandler
+                    }
+
                     mainViewModel.viewModelScope.launch {
-                        val last1 =
-                            mainViewModel.folderContentComponent.folderPathHistory.value.last()
-
-                        //retour dans l'history
-                        mainViewModel.folderContentComponent.removeLastFolderPathHistory()
-
-                        val last2 =
-                            mainViewModel.folderContentComponent.folderPathHistory.value.last()
-                        mainViewModel.settingsManager.saveCurrentPath(last2)
-                        Log.d("Sact", last1)
+                        val history = mainViewModel.folderContentComponent.folderPathHistory.value
+                        if (history.size > 1) {
+                            //retour dans l'history
+                            mainViewModel.folderContentComponent.removeLastFolderPathHistory()
+                            val last = history.last()
+                            mainViewModel.settingsManager.saveCurrentPath(last)
+                        }
                     }
 
                     //récup sorting dans cache du tri
