@@ -93,9 +93,6 @@ class ToolbarComponent @AssistedInject constructor(
     override var movingItem: Item? = toolsViewModel.movingItem
     override var copyingItem: Item? = toolsViewModel.copyingItem
     override var itemToMove: Item? = toolsViewModel.itemToMove
-
-
-
 }
 
 data class OverallProgress(

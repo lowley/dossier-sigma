@@ -47,7 +47,6 @@ class ItemsComponent @AssistedInject constructor(
         ): ItemsComponent
     }
 
-
     val bottomComponent = toolbarComponentFactory.create(
         toolsViewModel = toolsViewModel,
         sigmaViewModel = sigmaViewModel
