@@ -613,8 +613,7 @@ class SigmaActivity : ComponentActivity() {
                                                     )
                                                 },
                                             painter = painterResource(R.drawable.plus),
-                                            tint = Color.Red,
-//                                            tint = SigmaColors.current.secondary,
+                                            tint = SigmaColors.current.secondary,
                                             contentDescription = null
                                         )
 
