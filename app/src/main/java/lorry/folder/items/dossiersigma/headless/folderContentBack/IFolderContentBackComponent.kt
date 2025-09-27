@@ -16,6 +16,7 @@ interface IFolderContentBackComponent{
     val folderPathHistory: StateFlow<List<String>>
     fun addFolderPathToHistory(folderPath: String)
     fun removeLastFolderPathHistory()
+    fun removeNElementsFromHistory(n: Int)
     val folderCacheFlow: StateFlow<Map<String, FolderCacheEntry>>
     val currentFolderFlow: StateFlow<SigmaFolder?>
 
@@ -42,9 +43,4 @@ interface IFolderContentBackComponent{
 
     val fastPath: StateFlow<String?>
     fun setFastPath(path: String?)
-
-    val waitingForItems: StateFlow<Boolean>
-    fun setWaitingForItems(value: Boolean)
-
-
 }

@@ -84,6 +84,12 @@ class FolderContentBackComponent constructor(
         _folderPathHistory.value = currentHistory.dropLast(1)
     }
 
+    override fun removeNElementsFromHistory(n: Int) {
+        assert(n >= 0)
+        val currentHistory = _folderPathHistory.value
+        _folderPathHistory.value = currentHistory.dropLast(n)
+    }
+
     private val _fastPath = MutableStateFlow<String?>(null)
     override val fastPath: StateFlow<String?> = _fastPath
     override fun setFastPath(path: String?) {
@@ -91,8 +97,8 @@ class FolderContentBackComponent constructor(
     }
 
     ///////////////////
-    // reload manuel //
-    ///////////////////
+// reload manuel //
+///////////////////
     override val reloadTrigger = MutableStateFlow(0)
 
     override fun reloadCurrentFolder() {
@@ -100,20 +106,13 @@ class FolderContentBackComponent constructor(
     }
 
     ////////////////////////
-    // reload par refresh //
-    ////////////////////////
+// reload par refresh //
+////////////////////////
     private val refreshReloadTrigger2 = MutableStateFlow(0)
 
     override fun reloadCurrentFolderByRefresh2() {
         Log.d("badam", "reloadCurrentFolderByRefresh() called", Throwable())
         refreshReloadTrigger2.value = refreshReloadTrigger2.value + 1 // redéclenchement immédiat
-    }
-
-    private val _waitingForItems = MutableStateFlow(false)
-    override val waitingForItems = _waitingForItems.asStateFlow()
-
-    override fun setWaitingForItems(value: Boolean) {
-        _waitingForItems.update { value }
     }
 
     val dao = FolderCacheEntryDB.get(context)
@@ -135,8 +134,8 @@ class FolderContentBackComponent constructor(
     val _savedPath = MutableStateFlow<String?>(null)
 
     //////////////////////////
-    // dossier courant trié //
-    //////////////////////////
+// dossier courant trié //
+//////////////////////////
     private fun folderContentFlow(params: Params): Flow<SigmaFolder?> = flow {
         val (origin, latestPath, flagId, savedEntry, sorting) = params
         // 1) Placeholder immédiat (vide l’écran)
@@ -145,7 +144,10 @@ class FolderContentBackComponent constructor(
         Log.d(TGfldw, "#########################")
         Log.d(TGfldw, "## FOLDERCONTENTFLOW() ##")
         Log.d(TGfldw, "#########################")
-        Log.d(TGfldw, "---> path=$latestPath, origin=$origin, flagId=$flagId, savedEntry=${savedEntry is DbState.Data}, sorting=$sorting")
+        Log.d(
+            TGfldw,
+            "---> path=$latestPath, origin=$origin, flagId=$flagId, savedEntry=${savedEntry is DbState.Data}, sorting=$sorting"
+        )
 
         var decision: ReloadType = ReloadType.NONE
 
@@ -157,13 +159,16 @@ class FolderContentBackComponent constructor(
         }
 
         if (origin == Origin.SORTING || origin == Origin.CURRENT_FLAG_ID) {
-            Log.d(TGfldw, "  -> COURT-CIRCUIT DECISION: origin=$origin soit SORTING soit FLAG_ID -> *CACHE*")
+            Log.d(
+                TGfldw,
+                "  -> COURT-CIRCUIT DECISION: origin=$origin soit SORTING soit FLAG_ID -> *CACHE*"
+            )
             Log.d(TGfldw, "     (cache=${folderCacheFlow.value[latestPath]})")
 
             decision = ReloadType.Cache
         }
 
-        if (origin == Origin.REFRESH_RELOAD_TRIGGER){
+        if (origin == Origin.REFRESH_RELOAD_TRIGGER) {
             Log.d(TGfldw, "  -> COURT-CIRCUIT DECISION: origin=$origin -> *DISK*")
             Log.d(TGfldw, "     (cache=${folderCacheFlow.value[latestPath]})")
 
@@ -191,8 +196,10 @@ class FolderContentBackComponent constructor(
             val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
 
             val cacheInclusion = cacheEntry != null
-            Log.d("fldDecErr",
-                "   calcul décision -> latestPath=$latestPath, cacheInclusion:$cacheInclusion, items:${cacheEntry?.folder?.items?.size}")
+            Log.d(
+                "fldDecErr",
+                "   calcul décision -> latestPath=$latestPath, cacheInclusion:$cacheInclusion, items:${cacheEntry?.folder?.items?.size}"
+            )
 
             val cacheAndDiskEquality = cachedFolderFreshness?.isSameAs(diskFresh) == true
 
@@ -208,7 +215,7 @@ class FolderContentBackComponent constructor(
                 )
             } == true
 
-            Log.d(TGfldw,"  -> *** Calcul de la décision ***")
+            Log.d(TGfldw, "  -> *** Calcul de la décision ***")
             Log.d(
                 TGfldw,
                 "      -> ELEMENTS: diskFreshness:${diskFresh.hashCode()}, roomOk:$roomOk, cache pour ce path?:$cacheInclusion, cache Freshness:${cachedFolderFreshness.hashCode()}"
@@ -222,17 +229,23 @@ class FolderContentBackComponent constructor(
 
                     ReloadType.Cache
                 }
+
                 roomOk -> {
                     Log.d(TGfldw, "      -> DECISION: roomOk -> *ROOM*")
 
                     ReloadType.Room
                 }
+
                 cacheInclusion && cacheAndDiskEquality -> {
-                    Log.d(TGfldw, "      -> DECISION: cacheInclusion && cacheAndDiskEquality -> *CACHE*")
+                    Log.d(
+                        TGfldw,
+                        "      -> DECISION: cacheInclusion && cacheAndDiskEquality -> *CACHE*"
+                    )
                     Log.d(TGfldw, "         (cache=${folderCacheFlow.value[latestPath]})")
 
                     ReloadType.Cache
                 }
+
                 else -> {
                     Log.d(TGfldw, "      -> DECISION: ni cache ni room -> *DISK*")
                     Log.d(TGfldw, "         (cache=${folderCacheFlow.value[latestPath]})")
@@ -243,7 +256,10 @@ class FolderContentBackComponent constructor(
         }
 
         if (decision == ReloadType.Cache && !folderCacheFlow.value.containsKey(latestPath)) {
-            Log.d("TGfldw", "      -> POST-DECISION: Pas de cache pour $latestPath alors que Cache choisi -> fallback Disk")
+            Log.d(
+                "TGfldw",
+                "      -> POST-DECISION: Pas de cache pour $latestPath alors que Cache choisi -> fallback Disk"
+            )
             decision = ReloadType.Disk
         }
 
@@ -256,10 +272,14 @@ class FolderContentBackComponent constructor(
                 val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
 
                 if (cacheEntry == null) {
-                    Log.d("fldDecErr",
-                        "   ReloadType.Cache -> cache vide ne devrait pas -> on passe")
-                    Log.d("fldDecErr",
-                        "                    -> latestPath=$latestPath, items:${cacheEntry?.folder?.items?.size}")
+                    Log.d(
+                        "fldDecErr",
+                        "   ReloadType.Cache -> cache vide ne devrait pas -> on passe"
+                    )
+                    Log.d(
+                        "fldDecErr",
+                        "                    -> latestPath=$latestPath, items:${cacheEntry?.folder?.items?.size}"
+                    )
                 }
                 val oldItems = cacheEntry?.folder?.items ?: emptyList()
                 val newItems = when (sort) {
@@ -431,8 +451,8 @@ class FolderContentBackComponent constructor(
             .stateIn(scope, SharingStarted.WhileSubscribed(5_000), null)
 
     ///////////////////
-    // tri des items //
-    ///////////////////
+// tri des items //
+///////////////////
     override val sorting = combine(
         folderCacheFlow,
         currentFolderFlow

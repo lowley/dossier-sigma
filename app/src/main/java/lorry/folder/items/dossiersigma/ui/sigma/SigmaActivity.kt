@@ -279,7 +279,7 @@ class SigmaActivity : ComponentActivity() {
             val keyboardController = LocalSoftwareKeyboardController.current
 
             LaunchedEffect(browserState.isOpen) {
-                if (!browserState.isOpen){
+                if (!browserState.isOpen) {
                     keyboardController?.hide()
                 }
             }
@@ -322,7 +322,7 @@ class SigmaActivity : ComponentActivity() {
                                 containerColor = SigmaColors.current.primary,
                                 contentColor = colors.background,
                                 tonalElevation = 0.dp,
-                                ) {
+                            ) {
                                 bottomTools.ToolBar(
                                     activity = this@SigmaActivity,
                                     beginDrag = folderContentFrontComponent::beginDrag,
@@ -382,21 +382,14 @@ class SigmaActivity : ComponentActivity() {
                     //stockage de sorting actuel dans le cache
                     // -> auto lors des modifications du tri
 
-                    if (isKeyboardVisible){
+                    if (isKeyboardVisible) {
                         keyboardController?.hide()
-
                         return@BackHandler
                     }
 
-                    mainViewModel.viewModelScope.launch {
-                        val history = mainViewModel.folderContentComponent.folderPathHistory.value
-                        if (history.size > 1) {
-                            //retour dans l'history
-                            mainViewModel.folderContentComponent.removeLastFolderPathHistory()
-                            val last = history.last()
-                            mainViewModel.settingsManager.saveCurrentPath(last)
-                        }
-                    }
+//                    mainViewModel.viewModelScope.launch {
+                    mainViewModel.goToLastDifferentFolder()
+//                    }
 
                     //récup sorting dans cache du tri
                     // -> se fait automatiquement dans le combine de currentFolderFlow
@@ -527,13 +520,6 @@ class SigmaActivity : ComponentActivity() {
                                     HomeButtonIcon(
                                         stuff = stuff
                                     ) {
-                                        if (!homePageVisible) {
-//                                            mainViewModel.folderContentComponent.manuallyInvalidateItems()
-                                            mainViewModel.folderContentComponent.setWaitingForItems(
-                                                true
-                                            )
-                                        }
-
                                         mainViewModel.setIsSettingsPageVisible(false)
                                         homeViewModel.toggleHomePageVisible()
                                     }
@@ -829,10 +815,7 @@ class SigmaActivity : ComponentActivity() {
                                 homeItems = items,
                                 onItemClicked = { item: HomeItem ->
                                     mainViewModel.folderContentComponent.manuallyInvalidateItems()
-                                    mainViewModel.folderContentComponent.setWaitingForItems(true)
-                                    mainViewModel.goToFolder(
-                                        item.path
-                                    )
+                                    mainViewModel.goToFolder(item.path)
                                     homeViewModel.setHomePageVisible(false)
                                 },
                                 onEditTapped = { item: HomeItem ->

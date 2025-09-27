@@ -10,7 +10,8 @@
 | code      | signification                                                                                                 |
 | --------- | ------------------------------------------------------------------------------------------------------------- |
 | PathCrspd | épie path des FolderCacheEntry émises par DaemonService et reçues par <br />FolderContentComponent (flows) |
-| folderFlow| état d'entrée de la recombination de folderContentFlow dans FolderContentComponent + décision de récup de données
+| folderFlow| état d'entrée de la recombination de folderContentFlow dans FolderContentComponent + décision de récup de données|
+|dsplitms   | procédure d'affichage de la liste des items dans itemsPage                                                       |
 
 ## goodies
 

@@ -275,6 +275,38 @@ class SigmaViewModel @Inject constructor(
         }
     }
 
+    fun goToLastDifferentFolder(countToDelete: Int = 1) {
+        val history = folderContentComponent.folderPathHistory.value
+        if (history.size < 1 + countToDelete)
+            return
+
+        // avant-dernier élément la première fois
+        val folderPath = history[history.size - 1 - countToDelete]
+
+        viewModelScope.launch(Dispatchers.Main) {
+
+            if (folderPath == folderContentComponent.currentFolderFlow
+                    .value?.fullPath
+            ) {
+                //on répète car pas intéressant si même répertoire
+                goToLastDifferentFolder(countToDelete + 1)
+                return@launch
+            }
+            else {
+                folderContentComponent.manuallyInvalidateItems()
+                folderContentComponent.setFastPath(folderPath)
+
+                DEFAULT.content().updateTools(emptyList<Tool>())
+
+                //lèvera un event dans le service si différent
+                settingsManager.saveCurrentPath(folderPath)
+                folderContentComponent.removeNElementsFromHistory(countToDelete)
+
+                rawFeed.setCurrentFlagId(null)
+            }
+        }
+    }
+
     init {
         viewModelScope.launch {
             rawFeed.progress.collect { p ->

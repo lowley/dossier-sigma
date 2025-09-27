@@ -42,9 +42,8 @@ fun ItemsComponent.ItemsPage(
     getInfoInf: suspend (Item) -> String,
     onRefresh: () -> Unit,
     indexBar: IIndexBar,
-    ) {
-
-    val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsState(
+) {
+    val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsStateWithLifecycle(
         null
     )
     val scrollStates =
@@ -54,11 +53,18 @@ fun ItemsComponent.ItemsPage(
             LazyGridState()
         }
 
-    val selectedItemFullPath = mainViewModel.selectedItemFullPath
-    val waitingForItems =
-        mainViewModel.folderContentComponent.waitingForItems.collectAsStateWithLifecycle(
-            initialValue = false
+    val currentPath =
+        mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
+            initialValue = null
         )
+
+    val fastPath =
+        mainViewModel.folderContentComponent.fastPath.collectAsStateWithLifecycle(
+            initialValue = null
+        )
+
+    val selectedItemFullPath = mainViewModel.selectedItemFullPath
+    val TAG = "dsplitms"
 
     PullToRefreshContainer(
         onRefresh = onRefresh
@@ -73,49 +79,22 @@ fun ItemsComponent.ItemsPage(
                     bottom = 0.dp
                 )
         ) {
-            val currentPath =
-                mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
-                    initialValue = null
-                )
+            val items = currentFolder?.items.orEmpty()
+            val ready = currentFolder?.fullPath == fastPath.value && items.isNotEmpty()
+            val pathMatches = samePath(currentFolder?.fullPath, fastPath.value)
 
-            val fastPath =
-                mainViewModel.folderContentComponent.fastPath.collectAsStateWithLifecycle(
-                    initialValue = null
-                )
-
-            val folder = mainViewModel.folderContentComponent.currentFolderFlow
-                .collectAsStateWithLifecycle(initialValue = null)
-
-            val items = folder.value?.items.orEmpty()
-            val ready = folder.value?.fullPath == fastPath.value && items.isNotEmpty()
-            val pathMatches = samePath(folder.value?.fullPath, fastPath.value)
-
-            Log.d(
-                "sgmact",
-                "NormalPage: path actuel(${currentPath.value}), currentFolderFlow.Path(${folder.value?.fullPath}, fastPath(${fastPath.value}), currentFolderFlow.items(${items.size}))"
-            )
-
-            LaunchedEffect(pathMatches, items.size) {
-                Log.d(
-                    "sgmact",
-                    "    -> LaunchedEffect: pathMatches($pathMatches), items.size(${items.size})"
-                )
-                if (pathMatches && waitingForItems.value) {
-                    mainViewModel.folderContentComponent.setWaitingForItems(false)
-                }
-                Log.d("sgmact", "    -> LaunchedEffect: waitingForItems mis à false")
-
-            }
-
-            Log.d(
-                "sgmact",
-                "    -> et avant le choix: waitingForItems(${waitingForItems.value}), pathMatches($pathMatches)"
-            )
+            Log.d(TAG, "################")
+            Log.d(TAG, "## ITEMS PAGE ##")
+            Log.d(TAG, "################")
+            Log.d(TAG, "Bonjour le \u200Bmonde\u200B")
+            Log.d(TAG, "Bonjour \u001B[31mmonde\u001B[0m en couleur !");
+            Log.d("SigmaTest", "Bonjour avec un tag \u200Binvisible\u200B")
+            Log.d(TAG, "éléments de décision: ① FASTPATH: ${fastPath.value?.substringAfterLast("/")}, ② CURRENTFOLDER: ${currentFolder?.fullPath?.substringAfterLast("/")}")
+            Log.d(TAG, "d'où: ② pathMatches=$pathMatches, ② items (dans currentFolder)=${items.size}")
 
             when {
-                // 1) Bon path reçu ET items présents -> affiche la grille
-                pathMatches && !waitingForItems.value && items.isNotEmpty() -> {
-                    Log.d("sgmact", "    -> affichage des items")
+                pathMatches && items.isNotEmpty() -> {
+                    Log.d(TAG, "      -> pathMatches && items.isNotEmpty() => AFFICHAGE DES ITEMS")
 
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(150.dp),
@@ -150,9 +129,8 @@ fun ItemsComponent.ItemsPage(
                     }
                 }
 
-                // 2) Nouveau path ou attente explicite -> placeholder
-                waitingForItems.value || !pathMatches -> {
-                    Log.d("sgmact", "    -> affichage 'Chargement...'")
+                !pathMatches -> {
+                    Log.d(TAG, "      -> !pathMatches => 'CHARGEMENT...'")
 
                     Text(
                         modifier = Modifier.Companion
@@ -161,9 +139,8 @@ fun ItemsComponent.ItemsPage(
                     )
                 }
 
-                // 3) Bon path reçu ET liste vide -> état "dossier vide"
-                else -> {
-                    Log.d("sgmact", "    -> affichage 'Dossier vide'")
+                items.isEmpty() -> {
+                    Log.d(TAG, "      -> items.isEmpty() => 'DOSSIER VIDE'")
 
                     Text(
                         modifier = Modifier.Companion
@@ -172,7 +149,15 @@ fun ItemsComponent.ItemsPage(
                     )
                 }
 
+                else -> {
+                    Log.d(TAG, "      -> (pathMatches + items ∅)/(!pathMatches)/(items ≠ ∅) => 'ETAT INDETERMINE'")
 
+                    Text(
+                        modifier = Modifier.Companion
+                            .align(Alignment.Companion.Center),
+                        text = "Etat indéterminé",
+                    )
+                }
             }
 
             Box(
