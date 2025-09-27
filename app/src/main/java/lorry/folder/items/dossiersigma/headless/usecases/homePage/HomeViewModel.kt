@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +45,17 @@ class HomeViewModel @Inject constructor(
 
     fun toggleHomePageVisible() {
         _homePageVisible.value = !homePageVisible.value
+    }
+
+    ///////////////////////////////////////////////////////
+    // envoi signal fin accès datastore au daemonService //
+    ///////////////////////////////////////////////////////
+    companion object{
+        val homeReady = MutableSharedFlow<Unit>(
+            replay = 0,
+            extraBufferCapacity = 1,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
+        )
     }
 
     ///////////////////////////////////////////
@@ -118,6 +131,9 @@ class HomeViewModel @Inject constructor(
                     picture = it.picture
                 )
             }
+
+            //fin charge disque: le daemonService peut commencer sa collecte le cas échéant
+            homeReady.tryEmit(Unit)
 
             _uiState.value = HomeUiState.Ready(settings, homeItemsList)
             //            setHomeItems(homeItemsList)

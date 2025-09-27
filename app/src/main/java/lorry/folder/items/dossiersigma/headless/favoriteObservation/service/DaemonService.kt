@@ -30,6 +30,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -43,6 +46,7 @@ import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.Fol
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
+import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
@@ -101,7 +105,26 @@ class DaemonService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         scope.launch(Dispatchers.IO) {
-            delay(3_000)
+
+            val waitMs = 5000L  // ex. attente « normale »
+            var waitForHomePage = true
+
+            while (waitForHomePage) {
+                // Course : soit le timer, soit le signal de Home
+                val reason = merge(
+                    flow { delay(waitMs); emit("timeout") },
+                    HomeViewModel.homeReady.map { "signal" }
+                ).first()
+
+                // Reprendre tout de suite si c’est le signal
+                if (reason == "signal") {
+                    //homeItems déjà chargés, mais on laisse 1s de plus pour l'affichage
+                    delay(800L)
+                    waitForHomePage = false
+                } else {
+                    waitForHomePage = false
+                }
+            }
 
             settingsManager.saveIsFileObserverEnabled(true)
 
@@ -112,7 +135,6 @@ class DaemonService : LifecycleService() {
             scope.launch {
                 runDaemonLoop()
             }
-
         }
         // Conseil : START_STICKY pour relance automatique après kill système
         return START_STICKY
@@ -191,7 +213,7 @@ class DaemonService : LifecycleService() {
                     CSRPath = true
             }
 
-            if (path.endsWith(".folderPicture.html")){
+            if (path.endsWith(".folderPicture.html")) {
                 //si modification memo, flag, ou scale
                 CSRParent = true
 
@@ -203,7 +225,7 @@ class DaemonService : LifecycleService() {
                     TAG,
                     "service envoie dans room: path=${path.substringAfterLast("/")}, isCurrent=${path.isCurrent()}, isInRoom=${path.isInRoom()}"
                 )
-                computeAndSendFreshness(path, currentAppFolder,)
+                computeAndSendFreshness(path, currentAppFolder)
             }
 
             if (CSRParent) {
@@ -213,7 +235,7 @@ class DaemonService : LifecycleService() {
                         parent.substringAfterLast("/")
                     }, isCurrent=${parent.isCurrent()}, isInRoom=${parent.isInRoom()}"
                 )
-                computeAndSendFreshness(parent, currentAppFolder,)
+                computeAndSendFreshness(parent, currentAppFolder)
             }
 
             if (CSRGrandParent) {
@@ -223,7 +245,7 @@ class DaemonService : LifecycleService() {
                         grandParent.substringAfterLast("/")
                     }, isCurrent=${grandParent.isCurrent()}, isInRoom=${grandParent.isInRoom()}"
                 )
-                computeAndSendFreshness(grandParent, currentAppFolder,)
+                computeAndSendFreshness(grandParent, currentAppFolder)
             }
         }
     }
@@ -424,7 +446,8 @@ class DaemonService : LifecycleService() {
 
         // 2) lecture unique
         updateNotification(color = Color.White)
-        val existing = dao.folderCacheEntryRepository().getAllByPaths(favorites).associateBy { it.path }
+        val existing =
+            dao.folderCacheEntryRepository().getAllByPaths(favorites).associateBy { it.path }
 
         // 3) diff en mémoire
         val toWrite = buildList {
@@ -521,7 +544,7 @@ class FilesAccessibleChannel @Inject constructor() {
     private val _ready = MutableStateFlow(false)
     val isActivated = _ready.asStateFlow()
 
-    fun activate(){
+    fun activate() {
         _ready.update { true }
     }
 }
