@@ -108,11 +108,12 @@ fun SigmaActivity.SigmaFAB(
                     FabWithLabel(
                         modifier = Modifier
                             .alpha(1f),
-                        labelBackgroundColor = lerp(
-                            SigmaColors.current.primary,
-                            SigmaColors.current.secondary,
-                            0.3f
-                            ),
+                        labelBackgroundColor = SigmaColors.current.secondary,
+//                            lerp(
+//                            SigmaColors.current.primary,
+//                            SigmaColors.current.secondary,
+//                            0.3f
+//                            )
                         fabBackgroundColor = SigmaColors.current.primary,
                         labelContent = {
                             Text(
@@ -142,11 +143,12 @@ fun SigmaActivity.SigmaFAB(
                     FabWithLabel(
                         modifier = Modifier
                             .alpha(1f),
-                        labelBackgroundColor = lerp(
-                            SigmaColors.current.primary,
-                            SigmaColors.current.secondary,
-                            0.3f
-                        ),
+                        labelBackgroundColor = SigmaColors.current.secondary,
+//                            lerp(
+//                            SigmaColors.current.primary,
+//                            SigmaColors.current.secondary,
+//                            0.3f
+//                        ),
                         fabBackgroundColor = SigmaColors.current.primary,
                         labelContent = {
                             Text(
