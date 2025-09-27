@@ -43,9 +43,7 @@ fun ItemsComponent.ItemsPage(
     onRefresh: () -> Unit,
     indexBar: IIndexBar,
 ) {
-    val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsStateWithLifecycle(
-        null
-    )
+    val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsStateWithLifecycle()
     val scrollStates =
         remember { mutableMapOf<String, LazyGridState>() }
     val currentScrollState =
@@ -58,10 +56,8 @@ fun ItemsComponent.ItemsPage(
             initialValue = null
         )
 
-    val fastPath =
-        mainViewModel.folderContentComponent.fastPath.collectAsStateWithLifecycle(
-            initialValue = null
-        )
+    val fastPathFlow = mainViewModel.folderContentComponent.fastPath
+    val fastPath = fastPathFlow.collectAsStateWithLifecycle()
 
     val selectedItemFullPath = mainViewModel.selectedItemFullPath
     val TAG = "dsplitms"

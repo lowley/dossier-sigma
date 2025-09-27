@@ -92,7 +92,7 @@ fun SigmaActivity.SigmaFAB(
 
             SpeedDial(
                 modifier = Modifier
-                    .alpha(0.6f),
+                    .alpha(0.8f),
                 state = fabState.value,
                 fabOpenedBackgroundColor = SigmaColors.current.secondary,
                 fabOpenedContentColor = SigmaColors.current.onSecondary,
@@ -106,7 +106,8 @@ fun SigmaActivity.SigmaFAB(
             ) {
                 item {
                     FabWithLabel(
-                        modifier = Modifier,
+                        modifier = Modifier
+                            .alpha(1f),
                         labelBackgroundColor = lerp(
                             SigmaColors.current.primary,
                             SigmaColors.current.secondary,
@@ -139,7 +140,8 @@ fun SigmaActivity.SigmaFAB(
 
                 item {
                     FabWithLabel(
-                        modifier = Modifier,
+                        modifier = Modifier
+                            .alpha(1f),
                         labelBackgroundColor = lerp(
                             SigmaColors.current.primary,
                             SigmaColors.current.secondary,

@@ -44,7 +44,9 @@ import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.computeF
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID
+import javax.inject.Singleton
 
+@Singleton
 class FolderContentBackComponent constructor(
     val diskRepository: IDiskRepository,
     val settingsManager: SettingsManager,
@@ -92,6 +94,7 @@ class FolderContentBackComponent constructor(
 
     private val _fastPath = MutableStateFlow<String?>(null)
     override val fastPath: StateFlow<String?> = _fastPath
+
     override fun setFastPath(path: String?) {
         _fastPath.value = path
     }
