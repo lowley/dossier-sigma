@@ -2,9 +2,12 @@ package lorry.folder.items.dossiersigma.external.nas
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.preferencesDataStoreFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.ServiceLocator
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
@@ -22,7 +25,9 @@ open class DS_FTP @Inject constructor(
     val context: Context
 ) : DSI_FTP {
 
-    @Inject lateinit var settings: SettingsManager
+    var settings: SettingsManager = SettingsManager(
+        context = context.applicationContext,
+    )
 
     suspend fun <T : Any?> doWithNASAccess(
         parent: String,
@@ -85,7 +90,6 @@ open class DS_FTP @Inject constructor(
                 } catch (ex: Exception) {
                 }
             }
-
         }
 
         return answer
@@ -178,7 +182,7 @@ open class DS_FTP @Inject constructor(
         pathOnNAS: String,
         progressCallback: suspend (Int) -> Unit
     ): Boolean {
-        return doWithNASAccess<Boolean>(parent = pathOnNAS) { ftp ->
+        return doWithNASAccess(parent = pathOnNAS) { ftp ->
             val remoteFilePath = "$pathOnNAS/${localFilePath.substringAfterLast("/")}"
 
             try {

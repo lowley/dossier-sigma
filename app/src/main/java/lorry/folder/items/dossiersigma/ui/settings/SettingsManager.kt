@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.ServiceLocator
+import lorry.folder.items.dossiersigma.headless.injections.SettingsStoreProvider
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfosDTO
@@ -32,8 +34,10 @@ import javax.inject.Singleton
 // On déclare la classe comme un Singleton pour n'avoir qu'une seule instance dans toute l'app
 @Singleton
 class SettingsManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val dataStore: DataStore<Preferences>) {
+    @ApplicationContext private val context: Context) {
+
+    val dataStore = SettingsStoreProvider.get(context)
+//        ServiceLocator.dataStore(context)
 
     // On définit les clés pour chaque valeur que l'on veut stocker.
     // C'est une bonne pratique de les déclarer comme des objets compagnons.

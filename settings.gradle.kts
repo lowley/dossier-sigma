@@ -16,5 +16,4 @@ dependencyResolutionManagement { }
 
 rootProject.name = "Dossier Sigma Master"
 include(":app")
-
-
+include(":Kommunicator")

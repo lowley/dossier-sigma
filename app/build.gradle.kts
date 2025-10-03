@@ -103,7 +103,10 @@ dependencies {
     androidTestImplementation("io.mockk:mockk-android:1.13.12")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.56.2")
     kspAndroidTest(libs.hilt.android.compiler)
-
+    androidTestImplementation("app.cash.turbine:turbine:1.1.0")
+    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
+    //tester si méthode existe
+    androidTestImplementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -182,6 +185,8 @@ dependencies {
     implementation("androidx.room:room-ktx:$room")   // coroutines, Flow, transactions suspend
     ksp("androidx.room:room-compiler:$room") // annotation processor (remplace kapt)
 
+    //module Kommunicator
+    implementation(project(":Kommunicator"))
 
 }
 

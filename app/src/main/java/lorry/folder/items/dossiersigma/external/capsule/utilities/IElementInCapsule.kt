@@ -107,8 +107,8 @@ data class InitialPicture @Inject constructor(
                 return initialInt
             }
 
-            val initialBase64 = initialData as? String
-            val base64 = initialBase64 ?: return null
+            val initialBase64 = initialData
+            val base64 = initialBase64
             return videoInfoEmbedder.base64ToBitmap(base64)
         }
 

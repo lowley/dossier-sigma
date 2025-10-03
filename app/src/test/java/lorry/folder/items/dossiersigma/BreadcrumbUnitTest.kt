@@ -17,7 +17,7 @@ import kotlin.reflect.full.declaredMemberFunctions
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class ExampleUnitTest : MainDispatcherRule() {
+class BreadcrumbUnitTest : MainDispatcherRule() {
 
     var previousPath = ""
     var currentPath = ""

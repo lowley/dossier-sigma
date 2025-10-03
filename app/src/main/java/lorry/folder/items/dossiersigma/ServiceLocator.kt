@@ -1,6 +1,10 @@
 package lorry.folder.items.dossiersigma
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.external.nas.DS_FTP
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
@@ -14,6 +18,11 @@ object ServiceLocator {
         dsFtpSingleton ?: synchronized(this) {
             dsFtpSingleton ?: DS_FTP(ctx).also { dsFtpSingleton = it }
         }
+
+//    fun dataStore(ctx: Context): DataStore<Preferences> = PreferenceDataStoreFactory.create {
+//        ctx.preferencesDataStoreFile("settings")
+//    }
+
 
     // --- NasUtilities (singleton) -------------------------------------------
     @Volatile private var nasUtilitiesSingleton: NasUtilities? = null

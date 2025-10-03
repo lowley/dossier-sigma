@@ -769,6 +769,12 @@ class SigmaActivity : ComponentActivity() {
                                                     allNasText != "Tous -> NAS"
                                                 ) FontWeight.Bold else FontWeight.Normal
                                             )
+
+
+
+
+
+
                                 }
 
                                 ///////////////////////////

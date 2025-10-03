@@ -63,13 +63,13 @@ abstract class RepositoriesModule1 {
 @InstallIn(SingletonComponent::class)
 class RepositoriesModule2 {
 
-    @Provides @Singleton
-    fun providePreferencesDataStore(
-        @ApplicationContext context: Context
-    ): DataStore<Preferences> =
-        PreferenceDataStoreFactory.create {
-            context.preferencesDataStoreFile("settings")
-        }
+//    @Provides @Singleton
+//    fun providePreferencesDataStore(
+//        @ApplicationContext context: Context
+//    ): DataStore<Preferences> =
+//        PreferenceDataStoreFactory.create {
+//            context.preferencesDataStoreFile("settings")
+//        }
 }
 
 //////////////
