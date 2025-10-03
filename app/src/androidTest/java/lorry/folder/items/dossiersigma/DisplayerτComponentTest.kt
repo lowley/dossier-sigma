@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import blahblah.kommunicator.CommunicatorContract
+import blahblah.kommunicator.CommunicatorContract.EMITTER__RECEPTION_ACKNOWLEDGMENT
 import blahblah.kommunicator.IncomingMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,13 +36,6 @@ class DisplayerτComponentTest {
     val main = MainDispatcherRule()
 
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-//    @Test
-//    fun useAppContext() {
-//        // Context of the app under test.
-//        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-//        assertEquals("lorry.folder.items.dossiersigma", appContext.packageName)
-//    }
 
     @Test
     fun `nothing displayed by default`() {
@@ -74,11 +68,7 @@ class DisplayerτComponentTest {
             displayerτComponent.MessageDisplayerτ()
         }
 
-        dummyStatesFlow.emit(
-            IncomingMessage(
-                CommunicatorContract.EMITTER__RECEPTION_ACKNOWLEDGMENT
-            )
-        )
+        dummyStatesFlow.emit(IncomingMessage(EMITTER__RECEPTION_ACKNOWLEDGMENT))
 
         rule.mainClock.advanceTimeBy(2_000)
 
