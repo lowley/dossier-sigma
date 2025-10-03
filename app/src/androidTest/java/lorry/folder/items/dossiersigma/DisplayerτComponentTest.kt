@@ -80,11 +80,35 @@ class DisplayerτComponentTest {
             )
         )
 
-//        rule.waitForIdle()
         rule.mainClock.advanceTimeBy(2_000)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
             .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
+    }
+
+    @Test
+    fun `NOT-all received ⭢ no communication message`() = runTest {
+        //arrange
+        val dummyStatesFlow = MutableSharedFlow<IncomingMessage>(
+            replay = 0,
+            extraBufferCapacity = 64
+        )
+        val displayerτComponent = DisplayerτComponent(
+            SigmaApplication.getContext(),
+            testFlow = dummyStatesFlow
+        )
+
+        rule.mainClock.autoAdvance = false
+
+        rule.setContent {
+            displayerτComponent.MessageDisplayerτ()
+        }
+
+        rule.mainClock.advanceTimeBy(4_000)
+
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
+            .assertTextEquals(DisplayerτComponent.NO_COMMUNICATION_MESSAGE)
     }
 }
