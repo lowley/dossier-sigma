@@ -7,6 +7,7 @@ object CommunicatorContract {
     const val EXTRA_PAYLOAD = "payload"
 
     const val EMITTER__RECEPTION_ACKNOWLEDGMENT = "reception_acknowledgement"
+    const val EMITTER__PROCESSING_FILE = "processing_file"
 
 }
 
@@ -17,4 +18,8 @@ sealed class Messageτ(val tubeContent: String){
 }
 
 
-data class IncomingMessage(val text: String)
+data class IncomingMessage(
+    val text: String,
+    val index: Int = 0,
+    val total: Int = 0
+)

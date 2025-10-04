@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import blahblah.kommunicator.CommunicatorContract
+import blahblah.kommunicator.CommunicatorContract.EMITTER__PROCESSING_FILE
 import blahblah.kommunicator.CommunicatorContract.EMITTER__RECEPTION_ACKNOWLEDGMENT
 import blahblah.kommunicator.IncomingMessage
 import kotlinx.coroutines.CoroutineScope
@@ -19,6 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import org.junit.Rule
+import java.text.MessageFormat
 
 
 /**
@@ -95,10 +97,45 @@ class DisplayerτComponentTest {
             displayerτComponent.MessageDisplayerτ()
         }
 
-        rule.mainClock.advanceTimeBy(4_000)
+        rule.mainClock.advanceTimeBy(3_000)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
             .assertTextEquals(DisplayerτComponent.NO_COMMUNICATION_MESSAGE)
+    }
+
+    @Test
+    fun `processing starts ⭢ send n-N`() = runTest {
+        //arrange
+        val dummyStatesFlow = MutableSharedFlow<IncomingMessage>(
+            replay = 0,
+            extraBufferCapacity = 64
+        )
+
+        val displayerτComponent = DisplayerτComponent(
+            SigmaApplication.getContext(),
+            testFlow = dummyStatesFlow
+        )
+
+        rule.mainClock.autoAdvance = false
+
+        rule.setContent {
+            displayerτComponent.MessageDisplayerτ()
+        }
+
+        dummyStatesFlow.emit(IncomingMessage(EMITTER__RECEPTION_ACKNOWLEDGMENT))
+
+        rule.mainClock.advanceTimeBy(2_000)
+
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
+            .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
+
+        dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSING_FILE, 5, 7))
+        rule.mainClock.advanceTimeBy(4_000)
+
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
+            .assertTextEquals(MessageFormat.format(DisplayerτComponent.PROCESSING_FILE_MESSAGE, 5, 7))
     }
 }
