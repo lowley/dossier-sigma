@@ -140,7 +140,7 @@ class DisplayerτComponent @Inject constructor(
             val index = state.value?.index
             val total = state.value?.total
 
-            if (index != null && total != null) {
+            if (index != null && total != null && index != 0 && total != 0) {
                 message = MessageFormat.format(
                     PROCESSING_FILE_MESSAGE,
                     state.value?.index,

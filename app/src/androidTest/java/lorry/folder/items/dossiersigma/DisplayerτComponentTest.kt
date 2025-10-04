@@ -22,7 +22,6 @@ import org.junit.runner.RunWith
 import org.junit.Rule
 import java.text.MessageFormat
 
-
 /**
  * Instrumented test, which will execute on an Android device.
  *
@@ -72,7 +71,7 @@ class DisplayerτComponentTest {
 
         dummyStatesFlow.emit(IncomingMessage(EMITTER__RECEPTION_ACKNOWLEDGMENT))
 
-        rule.mainClock.advanceTimeBy(2_000)
+        rule.mainClock.advanceTimeBy(3_000)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
@@ -137,5 +136,40 @@ class DisplayerτComponentTest {
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
             .assertTextEquals(MessageFormat.format(DisplayerτComponent.PROCESSING_FILE_MESSAGE, 5, 7))
+    }
+
+    @Test
+    fun `send n-N with parsing failure 0-0`() = runTest {
+        //arrange
+        val dummyStatesFlow = MutableSharedFlow<IncomingMessage>(
+            replay = 0,
+            extraBufferCapacity = 64
+        )
+
+        val displayerτComponent = DisplayerτComponent(
+            SigmaApplication.getContext(),
+            testFlow = dummyStatesFlow
+        )
+
+        rule.mainClock.autoAdvance = false
+
+        rule.setContent {
+            displayerτComponent.MessageDisplayerτ()
+        }
+
+        dummyStatesFlow.emit(IncomingMessage(EMITTER__RECEPTION_ACKNOWLEDGMENT))
+
+        rule.mainClock.advanceTimeBy(2_000)
+
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
+            .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
+
+        dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSING_FILE, 0, 0))
+        rule.mainClock.advanceTimeBy(4_000)
+
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
+            .assertTextEquals(DisplayerτComponent.ERROR_PROCESSING_FILE_MESSAGE)
     }
 }
