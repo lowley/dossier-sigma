@@ -8,12 +8,13 @@ object CommunicatorContract {
 
     const val EMITTER__RECEPTION_ACKNOWLEDGMENT = "reception_acknowledgement"
     const val EMITTER__PROCESSING_FILE = "processing_file"
+    const val EMITTER__PROCESSED_FILE = "processed_file"
 
 }
 
-sealed class Messageτ(val tubeContent: String){
+sealed class Messageτ(val tubeContent: String) {
 
-    object START_PROCEEDING: Messageτ("Start proceeding")
+    object START_PROCEEDING : Messageτ("Start proceeding")
 
 }
 
@@ -21,5 +22,6 @@ sealed class Messageτ(val tubeContent: String){
 data class IncomingMessage(
     val text: String,
     val index: Int = 0,
-    val total: Int = 0
+    val total: Int = 0,
+    val fileName: String = ""
 )

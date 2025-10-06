@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import blahblah.kommunicator.CommunicatorContract
+import blahblah.kommunicator.CommunicatorContract.EMITTER__PROCESSED_FILE
 import blahblah.kommunicator.CommunicatorContract.EMITTER__PROCESSING_FILE
 import blahblah.kommunicator.CommunicatorContract.EMITTER__RECEPTION_ACKNOWLEDGMENT
 import blahblah.kommunicator.IncomingMessage
@@ -81,8 +82,9 @@ class DisplayerτComponent @Inject constructor(
         const val WAITING_MESSAGE = "En attente ..."
         const val PROCESS_STARTED_MESSAGE = "Traitement en cours ..."
         const val NO_COMMUNICATION_MESSAGE = "Communication non établie"
-        const val ERROR_PROCESSING_FILE_MESSAGE = "Un fichier n'a pu être traité"
         const val PROCESSING_FILE_MESSAGE = "Traitement du fichier {0}/{1}"
+        const val PROCESSED_FILE_MESSAGE = "Traitement terminé {0}/{1}"
+        const val ERROR_FILE_MESSAGE = "{0} en erreur"
     }
 
     @Composable
@@ -124,11 +126,29 @@ class DisplayerτComponent @Inject constructor(
                 try {
                     withTimeout(2_000) {
                         statesFlow.collect { msg ->
-                            if (msg.text == EMITTER__PROCESSING_FILE) this@withTimeout.cancel()
+                            if (msg.text == EMITTER__PROCESSING_FILE) {
+                                if (
+                                    state.value?.index == null || state.value?.index == 0 ||
+                                    state.value?.total == null || state.value?.total == 0
+                                )
+                                    message = MessageFormat.format(
+                                        ERROR_FILE_MESSAGE, state?.value?.fileName
+                                    )
+                                else
+                                    message = MessageFormat.format(
+                                        PROCESSING_FILE_MESSAGE,
+                                        state?.value?.index,
+                                        state?.value?.total
+                                    )
+                                this@withTimeout.cancel()
+                            }
                         }
                     }
                     // si on sort par timeout → erreur
-                    message = ERROR_PROCESSING_FILE_MESSAGE
+                    message = MessageFormat.format(
+                        ERROR_FILE_MESSAGE, state?.value?.fileName
+                            ?.substringAfterLast("/")
+                    )
                     Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
                 } catch (_: TimeoutCancellationException) {
 
@@ -137,22 +157,50 @@ class DisplayerτComponent @Inject constructor(
         }
 
         if (state.hasText(EMITTER__PROCESSING_FILE)) {
-            val index = state.value?.index
-            val total = state.value?.total
+            LaunchedEffect(state.value?.text) {
+                // redémarre à chaque changement de type de message
+                try {
+                    withTimeout(2_000) {
+                        statesFlow.collect { msg ->
+                            if (msg.text == EMITTER__PROCESSED_FILE) {
+                                message = MessageFormat.format(
+                                    PROCESSED_FILE_MESSAGE,
+                                    state.value?.index,
+                                    state.value?.total
+                                )
+                                this@withTimeout.cancel()
+                            }
+                        }
+                    }
+                    // si on sort par timeout → erreur
+                    message = MessageFormat.format(
+                        ERROR_FILE_MESSAGE, state?.value?.fileName
+                            ?.substringAfterLast("/")
+                    )
+                    Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
+                } catch (_: TimeoutCancellationException) {
 
-            if (index != null && total != null && index != 0 && total != 0) {
-                message = MessageFormat.format(
-                    PROCESSING_FILE_MESSAGE,
-                    state.value?.index,
-                    state.value?.total
-                )
-                Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
-            } else {
-                // si message reçu pas le bon → erreur
-                message = ERROR_PROCESSING_FILE_MESSAGE
-                Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
+                }
             }
         }
+
+//        if (state.hasText(EMITTER__PROCESSED_FILE)) {
+//            val index = state.value?.index
+//            val total = state.value?.total
+//
+//            if (index != null && total != null && index != 0 && total != 0) {
+//                message = MessageFormat.format(
+//                    PROCESSED_FILE_MESSAGE,
+//                    state.value?.index,
+//                    state.value?.total
+//                )
+//                Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
+//            } else {
+//                // si message reçu pas le bon → erreur
+//                message = MessageFormat.format(ERROR_FILE_MESSAGE, state.value?.fileName?.substringAfterLast("/"))
+//                Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
+//            }
+//        }
 
         Log.d("tests", "MessageDisplayerτ - message affiché: $message")
 
@@ -171,6 +219,6 @@ fun androidx.compose.runtime.State<IncomingMessage?>.startsWithText(text: String
     this.value?.text?.startsWith(text) == true
 
 fun androidx.compose.runtime.State<IncomingMessage?>.toEMITTER__PROCESSING_FILE(): Pair<Int, Int>? =
-    this.value?.takeIf { it.text == EMITTER__PROCESSING_FILE }
+    this.value?.takeIf { it.text == EMITTER__PROCESSED_FILE }
         ?.let { (it.index ?: 0) to (it.total ?: 0) }
 

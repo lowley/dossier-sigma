@@ -4,8 +4,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import app.cash.turbine.test
-import blahblah.kommunicator.CommunicatorContract
+import blahblah.kommunicator.CommunicatorContract.EMITTER__PROCESSED_FILE
 import blahblah.kommunicator.CommunicatorContract.EMITTER__PROCESSING_FILE
 import blahblah.kommunicator.CommunicatorContract.EMITTER__RECEPTION_ACKNOWLEDGMENT
 import blahblah.kommunicator.IncomingMessage
@@ -104,7 +103,7 @@ class DisplayerτComponentTest {
     }
 
     @Test
-    fun `processing starts ⭢ send n-N`() = runTest {
+    fun `processing starts ⭢ send n-N init`() = runTest {
         //arrange
         val dummyStatesFlow = MutableSharedFlow<IncomingMessage>(
             replay = 0,
@@ -131,7 +130,7 @@ class DisplayerτComponentTest {
             .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
 
         dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSING_FILE, 5, 7))
-        rule.mainClock.advanceTimeBy(4_000)
+        rule.mainClock.advanceTimeBy(2_000)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
@@ -139,7 +138,7 @@ class DisplayerτComponentTest {
     }
 
     @Test
-    fun `send n-N with parsing failure 0-0`() = runTest {
+    fun `processing starts ⭢ send n-N end`() = runTest {
         //arrange
         val dummyStatesFlow = MutableSharedFlow<IncomingMessage>(
             replay = 0,
@@ -158,6 +157,49 @@ class DisplayerτComponentTest {
         }
 
         dummyStatesFlow.emit(IncomingMessage(EMITTER__RECEPTION_ACKNOWLEDGMENT))
+        rule.mainClock.advanceTimeBy(1_500)
+
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
+            .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
+
+        dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSING_FILE, 5, 7))
+        rule.mainClock.advanceTimeBy(1_990)
+
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
+            .assertTextEquals(MessageFormat.format(DisplayerτComponent.PROCESSING_FILE_MESSAGE, 5, 7))
+
+        dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSED_FILE, 5, 7))
+        rule.mainClock.advanceTimeBy(1_990)
+
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
+        rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
+            .assertTextEquals(MessageFormat.format(DisplayerτComponent.PROCESSED_FILE_MESSAGE, 5, 7))
+    }
+
+    @Test
+    fun `send n-N with parsing failure 0-0`() = runTest {
+        //arrange
+        val dummyStatesFlow = MutableSharedFlow<IncomingMessage>(
+            replay = 0,
+            extraBufferCapacity = 64
+        )
+
+        val displayerτComponent = DisplayerτComponent(
+            SigmaApplication.getContext(),
+            testFlow = dummyStatesFlow
+        )
+
+        val dummyFileName = "test1"
+
+        rule.mainClock.autoAdvance = false
+
+        rule.setContent {
+            displayerτComponent.MessageDisplayerτ()
+        }
+
+        dummyStatesFlow.emit(IncomingMessage(EMITTER__RECEPTION_ACKNOWLEDGMENT))
 
         rule.mainClock.advanceTimeBy(2_000)
 
@@ -165,11 +207,16 @@ class DisplayerτComponentTest {
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
             .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
 
-        dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSING_FILE, 0, 0))
+        dummyStatesFlow.emit(IncomingMessage(
+            EMITTER__PROCESSING_FILE,
+            0,
+            0,
+            fileName = dummyFileName))
         rule.mainClock.advanceTimeBy(4_000)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
-            .assertTextEquals(DisplayerτComponent.ERROR_PROCESSING_FILE_MESSAGE)
+            .assertTextEquals(MessageFormat.format(
+                DisplayerτComponent.ERROR_FILE_MESSAGE, dummyFileName))
     }
 }
