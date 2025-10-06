@@ -65,6 +65,7 @@ class MoveToNASWorker(
                 KEY_TARGET to target
             )
 
+            //! exécute [[doWork]]
             return OneTimeWorkRequestBuilder<MoveToNASWorker>()
                 .setInputData(data)
                 .addTag("move-to-nas-active")
@@ -82,6 +83,7 @@ class MoveToNASWorker(
     private val notificationManager =
         appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+    //#[[doWork]]
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
 

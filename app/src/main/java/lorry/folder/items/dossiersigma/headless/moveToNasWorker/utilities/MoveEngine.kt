@@ -40,7 +40,9 @@ class MoveEngine @Inject constructor(
                 sendMessageToThoApp(
                     context,
                     entry.fullPath,
-                    manifestUri = uri)
+                    manifestUri = uri,
+                    index = itemIndex,
+                    total = entries.size)
             }
 
             SigmaViewModel.requestRefresh()

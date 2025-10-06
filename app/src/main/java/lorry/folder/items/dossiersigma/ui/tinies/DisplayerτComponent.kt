@@ -41,10 +41,10 @@ import javax.inject.Singleton
 
 @Singleton
 class DisplayerτComponent @Inject constructor(
-    private val appContext: Context,
-    testFlow: Flow<IncomingMessage>? = null
+    private val appContext: Context
 ) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    var testFlow: Flow<IncomingMessage>? = null
 
     val realFlow: SharedFlow<IncomingMessage> = callbackFlow {
         val receiver = object : BroadcastReceiver() {
@@ -75,7 +75,8 @@ class DisplayerτComponent @Inject constructor(
 
     }.shareIn(scope = scope, started = SharingStarted.Lazily, replay = 0)
 
-    val statesFlow = testFlow ?: realFlow
+    val statesFlow: Flow<IncomingMessage>
+        get() = testFlow ?: realFlow
 
     companion object {
         const val MESSAGE_TAG = "message"

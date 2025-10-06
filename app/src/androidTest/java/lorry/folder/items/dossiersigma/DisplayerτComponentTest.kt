@@ -58,9 +58,9 @@ class DisplayerτComponentTest {
             extraBufferCapacity = 64
         )
         val displayerτComponent = DisplayerτComponent(
-            SigmaApplication.getContext(),
-            testFlow = dummyStatesFlow
+            SigmaApplication.getContext()
         )
+        displayerτComponent.testFlow = dummyStatesFlow
 
         rule.mainClock.autoAdvance = false
 
@@ -86,8 +86,8 @@ class DisplayerτComponentTest {
         )
         val displayerτComponent = DisplayerτComponent(
             SigmaApplication.getContext(),
-            testFlow = dummyStatesFlow
         )
+        displayerτComponent.testFlow = dummyStatesFlow
 
         rule.mainClock.autoAdvance = false
 
@@ -110,10 +110,12 @@ class DisplayerτComponentTest {
             extraBufferCapacity = 64
         )
 
+        val dummyFileName = "test1"
+
         val displayerτComponent = DisplayerτComponent(
             SigmaApplication.getContext(),
-            testFlow = dummyStatesFlow
         )
+        displayerτComponent.testFlow = dummyStatesFlow
 
         rule.mainClock.autoAdvance = false
 
@@ -129,12 +131,25 @@ class DisplayerτComponentTest {
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
             .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
 
-        dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSING_FILE, 5, 7))
+        dummyStatesFlow.emit(
+            IncomingMessage(
+                text = EMITTER__PROCESSING_FILE,
+                index = 5,
+                total = 7,
+                fileName = dummyFileName
+            )
+        )
         rule.mainClock.advanceTimeBy(2_000)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
-            .assertTextEquals(MessageFormat.format(DisplayerτComponent.PROCESSING_FILE_MESSAGE, 5, 7))
+            .assertTextEquals(
+                MessageFormat.format(
+                    DisplayerτComponent.PROCESSING_FILE_MESSAGE,
+                    5,
+                    7
+                )
+            )
     }
 
     @Test
@@ -147,8 +162,10 @@ class DisplayerτComponentTest {
 
         val displayerτComponent = DisplayerτComponent(
             SigmaApplication.getContext(),
-            testFlow = dummyStatesFlow
         )
+        displayerτComponent.testFlow = dummyStatesFlow
+
+        val dummyFileName = "test1"
 
         rule.mainClock.autoAdvance = false
 
@@ -163,19 +180,39 @@ class DisplayerτComponentTest {
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
             .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
 
-        dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSING_FILE, 5, 7))
+        dummyStatesFlow.emit(
+            IncomingMessage(
+                text = EMITTER__PROCESSING_FILE,
+                index = 5,
+                total = 7,
+                fileName = dummyFileName
+            )
+        )
+
         rule.mainClock.advanceTimeBy(1_990)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
-            .assertTextEquals(MessageFormat.format(DisplayerτComponent.PROCESSING_FILE_MESSAGE, 5, 7))
+            .assertTextEquals(
+                MessageFormat.format(
+                    DisplayerτComponent.PROCESSING_FILE_MESSAGE,
+                    5,
+                    7
+                )
+            )
 
         dummyStatesFlow.emit(IncomingMessage(EMITTER__PROCESSED_FILE, 5, 7))
         rule.mainClock.advanceTimeBy(1_990)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
-            .assertTextEquals(MessageFormat.format(DisplayerτComponent.PROCESSED_FILE_MESSAGE, 5, 7))
+            .assertTextEquals(
+                MessageFormat.format(
+                    DisplayerτComponent.PROCESSED_FILE_MESSAGE,
+                    5,
+                    7
+                )
+            )
     }
 
     @Test
@@ -188,8 +225,8 @@ class DisplayerτComponentTest {
 
         val displayerτComponent = DisplayerτComponent(
             SigmaApplication.getContext(),
-            testFlow = dummyStatesFlow
         )
+        displayerτComponent.testFlow = dummyStatesFlow
 
         val dummyFileName = "test1"
 
@@ -207,16 +244,23 @@ class DisplayerτComponentTest {
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
             .assertTextEquals(DisplayerτComponent.PROCESS_STARTED_MESSAGE)
 
-        dummyStatesFlow.emit(IncomingMessage(
-            EMITTER__PROCESSING_FILE,
-            0,
-            0,
-            fileName = dummyFileName))
+        dummyStatesFlow.emit(
+            IncomingMessage(
+                text = EMITTER__PROCESSING_FILE,
+                index = 0,
+                total = 0,
+                fileName = dummyFileName
+            )
+        )
+
         rule.mainClock.advanceTimeBy(4_000)
 
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG).assertExists()
         rule.onNodeWithTag(DisplayerτComponent.MESSAGE_TAG)
-            .assertTextEquals(MessageFormat.format(
-                DisplayerτComponent.ERROR_FILE_MESSAGE, dummyFileName))
+            .assertTextEquals(
+                MessageFormat.format(
+                    DisplayerτComponent.ERROR_FILE_MESSAGE, dummyFileName
+                )
+            )
     }
 }

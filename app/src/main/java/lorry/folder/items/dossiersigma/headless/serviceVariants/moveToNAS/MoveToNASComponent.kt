@@ -106,7 +106,9 @@ class MoveToNASComponent  constructor(
                         sendMessageToThoApp(
                             context,
                             source.first,
-                            manifestUri = manifestUriData!!)
+                            manifestUri = manifestUriData!!,
+                            index = index,
+                            total = filesToTransferData.size,)
                         println("message envoyé")
                     }
 
@@ -121,7 +123,13 @@ class MoveToNASComponent  constructor(
     }
 }
 
-fun sendMessageToThoApp(context: Context, videoFile: String, manifestUri: String) {
+fun sendMessageToThoApp(
+    context: Context,
+    videoFile: String,
+    manifestUri: String,
+    index: Int,
+    total: Int
+) {
     try {
         val uri = Uri.parse(manifestUri)
 
@@ -130,6 +138,8 @@ fun sendMessageToThoApp(context: Context, videoFile: String, manifestUri: String
             action = "CopieurTho2.CREATE_SHORTCUT_RECEIVE_MESSAGE"
             putExtra("Dossiersigma.EXTRA_MESSAGE_CONTENT", videoFile)
             putExtra("Dossiersigma.EXTRA_FILE_URI", uri)
+            putExtra("Dossiersigma.INDEX", index)
+            putExtra("Dossiersigma.TOTAL", total)
 
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
 

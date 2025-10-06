@@ -116,6 +116,7 @@ import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 import lorry.folder.items.dossiersigma.ui.memo.MemoViewModel
 import lorry.folder.items.dossiersigma.ui.folderContent.items.ItemsComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.ItemsViewModel
+import lorry.folder.items.dossiersigma.ui.tinies.DisplayerτComponent
 
 //endregion
 
@@ -181,6 +182,9 @@ class SigmaActivity : ComponentActivity() {
 
     @Inject
     lateinit var indexBar: IIndexBar
+
+    @Inject
+    lateinit var displayerτComponent: DisplayerτComponent
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -742,37 +746,34 @@ class SigmaActivity : ComponentActivity() {
 //                                        contentDescription = null
 //                                    )
 
+                                    displayerτComponent.MessageDisplayerτ()
 //
 
-                                    if (nasText != "1 -> NAS")
-                                        Text(
-                                            modifier = Modifier
-                                                .align(Alignment.CenterVertically)
-                                                .padding(end = 5.dp),
-                                            text = nasText,
-                                            color = SigmaColors.current.onPrimary,
-                                            maxLines = 1,
-                                            fontWeight = if (nasText != "1 -> NAS" &&
-                                                allNasText != "Tous -> NAS"
-                                            ) FontWeight.Bold else FontWeight.Normal
-                                        )
-                                    else
-                                        if (allNasText != "Tous -> NAS")
-                                            Text(
-                                                modifier = Modifier
-                                                    .align(Alignment.CenterVertically)
-                                                    .padding(end = 5.dp),
-                                                text = allNasText,
-                                                color = SigmaColors.current.onPrimary,
-                                                maxLines = 1,
-                                                fontWeight = if (nasText != "1 -> NAS" &&
-                                                    allNasText != "Tous -> NAS"
-                                                ) FontWeight.Bold else FontWeight.Normal
-                                            )
-
-
-
-
+//                                    if (nasText != "1 -> NAS")
+//                                        Text(
+//                                            modifier = Modifier
+//                                                .align(Alignment.CenterVertically)
+//                                                .padding(end = 5.dp),
+//                                            text = nasText,
+//                                            color = SigmaColors.current.onPrimary,
+//                                            maxLines = 1,
+//                                            fontWeight = if (nasText != "1 -> NAS" &&
+//                                                allNasText != "Tous -> NAS"
+//                                            ) FontWeight.Bold else FontWeight.Normal
+//                                        )
+//                                    else
+//                                        if (allNasText != "Tous -> NAS")
+//                                            Text(
+//                                                modifier = Modifier
+//                                                    .align(Alignment.CenterVertically)
+//                                                    .padding(end = 5.dp),
+//                                                text = allNasText,
+//                                                color = SigmaColors.current.onPrimary,
+//                                                maxLines = 1,
+//                                                fontWeight = if (nasText != "1 -> NAS" &&
+//                                                    allNasText != "Tous -> NAS"
+//                                                ) FontWeight.Bold else FontWeight.Normal
+//                                            )
 
 
                                 }
