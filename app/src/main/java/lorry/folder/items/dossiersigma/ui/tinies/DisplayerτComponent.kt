@@ -68,7 +68,13 @@ class DisplayerτComponent @Inject constructor(
         val flags = Context.RECEIVER_EXPORTED
         val filter = IntentFilter(CommunicatorContract.ACTION)
 
-        appContext.registerReceiver(receiver, filter, flags)
+        appContext.registerReceiver(
+            receiver,
+            filter,
+            CommunicatorContract.PERMISISON,
+            null,
+            flags
+        )
 
         //le flux détecte la fin du message et ferme le receiver
         awaitClose { appContext.unregisterReceiver(receiver) }
@@ -92,116 +98,59 @@ class DisplayerτComponent @Inject constructor(
     fun MessageDisplayerτ() {
 
         val state = statesFlow.collectAsState(initial = null)
+        var previousState: IncomingMessage? by remember { mutableStateOf(null) }
+        var currentState: IncomingMessage? by remember { mutableStateOf(null) }
+
+        LaunchedEffect(state.value) {
+            previousState = currentState
+            currentState = state.value
+        }
+
         var message by remember { mutableStateOf(WAITING_MESSAGE) }
 
-//        LaunchedEffect(states.value) {
-//            val currentValue = states.value
-//
-//
-//        }
-
-        if (state.value == null) {
-            LaunchedEffect(Unit) {
-                delay(2_000)
-                message = NO_COMMUNICATION_MESSAGE
+        LaunchedEffect(currentState) {
+            if (previousState == null &&
+                currentState?.text == EMITTER__RECEPTION_ACKNOWLEDGMENT
+            ) {
+                message = PROCESS_STARTED_MESSAGE
                 Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
             }
 
-            // 2) Détection de sortie anticipée de A : on passe à C
-            DisposableEffect(Unit) {
-                onDispose {
-                    if (message != NO_COMMUNICATION_MESSAGE && state.hasText(
-                            EMITTER__RECEPTION_ACKNOWLEDGMENT
+            if (previousState?.text == EMITTER__RECEPTION_ACKNOWLEDGMENT) {
+                if (currentState?.text == EMITTER__PROCESSING_FILE) {
+                    if (
+                        currentState?.index == null || currentState?.index == 0 ||
+                        currentState?.total == null || currentState?.total == 0
+                    )
+                        message = MessageFormat.format(
+                            ERROR_FILE_MESSAGE, currentState?.fileName
                         )
-                    ) {
-                        message = PROCESS_STARTED_MESSAGE
-                        Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
-                    }
+                    else
+                        message = MessageFormat.format(
+                            PROCESSING_FILE_MESSAGE,
+                            currentState?.index,
+                            currentState?.total
+                        )
                 }
             }
-        }
 
-        if (state.hasText(EMITTER__RECEPTION_ACKNOWLEDGMENT)) {
-            LaunchedEffect(state.value?.text) {
-                // redémarre à chaque changement de type de message
-                try {
-                    withTimeout(2_000) {
-                        statesFlow.collect { msg ->
-                            if (msg.text == EMITTER__PROCESSING_FILE) {
-                                if (
-                                    state.value?.index == null || state.value?.index == 0 ||
-                                    state.value?.total == null || state.value?.total == 0
-                                )
-                                    message = MessageFormat.format(
-                                        ERROR_FILE_MESSAGE, state?.value?.fileName
-                                    )
-                                else
-                                    message = MessageFormat.format(
-                                        PROCESSING_FILE_MESSAGE,
-                                        state?.value?.index,
-                                        state?.value?.total
-                                    )
-                                this@withTimeout.cancel()
-                            }
-                        }
-                    }
+            if (previousState?.text == EMITTER__PROCESSING_FILE) {
+                if (currentState?.text == EMITTER__PROCESSED_FILE) {
+                    message = MessageFormat.format(
+                        PROCESSED_FILE_MESSAGE,
+                        currentState?.index,
+                        currentState?.total
+                    )
+                } else {
                     // si on sort par timeout → erreur
                     message = MessageFormat.format(
-                        ERROR_FILE_MESSAGE, state?.value?.fileName
+                        ERROR_FILE_MESSAGE, currentState?.fileName
                             ?.substringAfterLast("/")
                     )
                     Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
-                } catch (_: TimeoutCancellationException) {
-
                 }
             }
         }
-
-        if (state.hasText(EMITTER__PROCESSING_FILE)) {
-            LaunchedEffect(state.value?.text) {
-                // redémarre à chaque changement de type de message
-                try {
-                    withTimeout(2_000) {
-                        statesFlow.collect { msg ->
-                            if (msg.text == EMITTER__PROCESSED_FILE) {
-                                message = MessageFormat.format(
-                                    PROCESSED_FILE_MESSAGE,
-                                    state.value?.index,
-                                    state.value?.total
-                                )
-                                this@withTimeout.cancel()
-                            }
-                        }
-                    }
-                    // si on sort par timeout → erreur
-                    message = MessageFormat.format(
-                        ERROR_FILE_MESSAGE, state?.value?.fileName
-                            ?.substringAfterLast("/")
-                    )
-                    Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
-                } catch (_: TimeoutCancellationException) {
-
-                }
-            }
-        }
-
-//        if (state.hasText(EMITTER__PROCESSED_FILE)) {
-//            val index = state.value?.index
-//            val total = state.value?.total
-//
-//            if (index != null && total != null && index != 0 && total != 0) {
-//                message = MessageFormat.format(
-//                    PROCESSED_FILE_MESSAGE,
-//                    state.value?.index,
-//                    state.value?.total
-//                )
-//                Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
-//            } else {
-//                // si message reçu pas le bon → erreur
-//                message = MessageFormat.format(ERROR_FILE_MESSAGE, state.value?.fileName?.substringAfterLast("/"))
-//                Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
-//            }
-//        }
 
         Log.d("tests", "MessageDisplayerτ - message affiché: $message")
 
@@ -212,7 +161,6 @@ class DisplayerτComponent @Inject constructor(
     }
 }
 
-
 fun androidx.compose.runtime.State<IncomingMessage?>.hasText(text: String): Boolean =
     this.value?.text == text
 
@@ -222,4 +170,5 @@ fun androidx.compose.runtime.State<IncomingMessage?>.startsWithText(text: String
 fun androidx.compose.runtime.State<IncomingMessage?>.toEMITTER__PROCESSING_FILE(): Pair<Int, Int>? =
     this.value?.takeIf { it.text == EMITTER__PROCESSED_FILE }
         ?.let { (it.index ?: 0) to (it.total ?: 0) }
+
 
