@@ -126,7 +126,7 @@ class MoveToNASWorker(
                 if (currentPercent != percent) {
                     setProgress(workDataOf(P_ITEMS to total, P_INDEX to index, P_PCT to percent))
                     withContext(Dispatchers.Main) {
-                        updateNotif("Copie en cours", "$index / $total: $percent%")
+                        updateNotif("Copie en cours", "${index + 1} / $total: $percent%")
                     }
                     currentPercent = percent
                 }

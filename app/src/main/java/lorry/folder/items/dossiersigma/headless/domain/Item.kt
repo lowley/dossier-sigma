@@ -154,3 +154,15 @@ data class ColoredTag(
     }
 }
 
+object EmptyItem: Item(
+    path = "",
+    name = "",
+    picture = null,
+    id = UUID.randomUUID().toString(),
+    modificationDate = 0L,
+    tag = null,
+    scale = null,
+    memo = null,
+    size = null
+)
+

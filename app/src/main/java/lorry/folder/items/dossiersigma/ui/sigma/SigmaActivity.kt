@@ -746,36 +746,39 @@ class SigmaActivity : ComponentActivity() {
 //                                        contentDescription = null
 //                                    )
 
-                                    displayerτComponent.MessageDisplayerτ()
-//
+                                    val displayerτ by displayerτComponent.statesFlow.collectAsState(null)
 
-//                                    if (nasText != "1 -> NAS")
-//                                        Text(
-//                                            modifier = Modifier
-//                                                .align(Alignment.CenterVertically)
-//                                                .padding(end = 5.dp),
-//                                            text = nasText,
-//                                            color = SigmaColors.current.onPrimary,
-//                                            maxLines = 1,
-//                                            fontWeight = if (nasText != "1 -> NAS" &&
-//                                                allNasText != "Tous -> NAS"
-//                                            ) FontWeight.Bold else FontWeight.Normal
-//                                        )
-//                                    else
-//                                        if (allNasText != "Tous -> NAS")
-//                                            Text(
-//                                                modifier = Modifier
-//                                                    .align(Alignment.CenterVertically)
-//                                                    .padding(end = 5.dp),
-//                                                text = allNasText,
-//                                                color = SigmaColors.current.onPrimary,
-//                                                maxLines = 1,
-//                                                fontWeight = if (nasText != "1 -> NAS" &&
-//                                                    allNasText != "Tous -> NAS"
-//                                                ) FontWeight.Bold else FontWeight.Normal
-//                                            )
+                                    Box(Modifier
+                                        .align(Alignment.CenterVertically)
+                                    ) {
 
-
+                                        if (displayerτ != null && displayerτComponent.somethingToDisplay)
+                                            displayerτComponent.MessageDisplayerτ()
+                                        else
+                                            if (nasText != "1 -> NAS")
+                                                Text(
+                                                    modifier = Modifier
+                                                        .padding(end = 5.dp),
+                                                    text = nasText,
+                                                    color = SigmaColors.current.onPrimary,
+                                                    maxLines = 1,
+                                                    fontWeight = if (nasText != "1 -> NAS" &&
+                                                        allNasText != "Tous -> NAS"
+                                                    ) FontWeight.Bold else FontWeight.Normal
+                                                )
+                                            else
+                                                if (allNasText != "Tous -> NAS")
+                                                    Text(
+                                                        modifier = Modifier
+                                                            .padding(end = 5.dp),
+                                                        text = allNasText,
+                                                        color = SigmaColors.current.onPrimary,
+                                                        maxLines = 1,
+                                                        fontWeight = if (nasText != "1 -> NAS" &&
+                                                            allNasText != "Tous -> NAS"
+                                                        ) FontWeight.Bold else FontWeight.Normal
+                                                    )
+                                    }
                                 }
 
                                 ///////////////////////////

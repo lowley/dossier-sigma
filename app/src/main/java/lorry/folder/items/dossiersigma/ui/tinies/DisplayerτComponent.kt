@@ -45,6 +45,7 @@ class DisplayerτComponent @Inject constructor(
 ) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     var testFlow: Flow<IncomingMessage>? = null
+    var somethingToDisplay = false
 
     val realFlow: SharedFlow<IncomingMessage> = callbackFlow {
         val receiver = object : BroadcastReceiver() {
@@ -112,6 +113,7 @@ class DisplayerτComponent @Inject constructor(
             if (previousState == null &&
                 currentState?.text == EMITTER__RECEPTION_ACKNOWLEDGMENT
             ) {
+                somethingToDisplay = true
                 message = PROCESS_STARTED_MESSAGE
                 Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
             }
@@ -119,7 +121,7 @@ class DisplayerτComponent @Inject constructor(
             if (previousState?.text == EMITTER__RECEPTION_ACKNOWLEDGMENT) {
                 if (currentState?.text == EMITTER__PROCESSING_FILE) {
                     if (
-                        currentState?.index == null || currentState?.index == 0 ||
+                        currentState?.index == null ||
                         currentState?.total == null || currentState?.total == 0
                     )
                         message = MessageFormat.format(
@@ -141,14 +143,19 @@ class DisplayerτComponent @Inject constructor(
                         currentState?.index,
                         currentState?.total
                     )
-                } else {
-                    // si on sort par timeout → erreur
-                    message = MessageFormat.format(
-                        ERROR_FILE_MESSAGE, currentState?.fileName
-                            ?.substringAfterLast("/")
-                    )
-                    Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
                 }
+//                else {
+//                    // si on sort par timeout → erreur
+//                    message = MessageFormat.format(
+//                        ERROR_FILE_MESSAGE, currentState?.fileName
+//                            ?.substringAfterLast("/")
+//                    )
+//                    Log.d("tests", "MessageDisplayerτ - attribution à message: $message")
+//                }
+
+                delay(5_000)
+                message = WAITING_MESSAGE
+                somethingToDisplay = false
             }
         }
 
