@@ -1,25 +1,21 @@
 package lorry.folder.items.dossiersigma.headless.shortcuts
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.folder.items.copieurtho2.R
-import lorry.folder.items.copieurtho2.__data.userPreferences.DSI_UserPreferences
-import lorry.folder.items.copieurtho2.components.collectToState
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
+import lorry.folder.items.dossiersigma.external.userPreferences.DSI_UserPreferences
 import lorry.folder.items.dossiersigma.headless.domain.EmptyItem
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
@@ -27,7 +23,6 @@ import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URL
-import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,7 +32,6 @@ class ShortcutUseCase @Inject constructor(
     private val fileRepo: IDiskRepository,
     private val userPreferences: DSI_UserPreferences,
     private val scope: CoroutineScope,
-    @ApplicationContext private val context: Context
 ) {
     val destinationShortcuts = mutableMapOf<String, MutableSet<String>>()
     val currentFileShortcuts = mutableSetOf<String>()
@@ -66,7 +60,7 @@ class ShortcutUseCase @Inject constructor(
                 .substringAfterLast('\\')  // ne garde que le nom
                 .split('.')
             parts.forEach {
-                destinationShortcuts.getOrPut(it) { mutableSetOf() }.add(dir)
+                destinationShortcuts.getOrPut(it) { mutableSetOf() }.add(dir.fullPath)
             }
         }
     }
@@ -125,98 +119,77 @@ class ShortcutUseCase @Inject constructor(
         }
 
         //shortcuts de création
-        currentFileShortcuts.filter { sc -> sc.startsWith('+') }.forEach { sc ->
-            val parts = sc.split('+').filter { it.isNotEmpty() }
-            val firstLevel = parts[0]
-            val totalFirstLevel = "$root/$firstLevel"
-
-            var goodFirstLevel = destinationFolders.value
-                .firstOrNull { folder -> folder.endsWith(firstLevel) }
-
-            var hasGoodFirstLevel = goodFirstLevel != null
-
-            //premier level inconnu
-            if (!hasGoodFirstLevel) {
-                addDestination(totalFirstLevel)
-            }
-
-            val otherParts = parts.drop(1)
-
-            val secondLevels: List<String> = fileRepo.getFolderItems(totalFirstLevel,
-                SortingCriterion.ByNameAsc).filter { it.isFolder() }.map { it.fullPath }
-
-            val found = secondLevels.firstOrNull { secondLevel ->
-                return@firstOrNull otherParts.all { part ->
-                    secondLevel.contains(part)
-                }
-            }
-
-            //secondLevel pas trouvé : il faut le créer
-            if (found == null)
-                File("$totalFirstLevel/${otherParts.joinToString(".")}").mkdir()
-
-            //shorten
-            val videoNamePartsWithStars =
-                currentFileShortcuts.filter { sc -> sc.startsWith('+') }
-            var modifiedVideoName = video.name
-            videoNamePartsWithStars.forEach { part ->
-                val newPart = part
-                    .split('+')
-                    .filter { subPart -> subPart.isNotEmpty() }
-                    .drop(1).take(1).get(0)
-                Log.d(TAG, "newPart: $newPart")
-
-                modifiedVideoName = modifiedVideoName
-                    .replace(part, newPart)
-            }
-
-            //create shortcuts
-            val correctVideoName = Uri.encode(modifiedVideoName)
-            val destPath = "$totalFirstLevel/${otherParts.joinToString(".")}"
-            val destFullPath = "$destPath/${modifiedVideoName.replace(".mp4", ".html")}"
-            val encodedMp4 = "/videos/$correctVideoName"
+//        currentFileShortcuts.filter { sc -> sc.startsWith('+') }.forEach { sc ->
+//            val parts = sc.split('+').filter { it.isNotEmpty() }
+//            val firstLevel = parts[0]
+//            val totalFirstLevel = "$root/$firstLevel"
+//
+//            var goodFirstLevel = destinationFolders.value
+//                .firstOrNull { folder -> folder.endsWith(firstLevel) }
+//
+//            var hasGoodFirstLevel = goodFirstLevel != null
+//
+//            //premier level inconnu
+//            if (!hasGoodFirstLevel) {
+//                addDestination(totalFirstLevel)
+//            }
+//
+//            val otherParts = parts.drop(1)
+//
+//            val secondLevels: List<String> = fileRepo.getFolderItems(
+//                totalFirstLevel,
+//                SortingCriterion.ByNameAsc
+//            ).filter { it.isFolder() }.map { it.fullPath }
+//
+//            val found = secondLevels.firstOrNull { secondLevel ->
+//                return@firstOrNull otherParts.all { part ->
+//                    secondLevel.contains(part)
+//                }
+//            }
+//
+//            //secondLevel pas trouvé : il faut le créer
+//            if (found == null)
+//                File("$totalFirstLevel/${otherParts.joinToString(".")}").mkdir()
+//
+//            //shorten
+//            val videoNamePartsWithStars =
+//                currentFileShortcuts.filter { sc -> sc.startsWith('+') }
+//            var modifiedVideoName = video.name
+//            videoNamePartsWithStars.forEach { part ->
+//                val newPart = part
+//                    .split('+')
+//                    .filter { subPart -> subPart.isNotEmpty() }
+//                    .drop(1).take(1).get(0)
+//                Log.d(TAG, "newPart: $newPart")
+//
+//                modifiedVideoName = modifiedVideoName
+//                    .replace(part, newPart)
+//            }
+//
+//            //create shortcuts
+//            val correctVideoName = Uri.encode(modifiedVideoName)
+//            val destPath = "$totalFirstLevel/${otherParts.joinToString(".")}"
+//            val destFullPath = "$destPath/${modifiedVideoName.replace(".mp4", ".html")}"
+//            val encodedMp4 = "/videos/$correctVideoName"
+////            fileRepo.createShortcut(
+////                text(encodedMp4, "bsplayer", coverBitmap, coverBase64),
+////                destFullPath.replace(".mp4", " .html")
+////            )
 //            fileRepo.createShortcut(
-//                text(encodedMp4, "bsplayer", coverBitmap, coverBase64),
-//                destFullPath.replace(".mp4", " .html")
+//                text(encodedMp4, "vlc", coverBitmap, coverBase64),
+//                destFullPath
 //            )
-            fileRepo.createShortcut(
-                text(encodedMp4, "vlc", coverBitmap, coverBase64),
-                destFullPath
-            )
-        }
-    }
-
-    suspend fun writeOneHtmlWithPictureForVideo(
-        video: ThoFile, coverBitmapUrl: String? = null,
-        coverBase64: String? = null
-    ) {
-        var coverBitmap: Bitmap? = null
-        if (coverBitmapUrl != null)
-            coverBitmap = urlToBitmapSuspend(coverBitmapUrl)
-
-        val correctVideoName = Uri.encode(video.name)
-
-        val destFullPath = "/videos/pictures/${video.name.replace(".mp4", ".html")}"
-        val encodedMp4 = "/videos/$correctVideoName"
-        ftpDataSource.createShortcut(
-            text(encodedMp4, "vlc", coverBitmap, coverBase64),
-            destFullPath
-        )
-    }
-
-    private suspend fun addDestination(totalFirstLevel: String) {
-
-        fileRepo.createPath(totalFirstLevel)
-        userPreferences.add_destination_folder(totalFirstLevel)
+//        }
     }
 
     fun parseVideoName(video: SigmaFile) {
         currentFileShortcuts.clear()
         currentFileShortcuts.addAll(
             video.name
-                .substringAfter('.')       //après nom principal
                 .substringBeforeLast(".")   //avant .mp4
+                .replaceFirst("${video.name.substringBefore(".")}", "")  //après nom principal
                 .split('.')
+                .filterNot { it.isNullOrEmpty() }
                 .toMutableSet()
         )
         currentFileShortcuts.add("tous")
@@ -312,122 +285,6 @@ class ShortcutUseCase @Inject constructor(
         return destinationDirs
     }
 
-    suspend fun deleteHtmlFilesInDestinations() {
-        println("début des suppressions")
-
-        fun generateNotification(): (Int, String) -> Unit {
-            var notificationCount = 0
-            var lastNotificationMillis: Long = 0
-            return { deletedFilesCount: Int, name: String ->
-                if (System.currentTimeMillis() - lastNotificationMillis >= 1000) {
-                    updateNotification(
-                        "($deletedFilesCount) Suppression de $name",
-                        if (notificationCount % 2 == 0) R.drawable.medicament_haut else R.drawable.medicament_bas
-                    )
-                    lastNotificationMillis = System.currentTimeMillis()
-                    notificationCount++
-                }
-            }
-        }
-
-        var deletedFilesCount = 0
-        val notificationGenerator = generateNotification()
-
-        destinationFolders.value.forEach { firstLevel ->
-            println("Chemin testé : $firstLevel")
-            val fullSecondLevels = buildSecondLevels(firstLevel)
-
-            fullSecondLevels?.forEach { secondLevel ->
-                println("secondLevel: $secondLevel")
-                val htmls = fileRepo.fetchFiles(secondLevel, "html")
-
-                htmls?.forEach { file ->
-                    notificationGenerator(deletedFilesCount, file.name)
-                    fileRepo.deleteIfNotFolderPictureHtml(file)
-                    deletedFilesCount++
-                    println("Suppression de ${file.fullPath} ($deletedFilesCount)")
-                }
-            }
-        }
-        println("$deletedFilesCount fichiers supprimés")
-        updateNotification("En attente...", R.drawable.masque)
-        println("fin des suppressions")
-    }
-
-    private suspend fun buildSecondLevels(firstLevel: String): List<String>? {
-        var fullSecondLevels = fileRepo.fetchDirectories(firstLevel)
-        println("secondLevels: ${fullSecondLevels.size}")
-        return fullSecondLevels
-    }
-
-    suspend fun createHtmlFilesInDestinations() {
-        println("début des générations")
-
-        fun generateNotification(): (Int, String) -> Unit {
-            var notificationCount = 0
-            var lastNotificationMillis: Long = 0
-            return { createdShortcutsCount: Int, name: String ->
-                if (System.currentTimeMillis() - lastNotificationMillis >= 1000) {
-                    updateNotification(
-                        "($createdShortcutsCount) Création de $name",
-                        if (createdShortcutsCount % 2 == 0) R.drawable.medicament_haut else R.drawable.medicament_bas
-                    )
-                    lastNotificationMillis = System.currentTimeMillis()
-                    notificationCount++
-                }
-            }
-        }
-
-        var createdShortcutsCount = 0
-        val notificationGenerator = generateNotification()
-
-        createDestinationShortcutInventory()
-        var videos = ftpDataSource.fetchMP4Files(storageFolder.value)
-
-        videos?.forEach {
-            notificationGenerator(createdShortcutsCount, it.name)
-            traiteVideo(it)
-            createdShortcutsCount++
-            println("($createdShortcutsCount) - Création de ${it.name}")
-        }
-        updateNotification("En attente...", R.drawable.masque)
-        println("$createdShortcutsCount vidéos traitées pour raccourci html")
-        println("fin des générations")
-    }
-
-    fun updateNotification(message: String, icon: Int) {
-        showOrUpdateNotification(
-            context,
-            message,
-            icon
-        )  // Utilisation directe
-    }
-
-    fun showOrUpdateNotification(context: Context, message: String, icon: Int) {
-        val notificationManager = context.getSystemService(NotificationManager::class.java)
-        val channelId =
-            "my_foreground_service_channel" // Doit être le même pour toutes les mises à jour
-        val notificationId = 1 // Identifiant unique de la notification
-
-        // ⚡ Vérifier si le canal existe (obligatoire sur Android 8+)
-        val channel = NotificationChannel(
-            channelId,
-            "Service en cours",
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-        notificationManager.createNotificationChannel(channel)
-
-        // 🎨 Construire la notification
-        val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(icon)
-            .setContentTitle("Copieur Tho v2")
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-
-        // 🔄 Mettre à jour ou afficher la notification
-        notificationManager.notify(notificationId, notification)
-    }
 
     suspend fun manageHtmlFilesInDestinations(
         copyPictures: Boolean = false,
@@ -438,7 +295,7 @@ class ShortcutUseCase @Inject constructor(
 
         val onlyOneFile = onlyOneFileShortcutFile != EmptyItem
         if (onlyOneFile)
-            assert(onlyOneFileShortcutFile.picture is String)
+            assert(onlyOneFileShortcutFile.picture is String?)
 
         var createdShortcutsCount = 0
 
@@ -452,7 +309,7 @@ class ShortcutUseCase @Inject constructor(
 
         Log.d(TAG, "videos: ${videos.size}")
 
-        val imageGroups: MutableMap<String, String> = mutableMapOf()
+        val imageGroups: MutableMap<String, String?> = mutableMapOf()
 
         val mapFileFullPathToShortcuts: MutableMap<String, List<String>> = mutableMapOf()
         videos.forEachDebug { video ->
@@ -474,26 +331,35 @@ class ShortcutUseCase @Inject constructor(
                     ) == true
                 }
 
+            imageGroups.put(
+                nasVideo.fullPath,
+                onlyOneFileShortcutFile.picture as String?
+            )
+
             //répertoire où créer un shortcut pour ce fichier nasVideo
-            mapFullPathToShortcutForNasVideo.values.flatten().forEachDebug { folderFullPath ->
-                //collecte tous les html du répertoire
-                fileRepo.getFolderItems(folderFullPath, SortingCriterion.ByNameAsc).forEachDebug { collectedHtmlFile ->
-                    //html existe dans collectés? oui -> recup image base64 si possible
-                    //ajout dans mutableMap <fichier html, image base64>
-                    val imageBase64: String? = getBase64InHtml(collectedHtmlFile)
-
-                    if (onlyOneFile && onlyOneFileShortcutFile.picture != null)
-                        imageGroups.put(nasVideo.fullPath, onlyOneFileShortcutFile.picture as String)
-                    else
-                        if (collectedHtmlFile.name.replace(".html", "").trim()
-                            == nasVideo.name.substringBeforeLast(".").trim() &&
-                            imageBase64 != null
-                        )
-                            imageGroups.put(nasVideo.fullPath, imageBase64)
-                }
-
-                //notificationGenerator(createdShortcutsCount, htmlFile.name)
-            }
+//            mapFullPathToShortcutForNasVideo.values.flatten().forEachDebug { folderFullPath ->
+//                //collecte tous les html du répertoire
+//                fileRepo.getFolderItems(folderFullPath, SortingCriterion.ByNameAsc)
+//                    .forEachDebug { collectedHtmlFile ->
+//                        //html existe dans collectés? oui -> recup image base64 si possible
+//                        //ajout dans mutableMap <fichier html, image base64>
+//                        val imageBase64: String? = getBase64InHtml(collectedHtmlFile)
+//
+//                        if (onlyOneFile && onlyOneFileShortcutFile.picture != null)
+//                            imageGroups.put(
+//                                nasVideo.fullPath,
+//                                onlyOneFileShortcutFile.picture as String
+//                            )
+//                        else
+//                            if (collectedHtmlFile.name.replace(".html", "").trim()
+//                                == nasVideo.name.substringBeforeLast(".").trim() &&
+//                                imageBase64 != null
+//                            )
+//                                imageGroups.put(nasVideo.fullPath, imageBase64)
+//                    }
+//
+//                //notificationGenerator(createdShortcutsCount, htmlFile.name)
+//            }
         }
 
         Log.d(TAG, "après ajouts, imageGroups: ${imageGroups.size}")
@@ -513,8 +379,8 @@ class ShortcutUseCase @Inject constructor(
             //répertoire où devraient être les shortcuts
             mapFileFullPathToShortcuts[nasVideo.fullPath]?.map { sc -> mapShortcutToDirectories[sc] }
                 ?.forEachDebug { folder ->
-                    val htmlFile = SigmaFile(
-                        fullPath = "${nasVideo.fullPath.substringBeforeLast(".")}.html",
+                    val videoFile = SigmaFile(
+                        fullPath = nasVideo.fullPath,
                         picture = null,
                         modificationDate = 0L,
                         tag = null,
@@ -537,18 +403,18 @@ class ShortcutUseCase @Inject constructor(
                     if (retrievedImage != null)
                         Log.d(
                             TAG,
-                            "création de ${htmlFile.fullPath} avec image ${retrievedImage.length}"
+                            "création de ${videoFile.fullPath} avec image ${retrievedImage.length}"
                         )
                     else
-                        Log.d(TAG, "création de ${htmlFile.fullPath} sans image")
+                        Log.d(TAG, "création de ${videoFile.fullPath} sans image")
 
                     traiteVideo(
-                        htmlFile,
+                        videoFile,
                         coverBase64 = retrievedImage,
                         rootDir = rootDir
                     )
 
-                    Log.d(TAG, "${htmlFile.name} traité")
+                    Log.d(TAG, "${videoFile.name} traité")
                 }
         }
 
@@ -558,239 +424,12 @@ class ShortcutUseCase @Inject constructor(
 
     }
 
-    suspend fun importHtmlsWithImagesFromNAS(display: suspend (String) -> Unit, rootDir: String) {
-
-        println("début des générations améliorées")
-
-        fun generateNotification(): (Int, String) -> Unit {
-            var notificationCount = 0
-            var lastNotificationMillis: Long = 0
-            return { createdShortcutsCount: Int, name: String ->
-                if (System.currentTimeMillis() - lastNotificationMillis >= 1000) {
-                    updateNotification(
-                        "($createdShortcutsCount) Création de $name",
-                        if (createdShortcutsCount % 2 == 0) R.drawable.medicament_haut else R.drawable.medicament_bas
-                    )
-                    lastNotificationMillis = System.currentTimeMillis()
-                    notificationCount++
-                }
-            }
-        }
-
-        //lecture du NAS, récup des htmls
-
-        var createdShortcutsCount = 0
-        val notificationGenerator = generateNotification()
-
-        createDestinationShortcutInventory()
-        println("THO: dest shortcuts: ${destinationShortcuts.keys.size}")
-
-        display("Récupération des images sur le NAS...")
-
-        var videos = ftpDataSource.fetchHtmlFiles("/videos/pictures", display) ?: emptyList()
-        println("THO: videos: ${videos.size}")
-
-        val imageGroups: MutableMap<String, String> = mutableMapOf()
-
-        val mapFileFullpathToShortcuts: MutableMap<String, List<String>> = mutableMapOf()
-        videos.forEach { video ->
-            mapFileFullpathToShortcuts.put(
-                video.fullPath,
-                video.fullPath.substringBefore(".html").substringAfter(".").split(".") + "tous"
-            )
-        }
-
-        videos.forEach { nasVideo ->
-            if (!nasVideo.pictureBase64.isNullOrEmpty()) {
-                imageGroups.put(nasVideo.fullPath, nasVideo.pictureBase64)
-            }
-        }
-
-        videos.forEach { nasVideo ->
-            //map: videos -> liste des répertoires de ses shortcuts
-
-            val mapShortcutsToDirectories =
-                destinationShortcuts.filterKeys { shortcut ->
-                    mapFileFullpathToShortcuts[nasVideo.fullPath]?.contains(
-                        shortcut
-                    ) == true
-                }
-
-            println("THO: après ajouts, imageGroups: ${imageGroups.size}")
-
-            display("suppression des htmls...")
-
-            //suppression de tous les html
-            //répertoire où devraient être les shortcuts
-            destinationFolders.value.forEach()
-            { folder ->
-                fileRepo.fetchFiles(folder, "html")?.forEach { htmlFile ->
-                    if (mapShortcutsToDirectories.keys.contains(htmlFile.fullPath))
-                        fileRepo.deleteIfNotFolderPictureHtml(htmlFile)
-                }
-
-                File(folder).listFiles().filter { it.isDirectory }.forEach { folder2nd ->
-                    fileRepo.fetchFiles(folder2nd.absolutePath, "html")?.forEach { htmlFile ->
-                        if (mapShortcutsToDirectories.keys.contains(htmlFile.fullPath))
-                            fileRepo.deleteIfNotFolderPictureHtml(htmlFile)
-                    }
-                }
-            }
-
-            display("htmls supprimés")
-
-            videos.forEach() { nasVideo ->
-                display("Traitement de ${nasVideo.name}")
-
-                val mapShortcutToDirectories =
-                    destinationShortcuts.filterKeys { shortcut ->
-                        mapFileFullpathToShortcuts[nasVideo.fullPath]?.contains(
-                            shortcut
-                        ) == true
-                    }
-
-                //création de chaque html avec image si existe dans mutableMap
-                //répertoire où devraient être les shortcuts
-                mapFileFullpathToShortcuts[nasVideo.fullPath]?.map { sc -> mapShortcutToDirectories[sc] }
-                    ?.forEach { folder ->
-                        val htmlFile = ThoFile(
-                            name = nasVideo.name,
-                            timestamp = Calendar.Builder().build(),
-                            size = 0,
-                            fullPath = nasVideo.fullPath,
-                            isVideoFile = false,
-                            isHtmlFile = true,
-                            null
-                        )
-                        val retrievedImage = imageGroups[nasVideo.fullPath]
-                        if (retrievedImage != null || nasVideo.pictureBase64 != null) {
-                            display("THO: création de ${htmlFile.name} avec image ${retrievedImage?.length}")
-
-                            traiteVideo(
-                                htmlFile,
-                                coverBase64 = retrievedImage,
-                                rootDir = rootDir
-                            )
-                        }
-
-                        println("THO: ${htmlFile.name} traité")
-                    }
-
-            }
-
-//        updateNotification("En attente...", R.drawable.masque)
-//        println("$createdShortcutsCount vidéos traitées pour raccourci html")
-//        println("fin des générations")
-
-        }
-    }
-
-    suspend fun copyPicturesToNAS() {
-        println("début de la copie")
-
-        fun generateNotification(): (Int, String) -> Unit {
-            var notificationCount = 0
-            var lastNotificationMillis: Long = 0
-            return { createdShortcutsCount: Int, name: String ->
-                if (System.currentTimeMillis() - lastNotificationMillis >= 1000) {
-                    updateNotification(
-                        "($createdShortcutsCount) Création de $name",
-                        if (createdShortcutsCount % 2 == 0) R.drawable.medicament_haut else R.drawable.medicament_bas
-                    )
-                    lastNotificationMillis = System.currentTimeMillis()
-                    notificationCount++
-                }
-            }
-        }
-
-        var createdShortcutsCount = 0
-        val notificationGenerator = generateNotification()
-
-        createDestinationShortcutInventory()
-        println("THO: dest shortcuts: ${destinationShortcuts.keys.size}")
-
-        var videos = ftpDataSource.fetchMP4Files(storageFolder.value) ?: emptyList()
-        println("THO: videos: ${videos.size}")
-
-        val imageGroups: MutableMap<String, String> = mutableMapOf()
-
-        val mapFileFullpathToShortcuts: MutableMap<String, List<String>> = mutableMapOf()
-        videos.forEach { video ->
-            mapFileFullpathToShortcuts.put(
-                video.fullPath,
-                video.fullPath.substringBefore(".mp4").substringAfter(".").split(".") + "tous"
-            )
-        }
-
-        videos.forEach { nasVideo ->
-            //map: videos -> liste des répertoires de ses shortcuts
-
-            val mapShortcutsToDirectories =
-                destinationShortcuts.filterKeys { shortcut ->
-                    mapFileFullpathToShortcuts[nasVideo.fullPath]?.contains(
-                        shortcut
-                    ) == true
-                }
-
-            //répertoire où peuvent être les shortcuts de ce fichier nasVideo
-            mapShortcutsToDirectories.values.flatten().forEach { folder ->
-                //collecte tous les html du répertoire
-                fileRepo.fetchFiles(folder, "html")?.forEach { collectedHtmlFile ->
-
-
-                    //html existe dans collectés? oui -> recup image base64 si possible
-                    //ajout dans mutableMap <fichier html, image base64>
-                    val imageBase64: String? = fileRepo.getBase64InHtml(collectedHtmlFile)
-                    if (collectedHtmlFile.name.replace(".html", "").trim()
-                        == nasVideo.name.replace(".mp4", "").trim() &&
-                        imageBase64 != null
-                    )
-                        imageGroups.put(nasVideo.fullPath, imageBase64)
-                }
-
-                //notificationGenerator(createdShortcutsCount, htmlFile.name)
-            }
-        }
-
-        println("THO: après ajouts, imageGroups: ${imageGroups.size}")
-
-        videos.forEach() { nasVideo ->
-            val mapShortcutToDirectories =
-                destinationShortcuts.filterKeys { shortcut ->
-                    mapFileFullpathToShortcuts[nasVideo.fullPath]?.contains(
-                        shortcut
-                    ) == true
-                }
-
-            //création de chaque html avec image si existe dans mutableMap
-            //répertoire où devraient être les shortcuts
-            mapFileFullpathToShortcuts[nasVideo.fullPath]?.map { sc -> mapShortcutToDirectories[sc] }
-                ?.forEach { folder ->
-                    val htmlFile = ThoFile(
-                        name = nasVideo.name,
-                        timestamp = Calendar.Builder().build(),
-                        size = 0,
-                        fullPath = nasVideo.fullPath.replace(".mp4", ".html"),
-                        isVideoFile = false,
-                        isHtmlFile = true,
-                        null
-                    )
-                    val retrievedImage = imageGroups[nasVideo.fullPath]
-                    if (retrievedImage != null)
-                        println("THO: création de ${htmlFile.name} avec image ${retrievedImage.length}")
-                    else
-                        println("THO: création de ${htmlFile.name}")
-
-                    if (retrievedImage != null)
-                        writeOneHtmlWithPictureForVideo(
-                            htmlFile,
-                            coverBase64 = retrievedImage
-                        )
-
-                    println("THO: ${htmlFile.name} traité")
-                }
-        }
-    }
+//    private suspend fun addDestination(totalFirstLevel: String) {
+//=
+//        File(totalFirstLevel).mkdir()
+//        settingsManager.
+//        userPreferences.add_destination_folder(totalFirstLevel)
+//    }
 
     init {
         scope.collectToState(userPreferences.destination_folders, _destinationFolders)
@@ -812,4 +451,16 @@ suspend fun getBase64InHtml(file: Item): String? {
     val base64Image = match.groupValues[1]
 
     return base64Image
+}
+
+fun <T> CoroutineScope.collectToState(
+    flow: Flow<T>,
+    state: MutableStateFlow<T>,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
+    this.launch(dispatcher) {
+        flow.collect { value ->
+            state.value = value
+        }
+    }
 }

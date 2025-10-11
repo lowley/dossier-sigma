@@ -183,13 +183,14 @@ fun SigmaActivity.SigmaFAB(
 
 private fun SigmaActivity.copyEntireFolderToNAS() {
     mainViewModel.viewModelScope.launch {
-        val currentFolderItems =
-                mainViewModel.folderContentComponent
+        val currentFolderItems = mainViewModel.folderContentComponent
                     .currentFolderFlow.value?.items ?: emptyList()
+
+        var picture64: String? = null
 
         val files = currentFolderItems.map {
             val picture = it.picture
-            val picture64 = if (picture != null && picture is Bitmap)
+            picture64 = if (picture != null && picture is Bitmap)
                 mainViewModel.base64Embedder.bitmapToBase64(picture as Bitmap)
             else null
 
@@ -218,13 +219,13 @@ private fun SigmaActivity.copyEntireFolderToNAS() {
         //* fin aire des images enregistrées dans un fichier
 
         val nasDirectory =
-            this@SigmaActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull()
-                ?: ""
+            this@SigmaActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull() ?: ""
 
         val req = MoveToNASWorker.request(
             manifestPath = manifestFile.absolutePath,
             target = nasDirectory,
-            manifestUri = contentUri.toString()
+            manifestUri = contentUri.toString(),
+            picture64 = picture64
         )
 
         WorkManager.getInstance(this@SigmaActivity)

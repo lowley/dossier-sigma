@@ -56,13 +56,14 @@ class MoveToNASWorker(
         fun request(
             target: String,
             manifestPath: String,
-            manifestUri: String
+            manifestUri: String,
+            picture64: String?
         ): OneTimeWorkRequest {
 
             val data = workDataOf(
                 KEY_MANIFEST_PATH to manifestPath,
                 KEY_MANIFEST_URI to manifestUri,
-                KEY_TARGET to target
+                KEY_TARGET to target,
             )
 
             //! exécute [[doWork]]
@@ -148,7 +149,7 @@ class MoveToNASWorker(
                 callback,
                 isCancelled = { isStopped },
                 path = path,
-                uri = uri
+                uri = uri,
             )
 
             updateNotif("Copie terminée", "$total fichier(s) copiés")

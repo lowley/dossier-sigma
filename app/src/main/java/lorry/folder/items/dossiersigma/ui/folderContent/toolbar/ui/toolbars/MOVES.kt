@@ -72,9 +72,8 @@ object MOVES : Tools() {
                         // current //
                         /////////////
 
-                        val picture = viewModel?.folderContentComponent
-                            ?.folderCacheFlow?.value[viewModel.selectedItemFullPath.value]
-                            ?.folder?.picture
+                        val picture = toolBarManager.toolbarComponent.toolsViewModel.itemToMove
+                            ?.picture
 
 //                            val picture =
 //                                viewModel.imageCache.value[viewModel.selectedItemFullPath.value]
@@ -112,7 +111,8 @@ object MOVES : Tools() {
                         val req = MoveToNASWorker.Companion.request(
                             manifestPath = manifestFile.absolutePath,
                             target = nasDirectory,
-                            manifestUri = contentUri.toString()
+                            manifestUri = contentUri.toString(),
+                            picture64 = picture64
                         )
 
                         WorkManager.Companion.getInstance(mainActivity)

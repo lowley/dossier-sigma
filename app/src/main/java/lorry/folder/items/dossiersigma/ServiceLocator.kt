@@ -5,10 +5,19 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import lorry.folder.items.dossiersigma.external.base64.Base64DataSource
+import lorry.folder.items.dossiersigma.external.disk.DiskDataSource
+import lorry.folder.items.dossiersigma.external.disk.DiskRepository
+import lorry.folder.items.dossiersigma.external.intent.DS_IntentWrapper
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.external.nas.DS_FTP
+import lorry.folder.items.dossiersigma.external.userPreferences.DS_UserPreferences
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
+import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
 
 object ServiceLocator {
 
@@ -36,6 +45,17 @@ object ServiceLocator {
         MoveEngine(
             dsFTP = dsFtp(ctx),
             nasUtilities = nasUtilities(ctx),
-            context = ctx.applicationContext
+            context = ctx.applicationContext,
+            shortcutUseCase = ShortcutUseCase(
+                ftpDataSource = dsFtp(ctx),
+                fileRepo = DiskRepository(
+                    datasource = DiskDataSource(),
+                    base64DataSource = Base64DataSource(),
+                    intentWrapper = DS_IntentWrapper()
+                ),
+                userPreferences = DS_UserPreferences(ctx),
+                scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
+            )
         )
 }
