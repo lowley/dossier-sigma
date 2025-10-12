@@ -54,8 +54,6 @@ object ServiceLocator {
                     intentWrapper = DS_IntentWrapper()
                 ),
                 userPreferences = DS_UserPreferences(ctx),
-                scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
             )
         )
 }

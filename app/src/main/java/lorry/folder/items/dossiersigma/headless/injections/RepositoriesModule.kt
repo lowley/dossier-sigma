@@ -13,12 +13,15 @@ import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ActivityScoped
 import dagger.hilt.components.SingletonComponent
+import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.external.clipboard.IClipboardRepository
 import lorry.folder.items.dossiersigma.external.disk.DiskRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
+import lorry.folder.items.dossiersigma.external.userPreferences.DSI_UserPreferences
+import lorry.folder.items.dossiersigma.external.userPreferences.DS_UserPreferences
 import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.service.IServiceComponent
@@ -100,6 +103,13 @@ class HeadlessModule1 {
             context = context,
             rawFeed = rawFeed
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideDSIUSerPreferences(
+    ): DSI_UserPreferences {
+        return DS_UserPreferences(SigmaApplication.getContext())
     }
 
     @Provides

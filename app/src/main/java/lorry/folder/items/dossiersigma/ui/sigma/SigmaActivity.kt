@@ -16,6 +16,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -25,15 +26,15 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,14 +62,13 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -87,6 +87,7 @@ import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.folderContentBack.ReloadType
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
+import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.files.ChangePathUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeViewModel
@@ -165,6 +166,9 @@ class SigmaActivity : ComponentActivity() {
 
     @Inject
     lateinit var breadcrumbComponent: BreadcrumbComponent
+
+    @Inject
+    lateinit var shortcutUseCase: ShortcutUseCase
 
     //cf [[ToolBarManager]]
     val mainViewModel: SigmaViewModel by viewModels()
@@ -663,6 +667,7 @@ class SigmaActivity : ComponentActivity() {
 
                                 val nasText by folderContentFrontComponent.copyNASText.collectAsState()
                                 val allNasText by folderContentFrontComponent.copyAllNASText.collectAsState()
+                                val shortcutsInfoContent by shortcutUseCase.shortcutInfoContent.collectAsState()
 
                                 Row(
                                     modifier = Modifier
@@ -684,101 +689,83 @@ class SigmaActivity : ComponentActivity() {
                                             }
                                         }
                                 ) {
-//                                    val ctx = LocalContext.current
-//                                    val isRunning =
-//                                        settingsViewModel.settings.isFileObserverEnabledFlow.collectAsState(
-//                                            initial = false
-//                                        )
-//                                    val realFreshness by
-//                                    settingsViewModel.settings.testFreshnessFlow.collectAsState(
+                                    val infoToShow: Pair<String, Int>? = when {
+                                        shortcutsInfoContent != null -> shortcutsInfoContent
+                                        nasText != "1 -> NAS" -> " $nasText " to R.drawable.cube
+                                        allNasText != "Tous -> NAS" -> " $allNasText " to R.drawable.cubes
+                                        else -> null
+                                    }
+
+                                    if (infoToShow != null)
+                                        Box(
+                                            Modifier
+                                                .align(Alignment.CenterVertically)
+                                        ) {
+                                            AssistChip(
+                                                modifier = Modifier
+                                                    .padding(start = 5.dp, end = 5.dp),
+                                                onClick = {
+                                                    MoveToNASWorker.sourceFolderInPath.matchAction(
+                                                        someAction = { path ->
+                                                            mainViewModel.goToFolder(path)
+                                                        },
+                                                        noneAction = {
+                                                            //on ne fait rien
+                                                        }
+                                                    )
+                                                },
+                                                label = { Text(infoToShow.first) },
+                                                leadingIcon = {
+                                                    Icon(
+                                                        painter = painterResource(infoToShow.second),
+                                                        contentDescription = null,
+                                                        tint = SigmaColors.current.tertiary,
+                                                        modifier = Modifier.size(AssistChipDefaults.IconSize)
+                                                    )
+                                                },
+                                                colors = AssistChipDefaults.assistChipColors(
+                                                    containerColor = lerp(
+                                                        SigmaColors.current.primary,
+                                                        SigmaColors.current.secondary,
+                                                        0.1f
+                                                    ),
+                                                    labelColor = SigmaColors.current.onPrimary,
+                                                ),
+                                                border = BorderStroke(1.dp, Color.Yellow)
+                                            )
+
+//                                    val displayerτ by displayerτComponent.statesFlow.collectAsState(
 //                                        null
 //                                    )
-//                                    val theoricalFreshness by
-//                                    mainViewModel.folderContentComponent.folderCacheFlow
-//                                        .map {
-//                                            it[mainViewModel.folderContentComponent.currentFolderFlow.value?.fullPath]
-//                                                ?.freshness
-//                                        }.collectAsState(null)
 //
-//                                    Log.d(
-//                                        "SigmaActivitos",
-//                                        "realF:${realFreshness.hashCode()}, theo:${theoricalFreshness.hashCode()}"
-//                                    )
-//
-////                                    Button(
-////                                        modifier = Modifier,
-////                                        onClick = {
-////                                            if (isRunning.value)
-////                                                ctx.stopDaemon()
-////                                            else
-////                                                ctx.startDaemon()
-////                                        }
-////                                    ) {
-//
-//                                    val reloadType =
-//                                        mainViewModel.folderContentComponent.reloadType.collectAsState()
-//
-//                                    val reloadIcon = when (reloadType.value) {
-//                                        ReloadType.Disk -> R.drawable.disquette
-//                                        ReloadType.Cache -> R.drawable.cpu
-//                                        ReloadType.Room -> R.drawable.horloge
-//                                        else -> R.drawable.point_dinterrogation
-//                                    }
-//
-//                                    Icon(
-//                                        modifier = Modifier
-//                                            .padding(end = 10.dp)
-//                                            .size(20.dp)
-//                                            .pointerInput(true) {
-//                                                detectTapGestures(
-//                                                    onTap = {
-//
-//                                                    }
+//                                        if (displayerτ != null && displayerτComponent.somethingToDisplay)
+//                                            displayerτComponent.MessageDisplayerτ()
+//                                        else
+//                                            if (nasText != "1 -> NAS")
+//                                                Text(
+//                                                    modifier = Modifier
+//                                                        .padding(end = 5.dp),
+//                                                    text = nasText,
+//                                                    color = SigmaColors.current.onPrimary,
+//                                                    maxLines = 1,
+//                                                    fontWeight = if (nasText != "1 -> NAS" &&
+//                                                        allNasText != "Tous -> NAS"
+//                                                    ) FontWeight.Bold else FontWeight.Normal
 //                                                )
-//                                            },
-//                                        painter = painterResource(reloadIcon),
-//                                        tint = when (reloadType.value) {
-//                                            ReloadType.Disk -> Color.Red
-//                                            ReloadType.Cache -> Color.Green
-//                                            ReloadType.Room -> Color.Yellow
-//                                            else -> Color.Black
-//                                        },
-//                                        contentDescription = null
-//                                    )
-
-                                    val displayerτ by displayerτComponent.statesFlow.collectAsState(null)
-
-                                    Box(Modifier
-                                        .align(Alignment.CenterVertically)
-                                    ) {
-
-                                        if (displayerτ != null && displayerτComponent.somethingToDisplay)
-                                            displayerτComponent.MessageDisplayerτ()
-                                        else
-                                            if (nasText != "1 -> NAS")
-                                                Text(
-                                                    modifier = Modifier
-                                                        .padding(end = 5.dp),
-                                                    text = nasText,
-                                                    color = SigmaColors.current.onPrimary,
-                                                    maxLines = 1,
-                                                    fontWeight = if (nasText != "1 -> NAS" &&
-                                                        allNasText != "Tous -> NAS"
-                                                    ) FontWeight.Bold else FontWeight.Normal
-                                                )
-                                            else
-                                                if (allNasText != "Tous -> NAS")
-                                                    Text(
-                                                        modifier = Modifier
-                                                            .padding(end = 5.dp),
-                                                        text = allNasText,
-                                                        color = SigmaColors.current.onPrimary,
-                                                        maxLines = 1,
-                                                        fontWeight = if (nasText != "1 -> NAS" &&
-                                                            allNasText != "Tous -> NAS"
-                                                        ) FontWeight.Bold else FontWeight.Normal
-                                                    )
-                                    }
+//                                            else
+//                                                if (allNasText != "Tous -> NAS")
+//                                                    Text(
+//                                                        modifier = Modifier
+//                                                            .padding(end = 5.dp),
+//                                                        text = allNasText,
+//                                                        color = SigmaColors.current.onPrimary,
+//                                                        maxLines = 1,
+//                                                        fontWeight = if (nasText != "1 -> NAS" &&
+//                                                            allNasText != "Tous -> NAS"
+//                                                        ) FontWeight.Bold else FontWeight.Normal
+//                                                    )
+//                                    }
+                                        }
                                 }
 
                                 ///////////////////////////

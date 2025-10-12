@@ -1,16 +1,22 @@
 package lorry.folder.items.dossiersigma.headless.shortcuts
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import android.util.Log
+import androidx.core.content.ContextCompat
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
@@ -31,7 +37,6 @@ class ShortcutUseCase @Inject constructor(
     val ftpDataSource: DSI_FTP,
     private val fileRepo: IDiskRepository,
     private val userPreferences: DSI_UserPreferences,
-    private val scope: CoroutineScope,
 ) {
     val destinationShortcuts = mutableMapOf<String, MutableSet<String>>()
     val currentFileShortcuts = mutableSetOf<String>()
@@ -42,10 +47,27 @@ class ShortcutUseCase @Inject constructor(
     private val _storageFolder = MutableStateFlow("")
     val storageFolder: StateFlow<String> = _storageFolder
 
+    val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    
+    ///////////////////////////////////////////////////////////////////
+    // affichage de messages d'avancement de la création du shortcut //
+    ///////////////////////////////////////////////////////////////////
+    private val _shortcutInfoContent = MutableStateFlow<Pair<String, Int>?>(null)
+    val shortcutInfoContent = _shortcutInfoContent.asStateFlow()
+
+    fun setShortcutInfoContentToValue(value: String, icon: Int){
+        _shortcutInfoContent.update { Pair(value, icon) }
+    }
+
+    fun setShortcutInfoContentToNull(){
+        _shortcutInfoContent.update { null }
+    }
+
+
+
     companion object {
         const val TAG = "ShrtcutUC"
     }
-
 
     suspend fun createDestinationShortcutInventory() {
 
@@ -293,6 +315,10 @@ class ShortcutUseCase @Inject constructor(
     ) {
         Log.d(TAG, "début des générations améliorées")
 
+        setShortcutInfoContentToValue(
+            value= "prépa...",
+            icon = lorry.folder.items.dossiersigma.R.drawable.chaine)
+
         val onlyOneFile = onlyOneFileShortcutFile != EmptyItem
         if (onlyOneFile)
             assert(onlyOneFileShortcutFile.picture is String?)
@@ -335,34 +361,13 @@ class ShortcutUseCase @Inject constructor(
                 nasVideo.fullPath,
                 onlyOneFileShortcutFile.picture as String?
             )
-
-            //répertoire où créer un shortcut pour ce fichier nasVideo
-//            mapFullPathToShortcutForNasVideo.values.flatten().forEachDebug { folderFullPath ->
-//                //collecte tous les html du répertoire
-//                fileRepo.getFolderItems(folderFullPath, SortingCriterion.ByNameAsc)
-//                    .forEachDebug { collectedHtmlFile ->
-//                        //html existe dans collectés? oui -> recup image base64 si possible
-//                        //ajout dans mutableMap <fichier html, image base64>
-//                        val imageBase64: String? = getBase64InHtml(collectedHtmlFile)
-//
-//                        if (onlyOneFile && onlyOneFileShortcutFile.picture != null)
-//                            imageGroups.put(
-//                                nasVideo.fullPath,
-//                                onlyOneFileShortcutFile.picture as String
-//                            )
-//                        else
-//                            if (collectedHtmlFile.name.replace(".html", "").trim()
-//                                == nasVideo.name.substringBeforeLast(".").trim() &&
-//                                imageBase64 != null
-//                            )
-//                                imageGroups.put(nasVideo.fullPath, imageBase64)
-//                    }
-//
-//                //notificationGenerator(createdShortcutsCount, htmlFile.name)
-//            }
         }
 
         Log.d(TAG, "après ajouts, imageGroups: ${imageGroups.size}")
+
+        setShortcutInfoContentToValue(
+            value= "créations...",
+            icon = lorry.folder.items.dossiersigma.R.drawable.chaine)
 
         videos.forEachDebug() { nasVideo ->
 
@@ -388,17 +393,6 @@ class ShortcutUseCase @Inject constructor(
                         memo = null
                     )
 
-
-//                    val htmlFile = ThoFile(
-//                        name = nasVideo.name,
-//                        timestamp = Calendar.Builder().build(),
-//                        size = 0,
-//                        fullPath = "${nasVideo.fullPath.substringBeforeLast(".")}.html",
-//                        isVideoFile = false,
-//                        isHtmlFile = true,
-//                        null
-//                    )
-
                     val retrievedImage = imageGroups[nasVideo.fullPath]
                     if (retrievedImage != null)
                         Log.d(
@@ -417,6 +411,10 @@ class ShortcutUseCase @Inject constructor(
                     Log.d(TAG, "${videoFile.name} traité")
                 }
         }
+
+        setShortcutInfoContentToValue(
+            value= "terminé",
+            icon = lorry.folder.items.dossiersigma.R.drawable.chaine)
 
 //        updateNotification("En attente...", R.drawable.masque)
 //        println("$createdShortcutsCount vidéos traitées pour raccourci html")

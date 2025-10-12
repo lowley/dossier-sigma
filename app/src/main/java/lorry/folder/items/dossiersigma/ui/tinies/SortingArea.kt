@@ -54,7 +54,14 @@ fun SortingArea(
                     containerColor = SigmaColors.current.secondary,
                     labelColor = SigmaColors.current.onPrimary,
                 ),
-                label = { Text("Date") },
+                label = {
+                    Icon(
+                        painterResource(id = R.drawable.calendrier),
+                        contentDescription = null,
+                        modifier = Modifier.Companion.size(24.dp),
+                        tint = SigmaColors.current.secondary
+                    )
+                },
                 modifier = Modifier.Companion,
                 leadingIcon = {
                     Icon(
@@ -75,7 +82,14 @@ fun SortingArea(
                     containerColor = SigmaColors.current.secondary,
                     labelColor = SigmaColors.current.onPrimary,
                 ),
-                label = { Text("Nom") },
+                label = {
+                    Icon(
+                        painterResource(id = R.drawable.alphabet),
+                        contentDescription = null,
+                        modifier = Modifier.Companion.size(24.dp),
+                        tint = SigmaColors.current.secondary
+                    )
+                },
                 modifier = Modifier.Companion,
 //                    .align(Alignment.CenterVertically),
                 selected = false,
@@ -117,6 +131,7 @@ fun FilterChip2(
     ){
         Row(
             modifier = Modifier
+                .padding(5.dp)
                 .clickable {onClick()}
         ){
 
