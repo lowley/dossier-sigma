@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -414,10 +415,8 @@ class ShortcutUseCase @Inject constructor(
             value= "terminé",
             icon = lorry.folder.items.dossiersigma.R.drawable.chaine)
 
-//        updateNotification("En attente...", R.drawable.masque)
-//        println("$createdShortcutsCount vidéos traitées pour raccourci html")
-//        println("fin des générations")
-
+        delay(1_800)
+        setShortcutInfoContentToNull()
     }
 
 //    private suspend fun addDestination(totalFirstLevel: String) {
