@@ -94,6 +94,7 @@ dependencies {
     kspTest(libs.hilt.android.compiler)
     //tester si méthode existe
     testImplementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
+    ksp(libs.androidx.hilt.compiler)
 
     // --- Android instrumented tests (androidTestImplementation) ---
     androidTestImplementation(libs.androidx.junit)              // AndroidX JUnit 1.2.1
@@ -118,7 +119,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.hilt.common)
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.androidx.hilt.work)
+//    implementation(libs.androidx.hilt.work)
     implementation(libs.androidx.compose.livedata)
     implementation(libs.androidx.lifecycle.service)
 

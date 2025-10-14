@@ -7,17 +7,51 @@ import android.content.Context
 import android.os.StrictMode
 import androidx.core.content.ContextCompat
 import androidx.work.Configuration
+import androidx.work.WorkManager
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
+import lorry.folder.items.dossiersigma.ServiceLocator.dsFtp
+import lorry.folder.items.dossiersigma.ServiceLocator.nasUtilities
+import lorry.folder.items.dossiersigma.external.base64.Base64DataSource
 import javax.inject.Inject
 import lorry.folder.items.dossiersigma.external.capsule.utilities.AppContextProvider
+import lorry.folder.items.dossiersigma.external.disk.DiskDataSource
+import lorry.folder.items.dossiersigma.external.disk.DiskRepository
+import lorry.folder.items.dossiersigma.external.intent.DS_IntentWrapper
+import lorry.folder.items.dossiersigma.external.userPreferences.DS_UserPreferences
+import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
+import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
 
 @HiltAndroidApp
 class SigmaApplication() : Application(), Configuration.Provider {
 
+    private val moveEngine by lazy {
+        MoveEngine(
+            dsFTP = dsFtp(this),
+            nasUtilities = nasUtilities(this),
+            context = this.applicationContext,
+            shortcutUseCase = ShortcutUseCase(
+                ftpDataSource = dsFtp(this),
+                fileRepo = DiskRepository(
+                    datasource = DiskDataSource(),
+                    base64DataSource = Base64DataSource(),
+                    intentWrapper = DS_IntentWrapper()
+                ),
+                userPreferences = DS_UserPreferences(this),
+            )
+        )
+    }
+
+    private val workerFactory by lazy { AppWorkerFactory(moveEngine) }
+
     override fun onCreate() {
         super.onCreate()
         instance = this
+
+        val config = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+        WorkManager.initialize(this, config)
 
         StrictMode.setVmPolicy(
             StrictMode.VmPolicy.Builder()
@@ -31,17 +65,18 @@ class SigmaApplication() : Application(), Configuration.Provider {
             "Clipboard Monitoring",
             NotificationManager.IMPORTANCE_DEFAULT
         )
-        val notificationManager = ContextCompat.getSystemService(this, NotificationManager::class.java)
+        val notificationManager =
+            ContextCompat.getSystemService(this, NotificationManager::class.java)
         notificationManager?.createNotificationChannel(channel)
     }
 
-    @Inject
-    lateinit var workerFactory: androidx.hilt.work.HiltWorkerFactory
-
     override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
+        get() {
+            android.util.Log.d("SigmaApp", "Providing WM config with AppWorkerFactory")
+            return Configuration.Builder()
+                .setWorkerFactory(workerFactory)
+                .build()
+        }
 
     companion object {
         lateinit var instance: SigmaApplication
@@ -49,7 +84,7 @@ class SigmaApplication() : Application(), Configuration.Provider {
 
         val APPLICATION_NAME = "SigmaApplication"
 
-        fun getContext(): Context{
+        fun getContext(): Context {
             return EntryPointAccessors.fromApplication(
                 instance, AppContextProvider::class.java
             ).getContext()

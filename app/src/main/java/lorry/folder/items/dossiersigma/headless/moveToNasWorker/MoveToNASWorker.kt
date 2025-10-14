@@ -9,6 +9,7 @@ import android.content.pm.ServiceInfo
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.BackoffPolicy
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -20,11 +21,14 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.petertackage.kotlinoptions.Option
 import com.petertackage.kotlinoptions.optionOf
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ServiceLocator
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.IMoveProgress
+import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import java.io.File
 import java.time.Duration
@@ -35,9 +39,10 @@ import java.time.temporal.ChronoUnit
  * Il remplace l'ancien MoveToNASService pour garantir l'exécution
  * même si l'application est fermée.
  */
-class MoveToNASWorker(
+class MoveToNASWorker (
     appContext: Context,
     workerParams: WorkerParameters,
+    private val engine: MoveEngine
 ) : CoroutineWorker(appContext, workerParams) {
 
     companion object {
@@ -88,7 +93,7 @@ class MoveToNASWorker(
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
 
-        val engine = ServiceLocator.moveEngine(applicationContext)
+//        val engine = ServiceLocator.moveEngine(applicationContext)
 
         val uri = inputData.getString(KEY_MANIFEST_URI) ?: return Result.failure()
         val path = inputData.getString(KEY_MANIFEST_PATH) ?: return Result.failure()
@@ -197,7 +202,6 @@ class MoveToNASWorker(
     }
 
     private fun ensureChannel() {
-
         val nm =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (nm.getNotificationChannel(CHANNEL_ID) == null)
