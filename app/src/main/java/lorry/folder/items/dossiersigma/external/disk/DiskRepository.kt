@@ -105,14 +105,14 @@ class DiskRepository @Inject constructor(
                         val nameLower = dto.name.lowercase(java.util.Locale.getDefault())
 
                         var picture: Any? = basePicture
-                        if (picture == null && nameLower.endsWith(".html")) {
+                        if ((picture == null || picture is Integer) && nameLower.endsWith(".html")) {
                             try {
                                 picture = base64DataSource.extractImageFromHtml(itemPath)
                             } catch (e: Exception) {
                                 println("Erreur cover HTML: ${e.message}")
                             }
                         }
-                        if (picture == null && nameLower.endsWith(".mp4")) {
+                        if ((picture == null || picture is Integer) && nameLower.endsWith(".mp4")) {
                             try {
                                 picture = extractCoverBitmap(itemPath)
                             } catch (e: Exception) {

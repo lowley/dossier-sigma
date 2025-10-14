@@ -111,11 +111,11 @@ class FolderContentBackComponent constructor(
     ////////////////////////
 // reload par refresh //
 ////////////////////////
-    private val refreshReloadTrigger2 = MutableStateFlow(0)
+    private val refreshReloadTrigger2 = MutableStateFlow(UUID.randomUUID())
 
     override fun reloadCurrentFolderByRefresh2() {
         Log.d("badam", "reloadCurrentFolderByRefresh() called", Throwable())
-        refreshReloadTrigger2.value = refreshReloadTrigger2.value + 1 // redéclenchement immédiat
+        refreshReloadTrigger2.value = UUID.randomUUID()
     }
 
     val dao = FolderCacheEntryDB.get(context)

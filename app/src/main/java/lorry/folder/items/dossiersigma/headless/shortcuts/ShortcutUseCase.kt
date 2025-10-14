@@ -48,7 +48,7 @@ class ShortcutUseCase @Inject constructor(
     val storageFolder: StateFlow<String> = _storageFolder
 
     val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    
+
     ///////////////////////////////////////////////////////////////////
     // affichage de messages d'avancement de la création du shortcut //
     ///////////////////////////////////////////////////////////////////
@@ -62,8 +62,6 @@ class ShortcutUseCase @Inject constructor(
     fun setShortcutInfoContentToNull(){
         _shortcutInfoContent.update { null }
     }
-
-
 
     companion object {
         const val TAG = "ShrtcutUC"
@@ -432,6 +430,7 @@ class ShortcutUseCase @Inject constructor(
     init {
         scope.collectToState(userPreferences.destination_folders, _destinationFolders)
         scope.collectToState(userPreferences.storage_folder, _storageFolder)
+        Log.d("ShortcutUC", "instance=" + System.identityHashCode(this))
     }
 }
 

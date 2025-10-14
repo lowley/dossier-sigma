@@ -6,7 +6,9 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.StrictMode
 import androidx.core.content.ContextCompat
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.DelegatingWorkerFactory
 import androidx.work.WorkManager
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
@@ -25,33 +27,11 @@ import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
 @HiltAndroidApp
 class SigmaApplication() : Application(), Configuration.Provider {
 
-    private val moveEngine by lazy {
-        MoveEngine(
-            dsFTP = dsFtp(this),
-            nasUtilities = nasUtilities(this),
-            context = this.applicationContext,
-            shortcutUseCase = ShortcutUseCase(
-                ftpDataSource = dsFtp(this),
-                fileRepo = DiskRepository(
-                    datasource = DiskDataSource(),
-                    base64DataSource = Base64DataSource(),
-                    intentWrapper = DS_IntentWrapper()
-                ),
-                userPreferences = DS_UserPreferences(this),
-            )
-        )
-    }
-
-    private val workerFactory by lazy { AppWorkerFactory(moveEngine) }
+    @Inject lateinit var hiltWorkerFactory: HiltWorkerFactory
 
     override fun onCreate() {
         super.onCreate()
         instance = this
-
-        val config = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
-        WorkManager.initialize(this, config)
 
         StrictMode.setVmPolicy(
             StrictMode.VmPolicy.Builder()
@@ -73,8 +53,9 @@ class SigmaApplication() : Application(), Configuration.Provider {
     override val workManagerConfiguration: Configuration
         get() {
             android.util.Log.d("SigmaApp", "Providing WM config with AppWorkerFactory")
+
             return Configuration.Builder()
-                .setWorkerFactory(workerFactory)
+                .setWorkerFactory(hiltWorkerFactory) // ou directement hiltWorkerFactory si tu n’as plus besoin de la tienne
                 .build()
         }
 

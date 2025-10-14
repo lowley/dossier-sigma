@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
+import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -34,14 +35,15 @@ import java.io.File
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
+@HiltWorker
 /**
  * Un Worker robuste pour transférer des fichiers vers le NAS.
  * Il remplace l'ancien MoveToNASService pour garantir l'exécution
  * même si l'application est fermée.
  */
-class MoveToNASWorker (
-    appContext: Context,
-    workerParams: WorkerParameters,
+class MoveToNASWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
     private val engine: MoveEngine
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -84,6 +86,10 @@ class MoveToNASWorker (
                 .addTag("move-to-nas")
                 .build()
         }
+    }
+
+    init{
+        Log.d("MoveToNasWorker", "instance=" + System.identityHashCode(this))
     }
 
     private val notificationManager =

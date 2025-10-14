@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities
 
 import android.content.Context
+import android.util.Log
 import javax.inject.Inject
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
@@ -16,6 +17,11 @@ class MoveEngine @Inject constructor(
     val context: Context,
     val shortcutUseCase: ShortcutUseCase
 ){
+    init{
+        Log.d("MoveEngine", "instance=" + System.identityHashCode(this))
+    }
+
+
     suspend fun copyAll(
         entries: List<ManifestEntry>,
         destDir: String,
