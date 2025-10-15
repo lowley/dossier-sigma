@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.system.Os
 import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.ToolbarComponent
@@ -16,7 +17,9 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.nio.file.Files
 import javax.inject.Inject
+import kotlin.io.path.Path
 import kotlin.system.measureTimeMillis
 
 
@@ -57,21 +60,28 @@ class MoveFileService @Inject constructor(
 
         println("copie de $source vers $destination")
 
-        Thread {
-            try {
-                copy(source, destination, suffix = addSuffix)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                stopSelf()
-            }
-
-            if (verify(source, destination) || File(source).isDirectory) 
-                delete(source)
-
+        if (sameDeviceId(source, destination)){
+            Files.move(Path(source), Path(destination))
             SigmaViewModel.requestRefresh()
             toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
             stopSelf()
-        }.start()
+        } else {
+            Thread {
+                try {
+                    copy(source, destination, suffix = addSuffix)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    stopSelf()
+                }
+
+                if (verify(source, destination) || File(source).isDirectory)
+                    delete(source)
+
+                SigmaViewModel.requestRefresh()
+                toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                stopSelf()
+            }.start()
+        }
 
         return START_NOT_STICKY
     }
@@ -122,6 +132,13 @@ class MoveFileService @Inject constructor(
 
         }
 
+    }
+
+    private fun sameDeviceId(source: String, destination: String): Boolean {
+        val sourceDeviceId = Os.stat(source)
+        val destDeviceId = Os.stat(destination)
+
+        return sourceDeviceId == destDeviceId
     }
 
     fun millisToHMS(millis: Long): String {

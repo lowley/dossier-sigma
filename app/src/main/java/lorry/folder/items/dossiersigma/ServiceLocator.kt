@@ -39,21 +39,4 @@ object ServiceLocator {
         nasUtilitiesSingleton ?: synchronized(this) {
             nasUtilitiesSingleton ?: NasUtilities(dsFtp(ctx)).also { nasUtilitiesSingleton = it }
         }
-
-    // --- MoveEngine (factory légère : stateless, on peut recréer si besoin) --
-    fun moveEngine(ctx: Context): MoveEngine =
-        MoveEngine(
-            dsFTP = dsFtp(ctx),
-            nasUtilities = nasUtilities(ctx),
-            context = ctx.applicationContext,
-            shortcutUseCase = ShortcutUseCase(
-                ftpDataSource = dsFtp(ctx),
-                fileRepo = DiskRepository(
-                    datasource = DiskDataSource(),
-                    base64DataSource = Base64DataSource(),
-                    intentWrapper = DS_IntentWrapper()
-                ),
-                userPreferences = DS_UserPreferences(ctx),
-            )
-        )
 }

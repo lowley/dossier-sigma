@@ -74,6 +74,8 @@ fun manageImageClick(viewModel: SigmaViewModel, imageUrl: String) {
     if (viewModel.selectedItem.value != null)
         viewModel.viewModelScope.launch {
             viewModel.updatePicture(imageUrl)
+            SigmaViewModel.requestRefresh()
+
         }
 }
 

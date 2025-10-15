@@ -15,7 +15,7 @@ class MoveEngine @Inject constructor(
     private val dsFTP: DSI_FTP,
     val nasUtilities: NasUtilities,
     val context: Context,
-    val shortcutUseCase: ShortcutUseCase
+    val shortcutUseCase: ShortcutUseCase,
 ){
     init{
         Log.d("MoveEngine", "instance=" + System.identityHashCode(this))

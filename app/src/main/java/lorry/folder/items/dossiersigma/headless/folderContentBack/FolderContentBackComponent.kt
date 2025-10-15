@@ -171,7 +171,7 @@ class FolderContentBackComponent constructor(
             decision = ReloadType.Cache
         }
 
-        if (origin == Origin.REFRESH_RELOAD_TRIGGER) {
+        if (origin == Origin.REFRESH_RELOAD_TRIGGER || origin == Origin.RELOAD_TRIGGER) {
             Log.d(TGfldw, "  -> COURT-CIRCUIT DECISION: origin=$origin -> *DISK*")
             Log.d(TGfldw, "     (cache=${folderCacheFlow.value[latestPath]})")
 

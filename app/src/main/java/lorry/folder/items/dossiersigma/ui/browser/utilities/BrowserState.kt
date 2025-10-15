@@ -22,7 +22,9 @@ data class BrowserState(
 ) {
     val url: String? = computeUrl(item, target)
     val commands get() = _bus.asSharedFlow()
-    fun send(cmd: BrowserCommand) { _bus.tryEmit(cmd) }
+    fun send(cmd: BrowserCommand) {
+        _bus.tryEmit(cmd)
+    }
 
     fun goForward() = send(BrowserCommand.goForward)
     fun goBack() = send(BrowserCommand.goBack)
@@ -57,24 +59,26 @@ data class BrowserState(
             val byPart = prepared1.indexOfFirst { it == "by" }
 
             val prepared2 = if (byPart != -1) {
-                val tiretIndex = prepared1.indexOfFirst {
-                    it == "-" && prepared1.indexOf(it) > byPart
-                }
+                (byPart..prepared1.lastIndex).firstOrNull {
+                    prepared1[it] == "-"
+                }?.let { byIndex ->
                 prepared1
-                    .take(tiretIndex)
+                    .take(byIndex)
                     .filter { it != "by" }
-            } else prepared1
+            } ?: prepared1
+        } else
+            prepared1
 
-            searchString = prepared2
-                .joinToString("+") {
-                    it.replace("(", "")
-                        .replace(")", "")
-                }
+        searchString = prepared2
+            .joinToString("+") {
+                it.replace("(", "")
+                    .replace(")", "")
+            }
 
-        }
-
-        return target.url + searchString
     }
+
+    return target.url + searchString
+}
 }
 
 sealed interface BrowserCommand {
