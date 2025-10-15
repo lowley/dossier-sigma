@@ -8,10 +8,18 @@ import android.content.Intent
 import android.os.IBinder
 import android.system.Os
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
 import dagger.hilt.android.AndroidEntryPoint
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.ToolbarComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.DEFAULT
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.RawFeed
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import java.io.File
@@ -28,28 +36,21 @@ import kotlin.system.measureTimeMillis
  * , déclaration de CustomMoveFileExistingDestinationDialog
  */
 @AndroidEntryPoint
-class MoveFileService @Inject constructor(
-    val toolBarManagerFactory: ToolBarManager.Factory,
-    val toolbarComponentFactory: ToolbarComponent.Factory,
-    val toolsViewModel: ToolsViewModel,
-    val sigmaViewModel: SigmaViewModel
-) : Service() {
+class MoveFileService :  Service(){
 
-    val bottomComponent = toolbarComponentFactory.create(
-        toolsViewModel = toolsViewModel,
-        sigmaViewModel = sigmaViewModel
-    )
+    @Inject lateinit var toolBarManagerFactory: ToolBarManager.Factory
+    @Inject lateinit var toolbarComponentFactory: ToolbarComponent.Factory
+    @Inject lateinit var rawFeed: RawFeed
 
-    //ici c'est #[[BottomTools]]
-    val bottomTools = toolBarManagerFactory.create(
-        viewModel = sigmaViewModel,
-        bottomComponent = bottomComponent
-    )
+    override fun onCreate() {
+        super.onCreate()
+    }
 
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "move_file_channel"
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
         val source = intent?.getStringExtra("source") ?: return START_NOT_STICKY
         var destination = intent.getStringExtra("destination") ?: return START_NOT_STICKY
 
@@ -61,9 +62,11 @@ class MoveFileService @Inject constructor(
         println("copie de $source vers $destination")
 
         if (sameDeviceId(source, destination)){
+            if (File(destination).isDirectory)
+                destination = "$destination/${source.substringAfterLast("/")}"
             Files.move(Path(source), Path(destination))
             SigmaViewModel.requestRefresh()
-            toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+            rawFeed.setCurrentContent(DEFAULT)
             stopSelf()
         } else {
             Thread {
@@ -78,7 +81,7 @@ class MoveFileService @Inject constructor(
                     delete(source)
 
                 SigmaViewModel.requestRefresh()
-                toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
+                rawFeed.setCurrentContent(DEFAULT)
                 stopSelf()
             }.start()
         }
@@ -101,7 +104,7 @@ class MoveFileService @Inject constructor(
                 if (sourceFile.isFile)
                     copyFileWithProgress(sourceFile, destinationFile) { p ->
 //                        println("progression: $p%")
-                        toolsViewModel.rawFeed.updateProgress(p)
+                        rawFeed.updateProgress(p)
                     }
 //                    sourceFile.copyTo(destinationFile, overwrite = true)
                 else
@@ -135,10 +138,12 @@ class MoveFileService @Inject constructor(
     }
 
     private fun sameDeviceId(source: String, destination: String): Boolean {
-        val sourceDeviceId = Os.stat(source)
-        val destDeviceId = Os.stat(destination)
-
-        return sourceDeviceId == destDeviceId
+        val common = source.zip(destination).takeWhile { pair ->
+            pair.first == pair.second
+        }.map { it.first }
+        val splitted = common.joinToString("").split("/").filterNot{it.isEmpty()}
+        val count = splitted.size
+        return count >= 3 //* par ex /storage/emulated/0/...
     }
 
     fun millisToHMS(millis: Long): String {
@@ -262,5 +267,7 @@ class MoveFileService @Inject constructor(
         return file.delete()
     }
 
-    override fun onBind(intent: Intent?): IBinder? = null
+    override fun onBind(intent: Intent): IBinder? {
+        return null
+    }
 }

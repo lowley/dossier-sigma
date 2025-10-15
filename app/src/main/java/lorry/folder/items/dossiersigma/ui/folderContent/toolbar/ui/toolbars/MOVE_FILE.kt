@@ -1,6 +1,8 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars
 
 import android.content.Intent
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.flow.last
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
@@ -39,8 +41,9 @@ object MOVE_FILE : Tools() {
                 icon = R.drawable.coller,
                 onClick = { viewModel, mainActivity ->
                     run {
-                        toolBarManager.toolbarComponent.toolsViewModel.itemToMove = viewModel.selectedItem.value
-                        var dest = toolBarManager.toolbarComponent.toolsViewModel.itemToMove
+                        val selectedItem = viewModel.selectedItem.value
+                        toolBarManager.toolbarComponent.toolsViewModel.itemToMove = selectedItem
+                        val dest = selectedItem ?: viewModel.folderContentComponent?.currentFolderFlow?.value
 
                         if (dest == null) {
                             return@run
@@ -91,7 +94,7 @@ object MOVE_FILE : Tools() {
                             putExtra("destination", dest.fullPath)
                             putExtra("addSuffix", "")
                         }
-                        mainActivity.startService(intent)
+                        ContextCompat.startForegroundService(mainActivity, intent)
 //                            viewModel.setSelectedItem(null, true)
                         viewModel.folderContentComponent.reloadCurrentFolder()
                         //2.vérif copie bien réalisée:
