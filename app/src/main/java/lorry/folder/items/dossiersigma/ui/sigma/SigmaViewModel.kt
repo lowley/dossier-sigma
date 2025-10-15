@@ -155,7 +155,7 @@ class SigmaViewModel @Inject constructor(
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
         fun requestRefresh() {
-            scope.launch {
+            scope.launch(Dispatchers.Main) {
                 _refreshRequested.emit(Unit)
             }
         }

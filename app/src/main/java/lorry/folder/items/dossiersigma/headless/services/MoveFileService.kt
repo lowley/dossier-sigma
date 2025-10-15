@@ -65,8 +65,10 @@ class MoveFileService :  Service(){
             if (File(destination).isDirectory)
                 destination = "$destination/${source.substringAfterLast("/")}"
             Files.move(Path(source), Path(destination))
+
             SigmaViewModel.requestRefresh()
             rawFeed.setCurrentContent(DEFAULT)
+
             stopSelf()
         } else {
             Thread {

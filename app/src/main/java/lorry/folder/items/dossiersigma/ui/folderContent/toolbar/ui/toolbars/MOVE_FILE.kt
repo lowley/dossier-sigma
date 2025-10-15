@@ -96,7 +96,7 @@ object MOVE_FILE : Tools() {
                         }
                         ContextCompat.startForegroundService(mainActivity, intent)
 //                            viewModel.setSelectedItem(null, true)
-                        viewModel.folderContentComponent.reloadCurrentFolder()
+                        viewModel.folderContentComponent.reloadCurrentFolderByRefresh2()
                         //2.vérif copie bien réalisée:
                         //dest existe
                         //tailles égales
