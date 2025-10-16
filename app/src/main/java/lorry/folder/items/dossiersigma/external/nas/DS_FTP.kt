@@ -2,12 +2,9 @@ package lorry.folder.items.dossiersigma.external.nas
 
 import android.content.Context
 import android.util.Log
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.preferencesDataStoreFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.ServiceLocator
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
@@ -118,7 +115,7 @@ open class DS_FTP @Inject constructor(
                             SigmaFile(
                                 name = file.name,
                                 modificationDate = file.timestamp.timeInMillis,
-                                path = parent,
+                                parentPath = parent,
                                 picture = null,
                                 tag = null,
                                 scale = null,
@@ -164,7 +161,7 @@ open class DS_FTP @Inject constructor(
                         SigmaFile(
                             name = file.name,
                             modificationDate = file.timestamp.timeInMillis,
-                            path = Paths.get(parent, file.name).toString(),
+                            parentPath = Paths.get(parent, file.name).toString(),
                             picture = null,
                             tag = null,
                             scale = null,

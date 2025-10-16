@@ -4,7 +4,7 @@ import androidx.compose.ui.layout.ContentScale
 import java.util.UUID
 
 class SigmaFile(
-    path: String,
+    parentPath: String,
     name: String,
     picture: Any?,
     id: String = UUID.randomUUID().toString(),
@@ -13,7 +13,7 @@ class SigmaFile(
     scale: ContentScale?,
     memo: String? = null,
     size: Long? = null
-) : Item(parentPath = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale, size = size
+) : Item(parentPath = parentPath, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale, size = size
 ) {
     constructor(
         fullPath: String,
@@ -24,7 +24,7 @@ class SigmaFile(
         scale: ContentScale?,
         memo: String? = null,
     ) : this(
-        path = fullPath.substringBeforeLast("/"),
+        parentPath = fullPath.substringBeforeLast("/"),
         name = fullPath.substringAfterLast("/"),
         picture = picture,
         id = id,
@@ -45,12 +45,12 @@ class SigmaFile(
         memo: String? = this.memo,
         size: Long? = this.size
     ): SigmaFile {
-        return SigmaFile(path = path, name = name, picture = picture, id = id, modificationDate = 
+        return SigmaFile(parentPath = path, name = name, picture = picture, id = id, modificationDate =
             modificationDate, tag = tag, scale = scale, memo = memo, size = size)
     }
 
     override fun toString(): String {
-        return "SigmaFile(name='$name', path='$parentPath', picture=${picture != null}, id='${id.take(6)}', modificationDate=$modificationDate), tag=$tag, scale=$scale,memo=$memo, size=$size)"
+        return "SigmaFile(name='$name', path='${this@SigmaFile.parentPath}', picture=${picture != null}, id='${id.take(6)}', modificationDate=$modificationDate), tag=$tag, scale=$scale,memo=$memo, size=$size)"
     }
 }
     

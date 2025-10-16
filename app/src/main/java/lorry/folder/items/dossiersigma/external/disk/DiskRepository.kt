@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
@@ -121,7 +120,7 @@ class DiskRepository @Inject constructor(
                         }
 
                         SigmaFile(
-                            path = dto.path,
+                            parentPath = dto.path,
                             name = dto.name,
                             picture = picture,
                             modificationDate = dto.lastModified,
@@ -183,7 +182,7 @@ class DiskRepository @Inject constructor(
 
                             if (itemDTO.isFile) {
                                 var file: Item = SigmaFile(
-                                    path = itemDTO.path,
+                                    parentPath = itemDTO.path,
                                     name = itemDTO.name,
                                     picture = null,
                                     modificationDate = itemDTO.lastModified,
@@ -253,7 +252,7 @@ class DiskRepository @Inject constructor(
 
                             if (itemDTO.isFile) {
                                 var file: Item = SigmaFile(
-                                    path = itemDTO.path,
+                                    parentPath = itemDTO.path,
                                     name = itemDTO.name,
                                     picture = getImage(
                                         path = itemDTOPath,
