@@ -46,7 +46,7 @@ class SigmaFolder(
         get() = items.isEmpty()
 
     fun copy(
-        path: String = this.path,
+        path: String = this.parentPath,
         name: String = this.name,
         picture: Any? = this.picture,
         items: List<Item> = this.items,

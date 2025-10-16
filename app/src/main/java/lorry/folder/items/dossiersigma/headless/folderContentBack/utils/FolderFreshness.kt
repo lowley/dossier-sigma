@@ -53,14 +53,14 @@ fun SigmaFolder.computeFreshness(): FolderFreshness {
     val secondLevelFolderPictureMTime = this.items.flatMap { item1 ->
         if (item1.isFolder())
             (item1 as SigmaFolder).items.filter { item2 ->
-                item2.path.endsWith(".folderPicture.html")
+                item2.parentPath.endsWith(".folderPicture.html")
             }
         else emptyList()
     }.maxByOrNull { item: Item -> item.modificationDate }
         ?.let { Instant.fromEpochMilliseconds(it.modificationDate) }
         ?: Instant.DISTANT_PAST
 
-    val path = this.path
+    val path = this.parentPath
 
     return FolderFreshness(
         path = path,

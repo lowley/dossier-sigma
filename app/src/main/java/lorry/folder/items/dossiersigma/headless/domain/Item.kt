@@ -20,7 +20,7 @@ import java.util.UUID
 
 @Stable
 abstract class Item(
-    val path: String,
+    val parentPath: String,
     val name: String,
     val picture: Any?,
     val id: String = UUID.randomUUID().toString(),
@@ -39,16 +39,16 @@ abstract class Item(
     }
 
     val fullPath: String
-        get() = when (path.endsWith("/")) {
-            true -> "$path$name"
-            false -> "$path/$name"
+        get() = when (parentPath.endsWith("/")) {
+            true -> "$parentPath$name"
+            false -> "$parentPath/$name"
         }
 
     val fileCapsuleManager = FileCapsuleManager(this.fullPath)
     val folderCapsuleManager = FolderCapsuleManager(this.fullPath)
     
     fun copy(
-        path: String = this.path,
+        path: String = this.parentPath,
         name: String = this.name,
         picture: Any? = this.picture,
         tag: ColoredTag? = this.tag,
@@ -114,7 +114,7 @@ abstract class Item(
     
     override fun toString(): String {
         return "Item(type=${if (isFile()) "File" else "Folder"}, name='$name', picture=${picture != null}, " +
-                "hasUrl= ${picture is String}, path='$path', id='$id', modificationDate=$modificationDate, " +
+                "hasUrl= ${picture is String}, path='$parentPath', id='$id', modificationDate=$modificationDate, " +
                 "tag=$tag, scale=$scale, memo=$memo, fullPath='$fullPath')"
     }
 }
@@ -155,7 +155,7 @@ data class ColoredTag(
 }
 
 object EmptyItem: Item(
-    path = "",
+    parentPath = "",
     name = "",
     picture = null,
     id = UUID.randomUUID().toString(),
@@ -165,4 +165,12 @@ object EmptyItem: Item(
     memo = null,
     size = null
 )
+
+@JvmInline
+value class Path(val value: String){
+
+
+
+
+}
 

@@ -13,7 +13,7 @@ class SigmaFile(
     scale: ContentScale?,
     memo: String? = null,
     size: Long? = null
-) : Item(path = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale, size = size
+) : Item(parentPath = path, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale, size = size
 ) {
     constructor(
         fullPath: String,
@@ -35,7 +35,7 @@ class SigmaFile(
     )
 
     fun copy(
-        path: String = this.path,
+        path: String = this.parentPath,
         name: String = this.name,
         picture: Any? = this.picture,
         id: String = this.id,
@@ -50,7 +50,7 @@ class SigmaFile(
     }
 
     override fun toString(): String {
-        return "SigmaFile(name='$name', path='$path', picture=${picture != null}, id='${id.take(6)}', modificationDate=$modificationDate), tag=$tag, scale=$scale,memo=$memo, size=$size)"
+        return "SigmaFile(name='$name', path='$parentPath', picture=${picture != null}, id='${id.take(6)}', modificationDate=$modificationDate), tag=$tag, scale=$scale,memo=$memo, size=$size)"
     }
 }
     
