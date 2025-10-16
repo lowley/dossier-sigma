@@ -130,7 +130,7 @@ class DiskRepository @Inject constructor(
                         )
                     } else {
                         SigmaFolder(
-                            path = dto.path,
+                            parentPath = dto.path,
                             name = dto.name,
                             picture = basePicture,
                             items = emptyList(),
@@ -194,7 +194,7 @@ class DiskRepository @Inject constructor(
                                 file
                             } else {
                                 SigmaFolder(
-                                    path = itemDTO.path,
+                                    parentPath = itemDTO.path,
                                     name = itemDTO.name,
                                     picture = null,
                                     items = listOf(),
@@ -289,7 +289,7 @@ class DiskRepository @Inject constructor(
                                 file
                             } else {
                                 SigmaFolder(
-                                    path = itemDTO.path,
+                                    parentPath = itemDTO.path,
                                     name = itemDTO.name,
                                     picture = getImage(
                                         path = itemDTOPath,

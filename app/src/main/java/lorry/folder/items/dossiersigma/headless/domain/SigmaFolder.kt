@@ -5,7 +5,7 @@ import java.util.UUID
 
 class SigmaFolder(
     val items: List<Item>,
-    path: String,
+    parentPath: String,
     name: String,
     picture: Any?,
     id: String = UUID.randomUUID().toString(),
@@ -13,7 +13,7 @@ class SigmaFolder(
     tag: ColoredTag?,
     scale: ContentScale?,
     memo: String? = null,
-) : Item(path, name, picture, id, modificationDate, tag, scale, memo) {
+) : Item(parentPath, name, picture, id, modificationDate, tag, scale, memo) {
 
     override fun toString(): String {
         return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${
@@ -31,7 +31,7 @@ class SigmaFolder(
         scale: ContentScale?,
         memo: String? = null,
     ) : this(
-        path = fullPath.substringBeforeLast("/"),
+        parentPath = fullPath.substringBeforeLast("/"),
         name = fullPath.substringAfterLast("/"),
         picture = picture,
         id = id,
@@ -57,7 +57,7 @@ class SigmaFolder(
         memo: String? = this.memo,
     ): SigmaFolder {
         val result = SigmaFolder(
-            path = path, name = name, picture = picture,
+            parentPath = path, name = name, picture = picture,
             items = items.map { item ->
                 when (item) {
                     is SigmaFolder -> item.copy()
