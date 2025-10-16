@@ -421,7 +421,7 @@ fun ImageSection(
 
         SubcomposeAsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(image ?: R.drawable.document2)
+                .data(image ?: R.drawable.fichier4)
                 .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
                 .crossfade(false)
                 .build(),

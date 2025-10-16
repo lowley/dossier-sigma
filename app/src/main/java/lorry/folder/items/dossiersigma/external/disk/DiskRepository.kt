@@ -450,7 +450,7 @@ class DiskRepository @Inject constructor(
 //                if (newInitial != null)
 //                    println("trouvé newInitial")
 
-                image = image ?: R.drawable.document2
+                image = image ?: R.drawable.fichier4
                 image
             }
 
