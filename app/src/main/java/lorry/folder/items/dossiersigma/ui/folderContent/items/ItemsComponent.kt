@@ -136,7 +136,7 @@ class ItemsComponent @AssistedInject constructor(
     private suspend fun getInfoSup(item: Item): String {
         return withContext(Dispatchers.IO) {
             val infos = if (item is SigmaFolder) diskRepository
-                .countFilesAndFolders(File(item.fullPath)).component1().toString() else item.name
+                .countFilesAndFolders(item.fullPath.toFile()).component1().toString() else item.name
                 .substringAfterLast(".").toUpperCase(Locale.current)
 
             infos
@@ -146,9 +146,9 @@ class ItemsComponent @AssistedInject constructor(
     private suspend fun getInfoInf(item: Item): String {
         return withContext(Dispatchers.IO) {
             val infos = if (item is SigmaFolder)
-                diskRepository.countFilesAndFolders(File(item.fullPath)).component2()
+                diskRepository.countFilesAndFolders(item.fullPath.toFile()).component2()
                     .toString()
-            else formatFileSizeShort(diskRepository.getSize(File(item.fullPath)))
+            else formatFileSizeShort(diskRepository.getSize(item.fullPath.toFile()))
 
             infos
         }

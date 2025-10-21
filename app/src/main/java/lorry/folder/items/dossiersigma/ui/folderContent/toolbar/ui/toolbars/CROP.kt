@@ -13,6 +13,7 @@ import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CroppedPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Scale
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.imageAsAnyToTempUri
@@ -154,7 +155,7 @@ object CROP : Tools() {
 
         if (item.isFolder()) {
             viewModel.viewModelScope.launch {
-                val file = File(item.fullPath + "/.folderPicture.html")
+                val file = File(item.fullPath.str + "/.folderPicture.html")
 //                if (!file.exists())
 //                    viewModel.diskRepository.createFolderHtmlFile(item)
 

@@ -8,6 +8,8 @@ import kotlinx.serialization.Serializable
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
 import javax.inject.Inject
 
 @Serializable
@@ -97,8 +99,8 @@ data class InitialPicture @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String, useOld: Boolean): Any? {
-            val fileCompositeManager = FileCapsuleManager(filePath, useOld)
+        override suspend fun fileGet(filePath: SigmaPath, useOld: Boolean): Any? {
+            val fileCompositeManager = FileCapsuleManager(filePath.str, useOld)
             val composite = fileCompositeManager.getCapsule()
             val initialData = composite.initialPicture ?: return null
 
@@ -112,8 +114,8 @@ data class InitialPicture @Inject constructor(
             return videoInfoEmbedder.base64ToBitmap(base64)
         }
 
-        override suspend fun folderGet(folderPath: String, useOld: Boolean): Any? {
-            val filePath = "$folderPath/.folderPicture.html"
+        override suspend fun folderGet(folderPath: SigmaPath, useOld: Boolean): Any? {
+            val filePath = folderPath.appendToPath(".folderPicture.html")
             return fileGet(filePath, useOld)
         }
     }
@@ -144,8 +146,8 @@ data class CroppedPicture @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String, useOld: Boolean): Any? {
-            val fileCompositeManager = FileCapsuleManager(filePath, useOld)
+        override suspend fun fileGet(filePath: SigmaPath, useOld: Boolean): Any? {
+            val fileCompositeManager = FileCapsuleManager(filePath.str, useOld)
             val composite = fileCompositeManager.getCapsule()
             val initialData = composite.croppedPicture ?: return null
 
@@ -159,8 +161,8 @@ data class CroppedPicture @Inject constructor(
             return videoInfoEmbedder.base64ToBitmap(base64)
         }
 
-        override suspend fun folderGet(folderPath: String, useOld: Boolean): Any? {
-            val filePath = "$folderPath/.folderPicture.html"
+        override suspend fun folderGet(folderPath: SigmaPath, useOld: Boolean): Any? {
+            val filePath = folderPath.appendToPath(".folderPicture.html")
             return fileGet(filePath, useOld)
         }
     }
@@ -180,8 +182,8 @@ data class Flag @Inject constructor(
 
         var videoInfoEmbedder = VideoInfoEmbedder()
 
-        override suspend fun fileGet(filePath: String, useOld: Boolean): ColoredTag? {
-            val fileCompositeManager = FileCapsuleManager(filePath, useOld)
+        override suspend fun fileGet(filePath: SigmaPath, useOld: Boolean): ColoredTag? {
+            val fileCompositeManager = FileCapsuleManager(filePath.str, useOld)
             val composite = fileCompositeManager.getCapsule()
             if (composite.flag == null)
                 return null
@@ -189,8 +191,8 @@ data class Flag @Inject constructor(
             return Gson().fromJson(composite.flag, ColoredTag::class.java)
         }
 
-        override suspend fun folderGet(folderPath: String, useOld: Boolean): ColoredTag? {
-            val filePath = "$folderPath/.folderPicture.html"
+        override suspend fun folderGet(folderPath: SigmaPath, useOld: Boolean): ColoredTag? {
+            val filePath = folderPath.appendToPath(".folderPicture.html")
             return fileGet(filePath, useOld)
         }
     }
@@ -209,8 +211,8 @@ data class Scale @Inject constructor(
         var videoInfoEmbedder = VideoInfoEmbedder()
         val gson: Gson = Gson()
 
-        override suspend fun fileGet(filePath: String, useOld: Boolean): ContentScale? {
-            val fileCompositeManager = FileCapsuleManager(filePath, useOld)
+        override suspend fun fileGet(filePath: SigmaPath, useOld: Boolean): ContentScale? {
+            val fileCompositeManager = FileCapsuleManager(filePath.str, useOld)
             val composite = fileCompositeManager.getCapsule()
             if (composite.scale == null)
                 return null
@@ -221,8 +223,8 @@ data class Scale @Inject constructor(
             return scale
         }
 
-        override suspend fun folderGet(folderPath: String, useOld: Boolean): ContentScale? {
-            val filePath = "$folderPath/.folderPicture.html"
+        override suspend fun folderGet(folderPath: SigmaPath, useOld: Boolean): ContentScale? {
+            val filePath = folderPath.appendToPath(".folderPicture.html")
             return fileGet(filePath, useOld)
         }
     }
@@ -243,8 +245,8 @@ data class Memo @Inject constructor(
 
         val gson: Gson = Gson()
 
-        override suspend fun fileGet(filePath: String, useOld: Boolean): String? {
-            val fileCapsuleManager = FileCapsuleManager(filePath, useOld)
+        override suspend fun fileGet(filePath: SigmaPath, useOld: Boolean): String? {
+            val fileCapsuleManager = FileCapsuleManager(filePath.str, useOld)
             val capsule = fileCapsuleManager.getCapsule()
             if (capsule.memo2 == null)
                 return null
@@ -253,16 +255,16 @@ data class Memo @Inject constructor(
             return capsule.memo2
         }
 
-        override suspend fun folderGet(folderPath: String, useOld: Boolean): String? {
-            val filePath = "$folderPath/.folderPicture.html"
+        override suspend fun folderGet(folderPath: SigmaPath, useOld: Boolean): String? {
+            val filePath = folderPath.appendToPath(".folderPicture.html")
             return fileGet(filePath, useOld)
         }
     }
 }
 
 interface IElementReader<T> {
-    suspend fun fileGet(filePath: String, useOld: Boolean = false): T?
-    suspend fun folderGet(folderPath: String, useOld: Boolean = false): T?
+    suspend fun fileGet(filePath: SigmaPath, useOld: Boolean = false): T?
+    suspend fun folderGet(folderPath: SigmaPath, useOld: Boolean = false): T?
 }
 
 fun StringToScale(value: String): ContentScale? = when (value) {

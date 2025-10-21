@@ -1,6 +1,8 @@
 package lorry.folder.items.dossiersigma.headless.domain
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +14,7 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.FileCapsuleMan
 import lorry.folder.items.dossiersigma.external.capsule.utilities.FolderCapsuleManager
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementInCapsule
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementReader
+import java.io.File
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -20,7 +23,7 @@ import java.util.UUID
 
 @Stable
 abstract class Item(
-    val parentPath: String,
+    val parentPath: SigmaPath,
     val name: String,
     val picture: Any?,
     val id: String = UUID.randomUUID().toString(),
@@ -38,17 +41,14 @@ abstract class Item(
         return this is SigmaFolder
     }
 
-    val fullPath: String
-        get() = when (parentPath.endsWith("/")) {
-            true -> "$parentPath$name"
-            false -> "$parentPath/$name"
-        }
+    val fullPath: SigmaPath
+        get() = parentPath.combinedWith(name)
 
-    val fileCapsuleManager = FileCapsuleManager(this.fullPath)
-    val folderCapsuleManager = FolderCapsuleManager(this.fullPath)
+    val fileCapsuleManager = FileCapsuleManager(fullPath.str, false)
+    val folderCapsuleManager = FolderCapsuleManager(fullPath, false)
     
     fun copy(
-        path: String = this.parentPath,
+        path: SigmaPath = this.parentPath,
         name: String = this.name,
         picture: Any? = this.picture,
         tag: ColoredTag? = this.tag,
@@ -58,7 +58,7 @@ abstract class Item(
     ): Item {
         if (this is SigmaFolder) {
             return this.copy(
-                path = path,
+                parentPath = path,
                 name = name,
                 picture = picture,
                 id = id,
@@ -155,7 +155,7 @@ data class ColoredTag(
 }
 
 object EmptyItem: Item(
-    parentPath = "",
+    parentPath = SigmaPath(""),
     name = "",
     picture = null,
     id = UUID.randomUUID().toString(),
@@ -166,11 +166,60 @@ object EmptyItem: Item(
     size = null
 )
 
+@Serializable
 @JvmInline
-value class Path(val value: String){
+value class SigmaPath(val value: String){
 
+    fun withSlash(): String{
+        return when (value.endsWith("/")){
+            true -> value
+            false -> value + "/"
+        }
+    }
 
+    fun withoutSlash(): String{
+        return when (value.endsWith("/")){
+            true -> value.dropLast(1)
+            false -> value
+        }
+    }
 
+    fun combinedWith(name: String): SigmaPath = SigmaPath(this.withSlash() + name.withoutInitialSlash())
 
+    fun endsWith(searched: String): Boolean
+        = value.endsWith(searched)
+
+    fun replaceLastsegmentBy(segment: String): String =
+        this.withoutSlash().replaceAfterLast("/", segment)
+
+    fun append(segment: String): String = this.withSlash() + segment.withoutInitialSlash()
+    fun appendToPath(segment: String): SigmaPath = SigmaPath(this.withSlash() + segment.withoutInitialSlash())
+    fun dropLastSegment(): String = this.withoutSlash().substringBeforeLast("/")
+    fun dropLastSegmentOfPath(): SigmaPath = SigmaPath(this.withoutSlash().substringBeforeLast("/"))
+
+    fun toFile(): File = File(this.str)
+
+    fun equalsTo(other: Any?): Boolean {
+        if (!(other is SigmaPath))
+            return false
+        if (other == null)
+            return false
+
+        return this.value == other.value
+    }
 }
 
+inline val SigmaPath.str get() = value
+inline val SigmaPath.lastSegment get() = this.withoutSlash().substringAfterLast("/")
+fun String.toSigmaPath() = SigmaPath(this)
+fun String.withoutInitialSlash() = this.removePrefix("/")
+fun <T> List<SigmaPath>.mapSigmaPaths(fn: (SigmaPath) -> T): List<T>{
+    return this.map{ path ->
+        fn(path)
+    }
+}
+
+fun <T> MutableState<SigmaPath>.mapSigmaPaths(fn: (SigmaPath) -> T): MutableState<T>{
+    val path = this.value
+    return mutableStateOf(fn(path))
+}

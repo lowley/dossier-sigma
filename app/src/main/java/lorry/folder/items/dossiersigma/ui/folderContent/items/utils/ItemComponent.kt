@@ -70,6 +70,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -84,7 +86,7 @@ fun ItemComponent(
     onItemUpdated: (Item) -> Unit,
     draggableStartPosition: StateFlow<Offset?>,
     onHoveredNotHovered: (Item?) -> Unit,
-    selectedItemFullPath: StateFlow<String?>,
+    selectedItemFullPath: StateFlow<SigmaPath?>,
     onItemTapped: ((Item) -> Unit),
     onItemLongPressed: ((Item) -> Unit),
     onTopLeftPanelClick: (Item) -> Unit,
@@ -93,7 +95,7 @@ fun ItemComponent(
     dragState: StateFlow<DragState?>,
 
     ) {
-    if (item.fullPath.contains("darkness"))
+    if (item.fullPath.str.contains("darkness"))
         println("ok")
 
     val memo = item.memo
@@ -127,7 +129,7 @@ fun ItemComponent(
     Column {
         val shape1 = RoundedCornerShape(8.dp)
         val isSelectedItemState by selectedItemFullPath
-            .map { it == item.fullPath }
+            .map { it?.equalsTo(item.fullPath.str) == true }
             .collectAsState(false)
 
         var isStartInLittleBox by remember { mutableStateOf(false) }

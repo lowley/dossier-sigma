@@ -5,33 +5,34 @@ import kotlinx.coroutines.flow.Flow
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
 
 interface IDiskRepository {
 
-    suspend fun getFolderItems(folderPath: String, sorting: SortingCriterion) : List<Item>
+    suspend fun getFolderItems(folderPath: SigmaPath, sorting: SortingCriterion) : List<Item>
     suspend fun getFolderItemsLite(
-        folderPath: String,
+        folderPath: SigmaPath,
         sorting: SortingCriterion
     ): List<Item>
 
-    suspend fun getFolderFreshness(folderPath: String): FolderFreshness
+    suspend fun getFolderFreshness(folderPath: SigmaPath): FolderFreshness
 
     suspend fun getSigmaFolderUltraLite(
-        folderPath: String,
+        folderPath: SigmaPath,
     ): SigmaFolder
 
     fun getFolderItemsLiteFlow(
-        folderPath: String,
+        folderPath: SigmaPath,
         sorting: SortingCriterion
     ): Flow<Item>
 
     suspend fun saveUrlToTempFile(fileUrl: String) : String?
-    suspend fun getSigmaFolder(folderPath: String, sorting: SortingCriterion):
+    suspend fun getSigmaFolder(folderPath: SigmaPath, sorting: SortingCriterion):
             SigmaFolder
-    suspend fun getSigmaFolderLite(folderPath: String, sorting: SortingCriterion):
+    suspend fun getSigmaFolderLite(folderPath: SigmaPath, sorting: SortingCriterion):
             SigmaFolder
 
     suspend fun createFolderHtmlFile(item: Item)
@@ -49,7 +50,7 @@ interface IDiskRepository {
     suspend fun copyFile(source: File, destination: File)
     suspend fun removeScaleFromHtml(htmlFileFullPath: String)
 
-    suspend fun isFileOrFolderExists(parentPath: String, item: Item): Boolean
+    suspend fun isFileOrFolderExists(parentPath: SigmaPath, item: Item): Boolean
 
     suspend fun extractFlagFromHtml(htmlFile: String): ColoredTag?
     suspend fun insertTagToHtmlFile(

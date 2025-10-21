@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import javax.inject.Singleton
 
 @Singleton
@@ -31,7 +32,7 @@ class BreadcrumbComponent @Inject constructor() {
     @Composable
     fun Breadcrumb(
         path: List<String>,
-        onClick: (path: String) -> Unit
+        onClick: (path: SigmaPath) -> Unit
     ) {
         val state = breadcrumbState.collectAsState()
         var previousPath = (state.value as? BreadcrumbState.DATA)?.let {

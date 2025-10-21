@@ -5,6 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -19,8 +21,8 @@ class NasUtilities @Inject constructor(
 
 
     suspend fun copy(
-        source: String,
-        destination: String,
+        source: SigmaPath,
+        destination: SigmaPath,
         index: Int,
         total: Int,
         changeBottomTools: (percentage: Int, index: Int, total: Int) -> Unit
@@ -28,7 +30,7 @@ class NasUtilities @Inject constructor(
         if (source == null || destination == null)
             return
 
-        val sourceFile = File(source)
+        val sourceFile = source.toFile()
 
         if (sourceFile.isDirectory)
             return
@@ -91,15 +93,15 @@ class NasUtilities @Inject constructor(
         output.close()
     }
 
-    suspend fun verify(source: String, destination: String): Boolean {
+    suspend fun verify(source: SigmaPath, destination: SigmaPath): Boolean {
         Log.d(TAG, "début de verify")
         Log.d(TAG, "source=$source, destination=$destination")
 
-        val sourceFile = File(source)
+        val sourceFile = source.toFile()
         val destinationFiles = nasDS.fetchFiles(destination)
 
         var file = destinationFiles
-            ?.firstOrNull { it.name == source.substringAfterLast("/") }
+            ?.firstOrNull { it.name == source.lastSegment }
 
         if (file == null)
             return false
@@ -111,8 +113,8 @@ class NasUtilities @Inject constructor(
 //        return true
     }
 
-    fun delete(source: String) {
-        val source = File(source)
+    fun delete(source: SigmaPath) {
+        val source = source.toFile()
         if (source.exists()) {
             if (source.isFile)
                 source.delete()

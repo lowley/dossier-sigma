@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,6 +27,10 @@ import lorry.folder.items.dossiersigma.external.userPreferences.DSI_UserPreferen
 import lorry.folder.items.dossiersigma.headless.domain.EmptyItem
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
+import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -39,14 +44,14 @@ class ShortcutUseCase @Inject constructor(
     private val fileRepo: IDiskRepository,
     private val userPreferences: DSI_UserPreferences,
 ) {
-    val destinationShortcuts = mutableMapOf<String, MutableSet<String>>()
+    val destinationShortcuts = mutableMapOf<String, MutableSet<SigmaPath>>()
     val currentFileShortcuts = mutableSetOf<String>()
 
-    private val _destinationFolders = MutableStateFlow<Set<String>>(emptySet())
-    val destinationFolders: StateFlow<Set<String>> = _destinationFolders
+    private val _destinationFolders = MutableStateFlow<Set<SigmaPath>>(emptySet())
+    val destinationFolders: StateFlow<Set<SigmaPath>> = _destinationFolders
 
-    private val _storageFolder = MutableStateFlow("")
-    val storageFolder: StateFlow<String> = _storageFolder
+    private val _storageFolder = MutableStateFlow("".toSigmaPath())
+    val storageFolder: StateFlow<SigmaPath> = _storageFolder
 
     val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
@@ -77,7 +82,7 @@ class ShortcutUseCase @Inject constructor(
 
         for (dir in secondLevel) {
             val parts = dir.fullPath
-                .substringAfterLast('/')   // ne garde que le nom
+                .lastSegment   // ne garde que le nom
                 .substringAfterLast('\\')  // ne garde que le nom
                 .split('.')
             parts.forEach {
@@ -291,14 +296,14 @@ class ShortcutUseCase @Inject constructor(
     /**
      * Récupère les fullPathName des répertoires correspondant au shortcut
      */
-    fun getDirectoriesFor(video: ThoFile): Set<String> {
+    fun getDirectoriesFor(video: ThoFile): Set<SigmaPath> {
         val videoName = video.name
         val shortcuts = videoName
             .substringAfter('.')       //après nom principal
             .substringBeforeLast('.')  //avant .mp4
             .split('.')
 
-        val destinationDirs = mutableSetOf<String>()
+        val destinationDirs = mutableSetOf<SigmaPath>()
 
         for (shortcut in shortcuts) {
             destinationShortcuts[shortcut]?.let { destinationDirs.addAll(it) }
@@ -334,13 +339,13 @@ class ShortcutUseCase @Inject constructor(
 
         Log.d(TAG, "videos: ${videos.size}")
 
-        val imageGroups: MutableMap<String, String?> = mutableMapOf()
+        val imageGroups: MutableMap<SigmaPath, String?> = mutableMapOf()
 
-        val mapFileFullPathToShortcuts: MutableMap<String, List<String>> = mutableMapOf()
+        val mapFileFullPathToShortcuts: MutableMap<SigmaPath, List<String>> = mutableMapOf()
         videos.forEachDebug { video ->
             mapFileFullPathToShortcuts.put(
                 video.fullPath,
-                video.fullPath.substringBefore(".mp4").substringAfter(".").split(".") + "tous"
+                video.fullPath.str.substringBefore(".mp4").substringAfter(".").split(".") + "tous"
             )
         }
 
@@ -427,8 +432,8 @@ class ShortcutUseCase @Inject constructor(
 //    }
 
     init {
-        scope.collectToState(userPreferences.destination_folders, _destinationFolders)
-        scope.collectToState(userPreferences.storage_folder, _storageFolder)
+        scope.collectToState(userPreferences.destination_folders.map { it.map { it.toSigmaPath() }.toSet() }, _destinationFolders)
+        scope.collectToState(userPreferences.storage_folder.map { it.toSigmaPath() }, _storageFolder)
         Log.d("ShortcutUC", "instance=" + System.identityHashCode(this))
     }
 }
@@ -438,7 +443,7 @@ suspend fun <T> Iterable<T>.forEachDebug(action: suspend (T) -> Unit) {
 }
 
 suspend fun getBase64InHtml(file: Item): String? {
-    val htmlFile = File(file.fullPath)
+    val htmlFile = file.fullPath.toFile()
     val htmlContent = htmlFile.readText()
 
     // Regex pour trouver le contenu de src="data:image/...;base64,..."
@@ -460,3 +465,6 @@ fun <T> CoroutineScope.collectToState(
         }
     }
 }
+
+@JvmInline
+value class SigmaShortcut(val value: String)

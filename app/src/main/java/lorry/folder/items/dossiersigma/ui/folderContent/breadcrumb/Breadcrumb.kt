@@ -13,11 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 
 @Composable
 fun BreadcrumbComponent.UI(
     state: BreadcrumbState?,
-    onClick: (String) -> Unit,
+    onClick: (SigmaPath) -> Unit,
     animDuration: Int
 ) {
     if (state == null || state is BreadcrumbState.LOADING)
@@ -32,7 +34,7 @@ fun BreadcrumbComponent.UI(
         segs?.dropLast(1)?.forEachIndexed { i, seg ->
             BreadcrumbChip(
                 text = seg,
-            ) { onClick("/" + segs.slice(0..i).joinToString("/")) }
+            ) { onClick(("/" + segs.slice(0..i).joinToString("/")).toSigmaPath()) }
 
             if (i < segs.size - 1) Separator()
         }

@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.headless.domain.ItemDTO
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import java.io.File
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime
@@ -23,8 +24,8 @@ class DiskDataSource @Inject constructor() : IDiskDataSource {
      * @return List<ItemDTO> liste des items du dossier
      * ou vide si dossier vide, introuvable ou erreur de sécurité
      */
-    suspend override fun getFolderContent(folderPath: String): List<ItemDTO> {
-        val folder = File(folderPath)
+    suspend override fun getFolderContent(folderPath: SigmaPath): List<ItemDTO> {
+        val folder = folderPath.toFile()
         var items: List<ItemDTO>
 
         try {
@@ -50,8 +51,8 @@ class DiskDataSource @Inject constructor() : IDiskDataSource {
     }
 
     @OptIn(ExperimentalTime::class)
-    suspend override fun getFolderLiteContent(folderPath: String): Triple<Instant, Instant, Instant> {
-        val folder = File(folderPath)
+    suspend override fun getFolderLiteContent(folderPath: SigmaPath): Triple<Instant, Instant, Instant> {
+        val folder = folderPath.toFile()
         var items: List<ItemDTO>
 
         val max = try {

@@ -7,12 +7,15 @@ import androidx.work.WorkManager
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.firstOrNull
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import java.io.File
 import kotlin.collections.get
+import kotlin.collections.map
 
 object MOVES : Tools() {
     override fun content() = ToolbarContent(
@@ -88,7 +91,7 @@ object MOVES : Tools() {
                         //* aire des images enregistrées dans un fichier
                         //* pour transfert à CopieurTho2
                         val entries =
-                            filesToTransfer.map<Pair<String, String?>, ManifestEntry> {
+                            filesToTransfer.map<Pair<SigmaPath, String?>, ManifestEntry> {
                                 ManifestEntry(fullPath = it.first, picture64 = it.second)
                             }
 
@@ -106,11 +109,11 @@ object MOVES : Tools() {
 
                         val nasDirectory =
                             mainActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull()
-                                ?: ""
+                                ?: return@run
 
                         val req = MoveToNASWorker.Companion.request(
                             manifestPath = manifestFile.absolutePath,
-                            target = nasDirectory,
+                            target = nasDirectory.str,
                             manifestUri = contentUri.toString(),
                             picture64 = picture64
                         )

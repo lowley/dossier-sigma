@@ -49,6 +49,9 @@ import com.elixer.palette.composables.Palette
 import com.elixer.palette.constraints.HorizontalAlignment
 import com.elixer.palette.constraints.VerticalAlignment
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.mapSigmaPaths
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 
@@ -62,7 +65,7 @@ fun SigmaActivity.SettingsPage(
     // nas address //
     /////////////////
     val nasAddressFromDataStore by vm.settings.nasAddressFlow.collectAsState("")
-    var nasAddress = rememberSaveable("") {
+    var nasAddress = rememberSaveable(SigmaPath("")) {
         mutableStateOf(nasAddressFromDataStore)
     }
 
@@ -127,7 +130,7 @@ fun SigmaActivity.SettingsPage(
     ////////////////
     // nas folder //
     ////////////////
-    val nasFolderFromDataStore by vm.settings.nasFolderFlow.collectAsState("")
+    val nasFolderFromDataStore by vm.settings.nasFolderFlow.collectAsState(SigmaPath(""))
     var nasFolder = remember(nasFolderFromDataStore) {
         mutableStateOf(nasFolderFromDataStore)
     }
@@ -315,7 +318,7 @@ fun SigmaActivity.SettingsPage(
                 inputZone(
                     modifier = Modifier,
                     label = "ex: fichiers",
-                    state = nasFolder,
+                    state = nasFolder.mapSigmaPaths{ path -> path.str },
                     width = inputWidth,
                     height = cellHeight,
                     userEditeField = userEditedNasFolder

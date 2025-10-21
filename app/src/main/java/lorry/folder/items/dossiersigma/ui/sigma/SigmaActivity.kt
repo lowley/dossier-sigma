@@ -85,6 +85,9 @@ import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.headless.folderContentBack.ReloadType
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
@@ -180,7 +183,7 @@ class SigmaActivity : ComponentActivity() {
      * @see HomeItemDialog
      * @see FolderChooserDialog
      */
-    var onFolderChosen: (String?) -> Unit = {}
+    var onFolderChosen: (SigmaPath?) -> Unit = {}
 
     val sigmaActivity = this
 
@@ -536,14 +539,14 @@ class SigmaActivity : ComponentActivity() {
                                     // breadcrumb //
                                     ////////////////
 
-                                    val path by remember { derivedStateOf { currentPath.value.orEmpty() } }
+                                    val path by remember { derivedStateOf { currentPath.value ?: SigmaPath("") } }
 
                                     val items = remember(path) {
-                                        path.split('/').filter { it.isNotEmpty() }
+                                        path.str.split('/').filter { it.isNotEmpty() }
                                     }
 
 
-                                    if (!homePageVisible && !path.isNullOrEmpty())
+                                    if (!homePageVisible && !path.str.isNullOrEmpty())
                                         breadcrumbComponent.Breadcrumb(
                                             path = items,
                                             onClick = { path ->
@@ -609,7 +612,7 @@ class SigmaActivity : ComponentActivity() {
                                                                     oldTitle = "",
                                                                     newTitle = "",
                                                                     picture = null,
-                                                                    path = "",
+                                                                    path = SigmaPath(""),
                                                                     index = homeItemCount
                                                                 )
                                                             )

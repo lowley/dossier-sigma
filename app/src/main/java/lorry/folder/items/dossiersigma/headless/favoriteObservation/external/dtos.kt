@@ -1,11 +1,12 @@
 package lorry.folder.items.dossiersigma.headless.favoriteObservation.external
 
 import androidx.compose.ui.layout.ContentScale
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 
 // Exemple d’un miroir minimal, à adapter à tes champs réels :
 @kotlinx.serialization.Serializable
 data class PersistedSigmaFolder(
-    val path: String,
+    val path: SigmaPath,
     val items: List<PersistedItem>,
     val meta: Map<String, String>? = null
 )
@@ -17,7 +18,7 @@ data class PersistedItem(
     val tagId: String?,
     val picture: PictureStore?,
     val isFolder: Boolean,
-    val fullPath: String,
+    val fullPath: SigmaPath,
     val memo: String? = null,
     val scale: String?
 )

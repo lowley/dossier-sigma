@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.protobuf.LazyStringArrayList
+import androidx.datastore.preferences.protobuf.LazyStringArrayList.emptyList
 import androidx.lifecycle.LifecycleService
 import androidx.room.Transaction
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,6 +43,11 @@ import kotlinx.coroutines.yield
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
+import lorry.folder.items.dossiersigma.headless.domain.mapSigmaPaths
+import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
@@ -146,7 +152,7 @@ class DaemonService : LifecycleService() {
         val currentAppFolder = settingsManager.currentPathFlow.first()
 
         val favoriteDirs = (favorites?.map { it.path }
-            ?: LazyStringArrayList.emptyList() + currentAppFolder).filterNotNull()
+            ?: listOf(currentAppFolder)).filterNotNull()
         Log.d(TAG, "envoi initial de ${favoriteDirs.size} dossiers...")
 
         val dups = favoriteDirs.groupBy { it }.filterValues { it.size > 1 }
@@ -185,17 +191,17 @@ class DaemonService : LifecycleService() {
         }
     }
 
-    private suspend fun doOnEvent(event: Int, path: String?) {
+    private suspend fun doOnEvent(event: Int, path: SigmaPath?) {
 
         if (path != null) {
             val favorites = settingsManager.homeItemsFlow.firstOrNull()
             val currentAppFolder = settingsManager.currentPathFlow.first()
-            val parent = path.substringBeforeLast("/")
-            val grandParent = parent.substringBeforeLast("/")
+            val parent = path.dropLastSegmentOfPath()
+            val grandParent = parent.dropLastSegmentOfPath()
 
-            val isFile = File(path).isFile
+            val isFile = path.toFile().isFile
             val isFavorite = favorites?.any { it.path == path } ?: false
-            fun String.isCurrent() = currentAppFolder == this
+            fun SigmaPath.isCurrent() = currentAppFolder == this
 
             val eventType = convertEvent(event)
             updateNotification("$path : ${eventType.message}")
@@ -223,7 +229,7 @@ class DaemonService : LifecycleService() {
             if (CSRPath) {
                 Log.d(
                     TAG,
-                    "service envoie dans room: path=${path.substringAfterLast("/")}, isCurrent=${path.isCurrent()}, isInRoom=${path.isInRoom()}"
+                    "service envoie dans room: path=${path.lastSegment}, isCurrent=${path.isCurrent()}, isInRoom=${path.isInRoom()}"
                 )
                 computeAndSendFreshness(path, currentAppFolder)
             }
@@ -231,8 +237,8 @@ class DaemonService : LifecycleService() {
             if (CSRParent) {
                 Log.d(
                     TAG,
-                    "service envoie pour ${path.substringAfterLast("/")} dans room: parent=${
-                        parent.substringAfterLast("/")
+                    "service envoie pour ${path.lastSegment} dans room: parent=${
+                        parent.lastSegment
                     }, isCurrent=${parent.isCurrent()}, isInRoom=${parent.isInRoom()}"
                 )
                 computeAndSendFreshness(parent, currentAppFolder)
@@ -241,8 +247,8 @@ class DaemonService : LifecycleService() {
             if (CSRGrandParent) {
                 Log.d(
                     TAG,
-                    "service envoie pour ${path.substringAfterLast("/")} dans room: grandParent=${
-                        grandParent.substringAfterLast("/")
+                    "service envoie pour ${path.lastSegment} dans room: grandParent=${
+                        grandParent.lastSegment
                     }, isCurrent=${grandParent.isCurrent()}, isInRoom=${grandParent.isInRoom()}"
                 )
                 computeAndSendFreshness(grandParent, currentAppFolder)
@@ -250,7 +256,7 @@ class DaemonService : LifecycleService() {
         }
     }
 
-    suspend fun String.isInRoom(): Boolean {
+    suspend fun SigmaPath.isInRoom(): Boolean {
         return dao.getByPath(
             path = this,
             ctx = this@DaemonService,
@@ -259,8 +265,8 @@ class DaemonService : LifecycleService() {
     }
 
     private suspend fun computeAndSendFreshness(
-        path: String,
-        currentAppFolder: String?,
+        path: SigmaPath,
+        currentAppFolder: SigmaPath?,
         timeMeasurement: Boolean = false
     ) {
         var fc: FolderCacheEntry? = null
@@ -417,7 +423,7 @@ class DaemonService : LifecycleService() {
         }
     }
 
-    private suspend fun generateFolderCacheEntry(fullPath: String): FolderCacheEntry {
+    private suspend fun generateFolderCacheEntry(fullPath: SigmaPath): FolderCacheEntry {
 
         updateNotification(color = Color.Blue)
 
@@ -439,15 +445,15 @@ class DaemonService : LifecycleService() {
     }
 
     @Transaction
-    suspend fun recomputeAndSaveAll(favorites: List<String>) {
+    suspend fun recomputeAndSaveAll(favorites: List<SigmaPath>) {
         // 1) compute freshness en parallèle limitée (voir §3)
         updateNotification(color = Color.Blue)
-        val computed: Map<String, FolderCacheEntry> = computeAllFreshness(favorites)
+        val computed: Map<SigmaPath, FolderCacheEntry> = computeAllFreshness(favorites)
 
         // 2) lecture unique
         updateNotification(color = Color.White)
         val existing =
-            dao.folderCacheEntryRepository().getAllByPaths(favorites).associateBy { it.path }
+            dao.folderCacheEntryRepository().getAllByPaths(favorites.mapSigmaPaths{ it.str }).associateBy { it.path }
 
         // 3) diff en mémoire
         val toWrite = buildList {
@@ -462,7 +468,7 @@ class DaemonService : LifecycleService() {
         updateNotification(color = Color.Black)
     }
 
-    suspend fun computeAllFreshness(paths: List<String>): Map<String, FolderCacheEntry> =
+    suspend fun computeAllFreshness(paths: List<SigmaPath>): Map<SigmaPath, FolderCacheEntry> =
         coroutineScope {
             // limite de parallélisme
             val sem = Semaphore(permits = 6)

@@ -44,6 +44,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeUiState
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
@@ -121,11 +124,11 @@ fun SigmaActivity.HomeItemDialog(
                     modifier = Modifier.Companion
                         .weight(1f)
                         .padding(end = 5.dp),
-                    value = homeInfos!!.path!!,
+                    value = homeInfos!!.path!!.str,
                     onValueChange = { value: String ->
                         sigmaActivity.homeViewModel.setDialogHomeItemInfos(
                             sigmaActivity.homeViewModel.dialogHomeItemInfos.value?.copy(
-                                path = value
+                                path = value.toSigmaPath()
                             )
                         )
                     },
@@ -307,7 +310,7 @@ fun SigmaActivity.HomeItemDialog(
 data class HomeItemInfos(
     val oldTitle: String? = null,
     val newTitle: String? = null,
-    val path: String?,
+    val path: SigmaPath?,
     val picture: Bitmap?,
     val index: Int
 ) {
@@ -327,7 +330,7 @@ data class HomeItemInfos(
 data class HomeItemInfosDTO(
     val oldTitle: String? = null,
     val newTitle: String? = null,
-    val path: String?,
+    val path: SigmaPath?,
     val picture: String?,
     val index: Int
 ) {

@@ -37,6 +37,9 @@ import kotlinx.coroutines.flow.zip
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.external.FolderCacheEntryDB
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.IRawFeed
@@ -67,16 +70,16 @@ class FolderContentBackComponent constructor(
 
     //* ce cache est modifié par currentFolderFlow après écriture sur disque
     // si différence de freshness du cache et réelle détectée
-    private val _folderCacheFlow = MutableStateFlow<Map<String, FolderCacheEntry>>(emptyMap())
+    private val _folderCacheFlow = MutableStateFlow<Map<SigmaPath, FolderCacheEntry>>(emptyMap())
     override val folderCacheFlow = _folderCacheFlow.asStateFlow()
 
     //////////////////////////
     // historique des paths //
     //////////////////////////
-    private val _folderPathHistory = MutableStateFlow<List<String>>(emptyList())
+    private val _folderPathHistory = MutableStateFlow<List<SigmaPath>>(emptyList())
     override val folderPathHistory = _folderPathHistory.asStateFlow()
 
-    override fun addFolderPathToHistory(folderPath: String) {
+    override fun addFolderPathToHistory(folderPath: SigmaPath) {
         val currentHistory = _folderPathHistory.value
         _folderPathHistory.value = currentHistory + folderPath
     }
@@ -92,10 +95,10 @@ class FolderContentBackComponent constructor(
         _folderPathHistory.value = currentHistory.dropLast(n)
     }
 
-    private val _fastPath = MutableStateFlow<String?>(null)
-    override val fastPath: StateFlow<String?> = _fastPath
+    private val _fastPath = MutableStateFlow<SigmaPath?>(null)
+    override val fastPath = _fastPath.asStateFlow()
 
-    override fun setFastPath(path: String?) {
+    override fun setFastPath(path: SigmaPath?) {
         _fastPath.value = path
     }
 
@@ -122,9 +125,9 @@ class FolderContentBackComponent constructor(
     override val currentPath = folderPathHistory.map { it.lastOrNull() }
         .distinctUntilChanged()
 
-    private fun currentDatabaseFolderCacheEntryFor(path: String): Flow<DbState> =
+    private fun currentDatabaseFolderCacheEntryFor(path: SigmaPath): Flow<DbState> =
         dao.folderCacheEntryRepository()
-            .getFlowByPath(path) // Flow<FolderCacheEntry?>
+            .getFlowByPath(path.str) // Flow<FolderCacheEntry?>
             .map { entry ->
                 entry?.let { DbState.Data(it) } ?: DbState.NotFound
             }
@@ -514,7 +517,7 @@ data class Quadruple<A, B, C, D>(
 
 private data class Params(
     val origin: Origin,
-    val latestPath: String?,
+    val latestPath: SigmaPath?,
     val flagId: UUID?,
     val savedEntry: DbState,
     val sorting: SortingCriterion
@@ -665,7 +668,7 @@ sealed class DbState {
     override fun toString(): String = when (this) {
         Loading -> "Loading"
         NotFound -> "NotFound"
-        is Data -> "(Data, path=${folderEntry.path.substringAfterLast("/")})"
+        is Data -> "(Data, path=${folderEntry.path.lastSegment})"
     }
 }
 

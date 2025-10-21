@@ -35,6 +35,8 @@ import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.ItemDTO
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import okhttp3.OkHttpClient
@@ -59,7 +61,7 @@ class DiskRepository @Inject constructor(
     }
 
     override fun getFolderItemsLiteFlow(
-        folderPath: String,
+        folderPath: SigmaPath,
         sorting: SortingCriterion
     ): Flow<Item> = flow {
         val children = datasource.getFolderContent(folderPath)
@@ -91,7 +93,7 @@ class DiskRepository @Inject constructor(
                 .onStart { Log.d(TAG, "START items=${sorted.size} path=$folderPath") }
                 //.onEach { dto -> Log.d(TAG, "DTO -> ${dto.name}") }
                 .map { dto ->
-                    val itemPath = "${dto.path}/${dto.name}"
+                    val itemPath = SigmaPath("${dto.path}/${dto.name}")
                     val capsule = capsuleManager.getCapsule(itemPath)
 
                     val tag = capsule?.getFlag()
@@ -120,7 +122,7 @@ class DiskRepository @Inject constructor(
                         }
 
                         SigmaFile(
-                            parentPath = dto.path,
+                            parentPath = SigmaPath(dto.path),
                             name = dto.name,
                             picture = picture,
                             modificationDate = dto.lastModified,
@@ -130,7 +132,7 @@ class DiskRepository @Inject constructor(
                         )
                     } else {
                         SigmaFolder(
-                            parentPath = dto.path,
+                            parentPath = SigmaPath(dto.path),
                             name = dto.name,
                             picture = basePicture,
                             items = emptyList(),
@@ -152,7 +154,7 @@ class DiskRepository @Inject constructor(
     }.flowOn(Dispatchers.IO)
 
     @OptIn(ExperimentalTime::class)
-    override suspend fun getFolderFreshness(folderPath: String): FolderFreshness {
+    override suspend fun getFolderFreshness(folderPath: SigmaPath): FolderFreshness {
 
         val infos = datasource.getFolderLiteContent(folderPath)
 
@@ -165,7 +167,7 @@ class DiskRepository @Inject constructor(
     }
 
     suspend override fun getFolderItemsLite(
-        folderPath: String,
+        folderPath: SigmaPath,
         sorting: SortingCriterion
     ): List<Item> {
         return withContext(Dispatchers.IO) {
@@ -182,7 +184,7 @@ class DiskRepository @Inject constructor(
 
                             if (itemDTO.isFile) {
                                 var file: Item = SigmaFile(
-                                    parentPath = itemDTO.path,
+                                    parentPath = SigmaPath(itemDTO.path),
                                     name = itemDTO.name,
                                     picture = null,
                                     modificationDate = itemDTO.lastModified,
@@ -194,7 +196,7 @@ class DiskRepository @Inject constructor(
                                 file
                             } else {
                                 SigmaFolder(
-                                    parentPath = itemDTO.path,
+                                    parentPath = SigmaPath(itemDTO.path),
                                     name = itemDTO.name,
                                     picture = null,
                                     items = listOf(),
@@ -224,7 +226,7 @@ class DiskRepository @Inject constructor(
     }
 
     suspend override fun getFolderItems(
-        folderPath: String,
+        folderPath: SigmaPath,
         sorting: SortingCriterion
     ): List<Item> {
         return withContext(Dispatchers.IO) {
@@ -237,7 +239,7 @@ class DiskRepository @Inject constructor(
                     }
                     .map { itemDTO ->
                         async {
-                            val itemDTOPath = "${itemDTO.path}/${itemDTO.name}"
+                            val itemDTOPath = SigmaPath("${itemDTO.path}/${itemDTO.name}")
 
                             val newCapsuleManager = CapsuleComponent()
                             val newCapsule = newCapsuleManager.getCapsule(itemDTOPath)
@@ -252,7 +254,7 @@ class DiskRepository @Inject constructor(
 
                             if (itemDTO.isFile) {
                                 var file: Item = SigmaFile(
-                                    parentPath = itemDTO.path,
+                                    parentPath = SigmaPath(itemDTO.path),
                                     name = itemDTO.name,
                                     picture = getImage(
                                         path = itemDTOPath,
@@ -267,7 +269,7 @@ class DiskRepository @Inject constructor(
                                 if (itemDTO.name.endsWith(".html")) {
                                     try {
                                         val picture =
-                                            base64DataSource.extractImageFromHtml("${itemDTO.path}/${itemDTO.name}")
+                                            base64DataSource.extractImageFromHtml(SigmaPath("${itemDTO.path}/${itemDTO.name}"))
                                         if (picture != null)
                                             file = file.copy(picture = picture)
                                     } catch (e: Exception) {
@@ -278,7 +280,7 @@ class DiskRepository @Inject constructor(
                                 if (itemDTO.name.endsWith(".mp4")) {
                                     try {
                                         val picture =
-                                            extractCoverBitmap("${itemDTO.path}/${itemDTO.name}")
+                                            extractCoverBitmap(SigmaPath("${itemDTO.path}/${itemDTO.name}"))
                                         if (picture != null)
                                             file = file.copy(picture = picture)
                                     } catch (e: Exception) {
@@ -289,7 +291,7 @@ class DiskRepository @Inject constructor(
                                 file
                             } else {
                                 SigmaFolder(
-                                    parentPath = itemDTO.path,
+                                    parentPath = SigmaPath(itemDTO.path),
                                     name = itemDTO.name,
                                     picture = getImage(
                                         path = itemDTOPath,
@@ -321,10 +323,10 @@ class DiskRepository @Inject constructor(
         }
     }
 
-    fun extractCoverBitmap(videoPath: String): Bitmap? {
+    fun extractCoverBitmap(videoPath: SigmaPath): Bitmap? {
         return try {
             val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(videoPath)
+            retriever.setDataSource(videoPath.str)
             val cover = retriever.embeddedPicture
             retriever.release()
             cover?.let { data ->
@@ -369,9 +371,9 @@ class DiskRepository @Inject constructor(
     }
 
     override suspend fun getSigmaFolderUltraLite(
-        folderPath: String,
+        folderPath: SigmaPath,
     ): SigmaFolder {
-        val folder = File(folderPath)
+        val folder = folderPath.toFile()
 
         return SigmaFolder(
             fullPath = folderPath,
@@ -385,10 +387,10 @@ class DiskRepository @Inject constructor(
     }
 
     override suspend fun getSigmaFolderLite(
-        folderPath: String,
+        folderPath: SigmaPath,
         sorting: SortingCriterion,
     ): SigmaFolder {
-        val folder = File(folderPath)
+        val folder = folderPath.toFile()
 
         return SigmaFolder(
             fullPath = folderPath,
@@ -402,10 +404,10 @@ class DiskRepository @Inject constructor(
     }
 
     override suspend fun getSigmaFolder(
-        folderPath: String,
+        folderPath: SigmaPath,
         sorting: SortingCriterion,
     ): SigmaFolder {
-        val folder = File(folderPath)
+        val folder = folderPath.toFile()
 
         val newCompositeManager = CapsuleComponent()
         val newComposite = newCompositeManager.getCapsule(folderPath)
@@ -427,11 +429,11 @@ class DiskRepository @Inject constructor(
     }
 
     suspend fun getImage(
-        path: String,
+        path: SigmaPath,
         newCapsule: CapsuleData?,
     ): Any {
         var result: Any
-        val isFile = File(path).isFile()
+        val isFile = path.toFile().isFile()
 
 //        println("recherche Image pour: $path")
 
@@ -532,7 +534,7 @@ class DiskRepository @Inject constructor(
         item: Item,
         picture: String
     ) {
-        val htmlFile = File(item.fullPath + "/.folderPicture.html")
+        val htmlFile = File(item.fullPath.append("/.folderPicture.html"))
         if (!withContext(Dispatchers.IO) { htmlFile.exists() })
             return
 
@@ -560,7 +562,7 @@ class DiskRepository @Inject constructor(
 
         htmlFile.delete()
         withContext(Dispatchers.IO) {
-            val fichier = File(item.fullPath + "/.folderPicture.html")
+            val fichier = File(item.fullPath.append("/.folderPicture.html"))
             fichier.writeText(newHtmlContent, Charsets.UTF_8)
         }
     }
@@ -578,7 +580,7 @@ class DiskRepository @Inject constructor(
         item: Item,
         scale: ContentScale
     ) {
-        val htmlFile = File(item.fullPath + "/.folderPicture.html")
+        val htmlFile = File(item.fullPath.append("/.folderPicture.html"))
         if (!withContext(Dispatchers.IO) { htmlFile.exists() })
             return
 
@@ -604,7 +606,7 @@ class DiskRepository @Inject constructor(
 
         htmlFile.delete()
         withContext(Dispatchers.IO) {
-            val fichier = File(item.fullPath + "/.folderPicture.html")
+            val fichier = File(item.fullPath.append("/.folderPicture.html"))
             fichier.writeText(newHtmlContent, Charsets.UTF_8)
         }
     }
@@ -749,13 +751,12 @@ class DiskRepository @Inject constructor(
         }
     }
 
-    override suspend fun isFileOrFolderExists(parentPath: String, item: Item):
+    override suspend fun isFileOrFolderExists(parentPath: SigmaPath, item: Item):
             Boolean {
 
         val correspondingItem = datasource.getFolderContent(parentPath)
             .firstOrNull {
-                it.isFile == item.isFile()
-                        && it.name == item.fullPath.substringAfterLast("/")
+                it.isFile == item.isFile() && it.name == item.parentPath.str
             }
 
         return correspondingItem != null
@@ -795,7 +796,7 @@ class DiskRepository @Inject constructor(
         if (item.isFile())
             return
 
-        val htmlFile = File(item.fullPath + "/.folderPicture.html")
+        val htmlFile = File(item.fullPath.append("/.folderPicture.html"))
         if (!withContext(Dispatchers.IO) { htmlFile.exists() })
             return
 
@@ -811,7 +812,7 @@ class DiskRepository @Inject constructor(
 
         htmlFile.delete()
         withContext(Dispatchers.IO) {
-            val fichier = File(item.fullPath + "/.folderPicture.html")
+            val fichier = File(item.fullPath.append("/.folderPicture.html"))
             fichier.writeText(newHtmlContent, Charsets.UTF_8)
         }
     }
@@ -843,8 +844,8 @@ class DiskRepository @Inject constructor(
         }
     }
 
-    suspend fun isFolderPopulated(itemPath: String): Boolean {
-        val folder = File(itemPath)
+    suspend fun isFolderPopulated(itemPath: SigmaPath): Boolean {
+        val folder = itemPath.toFile()
         if (withContext(Dispatchers.IO) { !folder.exists() || folder.isFile() })
             throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: Item does not exist or is not a folder")
 

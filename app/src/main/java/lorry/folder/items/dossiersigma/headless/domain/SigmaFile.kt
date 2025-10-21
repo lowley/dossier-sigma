@@ -4,7 +4,7 @@ import androidx.compose.ui.layout.ContentScale
 import java.util.UUID
 
 class SigmaFile(
-    parentPath: String,
+    parentPath: SigmaPath,
     name: String,
     picture: Any?,
     id: String = UUID.randomUUID().toString(),
@@ -16,7 +16,7 @@ class SigmaFile(
 ) : Item(parentPath = parentPath, name = name, picture = picture, id = id, modificationDate = modificationDate, memo = memo, tag =  tag, scale = scale, size = size
 ) {
     constructor(
-        fullPath: String,
+        fullPath: SigmaPath,
         picture: Any?,
         id: String = UUID.randomUUID().toString(),
         modificationDate: Long,
@@ -24,8 +24,8 @@ class SigmaFile(
         scale: ContentScale?,
         memo: String? = null,
     ) : this(
-        parentPath = fullPath.substringBeforeLast("/"),
-        name = fullPath.substringAfterLast("/"),
+        parentPath = fullPath.dropLastSegmentOfPath(),
+        name = fullPath.lastSegment,
         picture = picture,
         id = id,
         modificationDate = modificationDate,
@@ -35,7 +35,7 @@ class SigmaFile(
     )
 
     fun copy(
-        path: String = this.parentPath,
+        path: SigmaPath = this.parentPath,
         name: String = this.name,
         picture: Any? = this.picture,
         id: String = this.id,

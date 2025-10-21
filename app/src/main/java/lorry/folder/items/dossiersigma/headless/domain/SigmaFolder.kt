@@ -5,7 +5,7 @@ import java.util.UUID
 
 class SigmaFolder(
     val items: List<Item>,
-    parentPath: String,
+    parentPath: SigmaPath,
     name: String,
     picture: Any?,
     id: String = UUID.randomUUID().toString(),
@@ -22,7 +22,7 @@ class SigmaFolder(
     }
 
     constructor(
-        fullPath: String,
+        fullPath: SigmaPath,
         picture: Any?,
         items: List<Item>,
         id: String = UUID.randomUUID().toString(),
@@ -31,8 +31,8 @@ class SigmaFolder(
         scale: ContentScale?,
         memo: String? = null,
     ) : this(
-        parentPath = fullPath.substringBeforeLast("/"),
-        name = fullPath.substringAfterLast("/"),
+        parentPath = SigmaPath(fullPath.dropLastSegment()),
+        name = fullPath.lastSegment,
         picture = picture,
         id = id,
         modificationDate = modificationDate,
@@ -46,7 +46,7 @@ class SigmaFolder(
         get() = items.isEmpty()
 
     fun copy(
-        path: String = this.parentPath,
+        parentPath: SigmaPath = this.parentPath,
         name: String = this.name,
         picture: Any? = this.picture,
         items: List<Item> = this.items,
@@ -57,7 +57,7 @@ class SigmaFolder(
         memo: String? = this.memo,
     ): SigmaFolder {
         val result = SigmaFolder(
-            parentPath = path, name = name, picture = picture,
+            parentPath = parentPath, name = name, picture = picture,
             items = items.map { item ->
                 when (item) {
                     is SigmaFolder -> item.copy()
@@ -77,7 +77,7 @@ class SigmaFolder(
     companion object{
         fun ofItemsAndPersistedSigmaFolder(
             items: List<Item>,
-            fullPath: String,
+            fullPath: SigmaPath,
         ): SigmaFolder {
             val result = SigmaFolder(
                 items = items,
@@ -94,7 +94,7 @@ class SigmaFolder(
 
         val DUMMY = SigmaFolder(
             items = listOf(),
-            fullPath = "",
+            fullPath = SigmaPath(""),
             picture = null,
             modificationDate = 0L,
             tag = null,

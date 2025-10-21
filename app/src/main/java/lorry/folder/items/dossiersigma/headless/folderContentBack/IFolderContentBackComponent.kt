@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderCacheEntry
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.util.UUID
@@ -13,11 +14,11 @@ interface IFolderContentBackComponent{
     val sorting: StateFlow<SortingCriterion>
     fun setSorting(sorting: SortingCriterion)
 
-    val folderPathHistory: StateFlow<List<String>>
-    fun addFolderPathToHistory(folderPath: String)
+    val folderPathHistory: StateFlow<List<SigmaPath>>
+    fun addFolderPathToHistory(folderPath: SigmaPath)
     fun removeLastFolderPathHistory()
     fun removeNElementsFromHistory(n: Int)
-    val folderCacheFlow: StateFlow<Map<String, FolderCacheEntry>>
+    val folderCacheFlow: StateFlow<Map<SigmaPath, FolderCacheEntry>>
     val currentFolderFlow: StateFlow<SigmaFolder?>
 
     ///////////////////
@@ -39,8 +40,8 @@ interface IFolderContentBackComponent{
     fun setReloadType(type: ReloadType)
 
     fun manuallyInvalidateItems()
-    val currentPath: Flow<String?>
+    val currentPath: Flow<SigmaPath?>
 
-    val fastPath: StateFlow<String?>
-    fun setFastPath(path: String?)
+    val fastPath: StateFlow<SigmaPath?>
+    fun setFastPath(path: SigmaPath?)
 }

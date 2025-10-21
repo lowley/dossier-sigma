@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.ServiceLocator
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.headless.injections.SettingsStoreProvider
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
@@ -103,19 +105,19 @@ class SettingsManager @Inject constructor(
             preferences[NAS_PASSWORD_KEY] ?: ""
         }
 
-    suspend fun saveNasFolder(folder: String) {
+    suspend fun saveNasFolder(folder: SigmaPath) {
         withContext(Dispatchers.IO) {
             dataStore.edit { settings ->
-                settings[NAS_FOLDER_KEY] = folder
+                settings[NAS_FOLDER_KEY] = folder.str
             }
         }
     }
 
-    val nasFolderFlow: Flow<String> = dataStore.data
+    val nasFolderFlow: Flow<SigmaPath> = dataStore.data
         .map { preferences ->
             // On lit la valeur associée à notre clé.
             // Si elle n'existe pas, on retourne une valeur par défaut (chaîne vide).
-            preferences[NAS_FOLDER_KEY] ?: ""
+            SigmaPath(preferences[NAS_FOLDER_KEY] ?: "")
         }
 
     suspend fun saveHomeItems(items: Set<HomeItemInfos>) {
@@ -143,18 +145,18 @@ class SettingsManager @Inject constructor(
             return@map cool
         }
 
-    suspend fun saveCurrentPath(path: String) {
+    suspend fun saveCurrentPath(path: SigmaPath) {
         withContext(Dispatchers.IO) {
             dataStore.edit { settings ->
-                settings[CURRENT_APP_PATH_KEY] = path
+                settings[CURRENT_APP_PATH_KEY] = path.str
             }
         }
     }
 
-    val currentPathFlow: Flow<String?> = dataStore.data
+    val currentPathFlow: Flow<SigmaPath?> = dataStore.data
         .map { preferences ->
             val raw = preferences[CURRENT_APP_PATH_KEY] ?: return@map null
-            return@map raw
+            return@map SigmaPath(raw)
         }
 
     suspend fun saveTheme(isDark: NightAndDay) {

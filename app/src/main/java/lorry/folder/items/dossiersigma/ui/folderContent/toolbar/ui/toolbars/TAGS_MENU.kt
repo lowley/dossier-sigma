@@ -4,6 +4,7 @@ import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Flag
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import java.util.UUID
@@ -21,7 +22,6 @@ object TAGS_MENU : Tools(
                 text = { "Ajouter" },
                 icon = R.drawable.plus,
                 visible = { viewModel, mainActivity ->
-                    val currentFolder = viewModel.folderContentComponent.currentFolderFlow.value
                     val selectedFolder = viewModel.folderContentComponent
                         .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
                     val selectedFolderTag = selectedFolder?.tag
@@ -71,7 +71,6 @@ object TAGS_MENU : Tools(
                 text = { "Modifier" },
                 icon = R.drawable.modifier,
                 visible = { viewModel, mainActivity ->
-                    val currentFolder = viewModel.folderContentComponent.currentFolderFlow.value
                     val selectedFolder = viewModel.folderContentComponent
                         .folderCacheFlow.value[viewModel.selectedItemFullPath.value]?.folder
                     val selectedFolderTag = selectedFolder?.tag

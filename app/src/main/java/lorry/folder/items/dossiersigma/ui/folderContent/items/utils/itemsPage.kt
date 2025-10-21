@@ -27,6 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.folderContent.items.ItemsComponent
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
@@ -45,9 +48,9 @@ fun ItemsComponent.ItemsPage(
 ) {
     val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsStateWithLifecycle()
     val scrollStates =
-        remember { mutableMapOf<String, LazyGridState>() }
+        remember { mutableMapOf<SigmaPath, LazyGridState>() }
     val currentScrollState =
-        scrollStates.getOrPut(currentFolder?.fullPath ?: "") {
+        scrollStates.getOrPut(SigmaPath(currentFolder?.fullPath?.str ?: "")) {
             LazyGridState()
         }
 
@@ -85,7 +88,7 @@ fun ItemsComponent.ItemsPage(
             Log.d(TAG, "Bonjour le \u200Bmonde\u200B")
             Log.d(TAG, "Bonjour \u001B[31mmonde\u001B[0m en couleur !");
             Log.d("SigmaTest", "Bonjour avec un tag \u200Binvisible\u200B")
-            Log.d(TAG, "éléments de décision: ① FASTPATH: ${fastPath.value?.substringAfterLast("/")}, ② CURRENTFOLDER: ${currentFolder?.fullPath?.substringAfterLast("/")}")
+            Log.d(TAG, "éléments de décision: ① FASTPATH: ${fastPath.value?.lastSegment}, ② CURRENTFOLDER: ${currentFolder?.fullPath?.lastSegment}")
             Log.d(TAG, "d'où: ② pathMatches=$pathMatches, ② items (dans currentFolder)=${items.size}")
 
             when {
@@ -99,7 +102,7 @@ fun ItemsComponent.ItemsPage(
                         state = currentScrollState
                     ) {
                         lazyGridItems(items, key = {
-                            it.fullPath + "-" + it.id
+                            it.fullPath.str + "-" + it.id
                         }) { item ->
                             ItemComponent(
                                 item = item,
@@ -180,10 +183,10 @@ fun <T> LazyGridScope.lazyGridItems(
     }
 }
 
-fun samePath(a: String?, b: String?): Boolean {
+fun samePath(a: SigmaPath?, b: SigmaPath?): Boolean {
     if (a == null || b == null) return false
     fun norm(s: String) = s.trimEnd('/')
-    return norm(a) == norm(b)
+    return norm(a.str) == norm(b.str)
 }
 
 @Composable

@@ -28,6 +28,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ServiceLocator
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.IMoveProgress
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
@@ -58,7 +61,7 @@ class MoveToNASWorker @AssistedInject constructor(
         const val P_INDEX = "p_index"
         const val P_PCT = "p_pct"
 
-        var sourceFolderInPath: Option<String> = optionOf(null)
+        var sourceFolderInPath: Option<SigmaPath> = optionOf(null)
 
         fun request(
             target: String,
@@ -108,13 +111,13 @@ class MoveToNASWorker @AssistedInject constructor(
         val entries: List<ManifestEntry> = Gson().fromJson(json, type)
 
         val target = inputData.getString(KEY_TARGET) ?: return Result.failure()
-        val destination = "/$target"
+        val destination = "/$target".toSigmaPath()
 
         sourceFolderInPath = optionOf(
             entries
                 .firstOrNull()
                 ?.fullPath
-                ?.substringBeforeLast("/") //répertoire contenant
+                ?.dropLastSegmentOfPath() //répertoire contenant
         )
         
         setForeground(createForegroundInfo("Copie en cours...", "Préparation"))
@@ -221,8 +224,8 @@ class MoveToNASWorker @AssistedInject constructor(
     }
 
     private suspend fun copyFile(
-        sourcePath: String,
-        destination: String,
+        sourcePath: SigmaPath,
+        destination: SigmaPath,
         index: Int,
         total: Int
     ): Boolean {

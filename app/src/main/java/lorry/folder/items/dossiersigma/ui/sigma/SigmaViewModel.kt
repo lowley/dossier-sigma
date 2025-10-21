@@ -30,6 +30,8 @@ import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.external.playing.IPlayingDataSource
 import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
@@ -253,7 +255,7 @@ class SigmaViewModel @Inject constructor(
         folderContentComponent.reloadCurrentFolder()
     }
 
-    fun goToFolder(folderPath: String, sorting: SortingCriterion? = null) {
+    fun goToFolder(folderPath: SigmaPath, sorting: SortingCriterion? = null) {
         folderContentComponent.manuallyInvalidateItems()
         folderContentComponent.setFastPath(folderPath)
 
@@ -344,13 +346,13 @@ class SigmaViewModel @Inject constructor(
 //        goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
 //    }
 
-    fun playVideoFile(videoFullPath: String) {
+    fun playVideoFile(videoFullPath: SigmaPath) {
         viewModelScope.launch(Dispatchers.IO) {
             playingDataSource.playFile(videoFullPath, "video/mp4")
         }
     }
 
-    fun playHtmlFile(htmlFullPath: String) {
+    fun playHtmlFile(htmlFullPath: SigmaPath) {
         viewModelScope.launch(Dispatchers.IO) {
             playingDataSource.playFile(htmlFullPath, "text/html")
         }

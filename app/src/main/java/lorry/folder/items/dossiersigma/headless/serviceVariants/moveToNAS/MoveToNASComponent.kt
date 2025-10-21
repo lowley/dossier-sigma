@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.service.IServiceComponent
 import lorry.folder.items.dossiersigma.headless.service.utilities.parameter
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
@@ -83,8 +84,8 @@ class MoveToNASComponent  constructor(
                     println("MoveToNASService: copie de $source")
                     try {
                         nasUtilities.copy(
-                            source.first,
-                            destination,
+                            source.first.toSigmaPath(),
+                            destination.toSigmaPath(),
                             index = index,
                             total = filesToTransferData.size,
                             changeBottomTools = changeBottomTools
@@ -94,12 +95,14 @@ class MoveToNASComponent  constructor(
                     }
 
                     println("vérification: source=$source, destination=$destination")
-                    val verify = nasUtilities.verify(source.first, destination)
+                    val verify = nasUtilities.verify(
+                        source.first.toSigmaPath(),
+                        destination.toSigmaPath())
                     println("résultat de la vérification: $verify")
 
                     if (verify) {
                         println("vérification positive, traitements sur le point d'être effectués")
-                        nasUtilities.delete(source.first)
+                        nasUtilities.delete(source.first.toSigmaPath())
                         println("fichier $source supprimé")
 
                         println("envoi du message à CopieurTho2")

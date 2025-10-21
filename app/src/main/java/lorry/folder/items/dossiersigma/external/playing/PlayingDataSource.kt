@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import java.io.File
 import javax.inject.Inject
@@ -14,9 +15,9 @@ class PlayingDataSource @Inject constructor(
 
     @Inject lateinit var settings: SettingsManager
 
-    override suspend fun playFile(fullPath: String, type: String) {
+    override suspend fun playFile(fullPath: SigmaPath, type: String) {
 
-            val file = File(fullPath)
+            val file = fullPath.toFile()
 
             val uri: Uri = FileProvider.getUriForFile(
                 context,

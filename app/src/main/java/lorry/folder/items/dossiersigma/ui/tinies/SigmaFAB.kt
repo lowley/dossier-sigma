@@ -31,11 +31,15 @@ import com.leinardi.android.speeddial.compose.SpeedDialState
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import java.io.File
+import kotlin.collections.map
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -199,7 +203,7 @@ private fun SigmaActivity.copyEntireFolderToNAS() {
 
         //* aire des images enregistrées dans un fichier
         //* pour transfert à CopieurTho2
-        val entries = files.map<Pair<String, String?>, ManifestEntry> {
+        val entries = files.map<Pair<SigmaPath, String?>, ManifestEntry> {
             ManifestEntry(fullPath = it.first, picture64 = it.second)
         }
 
@@ -219,11 +223,11 @@ private fun SigmaActivity.copyEntireFolderToNAS() {
         //* fin aire des images enregistrées dans un fichier
 
         val nasDirectory =
-            this@SigmaActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull() ?: ""
+            this@SigmaActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull() ?: "".toSigmaPath()
 
         val req = MoveToNASWorker.request(
             manifestPath = manifestFile.absolutePath,
-            target = nasDirectory,
+            target = nasDirectory.str,
             manifestUri = contentUri.toString(),
             picture64 = picture64
         )

@@ -34,6 +34,9 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
@@ -42,10 +45,10 @@ import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 fun SigmaActivity.FolderChooserDialog(
     modifier: Modifier,
     viewModel: SigmaViewModel,
-    onDatasCompleted: (path: String?) -> Unit,
+    onDatasCompleted: (path: SigmaPath?) -> Unit,
 ) {
 
-    var path = remember { mutableStateOf("/storage/emulated/0") }
+    var path = remember { mutableStateOf(SigmaPath("/storage/emulated/0"))}
     var items = remember { mutableStateOf(listOf<Item>()) }
 
     LaunchedEffect(path.value) {
@@ -98,7 +101,7 @@ fun SigmaActivity.FolderChooserDialog(
 
 @Composable
 fun FileChooserToolbox(
-    path: MutableState<String>,
+    path: MutableState<SigmaPath>,
 ) {
 
     Row(
@@ -111,7 +114,7 @@ fun FileChooserToolbox(
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
-                path.value = path.value.substringBeforeLast("/")
+                path.value = path.value.dropLastSegmentOfPath()
             }
         ) {
             Text(text = "Remonter")
@@ -122,7 +125,7 @@ fun FileChooserToolbox(
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
-                path.value = "/storage/emulated/0/Download"
+                path.value = "/storage/emulated/0/Download".toSigmaPath()
             }
         ) {
             Text(text = "Téléchargements")
@@ -133,7 +136,7 @@ fun FileChooserToolbox(
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
-                path.value = "/storage/emulated/0"
+                path.value = "/storage/emulated/0".toSigmaPath()
             }
         ) {
             Text(text = "Stockage principal")
@@ -144,7 +147,7 @@ fun FileChooserToolbox(
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
-                path.value = "/storage/emulated/0/Movies"
+                path.value = "/storage/emulated/0/Movies".toSigmaPath()
             }
         ) {
             Text(text = "Movies")
@@ -154,13 +157,13 @@ fun FileChooserToolbox(
 
 @Composable
 fun ColumnScope.SelectedPathDisplay(
-    path: MutableState<String>
+    path: MutableState<SigmaPath>
 ) {
     Text(
         modifier = Modifier.Companion
             .fillMaxWidth()
             .align(Alignment.Companion.CenterHorizontally),
-        text = path.value.substringAfterLast("/"),
+        text = path.value.dropLastSegment(),
         textAlign = TextAlign.Companion.Center
 
     )
@@ -169,9 +172,9 @@ fun ColumnScope.SelectedPathDisplay(
 @Composable
 fun ColumnScope.BottomToolbar2(
     modifier: Modifier,
-    path: MutableState<String>,
+    path: MutableState<SigmaPath>,
     items: MutableState<List<Item>>,
-    onDatasCompleted: (path: String?) -> Unit,
+    onDatasCompleted: (path: SigmaPath?) -> Unit,
     viewModel: SigmaViewModel
 ) {
 
@@ -200,14 +203,14 @@ fun ColumnScope.BottomToolbar2(
                 viewModel.setIsFilePickerVisible(false)
             }
         ) {
-            Text(text = "Choisir ${path.value.substringAfterLast("/").takeLast(20)}")
+            Text(text = "Choisir ${path.value.dropLastSegment().takeLast(20)}")
         }
     }
 }
 
 @Composable
 fun ColumnScope.FileList(
-    path: MutableState<String>,
+    path: MutableState<SigmaPath>,
     items: MutableState<List<Item>>
 ) {
 
@@ -244,7 +247,7 @@ fun ColumnScope.FileList(
 
 @Composable
 fun ColumnScope.ItemRow(
-    path: MutableState<String>,
+    path: MutableState<SigmaPath>,
     item: Item
 ) {
 

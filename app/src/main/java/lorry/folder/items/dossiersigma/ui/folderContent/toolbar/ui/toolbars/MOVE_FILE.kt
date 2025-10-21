@@ -4,6 +4,8 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.last
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
@@ -21,7 +23,7 @@ object MOVE_FILE : Tools() {
                 onClick = { viewModel, mainActivity ->
                     toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                     val item = toolBarManager.toolbarComponent.toolsViewModel.movingItem
-                    val movingParent = item?.fullPath?.substringBeforeLast("/")
+                    val movingParent = item?.fullPath?.dropLastSegmentOfPath()
 
                     if (movingParent != null)
                         viewModel.goToFolder(movingParent)
@@ -54,7 +56,8 @@ object MOVE_FILE : Tools() {
                         //toast
                         println("MovingItem: choisir fichier destination")
                         //1.copie
-                        val sourceFile = File(toolBarManager.toolbarComponent.toolsViewModel.movingItem?.fullPath ?: "")
+                        val sourceFile = toolBarManager.toolbarComponent.toolsViewModel.movingItem?.fullPath?.toFile()
+                            ?: return@run
                         //créer service avec notification(avec avancement)
                         //dans le service: copie
                         //passer au service une lambda pour l'action de retour(2.+3.)
@@ -64,7 +67,7 @@ object MOVE_FILE : Tools() {
 
                         if (dest!!.isFile()) {
                             if (sourceFile.path.substringAfterLast("/")
-                                == dest.fullPath.substringAfterLast("/")
+                                == dest.fullPath.lastSegment
                             ) {
                                 viewModel.setIsMoveFileDialogVisible(true)
                                 return@run
@@ -90,8 +93,8 @@ object MOVE_FILE : Tools() {
                          * @see MoveFileService.onStartCommand
                          */
                         val intent = Intent(mainActivity, MoveFileService::class.java).apply {
-                            putExtra("source", toolBarManager.toolbarComponent.toolsViewModel.movingItem?.fullPath ?: "")
-                            putExtra("destination", dest.fullPath)
+                            putExtra("source", toolBarManager.toolbarComponent.toolsViewModel.movingItem?.fullPath?.str ?: "")
+                            putExtra("destination", dest.fullPath.str)
                             putExtra("addSuffix", "")
                         }
                         ContextCompat.startForegroundService(mainActivity, intent)

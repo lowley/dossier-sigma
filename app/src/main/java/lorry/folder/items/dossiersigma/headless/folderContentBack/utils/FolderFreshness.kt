@@ -2,12 +2,13 @@ package lorry.folder.items.dossiersigma.headless.folderContentBack.utils
 
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
 
-    val path: String,
+    val path: SigmaPath,
     private val containerMtime: Instant,      // mtime du dossier lui-même
     private val contentsMaxMtime: Instant,
     private val secondLevelFolderPictureMTime: Instant
@@ -15,7 +16,7 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
     companion object {
         @OptIn(ExperimentalTime::class)
         val DUMMY = FolderFreshness(
-            path = "/storage/emulated/0/Movies",
+            path = SigmaPath("/storage/emulated/0/Movies"),
             containerMtime = Instant.DISTANT_PAST,
             contentsMaxMtime = Instant.DISTANT_PAST,
             secondLevelFolderPictureMTime = Instant.DISTANT_PAST,

@@ -5,14 +5,15 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import java.io.File
 import javax.inject.Inject
 
 class Base64DataSource @Inject constructor() : IBase64DataSource {
 
-    override suspend fun extractImageFromHtml(html: String): Bitmap? {
+    override suspend fun extractImageFromHtml(html: SigmaPath): Bitmap? {
 
-        val htmlFile = File(html)
+        val htmlFile = html.toFile()
         if (!withContext(Dispatchers.IO) { htmlFile.exists() }) return null
 
         val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }
@@ -34,9 +35,9 @@ class Base64DataSource @Inject constructor() : IBase64DataSource {
         }
     }
 
-    override suspend fun extractBase64FromHtml(html: String): String? {
+    override suspend fun extractBase64FromHtml(html: SigmaPath): String? {
 
-        val htmlFile = File(html)
+        val htmlFile = html.toFile()
         if (!withContext(Dispatchers.IO) { htmlFile.exists() }) return null
 
         val htmlContent = withContext(Dispatchers.IO) { htmlFile.readText() }

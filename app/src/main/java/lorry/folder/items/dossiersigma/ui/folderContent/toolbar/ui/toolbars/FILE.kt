@@ -4,6 +4,8 @@ import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
@@ -88,17 +90,14 @@ object FILE : Tools() {
                 text = { "Renommer" },
                 icon = R.drawable.renommer,
                 onClick = { viewModel, mainActivity ->
-                    val currentFolderPath = viewModel.selectedItem.value?.fullPath
-                    val currentItemName = currentFolderPath?.substringAfterLast("/") ?: ""
+                    val currentItemFullPath = viewModel.selectedItem.value?.fullPath
+                    val currentItemName = currentItemFullPath?.lastSegment ?: ""
                     //viewModel.setSelectedItem(null)
                     viewModel.setDialogMessage("Nouveau nom du dossier")
                     viewModel.setDialogInitialText(currentItemName)
                     viewModel.dialogOnOkLambda = { newName, viewModel, mainActivity ->
                         run {
-                            if (currentFolderPath == null || newName == currentFolderPath.substringAfterLast(
-                                    "/"
-                                )
-                            ) {
+                            if (currentItemFullPath == null || newName == currentItemName) {
                                 Toast.makeText(
                                     mainActivity,
                                     "Le nouveau nom doît être différent de l'ancien",
@@ -107,12 +106,13 @@ object FILE : Tools() {
                                 return@run
                             }
 
-                            val newFullName = "${
-                                currentFolderPath.substringBeforeLast("/")
-                            }/$newName"
+                            val newFullName = currentItemFullPath
+                                .dropLastSegmentOfPath()
+                                .combinedWith(newName)
+
                             println("NOM: $newFullName")
-                            if (File(currentFolderPath).exists()) {
-                                if (File(currentFolderPath).renameTo(File(newFullName))) {
+                            if (currentItemFullPath.toFile().exists()) {
+                                if (currentItemFullPath.toFile().renameTo(newFullName.toFile())) {
                                     Toast.makeText(
                                         mainActivity,
                                         "Renommage effectué",
@@ -157,7 +157,7 @@ object FILE : Tools() {
                             val parentPath = parent.fullPath
                             val children = items
                                 .map { item -> item.fullPath }
-                            if (children.any { child -> child.substringAfterLast("/") == newName }
+                            if (children.any { child -> child.lastSegment == newName }
                             ) {
                                 Toast.makeText(
                                     mainActivity,
@@ -207,7 +207,7 @@ object FILE : Tools() {
                             if (selectedItemPath == null)
                                 return@run
 
-                            var children: List<String> = emptyList()
+                            var children: List<SigmaPath> = emptyList()
 
                             children = viewModel.diskRepository
                                 .getFolderItems(
@@ -216,7 +216,7 @@ object FILE : Tools() {
                                 )
                                 .map { item -> item.fullPath }
 
-                            if (children.any { child -> child.substringAfterLast("/") == newName }
+                            if (children.any { child -> child.lastSegment == newName }
                             ) {
                                 Toast.makeText(
                                     mainActivity,
@@ -227,10 +227,10 @@ object FILE : Tools() {
                                 return@run
                             }
 
-                            val newFullPath = "$selectedItemPath/$newName"
+                            val newFullPath = selectedItemPath.combinedWith(newName)
 
-                            if (File(newFullPath).mkdir() &&
-                                File(newFullPath).exists()
+                            if (newFullPath.toFile().mkdir() &&
+                                newFullPath.toFile().exists()
                             ) {
                                 Toast.makeText(
                                     mainActivity,
@@ -282,12 +282,12 @@ object FILE : Tools() {
                                 return@run
 
                             if (item.isFolder())
-                                File(item.fullPath).deleteRecursively()
-                            else File(item.fullPath).delete()
+                                item.fullPath.toFile().deleteRecursively()
+                            else item.fullPath.toFile().delete()
 
                             viewModel.setSelectedItem(null, true)
 
-                            if (File(itemFullPath).exists())
+                            if (itemFullPath?.toFile()?.exists() == true)
                                 Toast.makeText(
                                     mainActivity,
                                     "Un problème lors de la suppression est survenu",

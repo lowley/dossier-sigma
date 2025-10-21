@@ -5,19 +5,23 @@ import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
+import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
 import javax.inject.Inject
+import javax.inject.Named
 
 
 class FileCapsuleManager @Inject constructor(
-    private val targetPath: String,
-    private val useOld: Boolean = false
+    @Named("targetPath") val targetPath: String,
+    @Named("useOld") val useOld: Boolean
 ) {
+    val targetPathHere = targetPath.toSigmaPath()
+
     suspend fun save(element: IElementInCapsule, forFolder: Boolean) {
 
         val eliminate = forFolder && (element is InitialPicture || element is CroppedPicture)
@@ -27,24 +31,25 @@ class FileCapsuleManager @Inject constructor(
                 FileCapsuleIO()
             else FileMetadataManager()
 
-            val target = File(targetPath)
+            val target = File(targetPathHere.str
+            )
             val existingCapsule = if (target.exists()) {
-                capsuleIO.getCapsule(targetPath) ?: CapsuleData()
+                capsuleIO.getCapsule(targetPathHere.str) ?: CapsuleData()
             } else {
                 CapsuleData()
             }
 
             val updatedCapsule = element.update(existingCapsule)
-            capsuleIO.replaceCapsule(targetPath, updatedCapsule)
+            capsuleIO.replaceCapsule(targetPathHere.str, updatedCapsule)
         }
 
         //branchement enregistrement en fichier pour dossiers
-        val pictureDir = File(targetPath.replaceAfterLast("/", ".sigma"))
+        val pictureDir = File(targetPathHere.str.replaceAfterLast("/", ".sigma"))
         if (!pictureDir.exists())
             pictureDir.mkdirs()
 
         if (forFolder && element is InitialPicture && element.initialPicture != null) {
-            val file = File(targetPath.replaceAfterLast("/", ".sigma/initialPicture.webp"))
+            val file = File(targetPathHere.str.replaceAfterLast("/", ".sigma/initialPicture.webp"))
 
             FileOutputStream(file).use<FileOutputStream, Unit> { out ->
                 (element.initialPicture as Bitmap).compress(
@@ -55,7 +60,7 @@ class FileCapsuleManager @Inject constructor(
         }
 
         if (forFolder && element is CroppedPicture && element.croppedPicture != null) {
-            val file = File(targetPath.replaceAfterLast("/", ".sigma/croppedPicture.webp"))
+            val file = File(targetPathHere.str.replaceAfterLast("/", ".sigma/croppedPicture.webp"))
 
             FileOutputStream(file).use<FileOutputStream, Unit> { out ->
                 (element.croppedPicture as Bitmap).compress(
@@ -69,19 +74,19 @@ class FileCapsuleManager @Inject constructor(
     suspend fun getCapsule(): CapsuleData {
         val compositeIO = FileMetadataManager()
 
-        val target = File(targetPath)
+        val target = File(targetPathHere.str)
         val firstMelt = withContext(Dispatchers.IO) {
             if (target.exists()) {
-                compositeIO.getCapsule(targetPath) ?: CapsuleData()
+                compositeIO.getCapsule(targetPathHere.str) ?: CapsuleData()
             } else
                 CapsuleData()
         }
 
         val folderSuffix = ".folderPicture.html"
-        if (!targetPath.endsWith(folderSuffix))
+        if (!targetPathHere.endsWith(folderSuffix))
             return firstMelt
 
-        val initialWebp = File(targetPath.replaceAfterLast("/", ".sigma/initialPicture.webp"))
+        val initialWebp = File(targetPathHere.replaceLastsegmentBy(".sigma/initialPicture.webp"))
         val initialWebpExists = initialWebp.exists()
         val secondMeltInitial = if (initialWebpExists) try {
             var result: String? = null
@@ -102,7 +107,7 @@ class FileCapsuleManager @Inject constructor(
             null
         } else null
 
-        val croppedWebp = File(targetPath.replaceAfterLast("/", ".sigma/croppedPicture.webp"))
+        val croppedWebp = File(targetPathHere.replaceLastsegmentBy(".sigma/croppedPicture.webp"))
         val croppedWebpExists = croppedWebp.exists()
         val secondMeltCropped = if (croppedWebpExists) try {
             var result: String? = null
@@ -137,7 +142,7 @@ class FileCapsuleManager @Inject constructor(
 
     suspend fun <T> getElement(reader: IElementReader<T>): T? {
         return withContext(Dispatchers.IO) {
-            reader.fileGet(targetPath)
+            reader.fileGet(targetPathHere)
         }
     }
 }

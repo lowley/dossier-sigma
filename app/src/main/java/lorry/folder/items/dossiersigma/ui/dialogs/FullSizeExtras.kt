@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeItem
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeUiState
@@ -100,11 +101,11 @@ fun FullSizeExtras(
                     ).apply {
                         putExtra(
                             "source",
-                            bottomComponent.toolsViewModel.movingItem?.fullPath ?: ""
+                            bottomComponent.toolsViewModel.movingItem?.fullPath?.str ?: ""
                         )
                         putExtra(
                             "destination",
-                            bottomComponent.toolsViewModel.movingItem?.fullPath ?: ""
+                            bottomComponent.toolsViewModel.movingItem?.fullPath?.str ?: ""
                         )
                         putExtra("addSuffix", "")
                     }
@@ -114,7 +115,7 @@ fun FullSizeExtras(
             onCancel = {
                 bottomComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
                 val item = bottomComponent.toolsViewModel.movingItem
-                val movingParent = item?.fullPath?.substringBeforeLast("/")
+                val movingParent = item?.fullPath?.dropLastSegmentOfPath()
 
                 if (movingParent != null)
                     mainViewModel.goToFolder(movingParent)
@@ -130,11 +131,11 @@ fun FullSizeExtras(
                     ).apply {
                         putExtra(
                             "source",
-                            bottomComponent.toolsViewModel.movingItem?.fullPath ?: ""
+                            bottomComponent.toolsViewModel.movingItem?.fullPath?.str ?: ""
                         )
                         putExtra(
                             "destination",
-                            bottomComponent.toolsViewModel.itemToMove?.fullPath
+                            bottomComponent.toolsViewModel.itemToMove?.fullPath?.str
                         )
                         putExtra("addSuffix", " - copie")
                     }

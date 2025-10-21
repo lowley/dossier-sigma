@@ -5,6 +5,8 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 
 @Entity(
@@ -14,7 +16,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 data class FolderCacheEntry(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val folder: SigmaFolder,
-    @ColumnInfo(name = "path", defaultValue = "0") val path: String,
+    @ColumnInfo(name = "path", defaultValue = "0") val path: SigmaPath,
     val sort: SortingCriterion,
     val freshness: FolderFreshness,
     val cachedAt: Long = System.currentTimeMillis()
@@ -22,6 +24,6 @@ data class FolderCacheEntry(
 
 ) {
     override fun toString(): String {
-        return "FolderCacheEntry(path=${path.substringAfterLast("/")}, freshness=$freshness)"
+        return "FolderCacheEntry(path=${path.lastSegment}, freshness=$freshness)"
     }
 }

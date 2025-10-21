@@ -38,7 +38,7 @@ class ChangingPictureUseCase @Inject constructor(
             throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: Item is not a folder")
         
         val itemAsfolder = item as SigmaFolder
-        val folder = File(itemAsfolder.fullPath)
+        val folder = itemAsfolder.fullPath.toFile()
        
         if (!withContext(Dispatchers.IO) {  folder.exists() })
             throw IllegalArgumentException("ChangingPictureService/isFolderPopulated: folder is empty")

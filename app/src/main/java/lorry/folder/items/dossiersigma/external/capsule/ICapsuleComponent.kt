@@ -3,15 +3,16 @@ package lorry.folder.items.dossiersigma.external.capsule
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CapsuleData
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementInCapsule
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementReader
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 
 interface ICapsuleComponent {
     suspend fun save(
         element: IElementInCapsule,
-        targetPath: String,
+        targetPath: SigmaPath,
         useOld: Boolean = false)
 
     suspend fun getCapsule(
-        targetPath: String,
+        targetPath: SigmaPath,
         useOld: Boolean = false
     ): CapsuleData?
 
@@ -20,8 +21,5 @@ interface ICapsuleComponent {
      */
     suspend fun <T> getElement(
         reader: IElementReader<T>,
-        targetPath: String): T?
-
-
-
+        targetPath: SigmaPath): T?
 }

@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.FilesAccessibleChannel
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
@@ -126,7 +127,7 @@ class HomeViewModel @Inject constructor(
             val homeItemsList = homeItemsFromSettings.map {
                 HomeItem(
                     title = it.newTitle ?: "",
-                    path = it.path ?: "",
+                    path = it.path ?: SigmaPath(""),
                     icon = 0,
                     picture = it.picture
                 )
@@ -155,7 +156,7 @@ class HomeViewModel @Inject constructor(
 data class HomeItem(
     val id: UUID = UUID.randomUUID(),
     val title: String,
-    val path: String,
+    val path: SigmaPath,
     @DrawableRes val icon: Int = 0,
     val picture: Bitmap? = null,
     val index: Int = 0

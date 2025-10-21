@@ -8,6 +8,9 @@ import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.headless.domain.Item
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
 import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.headless.domain.lastSegment
+import lorry.folder.items.dossiersigma.headless.domain.str
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
@@ -27,7 +30,7 @@ open class DS_FTP @Inject constructor(
     )
 
     suspend fun <T : Any?> doWithNASAccess(
-        parent: String,
+        parent: SigmaPath,
         doWithFtpClient: suspend (FTPClient) -> Result<T?>
     ): T? {
 
@@ -92,13 +95,13 @@ open class DS_FTP @Inject constructor(
         return answer
     }
 
-    override suspend fun getSigmaFolder(parent: String): SigmaFolder? {
+    override suspend fun getSigmaFolder(parent: SigmaPath): SigmaFolder? {
         return doWithNASAccess(parent) { ftp ->
             val dirList = withContext(Dispatchers.IO) {
-                ftp.listDirectories(parent)
+                ftp.listDirectories(parent.str)
                     .map { file ->
                             SigmaFolder(
-                                fullPath = Paths.get(parent, file.name).toString(),
+                                fullPath = parent.combinedWith(file.name),
                                 items = emptyList(),
                                 modificationDate = file.timestamp.timeInMillis,
                                 picture = null,
@@ -110,7 +113,7 @@ open class DS_FTP @Inject constructor(
             }
 
             val fileList = withContext(Dispatchers.IO) {
-                ftp.listFiles(parent)
+                ftp.listFiles(parent.str)
                     .map { file ->
                             SigmaFile(
                                 name = file.name,
@@ -140,10 +143,10 @@ open class DS_FTP @Inject constructor(
         }
     }
 
-    override suspend fun fetchDirectories(parent: String): List<String>? {
+    override suspend fun fetchDirectories(parent: SigmaPath): List<String>? {
         return doWithNASAccess(parent) { ftp ->
             val liste = withContext(Dispatchers.IO) {
-                ftp.listDirectories(parent)
+                ftp.listDirectories(parent.str)
                     .filter { entry -> entry.isDirectory }
                     .map { file -> "/${file.name}" }
             }
@@ -152,16 +155,16 @@ open class DS_FTP @Inject constructor(
         }
     }
 
-    override suspend fun fetchFiles(parent: String): List<SigmaFile>? {
+    override suspend fun fetchFiles(parent: SigmaPath): List<SigmaFile>? {
         return doWithNASAccess(parent) { ftp ->
             val liste = withContext(Dispatchers.IO) {
-                ftp.listFiles(parent)
+                ftp.listFiles(parent.str)
                     ?.map { file ->
                         Log.d("SIGMA DISK", "file: ${file.name} Size: ${file.size}")
                         SigmaFile(
                             name = file.name,
                             modificationDate = file.timestamp.timeInMillis,
-                            parentPath = Paths.get(parent, file.name).toString(),
+                            parentPath = parent.combinedWith(file.name),
                             picture = null,
                             tag = null,
                             scale = null,
@@ -175,18 +178,18 @@ open class DS_FTP @Inject constructor(
     }
 
     override suspend fun copy(
-        localFilePath: String,
-        pathOnNAS: String,
+        localFilePath: SigmaPath,
+        pathOnNAS: SigmaPath,
         progressCallback: suspend (Int) -> Unit
     ): Boolean {
         return doWithNASAccess(parent = pathOnNAS) { ftp ->
-            val remoteFilePath = "$pathOnNAS/${localFilePath.substringAfterLast("/")}"
+            val remoteFilePath = pathOnNAS.combinedWith(localFilePath.lastSegment)
 
             try {
                 ftp.setFileType(FTPClient.BINARY_FILE_TYPE)
 
                 val result = withContext(Dispatchers.IO) {
-                    ftp.changeWorkingDirectory(pathOnNAS)
+                    ftp.changeWorkingDirectory(pathOnNAS.str)
                 }
 
                 if (!result) {
@@ -194,14 +197,14 @@ open class DS_FTP @Inject constructor(
                     return@doWithNASAccess Result.failure<Boolean>(Exception("Répertoire introuvable sur le NAS"))
                 }
 
-                val fileToUpload = File(localFilePath)
+                val fileToUpload = localFilePath.toFile()
                 val fileSize = fileToUpload.length() // Taille totale du fichier
                 val buffer = ByteArray(4096) // Taille du buffer
                 var uploadedSize = 0L
 
                 fileToUpload.inputStream().use { inputStream ->
                     withContext(Dispatchers.IO) {
-                        ftp.storeFileStream(localFilePath.substringAfterLast("/"))
+                        ftp.storeFileStream(localFilePath.lastSegment)
                             ?.use { outputStream ->
                                 var bytesRead: Int
                                 while (inputStream.read(buffer).also { bytesRead = it } != -1) {
