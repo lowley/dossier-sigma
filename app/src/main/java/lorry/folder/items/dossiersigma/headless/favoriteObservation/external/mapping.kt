@@ -90,7 +90,7 @@ object SigmaFolderMapping {
                     modificationDate = pi.modificationDate,
                     tag = pi.tagId?.let { Gson().fromJson(it, ColoredTag::class.java) },
                     picture = any,
-                    parentPath = pi.fullPath,
+                    parentPath = pi.fullPath.dropLastSegmentOfPath(),
                     name = pi.name,
                     scale = when (pi.scale){
                         "Fit" -> ContentScale.Fit
