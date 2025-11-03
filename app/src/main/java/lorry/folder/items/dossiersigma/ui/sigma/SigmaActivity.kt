@@ -978,6 +978,7 @@ class SigmaActivity : ComponentActivity() {
                                     setDragTargetItem = folderContentFrontComponent::setDragTargetItem,
                                     addDragOffset = folderContentFrontComponent::addDragOffset,
                                     dragTargetItem = folderContentFrontComponent.dragTargetItem,
+                                    stickerTool = tool
                                 )
                             }
                         }

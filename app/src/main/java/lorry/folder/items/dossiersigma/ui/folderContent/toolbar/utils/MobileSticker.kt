@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
@@ -37,8 +36,9 @@ fun MobileSticker(
     setDragTargetItem: (Item?) -> Unit,
     addDragOffset: (Offset) -> Unit,
     dragTargetItem: StateFlow<Item?>,
+    stickerTool: Tool,
 ) {
-    val tool: Tool = dragState.tool
+    val draggedTool: Tool = dragState.tool
     val offset: Offset = dragState.offset
     val dragTarget by dragTargetItem.collectAsState()
 
@@ -47,24 +47,26 @@ fun MobileSticker(
             .width(85.dp)
             .fillMaxHeight()
             .clickable {
-                toolbarComponent.setCurrentTool(tool)
+                toolbarComponent.setCurrentTool(draggedTool)
                 viewModel.viewModelScope.launch {
-                    tool.onClick(tool, viewModel, activity)
+                    draggedTool.onClick(draggedTool, viewModel, activity)
                 }
             }
     ) {
         StickerIcon(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .offset {
-                    IntOffset(
-                        offset.x.roundToInt() - 60,
-                        offset.y.roundToInt() - 70
-                    )
+                    if (stickerTool == draggedTool)
+                        IntOffset(
+                            offset.x.roundToInt() - 60,
+                            offset.y.roundToInt() - 70
+                        )
+                    else IntOffset(0, 0)
                 }
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = {
-                            beginDrag(tool, it)
+                            beginDrag(draggedTool, it)
                         },
                         onDrag = { change, dragAmount ->
                             change.consume()
@@ -76,11 +78,11 @@ fun MobileSticker(
                         }
                     )
                 },
-            iconRes = tool.icon,
-            iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                (tool.tint ?: Color(0xFFe9c46a)),
-            ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                (tool.tint ?: Color(0xFFe9c46a)),
+            iconRes = draggedTool.icon,
+            iconTint = if (draggedTool.isColoredIcon) Color.Companion.Unspecified else
+                (draggedTool.tint ?: Color(0xFFe9c46a)),
+            ringColor = if (draggedTool.isColoredIcon) Color.Companion.Unspecified else
+                (draggedTool.tint ?: Color(0xFFe9c46a)),
             ringWidth = 2.dp,
             ringSize = 85.dp,
             iconSize = 70.dp,
@@ -88,7 +90,7 @@ fun MobileSticker(
         )
 
         StickerText(
-            tool = tool
+            tool = draggedTool
         )
     }
 }
