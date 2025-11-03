@@ -840,7 +840,8 @@ class DiskRepository @Inject constructor(
 
     override suspend fun getSize(file: File): Long {
         return withContext(Dispatchers.IO) {
-            file.length()
+            val result = file.length()
+            result
         }
     }
 

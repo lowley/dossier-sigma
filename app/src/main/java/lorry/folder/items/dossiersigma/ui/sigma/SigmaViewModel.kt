@@ -399,9 +399,3 @@ data class DragState(
     val offset: Offset = Offset.Zero
 )
 
-data class FolderKey(
-    val path: String,
-    val reloadTrigger: Int,
-)
-
-
