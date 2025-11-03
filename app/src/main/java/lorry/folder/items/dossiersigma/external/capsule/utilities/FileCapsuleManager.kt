@@ -5,8 +5,8 @@ import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
-import lorry.folder.items.dossiersigma.headless.domain.str
-import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.toSigmaPath
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileInputStream

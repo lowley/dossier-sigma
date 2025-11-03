@@ -1,7 +1,6 @@
 package lorry.folder.items.dossiersigma.headless.favoriteObservation.external
 
-import androidx.compose.ui.layout.ContentScale
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 
 // Exemple d’un miroir minimal, à adapter à tes champs réels :
 @kotlinx.serialization.Serializable

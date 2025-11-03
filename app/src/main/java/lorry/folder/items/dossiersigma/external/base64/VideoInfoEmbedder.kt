@@ -7,7 +7,7 @@ import androidx.compose.ui.layout.ContentScale
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
+import lorry.folder.items.dossiersigma.basics.domain.ColoredTag
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.RandomAccessFile

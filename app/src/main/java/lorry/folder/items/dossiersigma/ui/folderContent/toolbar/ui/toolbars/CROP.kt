@@ -13,7 +13,7 @@ import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CroppedPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.InitialPicture
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Scale
-import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.str
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.imageAsAnyToTempUri
@@ -129,32 +129,16 @@ object CROP : Tools() {
         val item = viewModel.selectedItem.value ?: return
         viewModel.setSelectedItem(item.copy(scale = scale))
 
-        if (item.isFile()
-//            &&
-//            item.fullPath.endsWith(".mp4") ||
-//            item.fullPath.endsWith(".avi") ||
-//            item.fullPath.endsWith(".mpg") ||
-//            item.fullPath.endsWith(".html") ||
-//            item.fullPath.endsWith(".iso") ||
-//            item.fullPath.endsWith(".mkv")
-        ) {
-            viewModel.viewModelScope.launch {
+        viewModel.viewModelScope.launch {
+            if (item.isFile()) {
                 val capsuleMgr = CapsuleComponent()
                 capsuleMgr.save(
                     Scale(scale),
                     item.fullPath
                 )
-
-                withContext(Dispatchers.Main) {
-                    viewModel.folderContentComponent.reloadCurrentFolder()
-                    viewModel.setSelectedItem(null)
-                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
-                }
             }
-        }
 
-        if (item.isFolder()) {
-            viewModel.viewModelScope.launch {
+            if (item.isFolder()) {
                 val file = File(item.fullPath.str + "/.folderPicture.html")
 //                if (!file.exists())
 //                    viewModel.diskRepository.createFolderHtmlFile(item)
@@ -164,16 +148,13 @@ object CROP : Tools() {
                     Scale(scale),
                     item.fullPath
                 )
+            }
 
-                withContext(Dispatchers.Main){
-                    viewModel.folderContentComponent.reloadCurrentFolder()
-                    viewModel.setSelectedItem(null)
-                    toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
-                }
+            withContext(Dispatchers.Main) {
+                viewModel.folderContentComponent.reloadCurrentFolder()
+                viewModel.setSelectedItem(null)
+                toolBarManager.toolbarComponent.toolsViewModel.rawFeed.setCurrentContent(DEFAULT)
             }
         }
-
-//    viewModel.notifyPictureUpdated()
-//    viewModel.setSelectedItem(null)
     }
 }

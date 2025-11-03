@@ -4,9 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.lastSegment
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.lastSegment
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 
 @Entity(

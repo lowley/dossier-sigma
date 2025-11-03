@@ -12,8 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
-import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.basics.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.ItemsPage
@@ -25,7 +25,6 @@ import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewM
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
-import java.io.File
 
 class ItemsComponent @AssistedInject constructor(
     private val diskRepository: IDiskRepository,

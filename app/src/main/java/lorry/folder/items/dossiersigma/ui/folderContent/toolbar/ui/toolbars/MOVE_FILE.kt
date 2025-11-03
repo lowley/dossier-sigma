@@ -2,14 +2,12 @@ package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars
 
 import android.content.Intent
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.flow.last
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.headless.domain.lastSegment
-import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.lastSegment
+import lorry.folder.items.dossiersigma.basics.domain.str
 import lorry.folder.items.dossiersigma.headless.services.MoveFileService
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
-import java.io.File
 
 object MOVE_FILE : Tools() {
     override fun content() = ToolbarContent(

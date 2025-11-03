@@ -6,7 +6,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
 

@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.domain
+package lorry.folder.items.dossiersigma.basics.domain
 
 data class ItemDTO(
     val path: String,

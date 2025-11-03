@@ -12,6 +12,10 @@ interface IRawFeed {
     ////////////////////////
     // étiquette courante //
     ////////////////////////
+
+    /**
+     * Etiquette personnalisée sélectionnée
+     */
     val currentFlagId: StateFlow<UUID?>
     fun setCurrentFlagId(flagId: UUID?)
 

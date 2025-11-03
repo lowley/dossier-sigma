@@ -1,7 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller
 
 import kotlinx.coroutines.flow.StateFlow
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel

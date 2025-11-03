@@ -44,9 +44,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.str
-import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.usecases.homePage.HomeUiState
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget

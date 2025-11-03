@@ -5,18 +5,16 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.lastSegment
-import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFile
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.lastSegment
+import lorry.folder.items.dossiersigma.basics.domain.str
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
 import org.apache.commons.net.ftp.FTPClient
 import org.apache.commons.net.ftp.FTPClientConfig
 import org.apache.commons.net.ftp.FTPReply
-import java.io.File
-import java.nio.file.Paths
 import javax.inject.Inject
 import javax.inject.Singleton
 

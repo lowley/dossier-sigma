@@ -7,8 +7,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.toColorInt
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -23,10 +21,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.ServiceLocator
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.str
-import lorry.folder.items.dossiersigma.headless.injections.SettingsStoreProvider
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.str
+import lorry.folder.items.dossiersigma.basics.injections.SettingsStoreProvider
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfosDTO

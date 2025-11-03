@@ -84,10 +84,9 @@ import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.PermissionsManager
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
-import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.str
 import lorry.folder.items.dossiersigma.headless.folderContentBack.ReloadType
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
@@ -120,7 +119,7 @@ import lorry.folder.items.dossiersigma.ui.memo.MemoComponent
 import lorry.folder.items.dossiersigma.ui.memo.MemoViewModel
 import lorry.folder.items.dossiersigma.ui.folderContent.items.ItemsComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.items.utils.ItemsViewModel
-import lorry.folder.items.dossiersigma.ui.tinies.DisplayerτComponent
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.MobileSticker
 
 //endregion
 
@@ -189,9 +188,6 @@ class SigmaActivity : ComponentActivity() {
 
     @Inject
     lateinit var indexBar: IIndexBar
-
-    @Inject
-    lateinit var displayerτComponent: DisplayerτComponent
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -539,7 +535,11 @@ class SigmaActivity : ComponentActivity() {
                                     // breadcrumb //
                                     ////////////////
 
-                                    val path by remember { derivedStateOf { currentPath.value ?: SigmaPath("") } }
+                                    val path by remember {
+                                        derivedStateOf {
+                                            currentPath.value ?: SigmaPath("")
+                                        }
+                                    }
 
                                     val items = remember(path) {
                                         path.str.split('/').filter { it.isNotEmpty() }
@@ -968,16 +968,18 @@ class SigmaActivity : ComponentActivity() {
                      */
                     val dragState by folderContentFrontComponent.dragState.collectAsState()
                     dragState?.let { dragState ->
-                        dragState.tool?.let { tool: Tool ->
-                            bottomTools.MobileSticker(
-                                dragState = dragState,
-                                activity = this@SigmaActivity,
-                                beginDrag = folderContentFrontComponent::beginDrag,
-                                terminateDrag = folderContentFrontComponent::terminateDrag,
-                                setDragTargetItem = folderContentFrontComponent::setDragTargetItem,
-                                addDragOffset = folderContentFrontComponent::addDragOffset,
-                                dragTargetItem = folderContentFrontComponent.dragTargetItem,
-                            )
+                        dragState.tool.let { tool: Tool ->
+                            with(bottomTools) {
+                                MobileSticker(
+                                    dragState = dragState,
+                                    activity = this@SigmaActivity,
+                                    beginDrag = folderContentFrontComponent::beginDrag,
+                                    terminateDrag = folderContentFrontComponent::terminateDrag,
+                                    setDragTargetItem = folderContentFrontComponent::setDragTargetItem,
+                                    addDragOffset = folderContentFrontComponent::addDragOffset,
+                                    dragTargetItem = folderContentFrontComponent.dragTargetItem,
+                                )
+                            }
                         }
                     }
 
@@ -1007,6 +1009,8 @@ class SigmaActivity : ComponentActivity() {
 
         if (resultCode == RESULT_OK && requestCode == UCrop.REQUEST_CROP) {
             resultUri = UCrop.getOutput(data)
+//            val offsetX = data.extras.
+            Log.d(TAG, "résultat du crop: ")
         } else if (resultCode == UCrop.RESULT_ERROR) {
             cropError = UCrop.getError(data)
         }

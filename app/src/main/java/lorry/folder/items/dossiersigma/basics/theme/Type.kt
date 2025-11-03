@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.theme
+package lorry.folder.items.dossiersigma.basics.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

@@ -2,8 +2,8 @@ package lorry.folder.items.dossiersigma.external.capsule.utilities
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.str
 
 class FolderCapsuleManager(
     private val targetPath: SigmaPath,

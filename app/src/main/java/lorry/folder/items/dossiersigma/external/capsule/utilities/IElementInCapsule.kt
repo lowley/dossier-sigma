@@ -7,9 +7,9 @@ import com.google.gson.Gson
 import kotlinx.serialization.Serializable
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
-import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.ColoredTag
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.str
 import javax.inject.Inject
 
 @Serializable

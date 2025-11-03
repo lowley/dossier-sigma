@@ -3,7 +3,7 @@ package lorry.folder.items.dossiersigma.ui.browser.utilities
 import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 
 @Immutable
 data class BrowserState(

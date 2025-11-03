@@ -3,7 +3,6 @@ package lorry.folder.items.dossiersigma.headless.usecases.homePage
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
-import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +16,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.headless.favoriteObservation.service.FilesAccessibleChannel
 import lorry.folder.items.dossiersigma.ui.dialogs.HomeItemInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager

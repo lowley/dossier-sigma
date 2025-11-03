@@ -3,7 +3,7 @@ package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import javax.inject.Inject
 

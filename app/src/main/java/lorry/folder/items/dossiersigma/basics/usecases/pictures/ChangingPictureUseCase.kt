@@ -6,11 +6,10 @@ import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
-import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.basics.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFile
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.headless.usecases.clipboard.PastingPictureUseCase
-import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.inject.Inject

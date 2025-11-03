@@ -5,8 +5,7 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import java.io.File
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import javax.inject.Inject
 
 class Base64DataSource @Inject constructor() : IBase64DataSource {

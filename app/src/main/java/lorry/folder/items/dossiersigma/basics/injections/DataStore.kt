@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.injections
+package lorry.folder.items.dossiersigma.basics.injections
 
 import android.content.Context
 import androidx.datastore.core.DataStore

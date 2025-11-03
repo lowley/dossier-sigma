@@ -4,8 +4,8 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.SigmaApplication
-import lorry.folder.items.dossiersigma.headless.domain.ItemDTO
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.ItemDTO
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import java.io.File
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime

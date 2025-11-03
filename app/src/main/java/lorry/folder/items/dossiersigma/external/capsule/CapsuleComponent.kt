@@ -7,9 +7,8 @@ import lorry.folder.items.dossiersigma.external.capsule.utilities.FileCapsuleMan
 import lorry.folder.items.dossiersigma.external.capsule.utilities.FolderCapsuleManager
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementInCapsule
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementReader
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.str
-import java.io.File
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.str
 import javax.inject.Inject
 
 class CapsuleComponent @Inject constructor(): ICapsuleComponent {

@@ -4,8 +4,8 @@ import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.lastSegment
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.lastSegment
 import lorry.folder.items.dossiersigma.ui.browser.changeState
 import lorry.folder.items.dossiersigma.ui.browser.manageImageClick
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
@@ -13,8 +13,6 @@ import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarConten
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
-import kotlin.text.substringAfterLast
-import kotlin.text.substringBeforeLast
 
 object FILE : Tools() {
     override fun content() = ToolbarContent(

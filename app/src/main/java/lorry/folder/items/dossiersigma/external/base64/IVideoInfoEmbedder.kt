@@ -2,7 +2,7 @@ package lorry.folder.items.dossiersigma.external.base64
 
 import android.graphics.Bitmap
 import androidx.compose.ui.layout.ContentScale
-import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
+import lorry.folder.items.dossiersigma.basics.domain.ColoredTag
 import java.io.File
 
 interface IVideoInfoEmbedder {

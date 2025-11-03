@@ -1,7 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.utilities
 
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.time.DayOfWeek
 import java.time.Instant
@@ -18,7 +18,6 @@ import java.util.stream.IntStream
 fun List<Item>.toIndexBarItemInfoList(
     sorting: SortingCriterion
 ): List<IndexBarItemInfo> {
-
     return when (sorting) {
         SortingCriterion.ByNameAsc ->
             createInfoListByNameAsc(this)
@@ -27,7 +26,6 @@ fun List<Item>.toIndexBarItemInfoList(
             createInfoListByDateDesc(this)
     }
 }
-
 
 fun createInfoListByNameAsc(items: List<Item>): List<IndexBarItemInfo> {
 
@@ -178,7 +176,7 @@ fun createInfoListByDateDesc(items: List<Item>): List<IndexBarItemInfo> {
                                 )
                             }\n${beginningOfWeek.dayOfMonth} -> ${beginningOfWeek.plusDays(6).dayOfMonth}",
                             infoType = InfoType.MAJOR,
-                            endDate = beginningOfWeek.plusDays(6)
+                            endDate = beginningOfWeek.plusDays(6),
                         )
                     )
 

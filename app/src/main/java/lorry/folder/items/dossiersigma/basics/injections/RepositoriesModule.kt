@@ -1,10 +1,6 @@
-package lorry.folder.items.dossiersigma.headless.injections
+package lorry.folder.items.dossiersigma.basics.injections
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStoreFile
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -16,14 +12,12 @@ import dagger.hilt.components.SingletonComponent
 import lorry.folder.items.dossiersigma.SigmaApplication
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
-import lorry.folder.items.dossiersigma.external.capsule.utilities.FileCapsuleManager
 import lorry.folder.items.dossiersigma.external.clipboard.ClipboardRepository
 import lorry.folder.items.dossiersigma.external.clipboard.IClipboardRepository
 import lorry.folder.items.dossiersigma.external.disk.DiskRepository
 import lorry.folder.items.dossiersigma.external.disk.IDiskRepository
 import lorry.folder.items.dossiersigma.external.userPreferences.DSI_UserPreferences
 import lorry.folder.items.dossiersigma.external.userPreferences.DS_UserPreferences
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
 import lorry.folder.items.dossiersigma.headless.folderContentBack.FolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
 import lorry.folder.items.dossiersigma.headless.service.IServiceComponent

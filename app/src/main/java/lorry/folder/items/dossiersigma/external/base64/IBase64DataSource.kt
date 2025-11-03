@@ -1,7 +1,7 @@
 package lorry.folder.items.dossiersigma.external.base64
 
 import android.graphics.Bitmap
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 
 interface IBase64DataSource {
     

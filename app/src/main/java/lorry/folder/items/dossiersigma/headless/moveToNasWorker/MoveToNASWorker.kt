@@ -28,9 +28,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.ServiceLocator
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
-import lorry.folder.items.dossiersigma.headless.domain.str
-import lorry.folder.items.dossiersigma.headless.domain.toSigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.IMoveProgress
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry

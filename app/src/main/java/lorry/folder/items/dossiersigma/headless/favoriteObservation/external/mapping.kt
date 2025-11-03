@@ -3,9 +3,9 @@ package lorry.folder.items.dossiersigma.headless.favoriteObservation.external
 import android.graphics.Bitmap
 import androidx.compose.ui.layout.ContentScale
 import com.google.gson.Gson
-import lorry.folder.items.dossiersigma.headless.domain.ColoredTag
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.basics.domain.ColoredTag
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFile
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
 
 object SigmaFolderMapping {
     private val json = kotlinx.serialization.json.Json {

@@ -1,8 +1,8 @@
 package lorry.folder.items.dossiersigma.headless.folderContentBack.utils
 
-import lorry.folder.items.dossiersigma.headless.domain.Item
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFolder
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 

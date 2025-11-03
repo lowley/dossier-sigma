@@ -4,11 +4,10 @@ import android.content.Context
 import android.util.Log
 import javax.inject.Inject
 import lorry.folder.items.dossiersigma.external.nas.DSI_FTP
-import lorry.folder.items.dossiersigma.headless.domain.SigmaFile
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.SigmaFile
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.NasUtilities
-import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.sendMessageToThoApp
 import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 

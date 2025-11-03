@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.injections
+package lorry.folder.items.dossiersigma.basics.injections
 
 import dagger.Binds
 import dagger.Module

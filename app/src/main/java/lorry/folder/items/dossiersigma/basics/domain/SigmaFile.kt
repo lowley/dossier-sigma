@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.headless.domain
+package lorry.folder.items.dossiersigma.basics.domain
 
 import androidx.compose.ui.layout.ContentScale
 import java.util.UUID

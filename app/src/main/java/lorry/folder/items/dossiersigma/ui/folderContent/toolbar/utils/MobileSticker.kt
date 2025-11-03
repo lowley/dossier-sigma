@@ -3,34 +3,34 @@ package lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.basics.domain.Item
-import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
-import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toColoredTag
+import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
+import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
+import kotlin.math.roundToInt
 
 @Composable
-context(ToolBarManager, RowScope)
-fun FixedSticker(
-    modifier: Modifier = Modifier.Companion,
-    tool: Tool,
+context(ToolBarManager, BoxScope)
+fun MobileSticker(
+    dragState: DragState,
     activity: SigmaActivity,
     beginDrag: (Tool, Offset) -> Unit,
     terminateDrag: () -> Unit,
@@ -38,48 +38,42 @@ fun FixedSticker(
     addDragOffset: (Offset) -> Unit,
     dragTargetItem: StateFlow<Item?>,
 ) {
+    val tool: Tool = dragState.tool
+    val offset: Offset = dragState.offset
+    val dragTarget by dragTargetItem.collectAsState()
+
     Box(
-        modifier = modifier
+        modifier = Modifier.Companion
             .width(85.dp)
             .fillMaxHeight()
             .clickable {
-                this@ToolBarManager.toolbarComponent.setCurrentTool(tool)
+                toolbarComponent.setCurrentTool(tool)
                 viewModel.viewModelScope.launch {
                     tool.onClick(tool, viewModel, activity)
                 }
             }
     ) {
-        var globalOffset: Offset = Offset.Companion.Zero
-        //icône statique, toujours existante
         StickerIcon(
             modifier = Modifier.Companion
-                .padding(top = 0.dp)
-                .align(Alignment.Companion.TopCenter)
-                .onGloballyPositioned { layoutCoordinates ->
-                    val localOffset = layoutCoordinates.positionInRoot()
-                    globalOffset = layoutCoordinates.localToRoot(Offset.Companion.Zero)
+                .offset {
+                    IntOffset(
+                        offset.x.roundToInt() - 60,
+                        offset.y.roundToInt() - 70
+                    )
                 }
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = {
-                            beginDrag(tool, globalOffset)
+                            beginDrag(tool, it)
                         },
-                        onDrag = { change: PointerInputChange, dragAmount: Offset ->
+                        onDrag = { change, dragAmount ->
+                            change.consume()
                             addDragOffset(dragAmount)
                         },
                         onDragEnd = {
-                            val target = dragTargetItem.value
-
-                            if (target != null) {
-                                viewModel.assignColoredTagToItem(
-                                    target,
-                                    tool.toColoredTag()
-                                )
-                            }
-
+                            setDragTargetItem(null)
                             terminateDrag()
-                        },
-                        onDragCancel = {},
+                        }
                     )
                 },
             iconRes = tool.icon,
@@ -88,14 +82,13 @@ fun FixedSticker(
             ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
                 (tool.tint ?: Color(0xFFe9c46a)),
             ringWidth = 2.dp,
-            iconSize = 28.dp,
-            ringSize = 33.dp,
-            isRingEnabled = tool.activated
+            ringSize = 85.dp,
+            iconSize = 70.dp,
+            isRingEnabled = true,
         )
 
         StickerText(
             tool = tool
         )
     }
-
 }

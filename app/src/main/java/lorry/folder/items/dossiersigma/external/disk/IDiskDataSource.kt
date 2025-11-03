@@ -1,7 +1,7 @@
 package lorry.folder.items.dossiersigma.external.disk
 
-import lorry.folder.items.dossiersigma.headless.domain.ItemDTO
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.ItemDTO
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 

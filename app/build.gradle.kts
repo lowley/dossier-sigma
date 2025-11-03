@@ -182,13 +182,15 @@ dependencies {
     //https://github.com/peter-tackage/kotlin-options
     implementation("com.github.peter-tackage.kotlin-options:kotlin-options:0.10")
 
-    val room = "2.7.0"
-    implementation("androidx.room:room-runtime:$room")
-    implementation("androidx.room:room-ktx:$room")   // coroutines, Flow, transactions suspend
-    ksp("androidx.room:room-compiler:$room") // annotation processor (remplace kapt)
+    val room1 = "2.7.0"
+    implementation("androidx.room:room-runtime:$room1")
+    implementation("androidx.room:room-ktx:$room1")   // coroutines, Flow, transactions suspend
+    ksp("androidx.room:room-compiler:$room1") // annotation processor (remplace kapt)
 
     //module Kommunicator
-    implementation(project(":Kommunicator"))
+//    implementation(project(":Kommunicator"))
+
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.24")
 
 }
 

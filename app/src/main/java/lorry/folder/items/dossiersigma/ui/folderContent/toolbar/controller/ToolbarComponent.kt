@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import lorry.folder.items.dossiersigma.R
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.ToolsViewModel
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
@@ -34,6 +34,15 @@ class ToolbarComponent @AssistedInject constructor(
         fun create(toolsViewModel: ToolsViewModel, sigmaViewModel: SigmaViewModel): ToolbarComponent
     }
 
+    /**
+     * Observe différents flux et calcule le contenu de la toolbar<br/>
+     *
+     * currentFolderFlow: les tools sont une compilation à partir des flags des items<br/>
+     *
+     * currentFlagID: dit quel tool est activé, donc visible<br/>
+     *
+     * reloadtrigger: pec du reload des items
+     */
     //#[[observeDefaultContent()]]
     override fun observeDefaultContent() {
         toolsViewModel.viewModelScope.launch {

@@ -1,6 +1,6 @@
 package lorry.folder.items.dossiersigma.external.playing
 
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 
 interface IPlayingDataSource {
 

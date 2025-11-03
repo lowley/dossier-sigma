@@ -3,7 +3,7 @@ package lorry.folder.items.dossiersigma.external.capsule
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CapsuleData
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementInCapsule
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementReader
-import lorry.folder.items.dossiersigma.headless.domain.SigmaPath
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 
 interface ICapsuleComponent {
     suspend fun save(

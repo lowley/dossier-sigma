@@ -1,7 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.browser.utilities
 
 import kotlinx.coroutines.flow.StateFlow
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 
 fun elaborateSearchString(
     itemFlow: StateFlow<Item?>,

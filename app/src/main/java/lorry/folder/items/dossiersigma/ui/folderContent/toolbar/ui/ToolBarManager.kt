@@ -29,7 +29,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.IMoveToNASComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.controller.IToolbarComponent
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.COPY_FILE
@@ -117,74 +117,6 @@ class ToolBarManager @AssistedInject constructor(
                     dragTargetItem = dragTargetItem
                 )
             }
-        }
-    }
-
-
-
-    @Composable
-    context(BoxScope)
-    fun MobileSticker(
-        dragState: DragState,
-        activity: SigmaActivity,
-        beginDrag: (Tool, Offset) -> Unit,
-        terminateDrag: () -> Unit,
-        setDragTargetItem: (Item?) -> Unit,
-        addDragOffset: (Offset) -> Unit,
-        dragTargetItem: StateFlow<Item?>,
-    ) {
-        val tool: Tool = dragState.tool
-        val offset: Offset = dragState.offset
-        val dragTarget by dragTargetItem.collectAsState()
-
-        Box(
-            modifier = Modifier.Companion
-                .width(85.dp)
-                .fillMaxHeight()
-                .clickable {
-                    toolbarComponent.setCurrentTool(tool)
-                    viewModel.viewModelScope.launch {
-                        tool.onClick(tool, viewModel, activity)
-                    }
-                }
-        ) {
-            StickerIcon(
-                modifier = Modifier.Companion
-                    .offset {
-                        IntOffset(
-                            offset.x.roundToInt() - 60,
-                            offset.y.roundToInt() - 70
-                        )
-                    }
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = {
-                                beginDrag(tool, it)
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                addDragOffset(dragAmount)
-                            },
-                            onDragEnd = {
-                                setDragTargetItem(null)
-                                terminateDrag()
-                            }
-                        )
-                    },
-                iconRes = tool.icon,
-                iconTint = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                    (tool.tint ?: Color(0xFFe9c46a)),
-                ringColor = if (tool.isColoredIcon) Color.Companion.Unspecified else
-                    (tool.tint ?: Color(0xFFe9c46a)),
-                ringWidth = 2.dp,
-                ringSize = 85.dp,
-                iconSize = 70.dp,
-                isRingEnabled = true,
-            )
-
-            StickerText(
-                tool = tool
-            )
         }
     }
 }

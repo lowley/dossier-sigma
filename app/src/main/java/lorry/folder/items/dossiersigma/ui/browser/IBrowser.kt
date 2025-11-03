@@ -2,7 +2,7 @@ package lorry.folder.items.dossiersigma.ui.browser
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import lorry.folder.items.dossiersigma.headless.domain.Item
+import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserState
 import lorry.folder.items.dossiersigma.ui.browser.utilities.BrowserTarget
 
