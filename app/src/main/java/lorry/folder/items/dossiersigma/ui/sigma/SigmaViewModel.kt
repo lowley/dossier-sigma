@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.lowley.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -52,6 +53,7 @@ import java.time.temporal.Temporal
 import java.time.temporal.TemporalField
 import java.util.UUID
 import javax.inject.Inject
+
 
 @HiltViewModel
 class SigmaViewModel @Inject constructor(
@@ -302,8 +304,7 @@ class SigmaViewModel @Inject constructor(
                 //on répète car pas intéressant si même répertoire
                 goToLastDifferentFolder(countToDelete + 1)
                 return@launch
-            }
-            else {
+            } else {
                 folderContentComponent.manuallyInvalidateItems()
                 folderContentComponent.setFastPath(folderPath)
 
@@ -396,6 +397,8 @@ class SigmaViewModel @Inject constructor(
 
     fun sendAriane() {
 
+        Logger().log("test")
+
         val event = RichLogEvent(
             timestampMillis = LocalDateTime.now().getLong(ChronoField.SECOND_OF_DAY),
             tag = TagType("PAS"),
@@ -403,8 +406,8 @@ class SigmaViewModel @Inject constructor(
             message = MessageType("Ariane tisse sa toile")
         )
 
-        try{
-            viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
                 val socket = Socket("127.0.0.1", 7777)
                 socket.use { socket ->
                     val writer = socket.getOutputStream().bufferedWriter(Charsets.UTF_8)
@@ -414,12 +417,11 @@ class SigmaViewModel @Inject constructor(
                     writer.write("\n")
                     writer.flush()
                 }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                val msg = ex.message
+                println(msg)
             }
-        }
-        catch (ex: Exception){
-            ex.printStackTrace()
-            val msg = ex.message
-            println(msg)
         }
     }
 }
