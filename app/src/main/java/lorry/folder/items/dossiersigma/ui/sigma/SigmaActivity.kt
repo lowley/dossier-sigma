@@ -779,6 +779,8 @@ class SigmaActivity : ComponentActivity() {
                                     modifier = Modifier,
                                     sortingFlow = currentSorting,
                                     onDateSortClick = {
+                                        mainViewModel.sendAriane()
+
                                         mainViewModel.folderContentComponent.setSorting(
                                             sorting = SortingCriterion.ByDateDesc
                                         )
@@ -786,6 +788,8 @@ class SigmaActivity : ComponentActivity() {
                                         mainViewModel.folderContentComponent.reloadCurrentFolder()
                                     },
                                     onNameSortClick = {
+                                        mainViewModel.sendAriane()
+
                                         mainViewModel.folderContentComponent.setSorting(
                                             sorting = SortingCriterion.ByNameAsc
                                         )

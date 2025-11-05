@@ -192,6 +192,8 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.24")
 
+    implementation("com.github.lowley:WriterAPI:v1.0.0")
+
 }
 
 ksp {
