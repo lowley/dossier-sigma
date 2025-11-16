@@ -1,19 +1,18 @@
 package lorry.folder.items.dossiersigma.ui.sigma
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.geometry.Offset
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
@@ -346,15 +345,15 @@ class SigmaViewModel @Inject constructor(
 //        goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
 //    }
 
-    fun playVideoFile(videoFullPath: SigmaPath) {
+    fun playVideoFile(videoFullPath: SigmaPath, activity: SigmaActivity) {
         viewModelScope.launch(Dispatchers.IO) {
-            playingDataSource.playFile(videoFullPath, "video/mp4")
+            playingDataSource.playFile(videoFullPath, "video/mp4", activity)
         }
     }
 
-    fun playHtmlFile(htmlFullPath: SigmaPath) {
+    fun playHtmlFile(htmlFullPath: SigmaPath, activity: Activity) {
         viewModelScope.launch(Dispatchers.IO) {
-            playingDataSource.playFile(htmlFullPath, "text/html")
+            playingDataSource.playFile(htmlFullPath, "text/html", activity)
         }
     }
 

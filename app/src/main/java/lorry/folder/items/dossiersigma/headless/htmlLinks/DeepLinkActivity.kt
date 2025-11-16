@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.headless.htmlLinks
 
 // package com.votre.package
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -21,7 +22,7 @@ class DeepLinkActivity : ComponentActivity() {
 
         if (intent.action == Intent.ACTION_VIEW && intent?.data != null) {
             val (videoUri, readerPackage, title) = analyzeIntent(intent)
-            startVlcOnce(videoUri, readerPackage, title)
+            startVlcOnce(videoUri, readerPackage, title, this)
 
         }
 
@@ -89,36 +90,39 @@ class DeepLinkActivity : ComponentActivity() {
         )
     }
 
+    companion object {
 
-    private fun startVlcOnce(
-        videoUri: VideoUriType,
-        readerPackage: VideoPlayerPackageType,
-        title: VideoTitleType
-    ) {
+        fun startVlcOnce(
+            videoUri: VideoUriType,
+            readerPackage: VideoPlayerPackageType,
+            title: VideoTitleType,
+            activity: Activity
+        ) {
 
-        val videoUriValue = videoUri.value
-        val readerPackageValue = readerPackage.value
-        val titleValue = title.value
-        if (videoUriValue.isEmpty())
-            return
+            val videoUriValue = videoUri.value
+            val readerPackageValue = readerPackage.value
+            val titleValue = title.value
+            if (videoUriValue.isEmpty())
+                return
 
-        val videoUri: Uri = videoUriValue.toUri()
-        val launchPlayerIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(videoUri, "video/*")
-            putExtra("title", titleValue)
-            putExtra(Intent.EXTRA_TITLE, titleValue)
+            val videoUri: Uri = videoUriValue.toUri()
+            val launchPlayerIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(videoUri, "video/*")
+                putExtra("title", titleValue)
+                putExtra(Intent.EXTRA_TITLE, titleValue)
 
-            //launchPlayerIntent.SetPackage("org.videolan.vlc");
-            //launchPlayerIntent.SetPackage("com.bsplayer.bspandroid.free");
-            setPackage(readerPackageValue);
-            addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        try {
-            startActivity(launchPlayerIntent)
-        } catch (e: ActivityNotFoundException) {
-            // TODO: informer l’utilisateur (VLC absent) puis finish()
-            println("Dossier Sigma, lancement d'un vidéo demandé mais VLC non trouvé")
+                //launchPlayerIntent.SetPackage("org.videolan.vlc");
+                //launchPlayerIntent.SetPackage("com.bsplayer.bspandroid.free");
+                setPackage(readerPackageValue);
+                addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            try {
+                activity.startActivity(launchPlayerIntent)
+            } catch (e: ActivityNotFoundException) {
+                // TODO: informer l’utilisateur (VLC absent) puis finish()
+                println("Dossier Sigma, lancement d'un vidéo demandé mais VLC non trouvé")
+            }
         }
     }
 }

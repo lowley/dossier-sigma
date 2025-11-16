@@ -909,10 +909,10 @@ class SigmaActivity : ComponentActivity() {
                                                         item.name.endsWith(".iso") ||
                                                         item.name.endsWith(".avi"))
                                             ) {
-                                                mainViewModel.playVideoFile(item.fullPath)
+                                                mainViewModel.playVideoFile(item.fullPath, this@SigmaActivity)
                                             }
                                             if (item.isFile() && item.name.endsWith(".html")) {
-                                                mainViewModel.playHtmlFile(item.fullPath)
+                                                mainViewModel.playHtmlFile(item.fullPath, this@SigmaActivity)
                                             }
                                         }
 
