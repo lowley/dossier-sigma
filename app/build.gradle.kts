@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "lorry.folder.items.dossiersigma"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "lorry.folder.items.dossiersigma.master"
@@ -108,7 +108,7 @@ dependencies {
     androidTestImplementation("app.cash.turbine:turbine:1.1.0")
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
     //tester si méthode existe
-    androidTestImplementation("org.jetbrains.kotlin:kotlin-reflect:1.9.0")
+    androidTestImplementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -190,9 +190,16 @@ dependencies {
     //module Kommunicator
 //    implementation(project(":Kommunicator"))
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.9.24")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
 
-    implementation("com.github.lowley:WriterAPI:v1.0.3")
+    ///////////////
+    // WriterAPI //
+    ///////////////
+    //github -> https://jitpack.io/#lowley/WriterAPI
+//    implementation("com.github.lowley:WriterAPI:v1.0.17")
+//    implementation("io.github.lowley:WriterAPI:1.0.0")
+
+    implementation("io.insert-koin:koin-android:4.2.0-alpha1")
 
 }
 

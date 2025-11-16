@@ -646,6 +646,11 @@ class SigmaActivity : ComponentActivity() {
                                                             mainViewModel.setIsSettingsPageVisible(
                                                                 true
                                                             )
+                                                        },
+                                                        onLongPress = {
+//                                                            write {
+//                                                                log("ceci est un petit <b>pas</b> pour l' <b>homme</b>")
+//                                                            }
                                                         }
                                                     )
                                                 },

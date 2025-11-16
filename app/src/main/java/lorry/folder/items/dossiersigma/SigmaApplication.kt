@@ -23,6 +23,8 @@ import lorry.folder.items.dossiersigma.external.intent.DS_IntentWrapper
 import lorry.folder.items.dossiersigma.external.userPreferences.DS_UserPreferences
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
 import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.context.GlobalContext.startKoin
 
 @HiltAndroidApp
 class SigmaApplication() : Application(), Configuration.Provider {
@@ -48,6 +50,18 @@ class SigmaApplication() : Application(), Configuration.Provider {
         val notificationManager =
             ContextCompat.getSystemService(this, NotificationManager::class.java)
         notificationManager?.createNotificationChannel(channel)
+
+        startKoin {
+            // nécessaire pour koin-android
+            androidContext(this@SigmaApplication)
+
+            // tous les modules
+//            modules(
+//                listOf(
+//                    lorry.basics.appModule
+//                )
+//            )
+        }
     }
 
     override val workManagerConfiguration: Configuration

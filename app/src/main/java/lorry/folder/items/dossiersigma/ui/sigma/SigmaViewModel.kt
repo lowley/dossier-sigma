@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.lowley.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -23,10 +22,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lorry.attention.LevelType
-import lorry.attention.MessageType
-import lorry.attention.RichLogEvent
-import lorry.attention.TagType
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CroppedPicture
@@ -46,11 +41,6 @@ import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toolbars.FILE
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.utils.IRawFeed
 import lorry.folder.items.dossiersigma.ui.dialogs.TagInfos
 import lorry.folder.items.dossiersigma.ui.settings.SettingsManager
-import java.net.Socket
-import java.time.LocalDateTime
-import java.time.temporal.ChronoField
-import java.time.temporal.Temporal
-import java.time.temporal.TemporalField
 import java.util.UUID
 import javax.inject.Inject
 
@@ -397,32 +387,36 @@ class SigmaViewModel @Inject constructor(
 
     fun sendAriane() {
 
-        Logger().log("test")
+//        write {
+//            log("ceci est un petit <b>pas</b> pour l' <b>homme</b>")
+//        }
 
-        val event = RichLogEvent(
-            timestampMillis = LocalDateTime.now().getLong(ChronoField.SECOND_OF_DAY),
-            tag = TagType("PAS"),
-            level = LevelType("INFO"),
-            message = MessageType("Ariane tisse sa toile")
-        )
-
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val socket = Socket("127.0.0.1", 7777)
-                socket.use { socket ->
-                    val writer = socket.getOutputStream().bufferedWriter(Charsets.UTF_8)
-
-                    val payload = Gson().toJson(event)
-                    writer.write(payload)
-                    writer.write("\n")
-                    writer.flush()
-                }
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-                val msg = ex.message
-                println(msg)
-            }
-        }
+//        Logger().log("test")
+//
+//        val event = RichLogEvent(
+//            timestampMillis = LocalDateTime.now().getLong(ChronoField.SECOND_OF_DAY),
+//            tag = TagType("PAS"),
+//            level = LevelType("INFO"),
+//            message = MessageType("Ariane tisse sa toile")
+//        )
+//
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                val socket = Socket("127.0.0.1", 7777)
+//                socket.use { socket ->
+//                    val writer = socket.getOutputStream().bufferedWriter(Charsets.UTF_8)
+//
+//                    val payload = Gson().toJson(event)
+//                    writer.write(payload)
+//                    writer.write("\n")
+//                    writer.flush()
+//                }
+//            } catch (ex: Exception) {
+//                ex.printStackTrace()
+//                val msg = ex.message
+//                println(msg)
+//            }
+//        }
     }
 }
 
