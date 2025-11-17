@@ -201,6 +201,13 @@ dependencies {
 
     implementation("io.insert-koin:koin-android:4.2.0-alpha1")
 
+    /////////////////////////////////
+    // programmation fonctionnelle //
+    /////////////////////////////////
+    implementation("io.arrow-kt:arrow-core:1.2.4")
+
+
+
 }
 
 ksp {
