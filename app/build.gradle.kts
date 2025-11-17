@@ -185,10 +185,7 @@ dependencies {
     val room1 = "2.7.0"
     implementation("androidx.room:room-runtime:$room1")
     implementation("androidx.room:room-ktx:$room1")   // coroutines, Flow, transactions suspend
-    ksp("androidx.room:room-compiler:$room1") // annotation processor (remplace kapt)
-
-    //module Kommunicator
-//    implementation(project(":Kommunicator"))
+    ksp("androidx.room:room-compiler:$room1") // annotation processor (remplace kapt
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
 
@@ -196,8 +193,8 @@ dependencies {
     // WriterAPI //
     ///////////////
     //github -> https://jitpack.io/#lowley/WriterAPI
-//    implementation("com.github.lowley:WriterAPI:v1.0.17")
-    implementation("io.github.lowley:writer-api:1.0.4")
+//    implementation("com.github.lowley:periscope:v1.0.17")
+    implementation("io.github.lowley:periscope:1.0.4")
 
     implementation("io.insert-koin:koin-android:4.2.0-alpha1")
 

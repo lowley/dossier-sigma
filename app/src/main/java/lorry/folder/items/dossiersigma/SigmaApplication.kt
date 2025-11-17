@@ -8,25 +8,11 @@ import android.os.StrictMode
 import androidx.core.content.ContextCompat
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import androidx.work.DelegatingWorkerFactory
-import androidx.work.WorkManager
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
-import io.github.lowley.version2.boat.SurfaceLogging
-import io.github.lowley.version2.submarine.DiveLogging
-import lorry.folder.items.dossiersigma.ServiceLocator.dsFtp
-import lorry.folder.items.dossiersigma.ServiceLocator.nasUtilities
-import lorry.folder.items.dossiersigma.external.base64.Base64DataSource
+import io.github.lowley.engineRoom.submarine.DiveLogging
 import javax.inject.Inject
 import lorry.folder.items.dossiersigma.external.capsule.utilities.AppContextProvider
-import lorry.folder.items.dossiersigma.external.disk.DiskDataSource
-import lorry.folder.items.dossiersigma.external.disk.DiskRepository
-import lorry.folder.items.dossiersigma.external.intent.DS_IntentWrapper
-import lorry.folder.items.dossiersigma.external.userPreferences.DS_UserPreferences
-import lorry.folder.items.dossiersigma.headless.moveToNasWorker.utilities.MoveEngine
-import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
-import org.koin.android.ext.koin.androidContext
-import org.koin.core.context.GlobalContext.startKoin
 
 @HiltAndroidApp
 class SigmaApplication() : Application(), Configuration.Provider {
