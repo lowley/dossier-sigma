@@ -11,4 +11,4 @@ dependencyResolutionManagement { }
 rootProject.name = "Dossier Sigma Master"
 include(":app")
 
-//includeBuild("../../IdeaProjects/WriterAPI")
+includeBuild("../../IdeaProjects/WriterAPI")

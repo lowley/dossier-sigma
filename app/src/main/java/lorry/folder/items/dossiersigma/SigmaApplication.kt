@@ -12,6 +12,8 @@ import androidx.work.DelegatingWorkerFactory
 import androidx.work.WorkManager
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.HiltAndroidApp
+import io.github.lowley.version2.boat.SurfaceLogging
+import io.github.lowley.version2.submarine.DiveLogging
 import lorry.folder.items.dossiersigma.ServiceLocator.dsFtp
 import lorry.folder.items.dossiersigma.ServiceLocator.nasUtilities
 import lorry.folder.items.dossiersigma.external.base64.Base64DataSource
@@ -51,17 +53,14 @@ class SigmaApplication() : Application(), Configuration.Provider {
             ContextCompat.getSystemService(this, NotificationManager::class.java)
         notificationManager?.createNotificationChannel(channel)
 
-        startKoin {
-            // nécessaire pour koin-android
-            androidContext(this@SigmaApplication)
+//        startKoin {
+//            // nécessaire pour koin-android
+//            androidContext(this@SigmaApplication)
+//        }
 
-            // tous les modules
-//            modules(
-//                listOf(
-//                    lorry.basics.appModule
-//                )
-//            )
-        }
+        DiveLogging.startService()
+
+
     }
 
     override val workManagerConfiguration: Configuration

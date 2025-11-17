@@ -68,7 +68,7 @@ android {
         compose = true
     }
 
-    packaging{
+    packaging {
         resources {
             excludes += "/META-INF/LICENSE.md"
             excludes += "/META-INF/LICENSE-notice.md"
@@ -197,7 +197,7 @@ dependencies {
     ///////////////
     //github -> https://jitpack.io/#lowley/WriterAPI
 //    implementation("com.github.lowley:WriterAPI:v1.0.17")
-//    implementation("io.github.lowley:WriterAPI:1.0.0")
+    implementation("io.github.lowley:writer-api:1.0.4")
 
     implementation("io.insert-koin:koin-android:4.2.0-alpha1")
 
@@ -205,7 +205,6 @@ dependencies {
     // programmation fonctionnelle //
     /////////////////////////////////
     implementation("io.arrow-kt:arrow-core:1.2.4")
-
 
 
 }
