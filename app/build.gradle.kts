@@ -187,6 +187,16 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
 
+    /////////////////////////////////
+    // programmation fonctionnelle //
+    /////////////////////////////////
+    implementation("io.arrow-kt:arrow-core:1.2.4")
+
+    //////////////////////////////
+    // injection de dépendances //
+    //////////////////////////////
+    implementation("io.insert-koin:koin-android:4.2.0-alpha1")
+
     ///////////////
     // WriterAPI //
     ///////////////
@@ -194,12 +204,13 @@ dependencies {
 //    implementation("com.github.lowley:periscope:v1.0.17")
     implementation("io.github.lowley:periscope:1.0.4")
 
-    implementation("io.insert-koin:koin-android:4.2.0-alpha1")
+    ///////////////////////////////
+    // bottomBar dans son module //
+    ///////////////////////////////
+    implementation(project(":bottombar"))
 
-    /////////////////////////////////
-    // programmation fonctionnelle //
-    /////////////////////////////////
-    implementation("io.arrow-kt:arrow-core:1.2.4")
+
+
 
 
 }
