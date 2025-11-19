@@ -106,15 +106,8 @@ fun ItemsComponent.ItemsPage(
                                 item = item,
                                 modifier = Modifier.Companion
                                     .padding(horizontal = 10.dp, vertical = 6.dp),
-                                onItemUpdated = { item ->
-//                                                mainViewModel.updateItemInList(item)
-                                },
-//                                        onDrop = { tag: ColoredTag ->
-//                                            mainViewModel.assignColoredTagToItem(item, tag)
-//                                      }
                                 onHoveredNotHovered = onHoveredNotHovered,
                                 selectedItemFullPath = selectedItemFullPath,
-                                draggableStartPosition = draggableStartPosition,
                                 onItemTapped = onItemTapped,
                                 onItemLongPressed = onItemLongPressed,
                                 onTopLeftPanelClick = onTopLeftPanelClick,

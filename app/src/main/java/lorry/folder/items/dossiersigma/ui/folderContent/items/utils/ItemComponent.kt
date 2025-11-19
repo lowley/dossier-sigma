@@ -83,8 +83,6 @@ context(SigmaActivity)
 fun ItemComponent(
     modifier: Modifier,
     item: Item,
-    onItemUpdated: (Item) -> Unit,
-    draggableStartPosition: StateFlow<Offset?>,
     onHoveredNotHovered: (Item?) -> Unit,
     selectedItemFullPath: StateFlow<SigmaPath?>,
     onItemTapped: ((Item) -> Unit),
@@ -95,8 +93,6 @@ fun ItemComponent(
     dragState: StateFlow<DragState?>,
 
     ) {
-    if (item.fullPath.str.contains("darkness"))
-        println("ok")
 
     val memo = item.memo
     val memoEmpty = memo?.isEmpty() ?: true
