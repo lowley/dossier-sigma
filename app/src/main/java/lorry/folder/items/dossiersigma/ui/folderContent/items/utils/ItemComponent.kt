@@ -3,31 +3,22 @@ package lorry.folder.items.dossiersigma.ui.folderContent.items.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -35,43 +26,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
-import coil.compose.SubcomposeAsyncImage
-import coil.decode.SvgDecoder
-import coil.request.ImageRequest
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.basics.domain.str
+import lorry.folder.items.dossiersigma.ui.folderContent.items.overlays.BackgroundContent
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -122,6 +99,7 @@ fun ItemComponent(
             onHoveredNotHovered(null)
     }
 
+    // dans l'item: Column contient une image au dessus d'un texte
     Column {
         val shape1 = RoundedCornerShape(8.dp)
         val isSelectedItemState by selectedItemFullPath
@@ -162,6 +140,8 @@ fun ItemComponent(
                     })
             }
 
+        //l'image dans l'item
+        //modifier de la Box permet swipe et affiche alors nom fichier splitté
         Box(
             modifier = modifierWithBorder
 //            modifier = Modifier
@@ -216,137 +196,19 @@ fun ItemComponent(
                     )
                 }
         ) {
-            ImageSection(
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.BottomCenter)
-                    .fillMaxSize()
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                    .border(
-                        1.dp,
-                        Color.Companion.Transparent,
-                        androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
-                    ),
-                image = image ?: item.picture,
-//                image = if (item.isFile()) R.drawable.document2 else R.drawable.folder234full,
+
+            //l'image en elle-même
+            BackgroundContent(
+                modifier = Modifier,
+                item = item,
+                image = image,
                 scale = scale,
-//                scale = null,
-                name = item.name,
-                areShortcutsDisplayed = areShortcutsDisplayed
+                areShortcutsDisplayed = areShortcutsDisplayed,
+                getInfoSup = getInfoSup,
+                getInfoInf = getInfoInf,
+                onTopLeftPanelClick = onTopLeftPanelClick,
+                memoEmpty = memoEmpty,
             )
-
-            val infoSup = produceState<String?>(initialValue = null, item) {
-                value = getInfoSup(item)
-            }.value
-
-            val infoInf = produceState<String?>(initialValue = null, item) {
-                value = getInfoInf(item)
-            }.value
-//
-            if (infoSup == null || infoInf == null) {
-//                        CircularProgressIndicator()
-            } else {
-                val boxWidth = 45.dp
-                val shapeForInsert = RoundedCornerShape(
-                    topStart = 8.dp,
-                    bottomEnd = 8.dp
-                )
-
-                Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.TopStart)
-                        .graphicsLayer {
-                            shape = shapeForInsert
-                            clip = true
-                            shadowElevation = 0f
-                        }
-                        .background(SigmaColors.current.secondary)
-                        .width(boxWidth)
-                        .border(
-                            1.dp,
-                            lerp(
-                                SigmaColors.current.secondary,
-                                SigmaColors.current.primary,
-                                0.5f
-                            ),
-                            shape = shapeForInsert
-                        )
-                        .clickable {
-                            onTopLeftPanelClick(item)
-                        }
-                ) {
-//                     Couche 2 (Conditionnelle) : Le maillage, dessiné par-dessus le fond
-                    if (!memoEmpty) {
-                        Image(
-                            painter = painterResource(id = R.drawable.obliques4), // Remplacez par votre fichier
-                            contentDescription = "Maillage de fond",
-                            contentScale = ContentScale.Companion.Crop, // Assure que l'image remplit l'espace
-                            modifier = Modifier.Companion.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
-                        )
-                    }
-
-                    Column(
-                        modifier = Modifier.Companion
-                            .align(Alignment.Companion.TopStart)
-                            .padding(start = 0.dp, top = 0.dp)
-                            .width(boxWidth)
-                    ) {
-                        val textHeight = 18.dp
-
-                        Text(
-                            modifier = Modifier.Companion
-                                .align(Alignment.Companion.CenterHorizontally)
-                                .padding(0.dp)
-                                .height(textHeight),
-                            text = infoSup,
-                            fontWeight = if (memoEmpty) FontWeight.Companion.Normal else FontWeight.Companion
-                                .ExtraBold,
-                            fontSize = 10.sp,
-                            color = SigmaColors.current.onSecondary
-                        )
-
-                        Text(
-                            modifier = Modifier.Companion
-                                .align(Alignment.Companion.CenterHorizontally)
-                                .padding(
-                                    top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
-                                )
-                                .height(textHeight),
-                            text = infoInf,
-                            fontWeight = if (memoEmpty) FontWeight.Companion.Normal else FontWeight.Companion.ExtraBold,
-                            fontSize = 10.sp,
-                            color = SigmaColors.current.onSecondary
-                        )
-                    }
-                }
-            }
-
-            if (item.isFolder())
-                Box(
-                    modifier = Modifier.Companion
-                        .align(Alignment.Companion.BottomEnd)
-                        .padding(end = 6.dp, bottom = 20.dp)
-                        .graphicsLayer {
-                            rotationZ = -15f
-                            shadowElevation = 4f
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
-                            clip = true
-                        }
-                        .background(
-                            color = Color(0xFFCCFF00), // rouge tampons administratifs
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 3.dp)
-                ) {
-                    Text(
-                        text = "DOSSIER",
-//                        text = Instant.ofEpochMilli(item.modificationDate).atZone(ZoneId.systemDefault()).format(
-//                            DateTimeFormatter.ofPattern("dd/MM/yyyy")),
-                        fontSize = 11.sp,
-                        color = Color(0xFF0047AB),
-                        letterSpacing = 1.sp,
-                        lineHeight = 12.sp
-                    )
-                }
         }
 
         TextSection(
@@ -375,178 +237,6 @@ fun TextSection(name: String, modifier: Modifier) {
         fontSize = 12.sp,
         color = SigmaColors.current.onPrimary,
     )
-}
-
-@Composable
-context(SigmaActivity)
-fun ImageSection(
-    modifier: Modifier,
-    image: Any?,
-    scale: ContentScale?,
-    name: String,
-    areShortcutsDisplayed: MutableState<Boolean>,
-) {
-    var imageSize by remember { mutableStateOf<IntSize?>(null) }
-    var containerSize = IntSize(175, 175)
-
-    // Le calcul reste le même, il sera relancé quand imageSize changera
-    val shouldShowMesh = remember(imageSize, scale) {
-        val size = imageSize
-        if (size != null) {
-            !doesImageFillBox(
-                containerWidth = containerSize.width,
-                containerHeight = containerSize.height,
-                imageWidth = size.width,
-                imageHeight = size.height,
-                contentScale = scale ?: ContentScale.Companion.Crop
-            )
-        } else {
-            false // On ne montre pas le maillage avant de connaître la taille
-        }
-    }
-
-    Box(
-        modifier = modifier.onSizeChanged { containerSize = it }
-    ) {
-        if (shouldShowMesh) {
-            Icon(
-                painter = painterResource(id = R.drawable.diagos),
-                contentDescription = null,
-                modifier = Modifier.Companion.matchParentSize(),
-                tint = SigmaColors.current.tertiary
-            )
-        }
-
-        SubcomposeAsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(image ?: R.drawable.fichier4)
-                .apply { if (image is Int) decoderFactory(SvgDecoder.Factory()) }
-                .crossfade(false)
-                .build(),
-            contentDescription = "Miniature",
-            contentScale = scale ?: ContentScale.Companion.Crop,
-            modifier = Modifier.Companion.matchParentSize(),
-            loading = { /* Affiche un loader */ },
-            success = { successState ->
-                val drawable = successState.result.drawable
-                imageSize = IntSize(drawable.intrinsicWidth, drawable.intrinsicHeight)
-
-                Box(
-                    modifier = Modifier.Companion.matchParentSize()
-
-                ) {
-                    Image(
-                        painter = successState.painter,
-                        contentDescription = "Miniature",
-                        contentScale = scale ?: ContentScale.Companion.Crop,
-                        modifier = Modifier.Companion
-                            .matchParentSize(),
-                        colorFilter = if (image == null || image is Int) ColorFilter.tint(
-                            lerp(
-                                SigmaColors.current.secondary,
-                                SigmaColors.current.primary,
-                                0.8f
-                            )
-                        )
-                        else null
-                    )
-
-                    Shortcuts(
-                        modifier = Modifier,
-                        areShortcutsDisplayed = areShortcutsDisplayed,
-                        name = name
-                    )
-                }
-            },
-            error = {
-                // Fallback en cas d’erreur
-            }
-        )
-
-    }
-}
-
-@Composable
-context(BoxScope)
-fun Shortcuts(
-    modifier: Modifier,
-    areShortcutsDisplayed: MutableState<Boolean>,
-    name: String
-) {
-    if (areShortcutsDisplayed.value) {
-
-        LaunchedEffect(Unit) {
-            delay(3_000)
-            areShortcutsDisplayed.value = false
-        }
-
-        if (areShortcutsDisplayed.value) {
-            val shortcuts = name
-                .substringBeforeLast(".")
-                .substringAfter(".")
-                .split(".")
-
-            if (shortcuts.size != 1
-                || shortcuts[0] == name
-            )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
-                ) {
-
-                    Column(
-                        modifier = Modifier.Companion
-                            .matchParentSize()
-                            .padding(top = 45.dp)
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        for (shortcut in shortcuts) {
-                            Text(
-                                text = shortcut,
-                                color = SigmaColors.current.onPrimary,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                }
-        }
-    }
-}
-
-fun doesImageFillBox(
-    containerWidth: Int,
-    containerHeight: Int,
-    imageWidth: Int,
-    imageHeight: Int,
-    contentScale: ContentScale
-): Boolean {
-    if (imageWidth <= 0 || imageHeight <= 0 || containerWidth <= 0 || containerHeight <= 0)
-        return false
-
-    val containerRatio = containerWidth.toFloat() / containerHeight
-    val imageRatio = imageWidth.toFloat() / imageHeight
-
-    return when (contentScale) {
-        ContentScale.Companion.Crop,
-        ContentScale.Companion.FillBounds -> true
-
-        ContentScale.Companion.Fit,
-        ContentScale.Companion.Inside -> {
-            if (imageRatio > containerRatio) {
-                (containerWidth / imageRatio) >= containerHeight
-            } else {
-                (containerHeight * imageRatio) >= containerWidth
-            }
-        }
-
-        ContentScale.Companion.FillWidth -> imageRatio <= containerRatio
-        ContentScale.Companion.FillHeight -> imageRatio >= containerRatio
-        ContentScale.Companion.None -> false
-        else -> false
-    }
 }
 
 fun imageAsAnyToTempUri(context: Context, image: Any): Uri {
