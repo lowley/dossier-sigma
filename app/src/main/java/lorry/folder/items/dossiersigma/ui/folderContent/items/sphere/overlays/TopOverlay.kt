@@ -6,6 +6,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryFrench
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryName
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryPicture
 
 @Composable
 fun TopOverlay(
@@ -14,7 +18,11 @@ fun TopOverlay(
 ): IOverlayContent = object: IOverlayContent{
     context(BoxScope)
     @Composable
-    override fun display(modifier: Modifier, name: String) {
+    override fun display(
+        modifier: Modifier,
+        name: String,
+        country: Country?
+    ) {
         Text(
             modifier = modifier
                 .fillMaxSize()

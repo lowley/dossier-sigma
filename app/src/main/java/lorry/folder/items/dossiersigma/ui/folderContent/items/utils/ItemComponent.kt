@@ -5,14 +5,10 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,14 +25,11 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -49,6 +42,7 @@ import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.basics.domain.str
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
 import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.BackgroundContent
 import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.SphericOverlayedBox
 import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.BottomOverlay
@@ -148,9 +142,8 @@ fun ItemComponent(
 
         //l'image dans l'item
         val backgroundContent = object : IOverlayContent {
-            context(BoxScope)
             @Composable
-            override fun display(modifier: Modifier, name: String) {
+            override fun display(modifier: Modifier, name: String, country: Country?) {
                 BackgroundContent(
                     modifier = Modifier,
                     item = item,

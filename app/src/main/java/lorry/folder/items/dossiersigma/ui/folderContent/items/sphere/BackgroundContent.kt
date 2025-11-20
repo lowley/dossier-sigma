@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,10 +41,13 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
+import coil.compose.rememberAsyncImagePainter
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.basics.domain.Item
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryName
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 
 context(BoxScope)
@@ -194,9 +198,55 @@ fun BackgroundContent(
                 lineHeight = 12.sp
             )
         }
+
+    if ("spain" == "spain")
+        Box(
+            modifier = modifier
+                .align(Alignment.Companion.BottomEnd)
+                .padding(end = 6.dp, bottom = 20.dp)
+                .graphicsLayer {
+                    rotationZ = -15f
+                    shadowElevation = 4f
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
+                    clip = true
+                }
+                .background(
+                    color = Color(0xFFCCFF00), // rouge tampons administratifs
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+        ) {
+            CountryFlag(
+                modifier = Modifier,
+                country = "spain" to R.drawable.spain,
+            )
+        }
+
+
 }
 
+context(BoxScope)
+@Composable
+fun CountryFlag(
+    country: Country?,
+    modifier: Modifier = Modifier
+        .align(Alignment.Companion.BottomStart)
+        .padding(start = 10.dp, bottom = 10.dp),
+    contentDescription: CountryName? = country?.first
+) {
+    val resId = country?.second
 
+    if (resId != null) {
+        Image(
+            painter = rememberAsyncImagePainter(model = resId),
+            contentDescription = contentDescription,
+            modifier = modifier
+                .size(width = 20.dp, height = 15.dp)
+        )
+    } else {
+        // Option : afficher un placeholder, ou rien
+    }
+}
 
 @Composable
 fun ImageSection(

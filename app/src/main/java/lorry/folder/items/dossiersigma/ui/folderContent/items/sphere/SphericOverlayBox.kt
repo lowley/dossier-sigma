@@ -3,7 +3,6 @@ package lorry.folder.items.dossiersigma.ui.folderContent.items.sphere
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -16,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -31,7 +29,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.ui.Alignment
 
 @Composable
@@ -130,7 +127,7 @@ fun SphericOverlayedBox(
             }
     ) {
         // 1) Fond (ce qu'il y avait avant, image, etc.)
-        backgroundContent.display(Modifier, item.name)
+        backgroundContent.display(Modifier, item.name, item.country)
 
         // 2) Animation de fade entre les overlays
         AnimatedContent(
@@ -167,7 +164,8 @@ fun SphericOverlayedBox(
             ) {
             animatedOverlay.display(Modifier
                 .align(Alignment.Center),
-                item.name)
+                item.name,
+                item.country)
             }
         }
     }

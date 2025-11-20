@@ -2,9 +2,11 @@ package lorry.folder.items.dossiersigma.external.capsule.utilities
 
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.ui.layout.ContentScale
 import com.google.gson.Gson
 import kotlinx.serialization.Serializable
+import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.external.base64.IVideoInfoEmbedder
 import lorry.folder.items.dossiersigma.external.base64.VideoInfoEmbedder
 import lorry.folder.items.dossiersigma.basics.domain.ColoredTag
@@ -19,7 +21,8 @@ data class CapsuleData(
     val flag: String? = null,
     val scale: String? = null,
     val memo: String? = null,
-    val memo2: String? = null
+    val memo2: String? = null,
+    val country: CountryName? = null
 ) {
     val videoInfoEmbedder = VideoInfoEmbedder()
 
@@ -30,6 +33,7 @@ data class CapsuleData(
         val base64 = initialPicture ?: return null
         return videoInfoEmbedder.base64ToBitmap(base64)
     }
+
 
     suspend fun getCroppedPicture(): Bitmap? {
         val base64 = croppedPicture ?: return null
@@ -49,7 +53,7 @@ data class CapsuleData(
         else
             try {
                 StringToScale(gson.fromJson(scale, String::class.java))
-            }catch(ex: Exception){
+            } catch (ex: Exception) {
                 Log.d("CompositeData", "getScale: $ex")
                 ContentScale.Fit
             }
@@ -62,10 +66,15 @@ data class CapsuleData(
             gson.fromJson(memo, String::class.java)
     }
 
+    fun getCountry(): Country? = country?.let {
+        it.produceCountry()
+
+    }
+
     override fun toString(): String {
         return "CompositeData(initialPicture=${initialPicture?.takeLast(10)}, " +
                 "croppedPicture=${croppedPicture?.takeLast(10)}, " +
-                "flag=$flag, scale=$scale, memo=${memo?.take(20)})"
+                "flag=$flag, scale=$scale, memo=${memo?.take(20)}, country=$country)"
     }
 }
 
@@ -262,6 +271,37 @@ data class Memo @Inject constructor(
     }
 }
 
+data class CountryClass @Inject constructor(
+    val country: Country?
+) : IElementInCapsule {
+    val gson: Gson = Gson()
+
+    override suspend fun update(capsule: CapsuleData): CapsuleData {
+        val text = country?.first
+        return capsule.copy(country = text)
+    }
+
+    companion object : IElementReader<String> {
+
+        val gson: Gson = Gson()
+
+        override suspend fun fileGet(filePath: SigmaPath, useOld: Boolean): String? {
+            val fileCapsuleManager = FileCapsuleManager(filePath.str, useOld)
+            val capsule = fileCapsuleManager.getCapsule()
+            if (capsule.country == null)
+                return null
+
+//            return gson.fromJson(composite.memo2, String::class.java)
+            return capsule.country
+        }
+
+        override suspend fun folderGet(folderPath: SigmaPath, useOld: Boolean): String? {
+            val filePath = folderPath.appendToPath(".folderPicture.html")
+            return fileGet(filePath, useOld)
+        }
+    }
+}
+
 interface IElementReader<T> {
     suspend fun fileGet(filePath: SigmaPath, useOld: Boolean = false): T?
     suspend fun folderGet(folderPath: SigmaPath, useOld: Boolean = false): T?
@@ -288,3 +328,34 @@ fun scaleToString(value: ContentScale?): String = when (value) {
     ContentScale.None -> "None"
     else -> "Crop" // ou exception
 }
+
+typealias CountryName = String?
+typealias CountryFrench = String?
+typealias CountryPicture = Int?
+typealias Country = Triple<CountryName, CountryFrench, CountryPicture>
+
+fun CountryName.produceCountry(): Country {
+
+    when (this) {
+        "Spain" -> return Triple(this, "Espagne", R.drawable.spain)
+        "oceania" -> return Triple(this, "Océanie", R.drawable.oceania)
+        "africa" -> return Triple(this, "Afrique", R.drawable.africa)
+        "slavish" -> return Triple(this, "Slave", R.drawable.slavish)
+        "middle east" -> return Triple(this, "Arabe", R.drawable.middle_east)
+        "asia" -> return Triple(this, "Asiatique", R.drawable.asia)
+        "usa" -> return Triple(this, "USA", R.drawable.usa)
+        "greece" -> return Triple(this, "Grèce", R.drawable.greece)
+        "israel" -> return Triple(this, "Israël", R.drawable.israel)
+        "italy" -> return Triple(this, "Italie", R.drawable.italy)
+        "uk" -> return Triple(this, "Angleterre", R.drawable.uk)
+        "south_america" -> return Triple(this, "Am. du Sud", R.drawable.south_america)
+        "cuba" -> return Triple(this, "Cuba", R.drawable.cuba)
+        "australia" -> return Triple(this, "Australie", R.drawable.australia)
+        else -> return Triple(this, null, null)
+    }
+}
+
+fun String.produceCountry() = (this as CountryName).produceCountry()
+
+
+

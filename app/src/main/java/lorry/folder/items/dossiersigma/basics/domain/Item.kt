@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CapsuleData
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
 import lorry.folder.items.dossiersigma.external.capsule.utilities.FileCapsuleManager
 import lorry.folder.items.dossiersigma.external.capsule.utilities.FolderCapsuleManager
 import lorry.folder.items.dossiersigma.external.capsule.utilities.IElementInCapsule
@@ -31,7 +32,8 @@ abstract class Item(
     val tag: ColoredTag? = null,
     val scale: ContentScale? = null,
     val memo: String? = null,
-    val size: Long? = null
+    val size: Long? = null,
+    val country: Country? = null
 ) {
     fun isFile(): Boolean {
         return this is SigmaFile
@@ -54,7 +56,8 @@ abstract class Item(
         tag: ColoredTag? = this.tag,
         scale: ContentScale? = this.scale,
         memo: String? = this.memo,
-        size: Long? = this.size
+        size: Long? = this.size,
+        country: Country? = this.country
     ): Item {
         if (this is SigmaFolder) {
             return this.copy(
@@ -65,7 +68,8 @@ abstract class Item(
                 modificationDate = modificationDate,
                 tag = tag,
                 scale = scale,
-                memo = memo
+                memo = memo,
+                country = country
             )
         } 
         else {
@@ -78,7 +82,8 @@ abstract class Item(
                 tag = tag,
                 scale = scale,
                 memo = memo,
-                size = size
+                size = size,
+                country = country
             )
         }
     }
@@ -115,7 +120,7 @@ abstract class Item(
     override fun toString(): String {
         return "Item(type=${if (isFile()) "File" else "Folder"}, name='$name', picture=${picture != null}, " +
                 "hasUrl= ${picture is String}, path='$parentPath', id='$id', modificationDate=$modificationDate, " +
-                "tag=$tag, scale=$scale, memo=$memo, fullPath='$fullPath')"
+                "tag=$tag, scale=$scale, memo=$memo, country=$country, fullPath='$fullPath')"
     }
 }
 
@@ -163,7 +168,8 @@ object EmptyItem: Item(
     tag = null,
     scale = null,
     memo = null,
-    size = null
+    size = null,
+    country = null
 )
 
 @Serializable

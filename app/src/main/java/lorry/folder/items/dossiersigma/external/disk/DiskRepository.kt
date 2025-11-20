@@ -98,6 +98,7 @@ class DiskRepository @Inject constructor(
 
                     val tag = capsule?.getFlag()
                     val memo = capsule?.memo2
+                    val country = capsule?.getCountry()
 
                     val basePicture = getImage(path = itemPath, newCapsule = capsule)
                     val scale = capsule?.getScale()
@@ -129,6 +130,7 @@ class DiskRepository @Inject constructor(
                             tag = tag,
                             scale = scale,
                             memo = memo,
+                            country = country
                         )
                     } else {
                         SigmaFolder(
@@ -140,6 +142,7 @@ class DiskRepository @Inject constructor(
                             tag = tag,
                             scale = scale,
                             memo = memo,
+                            country = country
                         )
                     }
                 }
@@ -191,6 +194,7 @@ class DiskRepository @Inject constructor(
                                     tag = null,
                                     scale = null,
                                     memo = null,
+                                    country = null
                                 )
 
                                 file
@@ -204,6 +208,7 @@ class DiskRepository @Inject constructor(
                                     tag = null,
                                     scale = null,
                                     memo = null,
+                                    country = null
                                 )
                             }
                         }
@@ -264,6 +269,7 @@ class DiskRepository @Inject constructor(
                                     tag = newCapsule!!.getFlag(),
                                     scale = newCapsule.getScale(),
                                     memo = newCapsule.memo2,
+                                    country = newCapsule.getCountry()
                                 )
 
                                 if (itemDTO.name.endsWith(".html")) {
@@ -302,6 +308,7 @@ class DiskRepository @Inject constructor(
                                     tag = newCapsule!!.getFlag(),
                                     scale = newCapsule.getScale(),
                                     memo = newCapsule.memo2,
+                                    country = newCapsule.getCountry()
                                 )
                             }
                         }
@@ -378,7 +385,7 @@ class DiskRepository @Inject constructor(
         return SigmaFolder(
             fullPath = folderPath,
             picture = null,
-            items = emptyList<Item>(),
+            items = emptyList(),
             modificationDate = folder.lastModified(),
             tag = null,
             scale = ContentScale.Crop,
@@ -425,6 +432,7 @@ class DiskRepository @Inject constructor(
             tag = newComposite?.getFlag(),
             scale = ContentScale.Crop,
             memo = newComposite?.memo2,
+            country = newComposite?.getCountry()
         )
     }
 

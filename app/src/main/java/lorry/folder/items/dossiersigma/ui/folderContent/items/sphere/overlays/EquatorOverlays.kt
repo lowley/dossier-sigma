@@ -1,21 +1,29 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays
 
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import lorry.basics.getAllOf
+import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryFrench
+import lorry.folder.items.dossiersigma.external.capsule.utilities.produceCountry
 
 enum class Layer { TOP, EQUATOR, BOTTOM }
 interface IOverlayContent {
-    @Composable
     context(BoxScope)
+    @Composable
     fun display(
         modifier: Modifier,
-        name: String
+        name: String,
+        country: Country?
     )
 }
 
@@ -27,90 +35,76 @@ object Equators {
 //            overlays.addAll(getAllOf<Equators>())
 //    }
 
-    fun allOverlays(): List<IOverlayContent>{
-        if (overlays.isEmpty())
-            overlays.addAll(listOf(nothing, spanish, greek, russian, american, ethiopian, hawaiian))
+    fun allOverlays(): List<IOverlayContent> {
+        if (overlays.isEmpty()) {
+            val countryOverlays1 = listOf(
+                "usa",
+                "Spain",
+                "italy",
+                "south_america",
+                "uk",
+                "oceania",
+                "africa",
+                "slavish",
+                "middle east",
+                "asia",
+                "greece",
+                "israel",
+                "cuba",
+                "australia",
+            )
+                .map { it.produceCountry().let { overlayContent(it) } }
+                .toMutableList()
+
+            countryOverlays1.addFirst(nothing)
+            overlays.addAll(countryOverlays1)
+        }
+
         return overlays
     }
 
-    val nothing = object: IOverlayContent{
+    fun overlayContent(overlayCountry: Country): IOverlayContent = object : IOverlayContent {
         context(BoxScope)
         @Composable
-        override fun display(modifier: Modifier, name: String) {
+        override fun display(modifier: Modifier, name: String, country: Country?) {
+
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .width(IntrinsicSize.Min)
+                    .height(IntrinsicSize.Min)
+            ) {
+
+                if (overlayCountry.third != null)
+                    Flag(
+                        resId = overlayCountry.third!!,
+                        contentDescription = overlayCountry.second
+                    )
+
+                Text(
+                    modifier = modifier
+                        .padding(top = 5.dp)
+                        .align(Alignment.CenterHorizontally),
+                    text = overlayCountry.second ?: "???"
+                )
+            }
+        }
+    }
+
+
+    val nothing = object : IOverlayContent {
+        context(BoxScope)
+        @Composable
+        override fun display(modifier: Modifier, name: String, country: Country?) {
 
         }
     }
 
-    val spanish = object: IOverlayContent{
-        context(BoxScope)
-        @Composable
-        override fun display(modifier: Modifier, name: String) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                text = "Spanish overlay #1"
-            )
-        }
-    }
-
-    val greek = object: IOverlayContent{
-        context(BoxScope)
-        @Composable
-        override fun display(modifier: Modifier, name: String) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                text = "Greek overlay #2"
-            )
-        }
-    }
-
-    val russian = object: IOverlayContent{
-        context(BoxScope)
-        @Composable
-        override fun display(modifier: Modifier, name: String) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                text = "Russian overlay #3"
-            )
-        }
-    }
-
-    val american = object: IOverlayContent{
-        context(BoxScope)
-        @Composable
-        override fun display(modifier: Modifier, name: String) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                text = "American overlay #4"
-            )
-        }
-    }
-
-    val ethiopian = object: IOverlayContent{
-        context(BoxScope)
-        @Composable
-        override fun display(modifier: Modifier, name: String) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                text = "Ethiopian overlay #5"
-            )
-        }
+    @Composable
+    fun Flag(resId: Int, contentDescription: String?) {
+        AsyncImage(
+            model = resId,                 // <- ton Int de drawable
+            contentDescription = contentDescription
+        )
     }
 }
-
-val Equators.hawaiian: IOverlayContent
-    get() = object: IOverlayContent{
-        context(BoxScope)
-        @Composable
-        override fun display(modifier: Modifier, name: String) {
-            Text(
-                modifier = Modifier
-                    .align(Alignment.Center),
-                text = "Hawaiian overlay #6"
-            )
-        }
-    }

@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.basics.domain
 
 import androidx.compose.ui.layout.ContentScale
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
 import java.util.UUID
 
 class SigmaFolder(
@@ -13,12 +14,13 @@ class SigmaFolder(
     tag: ColoredTag?,
     scale: ContentScale?,
     memo: String? = null,
-) : Item(parentPath, name, picture, id, modificationDate, tag, scale, memo) {
+    country: Country? = null
+) : Item(parentPath, name, picture, id, modificationDate, tag, scale, memo, null, country) {
 
     override fun toString(): String {
         return "Folder(name=$name, picture=${if (picture == null) "non" else "oui"}, id=${
             id.take(5)
-        }, items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: $memo)"
+        }, items: ${items.size}, modification: ${modificationDate.toFormattedDate()}), tag: ${tag}, scale: ${scale}, memo: $memo, country: $country)"
     }
 
     constructor(
@@ -30,6 +32,7 @@ class SigmaFolder(
         tag: ColoredTag?,
         scale: ContentScale?,
         memo: String? = null,
+        country: Country? = null
     ) : this(
         parentPath = SigmaPath(fullPath.dropLastSegment()),
         name = fullPath.lastSegment,
@@ -40,6 +43,7 @@ class SigmaFolder(
         scale = scale,
         memo = memo,
         items = items,
+        country = country
     )
 
     val isEmpty: Boolean
@@ -55,6 +59,7 @@ class SigmaFolder(
         tag: ColoredTag? = this.tag,
         scale: ContentScale? = this.scale,
         memo: String? = this.memo,
+        country: Country? = this.country
     ): SigmaFolder {
         val result = SigmaFolder(
             parentPath = parentPath, name = name, picture = picture,
@@ -70,6 +75,7 @@ class SigmaFolder(
             tag = tag,
             scale = scale,
             memo = memo,
+            country = country
         )
         return result
     }
@@ -87,6 +93,7 @@ class SigmaFolder(
                 tag = null,
                 scale = null,
                 memo = null,
+                country = null
             )
 
             return result
@@ -100,6 +107,7 @@ class SigmaFolder(
             tag = null,
             scale = null,
             memo = null,
+            country = null
         )
 
 
