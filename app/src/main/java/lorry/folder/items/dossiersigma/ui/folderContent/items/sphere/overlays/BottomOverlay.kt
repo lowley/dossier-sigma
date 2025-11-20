@@ -28,7 +28,7 @@ fun BottomOverlay(
 
     context(BoxScope)
     @Composable
-    override fun display(modifier: Modifier, name: String, country: Countr?) {
+    override fun display(modifier: Modifier, name: String, country: Country?) {
         val shortcuts = name
             .substringBeforeLast(".")
             .substringAfter(".")

@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -142,6 +143,7 @@ fun ItemComponent(
 
         //l'image dans l'item
         val backgroundContent = object : IOverlayContent {
+            context(BoxScope)
             @Composable
             override fun display(modifier: Modifier, name: String, country: Country?) {
                 BackgroundContent(

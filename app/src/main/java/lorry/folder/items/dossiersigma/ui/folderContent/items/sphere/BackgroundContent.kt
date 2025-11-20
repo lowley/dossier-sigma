@@ -218,7 +218,7 @@ fun BackgroundContent(
         ) {
             CountryFlag(
                 modifier = Modifier,
-                country = "spain" to R.drawable.spain,
+                country = item.country
             )
         }
 

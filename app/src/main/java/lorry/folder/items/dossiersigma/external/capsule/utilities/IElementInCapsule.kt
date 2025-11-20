@@ -355,7 +355,7 @@ fun CountryName.produceCountry(): Country {
     }
 }
 
-fun String.produceCountry() = (this as CountryName).produceCountry()
+fun String.produceCountryFromString() = (this as CountryName).produceCountry()
 
 
 
