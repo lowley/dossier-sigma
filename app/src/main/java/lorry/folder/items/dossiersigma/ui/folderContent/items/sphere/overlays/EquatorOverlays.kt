@@ -1,6 +1,7 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -74,6 +75,9 @@ object Equators {
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.5f))
+                    .clickable{
+
+                    }
             ) {
                 Column(
                     modifier = Modifier
