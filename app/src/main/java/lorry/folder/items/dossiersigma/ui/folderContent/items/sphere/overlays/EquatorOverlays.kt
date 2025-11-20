@@ -39,7 +39,6 @@ object Equators {
         override fun display(modifier: Modifier, name: String) {
             Text(
                 modifier = Modifier
-                    .fillMaxSize()
                     .align(Alignment.Center),
                 text = "Spanish overlay #1"
             )
@@ -52,7 +51,6 @@ object Equators {
         override fun display(modifier: Modifier, name: String) {
             Text(
                 modifier = Modifier
-                    .fillMaxSize()
                     .align(Alignment.Center),
                 text = "Greek overlay #2"
             )
@@ -65,7 +63,6 @@ object Equators {
         override fun display(modifier: Modifier, name: String) {
             Text(
                 modifier = Modifier
-                    .fillMaxSize()
                     .align(Alignment.Center),
                 text = "Russian overlay #3"
             )
@@ -78,7 +75,6 @@ object Equators {
         override fun display(modifier: Modifier, name: String) {
             Text(
                 modifier = Modifier
-                    .fillMaxSize()
                     .align(Alignment.Center),
                 text = "American overlay #4"
             )
@@ -91,7 +87,6 @@ object Equators {
         override fun display(modifier: Modifier, name: String) {
             Text(
                 modifier = Modifier
-                    .fillMaxSize()
                     .align(Alignment.Center),
                 text = "Ethiopian overlay #5"
             )
@@ -106,7 +101,6 @@ val Equators.hawaiian: IOverlayContent
         override fun display(modifier: Modifier, name: String) {
             Text(
                 modifier = Modifier
-                    .fillMaxSize()
                     .align(Alignment.Center),
                 text = "Spanish overlay #1"
             )
