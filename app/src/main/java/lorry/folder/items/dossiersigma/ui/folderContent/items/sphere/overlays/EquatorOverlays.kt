@@ -91,7 +91,6 @@ object Equators {
                     Text(
                         modifier = modifier
                             .fillMaxWidth()
-                            .padding(top = 5.dp)
                             .align(Alignment.CenterHorizontally),
                         color = Color(0xFFCCCCCC),
                         fontSize = 14.sp,
