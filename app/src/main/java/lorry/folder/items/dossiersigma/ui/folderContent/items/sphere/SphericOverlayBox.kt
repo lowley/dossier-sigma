@@ -26,7 +26,13 @@ import androidx.compose.ui.unit.dp
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.IOverlayContent
 import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.Layer
-
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.ui.Alignment
 
 @Composable
 fun SphericOverlayedBox(
@@ -103,7 +109,7 @@ fun SphericOverlayedBox(
 
                             // GESTE VERTICAL : changement de calotte / anneau
                             absY > absX && absY > verticalThreshold -> {
-                                val goingDown = dragY > 0f
+                                val goingDown = dragY < 0f
                                 when (layer) {
                                     Layer.EQUATOR ->
                                         layer = if (goingDown) Layer.BOTTOM else Layer.TOP
@@ -126,26 +132,43 @@ fun SphericOverlayedBox(
         // 1) Fond (ce qu'il y avait avant, image, etc.)
         backgroundContent.display(Modifier, item.name)
 
-        // 2) Overlay selon le "pôle"
-        val overlay: IOverlayContent = when (layer) {
-            Layer.TOP -> topOverlay
-            Layer.EQUATOR -> equatorOverlays[equatorIndex]
-            Layer.BOTTOM -> bottomOverlay
-        }
-
-        // Petit effet de suivi du doigt (optionnel)
-        val translationX = if (layer == Layer.EQUATOR) dragX else 0f
-        val translationY = dragY
-
-        Box(
+        // 2) Animation de fade entre les overlays
+        AnimatedContent(
             modifier = Modifier
-                .matchParentSize()
-                .graphicsLayer {
-                    this.translationX = translationX
-                    this.translationY = translationY
-                }
-        ) {
-            overlay.display(Modifier, item.name)
+                .matchParentSize(),
+            targetState = layer to equatorIndex,
+            transitionSpec = {
+                // L'ancien disparaît sur 150 ms
+                // Le nouveau commence à apparaître APRÈS ces 150 ms
+                fadeIn(
+                    animationSpec = tween(
+                        durationMillis = 150,
+                        delayMillis = 150      // commence après le fadeOut
+                    )
+                ) togetherWith
+                        fadeOut(
+                            animationSpec = tween(
+                                durationMillis = 150
+                            )
+                        )
+            },
+            label = "SphereOverlayFade"
+        ) { (animatedLayer, animatedIndex) ->
+
+            val animatedOverlay: IOverlayContent = when (animatedLayer) {
+                Layer.TOP -> topOverlay
+                Layer.BOTTOM -> bottomOverlay
+                Layer.EQUATOR -> equatorOverlays[animatedIndex]
+            }
+
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+            ) {
+            animatedOverlay.display(Modifier
+                .align(Alignment.Center),
+                item.name)
+            }
         }
     }
 }

@@ -29,8 +29,16 @@ object Equators {
 
     fun allOverlays(): List<IOverlayContent>{
         if (overlays.isEmpty())
-            overlays.addAll(listOf(spanish, greek, russian, american, ethiopian, hawaiian))
+            overlays.addAll(listOf(nothing, spanish, greek, russian, american, ethiopian, hawaiian))
         return overlays
+    }
+
+    val nothing = object: IOverlayContent{
+        context(BoxScope)
+        @Composable
+        override fun display(modifier: Modifier, name: String) {
+
+        }
     }
 
     val spanish = object: IOverlayContent{
@@ -102,7 +110,7 @@ val Equators.hawaiian: IOverlayContent
             Text(
                 modifier = Modifier
                     .align(Alignment.Center),
-                text = "Spanish overlay #1"
+                text = "Hawaiian overlay #6"
             )
         }
     }
