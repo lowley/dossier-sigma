@@ -7,15 +7,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
-context(BoxScope)
 @Composable
 fun BottomOverlay(
     modifier: Modifier = Modifier,
-) {
-    Text(
-        modifier = modifier
-            .fillMaxSize()
-            .align(Alignment.Center),
-        text = "Bottom Overlay"
-    )
+    name: String
+): IOverlayContent = object: IOverlayContent{
+    context(BoxScope)
+    @Composable
+    override fun display(modifier: Modifier, name: String) {
+        Text(
+            modifier = modifier
+                .fillMaxSize()
+                .align(Alignment.Center),
+            text = "Bottom Overlay"
+        )
+    }
+
 }

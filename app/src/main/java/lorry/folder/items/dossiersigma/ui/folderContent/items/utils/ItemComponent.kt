@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -49,6 +50,11 @@ import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.basics.domain.str
 import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.BackgroundContent
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.SphericOverlayedBox
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.BottomOverlay
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.Equators
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.IOverlayContent
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.TopOverlay
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -83,12 +89,12 @@ fun ItemComponent(
 
     val imageHeight = 160.dp
 
-    var bounds by remember { mutableStateOf<Rect?>(null) }
+    var bounds = remember { mutableStateOf<Rect?>(null) }
     val state by dragState.collectAsState()
 
     val isHovered = remember(state, bounds) {
         if (state != null && bounds != null && state?.offset != null)
-            state != null && bounds?.contains(state?.offset!!) == true
+            state != null && bounds.value?.contains(state?.offset!!) == true
         else false
     }
 
@@ -141,75 +147,35 @@ fun ItemComponent(
             }
 
         //l'image dans l'item
-        //modifier de la Box permet swipe et affiche alors nom fichier splitté
-        Box(
-            modifier = modifierWithBorder
-//            modifier = Modifier
-                .width(imageHeight)
-                .height(imageHeight)
-                .onGloballyPositioned {
-                    val pos = it.positionInRoot()
-                    bounds = Rect(
-                        offset = pos,
-                        size = Size(
-                            it.size.width.toFloat(),
-                            it.size.height.toFloat()
-                        )
-                    )
-                }
-                .then(
-                    if (isHovered) Modifier.Companion.border(2.dp, Color.Companion.Black)
-                    else Modifier.Companion
+        val backgroundContent = object : IOverlayContent {
+            context(BoxScope)
+            @Composable
+            override fun display(modifier: Modifier, name: String) {
+                BackgroundContent(
+                    modifier = Modifier,
+                    item = item,
+                    image = image,
+                    scale = scale,
+                    areShortcutsDisplayed = areShortcutsDisplayed,
+                    getInfoSup = getInfoSup,
+                    getInfoInf = getInfoInf,
+                    onTopLeftPanelClick = onTopLeftPanelClick,
+                    memoEmpty = memoEmpty,
                 )
-                .pointerInput(Unit) {
-                    detectHorizontalDragGestures(
-                        onDragStart = { offset ->
-                            // Vérifie si le point de départ est dans l'encart
-                            val density = this@pointerInput
-                            val boxWidthPx = with(density) { 45.dp.toPx() }
-                            val boxHeightPx = with(density) { (18.dp * 2 + 5.dp).toPx() }
-                            val width = this@pointerInput.size.width
-
-                            if (offset.x <= width / 2
-//                                offset.x <= boxWidthPx
-//                                && offset.y <= boxHeightPx
-                            ) {
-                                println("Swipe DÉMARRÉ dans l’encart")
-                                isStartInLittleBox = true
-                            }
-                        },
-                        onHorizontalDrag = { change, dragAmount ->
-                            if (isStartInLittleBox) {
-                                val density = this@pointerInput
-                                val boxWidthPx = with(density) { 45.dp.toPx() }
-                                val width = this@pointerInput.size.width
-
-                                if (change.position.x > width / 2) {
-                                    isStartInLittleBox = false
-                                    areShortcutsDisplayed.value = !areShortcutsDisplayed.value
-                                }
-                            }
-                        },
-                        onDragEnd = {
-                            isStartInLittleBox = false
-                        }
-                    )
-                }
-        ) {
-
-            //l'image en elle-même
-            BackgroundContent(
-                modifier = Modifier,
-                item = item,
-                image = image,
-                scale = scale,
-                areShortcutsDisplayed = areShortcutsDisplayed,
-                getInfoSup = getInfoSup,
-                getInfoInf = getInfoInf,
-                onTopLeftPanelClick = onTopLeftPanelClick,
-                memoEmpty = memoEmpty,
-            )
+            }
         }
+
+        SphericOverlayedBox(
+            modifier = modifierWithBorder,
+            backgroundContent = backgroundContent,
+            topOverlay = TopOverlay(Modifier, item.name),
+            equatorOverlays = Equators.allOverlays(),
+            bottomOverlay = BottomOverlay(Modifier, item.name),
+            isHovered = isHovered,
+            length = imageHeight,
+            bounds = bounds,
+            item = item
+        )
 
         TextSection(
             modifier = Modifier.Companion

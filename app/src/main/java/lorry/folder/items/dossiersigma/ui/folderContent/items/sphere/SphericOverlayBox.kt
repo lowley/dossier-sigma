@@ -1,29 +1,44 @@
 package lorry.folder.items.dossiersigma.ui.folderContent.items.sphere
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import lorry.folder.items.dossiersigma.basics.domain.Item
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.IOverlayContent
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.Layer
 
-enum class Layer { TOP, EQUATOR, BOTTOM }
-typealias OverlayContent = @Composable BoxScope.() -> Unit
 
 @Composable
 fun SphericOverlayedBox(
     modifier: Modifier = Modifier,
-    backgroundContent: @Composable BoxScope.() -> Unit,
-    topOverlay: OverlayContent,
-    equatorOverlays: List<OverlayContent>,
-    bottomOverlay: OverlayContent,
+    backgroundContent: IOverlayContent,
+    topOverlay: IOverlayContent,
+    equatorOverlays: List<IOverlayContent>,
+    bottomOverlay: IOverlayContent,
+    isHovered: Boolean = false,
+    length: Dp,
+    bounds: MutableState<Rect?>,
+    item: Item
 ) {
     require(equatorOverlays.isNotEmpty()) { "equatorOverlays ne doit pas être vide" }
 
@@ -41,10 +56,25 @@ fun SphericOverlayedBox(
 
     Box(
         modifier = modifier
+            .size(length)
             .onSizeChanged {
                 widthPx = it.width.toFloat()
                 heightPx = it.height.toFloat()
             }
+            .onGloballyPositioned {
+                val pos = it.positionInRoot()
+                bounds.value = Rect(
+                    offset = pos,
+                    size = Size(
+                        it.size.width.toFloat(),
+                        it.size.height.toFloat()
+                    )
+                )
+            }
+            .then(
+                if (isHovered) Modifier.Companion.border(2.dp, Color.Companion.Black)
+                else Modifier.Companion
+            )
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDrag = { change, dragAmount ->
@@ -94,10 +124,10 @@ fun SphericOverlayedBox(
             }
     ) {
         // 1) Fond (ce qu'il y avait avant, image, etc.)
-        backgroundContent()
+        backgroundContent.display(Modifier, item.name)
 
         // 2) Overlay selon le "pôle"
-        val overlay: OverlayContent = when (layer) {
+        val overlay: IOverlayContent = when (layer) {
             Layer.TOP -> topOverlay
             Layer.EQUATOR -> equatorOverlays[equatorIndex]
             Layer.BOTTOM -> bottomOverlay
@@ -115,7 +145,7 @@ fun SphericOverlayedBox(
                     this.translationY = translationY
                 }
         ) {
-            overlay()
+            overlay.display(Modifier, item.name)
         }
     }
 }

@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
-import kotlinx.coroutines.delay
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -271,12 +270,6 @@ fun ImageSection(
                         )
                         else null
                     )
-
-                    Shortcuts(
-                        modifier = Modifier,
-                        areShortcutsDisplayed = areShortcutsDisplayed,
-                        name = name
-                    )
                 }
             },
             error = {
@@ -284,56 +277,6 @@ fun ImageSection(
             }
         )
 
-    }
-}
-
-@Composable
-context(BoxScope)
-fun Shortcuts(
-    modifier: Modifier,
-    areShortcutsDisplayed: MutableState<Boolean>,
-    name: String
-) {
-    if (areShortcutsDisplayed.value) {
-
-        LaunchedEffect(Unit) {
-            delay(3_000)
-            areShortcutsDisplayed.value = false
-        }
-
-        if (areShortcutsDisplayed.value) {
-            val shortcuts = name
-                .substringBeforeLast(".")
-                .substringAfter(".")
-                .split(".")
-
-            if (shortcuts.size != 1
-                || shortcuts[0] == name
-            )
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
-                ) {
-
-                    Column(
-                        modifier = Modifier.Companion
-                            .matchParentSize()
-                            .padding(top = 45.dp)
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        for (shortcut in shortcuts) {
-                            Text(
-                                text = shortcut,
-                                color = SigmaColors.current.onPrimary,
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                }
-        }
     }
 }
 
