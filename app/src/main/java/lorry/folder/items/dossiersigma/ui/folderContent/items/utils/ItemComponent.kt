@@ -48,7 +48,7 @@ import kotlinx.coroutines.flow.map
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.basics.domain.str
-import lorry.folder.items.dossiersigma.ui.folderContent.items.overlays.BackgroundContent
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.BackgroundContent
 import lorry.folder.items.dossiersigma.ui.sigma.DragState
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors

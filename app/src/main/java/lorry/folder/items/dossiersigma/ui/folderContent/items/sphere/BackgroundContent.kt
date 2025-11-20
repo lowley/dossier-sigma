@@ -1,4 +1,4 @@
-package lorry.folder.items.dossiersigma.ui.folderContent.items.overlays
+package lorry.folder.items.dossiersigma.ui.folderContent.items.sphere
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

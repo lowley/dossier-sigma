@@ -209,7 +209,8 @@ dependencies {
     ///////////////////////////////
     implementation(project(":bottombar"))
 
-
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    
 
 
 
