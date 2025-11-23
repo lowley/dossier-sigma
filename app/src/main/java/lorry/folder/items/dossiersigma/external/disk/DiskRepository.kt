@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
+import arrow.core.raise.fold
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -48,6 +49,7 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
 import javax.inject.Inject
 import kotlin.time.ExperimentalTime
 
@@ -162,11 +164,19 @@ class DiskRepository @Inject constructor(
 
         val infos = datasource.getFolderLiteContent(folderPath)
 
+        val folderPictureHtmlFile = folderPath.appendToPath(".folderPicture.html").toFile()
+        val digest = if (folderPictureHtmlFile.exists()) {
+            val bytes = folderPictureHtmlFile.readBytes()
+            MessageDigest.getInstance("SHA-256").digest(bytes)
+        }
+        else MessageDigest.getInstance("SHA-256").digest("".toByteArray())
+
         return FolderFreshness(
             path = folderPath,
             containerMtime = infos.first,
             contentsMaxMtime = infos.second,
-            secondLevelFolderPictureMTime = infos.third
+            secondLevelFolderPictureMTime = infos.third,
+            folderPictureHtmlHash = digest
         )
     }
 

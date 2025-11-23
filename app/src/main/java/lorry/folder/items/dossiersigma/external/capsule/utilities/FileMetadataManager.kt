@@ -4,7 +4,14 @@ import com.google.gson.Gson
 import java.io.File
 import java.io.RandomAccessFile
 import java.nio.charset.Charset
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.attribute.FileTime
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter.ISO_OFFSET_TIME
 import kotlin.math.min
+import kotlin.time.Instant
 
 class FileMetadataManager() : ICapsuleIO {
 
@@ -106,7 +113,7 @@ class FileMetadataManager() : ICapsuleIO {
 
         val capsuleJsonBytes = capsuleBlockBuffer.copyOfRange(jsonStartOffset, jsonEndOffset)
         val capsuleJsonString = String(capsuleJsonBytes, CHARSET).trim() // trim() au cas où
-        println("capsuleJsonString: $capsuleJsonString")
+//        println("capsuleJsonString: $capsuleJsonString")
         val capsuleData = try {
             gson.fromJson(capsuleJsonString, CapsuleData::class.java)
         } catch (e: Exception) {
@@ -182,6 +189,15 @@ class FileMetadataManager() : ICapsuleIO {
         //////////////////////////////////////////
 
         try {
+
+            //we save the date; cf [[restoration]]
+            var realPath = filePath
+            if (filePath.endsWith("/.folderPicture.html"))
+                realPath = realPath.substringBeforeLast("/")
+            val parent: Path = Paths.get(realPath)
+            val child: Path = Paths.get(filePath)
+            val oldTime = parent.toFile().lastModified()
+
             var raf = RandomAccessFile(file, "rw")
 
             val fileLength = raf.length()
@@ -250,6 +266,16 @@ class FileMetadataManager() : ICapsuleIO {
 
             raf.close()
 
+            //#[[restoration]]
+            val seenChild = FileMTime.restoreLastModified(child.toFile(), oldTime)
+            val seenParent = FileMTime.restoreLastModified(parent.toFile(), oldTime)
+//            val old = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(oldTime),
+//                ZoneId.systemDefault()).format(ISO_OFFSET_TIME)
+//            val seenC2 = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(seenChild),
+//                ZoneId.systemDefault()).format(ISO_OFFSET_TIME)
+//            val seenP2 = LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(seenParent),
+//                ZoneId.systemDefault()).format(ISO_OFFSET_TIME)
+//            println("old: $old, parent: $seenP2, .folderPicture: $seenC2")
 
             // Vérification
             if (newCapsule != null) {
@@ -275,5 +301,12 @@ class FileMetadataManager() : ICapsuleIO {
         val startIndex = source.lastIndexOf(startTag, endIndex)
         if (startIndex == -1 || startIndex >= endIndex) return null
         return source.substring(startIndex + startTag.length, endIndex).trim()
+    }
+
+    fun snapshotLastModified(path: Path): FileTime =
+        java.nio.file.Files.getLastModifiedTime(path)
+
+    fun restoreLastModified(path: Path, originalTime: FileTime) {
+        java.nio.file.Files.setLastModifiedTime(path, originalTime)
     }
 }

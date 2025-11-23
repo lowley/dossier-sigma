@@ -3,6 +3,7 @@ package lorry.folder.items.dossiersigma.headless.folderContentBack.utils
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import java.security.MessageDigest
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -11,7 +12,8 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
     val path: SigmaPath,
     private val containerMtime: Instant,      // mtime du dossier lui-même
     private val contentsMaxMtime: Instant,
-    private val secondLevelFolderPictureMTime: Instant
+    private val secondLevelFolderPictureMTime: Instant,
+    private val folderPictureHtmlHash: ByteArray
 ) {
     companion object {
         @OptIn(ExperimentalTime::class)
@@ -20,16 +22,18 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
             containerMtime = Instant.DISTANT_PAST,
             contentsMaxMtime = Instant.DISTANT_PAST,
             secondLevelFolderPictureMTime = Instant.DISTANT_PAST,
+            folderPictureHtmlHash = "truc".toByteArray()
         )
     }
 
     @OptIn(ExperimentalTime::class)
     fun isSameAs(other: FolderFreshness?): Boolean =
         other != null &&
-        path == other.path &&
-        containerMtime.toString() == other.containerMtime.toString() &&
-        contentsMaxMtime.toString() == other.contentsMaxMtime.toString() &&
-        secondLevelFolderPictureMTime.toString() == other.secondLevelFolderPictureMTime.toString()
+                path == other.path &&
+                containerMtime.toString() == other.containerMtime.toString() &&
+                contentsMaxMtime.toString() == other.contentsMaxMtime.toString() &&
+                secondLevelFolderPictureMTime.toString() == other.secondLevelFolderPictureMTime.toString() &&
+                MessageDigest.isEqual(folderPictureHtmlHash, other.folderPictureHtmlHash)
 
     @OptIn(ExperimentalTime::class)
     override fun hashCode(): Int {
@@ -37,6 +41,7 @@ data class FolderFreshness @OptIn(ExperimentalTime::class) constructor(
         result = 31 * result + containerMtime.hashCode()
         result = 37 * result + contentsMaxMtime.hashCode()
         result = 47 * result + secondLevelFolderPictureMTime.hashCode()
+        result = 53 * result + folderPictureHtmlHash.contentHashCode()
         return result
     }
 
@@ -61,12 +66,18 @@ fun SigmaFolder.computeFreshness(): FolderFreshness {
         ?.let { Instant.fromEpochMilliseconds(it.modificationDate) }
         ?: Instant.DISTANT_PAST
 
-    val path = this.parentPath
+    val folderPictureHtmlFile = this.fullPath.appendToPath(".folderPicture.html").toFile()
+    val digest = if (folderPictureHtmlFile.exists()) {
+        val bytes = folderPictureHtmlFile.readBytes()
+        MessageDigest.getInstance("SHA-256").digest(bytes)
+    } else MessageDigest.getInstance("SHA-256").digest("".toByteArray())
 
+    val path = this.parentPath
     return FolderFreshness(
         path = path,
         containerMtime = containerMTime,
         contentsMaxMtime = contentMTime,
-        secondLevelFolderPictureMTime = secondLevelFolderPictureMTime
+        secondLevelFolderPictureMTime = secondLevelFolderPictureMTime,
+        folderPictureHtmlHash = digest
     )
 }
