@@ -29,6 +29,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.ui.Alignment
 
 @Composable
@@ -79,24 +81,22 @@ fun SphericOverlayedBox(
                 else Modifier.Companion
             )
             .pointerInput(Unit) {
-                detectDragGestures(
-                    onDrag = { change, dragAmount ->
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { change, dragAmount ->
+                        //pas pris en compte par au dessus
+                        val dx = dragAmount
                         change.consume()
-                        val (dx, dy) = dragAmount
                         dragX += dx
-                        dragY += dy
+
                     },
                     onDragEnd = {
                         val absX = kotlin.math.abs(dragX)
-                        val absY = kotlin.math.abs(dragY)
 
                         val horizontalThreshold = widthPx / 3f
-                        val verticalThreshold = heightPx / 3f
 
                         when {
                             // GESTE HORIZONTAL : seulement sur l'équateur
                             layer == Layer.EQUATOR &&
-                                    absX > absY &&
                                     absX > horizontalThreshold -> {
 
                                 val direction = if (dragX < 0f) +1 else -1
@@ -105,19 +105,19 @@ fun SphericOverlayedBox(
                             }
 
                             // GESTE VERTICAL : changement de calotte / anneau
-                            absY > absX && absY > verticalThreshold -> {
-                                val goingDown = dragY < 0f
-                                when (layer) {
-                                    Layer.EQUATOR ->
-                                        layer = if (goingDown) Layer.BOTTOM else Layer.TOP
-
-                                    Layer.TOP ->
-                                        if (goingDown) layer = Layer.EQUATOR
-
-                                    Layer.BOTTOM ->
-                                        if (!goingDown) layer = Layer.EQUATOR
-                                }
-                            }
+//                            absY > absX && absY > verticalThreshold -> {
+//                                val goingDown = dragY < 0f
+//                                when (layer) {
+//                                    Layer.EQUATOR ->
+//                                        layer = if (goingDown) Layer.BOTTOM else Layer.TOP
+//
+//                                    Layer.TOP ->
+//                                        if (goingDown) layer = Layer.EQUATOR
+//
+//                                    Layer.BOTTOM ->
+//                                        if (!goingDown) layer = Layer.EQUATOR
+//                                }
+//                            }
                         }
 
                         dragX = 0f
@@ -162,10 +162,12 @@ fun SphericOverlayedBox(
                 modifier = Modifier
                     .matchParentSize()
             ) {
-            animatedOverlay.display(Modifier
-                .align(Alignment.Center),
-                item.name,
-                item.country)
+                animatedOverlay.display(
+                    Modifier
+                        .align(Alignment.Center),
+                    item.name,
+                    item.country
+                )
             }
         }
     }
