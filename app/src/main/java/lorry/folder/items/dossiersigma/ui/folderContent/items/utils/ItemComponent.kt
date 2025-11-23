@@ -143,9 +143,12 @@ fun ItemComponent(
 
         //l'image dans l'item
         val backgroundContent = object : IOverlayContent {
+            override val country: Country?
+                get() = item.country
+
             context(BoxScope)
             @Composable
-            override fun display(modifier: Modifier, name: String, country: Country?) {
+            override fun display(modifier: Modifier, name: String, country: Country?, fullPath: SigmaPath?) {
                 BackgroundContent(
                     modifier = Modifier,
                     item = item,
@@ -160,11 +163,21 @@ fun ItemComponent(
             }
         }
 
+        val rawOverlays = Equators.allOverlays()
+        val shortcuts = item.name
+            .substringBeforeLast(".")
+            .substringAfter(".")
+            .split(".")
+
+        val realOverlays = if (shortcuts.size == 1)
+            rawOverlays.dropLast(1)
+        else rawOverlays
+
         SphericOverlayedBox(
             modifier = modifierWithBorder,
             backgroundContent = backgroundContent,
             topOverlay = TopOverlay(Modifier, item.name),
-            equatorOverlays = Equators.allOverlays(),
+            equatorOverlays = realOverlays,
             bottomOverlay = BottomOverlay(Modifier, item.name),
             isHovered = isHovered,
             length = imageHeight,

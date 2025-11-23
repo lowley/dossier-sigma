@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "abb476e5877f1a13f635ce4d8aafbceb",
+    "identityHash": "5a5d55c3ec023b57c69d4947b30c7199",
     "entities": [
       {
         "tableName": "folder_cache_entry",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `folder` TEXT NOT NULL, `path` TEXT NOT NULL DEFAULT '0', `sort` TEXT NOT NULL, `freshness` TEXT NOT NULL, `cachedAt` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `folder` TEXT NOT NULL, `path` TEXT NOT NULL DEFAULT '0', `sort` TEXT NOT NULL, `freshness` TEXT NOT NULL, `cachedAt` INTEGER NOT NULL, `country` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
@@ -44,6 +44,11 @@
             "columnName": "cachedAt",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "country",
+            "columnName": "country",
+            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -67,7 +72,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'abb476e5877f1a13f635ce4d8aafbceb')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5a5d55c3ec023b57c69d4947b30c7199')"
     ]
   }
 }

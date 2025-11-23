@@ -29,9 +29,18 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.ui.Alignment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import lorry.folder.items.dossiersigma.external.capsule.CapsuleComponent
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryClass
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Scale
+import lorry.folder.items.dossiersigma.ui.folderContent.items.sphere.overlays.Equators
 
 @Composable
 fun SphericOverlayedBox(
@@ -87,7 +96,6 @@ fun SphericOverlayedBox(
                         val dx = dragAmount
                         change.consume()
                         dragX += dx
-
                     },
                     onDragEnd = {
                         val absX = kotlin.math.abs(dragX)
@@ -95,7 +103,6 @@ fun SphericOverlayedBox(
                         val horizontalThreshold = widthPx / 3f
 
                         when {
-                            // GESTE HORIZONTAL : seulement sur l'équateur
                             layer == Layer.EQUATOR &&
                                     absX > horizontalThreshold -> {
 
@@ -103,21 +110,6 @@ fun SphericOverlayedBox(
                                 equatorIndex = (equatorIndex + direction)
                                     .wrap(equatorOverlays.size)
                             }
-
-                            // GESTE VERTICAL : changement de calotte / anneau
-//                            absY > absX && absY > verticalThreshold -> {
-//                                val goingDown = dragY < 0f
-//                                when (layer) {
-//                                    Layer.EQUATOR ->
-//                                        layer = if (goingDown) Layer.BOTTOM else Layer.TOP
-//
-//                                    Layer.TOP ->
-//                                        if (goingDown) layer = Layer.EQUATOR
-//
-//                                    Layer.BOTTOM ->
-//                                        if (!goingDown) layer = Layer.EQUATOR
-//                                }
-//                            }
                         }
 
                         dragX = 0f
@@ -127,7 +119,7 @@ fun SphericOverlayedBox(
             }
     ) {
         // 1) Fond (ce qu'il y avait avant, image, etc.)
-        backgroundContent.display(Modifier, item.name, item.country)
+        backgroundContent.display(Modifier, item.name, item.country, item.fullPath)
 
         // 2) Animation de fade entre les overlays
         AnimatedContent(
@@ -166,7 +158,8 @@ fun SphericOverlayedBox(
                     Modifier
                         .align(Alignment.Center),
                     item.name,
-                    item.country
+                    animatedOverlay.country,
+                    item.fullPath
                 )
             }
         }

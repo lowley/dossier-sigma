@@ -113,7 +113,7 @@ fun ItemsComponent.ItemsPage(
                                 onTopLeftPanelClick = onTopLeftPanelClick,
                                 getInfoSup = getInfoSup,
                                 getInfoInf = getInfoInf,
-                                dragState = dragState
+                                dragState = dragState,
                             )
                         }
                     }

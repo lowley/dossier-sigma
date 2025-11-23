@@ -19,7 +19,8 @@ data class FolderCacheEntry(
     @ColumnInfo(name = "path", defaultValue = "0") val path: SigmaPath,
     val sort: SortingCriterion,
     val freshness: FolderFreshness,
-    val cachedAt: Long = System.currentTimeMillis()
+    val cachedAt: Long = System.currentTimeMillis(),
+    val country: String?
 
 
 ) {

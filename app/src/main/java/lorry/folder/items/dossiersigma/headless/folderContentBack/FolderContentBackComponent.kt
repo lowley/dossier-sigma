@@ -316,6 +316,7 @@ class FolderContentBackComponent constructor(
                 // Exemple : re-trier/mapper à partir de savedEntry (rapide)
                 val folderEntry = (savedEntry as DbState.Data).folderEntry
                 val serviceFolder = folderEntry.folder
+                val country = serviceFolder.country
                 val serviceItems = serviceFolder.items
                 _folderCacheFlow.update { it.toMutableMap().apply { put(latestPath, folderEntry) } }
 
@@ -342,6 +343,8 @@ class FolderContentBackComponent constructor(
             ReloadType.Disk -> {
                 val folderCache = folderCacheFlow.value
                 val cacheEntry = folderCache[latestPath]
+                val country = cacheEntry?.folder?.country
+
                 val cachedFolderFreshness = cacheEntry?.freshness
                 val sort = cacheEntry?.sort ?: SortingCriterion.ByDateDesc
 
@@ -364,13 +367,15 @@ class FolderContentBackComponent constructor(
                                 val realFresh = diskRepository.getFolderFreshness(latestPath)
                                 val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
                                     lastItems,
-                                    latestPath
+                                    latestPath,
+                                    country = country
                                 )
                                 val fc = FolderCacheEntry(
                                     folder = folder,
                                     sort = sort,
                                     freshness = realFresh,
-                                    path = folder.fullPath
+                                    path = folder.fullPath,
+                                    country = country?.first
                                 )
 
                                 if (cause == null) {
@@ -393,7 +398,7 @@ class FolderContentBackComponent constructor(
                             .map { items ->
                                 val filtered =
                                     if (flagId == null) items else items.filter { it.tag?.id == flagId }
-                                SigmaFolder.ofItemsAndPersistedSigmaFolder(filtered, latestPath)
+                                SigmaFolder.ofItemsAndPersistedSigmaFolder(filtered, latestPath, country = country)
                             }
                             .collect { emit(it) }
                     }

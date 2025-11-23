@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
 import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryFrench
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
@@ -25,10 +26,12 @@ fun BottomOverlay(
     modifier: Modifier = Modifier,
     name: String
 ): IOverlayContent = object : IOverlayContent {
+    override val country: Country?
+        get() = null
 
     context(BoxScope)
     @Composable
-    override fun display(modifier: Modifier, name: String, country: Country?) {
+    override fun display(modifier: Modifier, name: String, country: Country?, fullPath: SigmaPath?) {
         val shortcuts = name
             .substringBeforeLast(".")
             .substringAfter(".")

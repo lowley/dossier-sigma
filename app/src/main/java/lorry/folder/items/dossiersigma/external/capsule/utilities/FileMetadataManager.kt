@@ -35,11 +35,11 @@ class FileMetadataManager() : ICapsuleIO {
     )
 
     private suspend fun readExistingMetadataInfo(raf: RandomAccessFile, fileLength: Long, fileName: String): ParsedMetadata? {
-        if (fileLength < METADATA_LENGTH_LOOKBACK_BUFFER_SIZE) {
-//            println("SIGMALOG Fichier $fileName readExistingMetadataInfo:  trop petit pour les balises de " +
-//                    "longueur de métadonnées.")
-            return null
-        }
+//        if (fileLength < METADATA_LENGTH_LOOKBACK_BUFFER_SIZE) {
+////            println("SIGMALOG Fichier $fileName readExistingMetadataInfo:  trop petit pour les balises de " +
+////                    "longueur de métadonnées.")
+//            return null
+//        }
 
         // 1. Lire la section de la longueur totale des métadonnées
         val lengthBuffer =
@@ -106,7 +106,7 @@ class FileMetadataManager() : ICapsuleIO {
 
         val capsuleJsonBytes = capsuleBlockBuffer.copyOfRange(jsonStartOffset, jsonEndOffset)
         val capsuleJsonString = String(capsuleJsonBytes, CHARSET).trim() // trim() au cas où
-
+        println("capsuleJsonString: $capsuleJsonString")
         val capsuleData = try {
             gson.fromJson(capsuleJsonString, CapsuleData::class.java)
         } catch (e: Exception) {

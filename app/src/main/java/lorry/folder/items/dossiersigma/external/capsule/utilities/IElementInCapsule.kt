@@ -22,7 +22,7 @@ data class CapsuleData(
     val scale: String? = null,
     val memo: String? = null,
     val memo2: String? = null,
-    val country: CountryName? = null
+    val country: String? = null
 ) {
     val videoInfoEmbedder = VideoInfoEmbedder()
 
@@ -66,10 +66,7 @@ data class CapsuleData(
             gson.fromJson(memo, String::class.java)
     }
 
-    fun getCountry(): Country? = country?.let {
-        it.produceCountry()
-
-    }
+    fun getCountry(): Country? = country?.produceCountryFromString()
 
     override fun toString(): String {
         return "CompositeData(initialPicture=${initialPicture?.takeLast(10)}, " +
@@ -337,7 +334,7 @@ typealias Country = Triple<CountryName, CountryFrench, CountryPicture>
 fun CountryName.produceCountry(): Country {
 
     when (this) {
-        "Spain" -> return Triple(this, "Espagne", R.drawable.spain)
+        "spain" -> return Triple(this, "Espagne", R.drawable.spain)
         "oceania" -> return Triple(this, "Océanie", R.drawable.oceania)
         "africa" -> return Triple(this, "Afrique", R.drawable.africa)
         "slavish" -> return Triple(this, "Slave", R.drawable.slavish)

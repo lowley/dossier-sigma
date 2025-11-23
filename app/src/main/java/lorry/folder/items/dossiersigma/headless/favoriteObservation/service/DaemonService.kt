@@ -423,16 +423,24 @@ class DaemonService : LifecycleService() {
         updateNotification(color = Color.Blue)
 
         val items = diskRepository.getFolderItems(fullPath, SortingCriterion.ByDateDesc)
+
+        val item = File(fullPath.value)
+        val country = if (item.exists() && item.isDirectory)
+            diskRepository.getFolderCountry(fullPath)
+        else null
+
         val realFresh = diskRepository.getFolderFreshness(fullPath)
         val folder = SigmaFolder.ofItemsAndPersistedSigmaFolder(
             items = items,
             fullPath = fullPath,
+            country = country
         )
         val fc = FolderCacheEntry(
             folder = folder,
             path = folder.fullPath,
             sort = SortingCriterion.ByDateDesc,
-            freshness = realFresh
+            freshness = realFresh,
+            country = country?.first
         )
 
         updateNotification(color = Color.White)

@@ -6,6 +6,7 @@ import lorry.folder.items.dossiersigma.basics.domain.ColoredTag
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import java.io.File
@@ -13,6 +14,7 @@ import java.io.File
 interface IDiskRepository {
 
     suspend fun getFolderItems(folderPath: SigmaPath, sorting: SortingCriterion) : List<Item>
+    suspend fun getFolderCountry(folderPath: SigmaPath) : Country?
     suspend fun getFolderItemsLite(
         folderPath: SigmaPath,
         sorting: SortingCriterion

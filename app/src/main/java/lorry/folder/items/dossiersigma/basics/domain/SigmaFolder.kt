@@ -2,6 +2,9 @@ package lorry.folder.items.dossiersigma.basics.domain
 
 import androidx.compose.ui.layout.ContentScale
 import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryFrench
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryName
+import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryPicture
 import java.util.UUID
 
 class SigmaFolder(
@@ -84,6 +87,7 @@ class SigmaFolder(
         fun ofItemsAndPersistedSigmaFolder(
             items: List<Item>,
             fullPath: SigmaPath,
+            country: Triple<CountryName, CountryFrench, CountryPicture>?,
         ): SigmaFolder {
             val result = SigmaFolder(
                 items = items,
@@ -93,7 +97,7 @@ class SigmaFolder(
                 tag = null,
                 scale = null,
                 memo = null,
-                country = null
+                country = country
             )
 
             return result

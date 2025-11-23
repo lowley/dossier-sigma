@@ -7,7 +7,8 @@ import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 data class PersistedSigmaFolder(
     val path: SigmaPath,
     val items: List<PersistedItem>,
-    val meta: Map<String, String>? = null
+    val meta: Map<String, String>? = null,
+    val country: String? = null
 )
 
 @kotlinx.serialization.Serializable
@@ -19,7 +20,8 @@ data class PersistedItem(
     val isFolder: Boolean,
     val fullPath: SigmaPath,
     val memo: String? = null,
-    val scale: String?
+    val scale: String?,
+    val country: String? = null
 )
 
 // On évite de stocker un Bitmap en DB : on le met en cache fichier et on stocke le chemin.

@@ -6,6 +6,7 @@ import com.google.gson.Gson
 import lorry.folder.items.dossiersigma.basics.domain.ColoredTag
 import lorry.folder.items.dossiersigma.basics.domain.SigmaFile
 import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
+import lorry.folder.items.dossiersigma.external.capsule.utilities.produceCountryFromString
 
 object SigmaFolderMapping {
     private val json = kotlinx.serialization.json.Json {
@@ -47,11 +48,13 @@ object SigmaFolderMapping {
                         ContentScale.FillWidth -> "FillWidth"
                         ContentScale.Inside -> "Inside"
                         else -> null
-                    }
+                    },
+                    country = item.country?.first
                 )
             },
-            meta = mapOf("name" to f.name) /* si tu as des métadonnées simples */
+            meta = mapOf("name" to f.name) ,/* si tu as des métadonnées simples */
 //            meta = f.meta /* si tu as des métadonnées simples */
+            country = f.country?.first
         )
     }
 
@@ -65,7 +68,7 @@ object SigmaFolderMapping {
                 PictureStore.Kind.BITMAP_FILE -> pi.picture.filePath?.let(loadBitmap)
                 else -> null
             }
-            if (pi.isFolder)
+            val mapped = if (pi.isFolder)
                 SigmaFolder(
 //                    name = pi.name,
                     modificationDate = pi.modificationDate,
@@ -82,7 +85,8 @@ object SigmaFolderMapping {
                         else -> null
                     },
                     items = emptyList(),
-                    memo = pi.memo
+                    memo = pi.memo,
+                    country = pi.country?.produceCountryFromString()
                 )
             else
                 SigmaFile(
@@ -101,13 +105,17 @@ object SigmaFolderMapping {
                         "Inside" -> ContentScale.Inside
                         else -> null
                     },
-                    memo = pi.memo
+                    memo = pi.memo,
+                    country = pi.country?.produceCountryFromString()
                 )
+
+            mapped
         }
 
         return SigmaFolder.ofItemsAndPersistedSigmaFolder(
             items,
             fullPath = p.path,
+            country = p.country?.produceCountryFromString()
             )
     }
 

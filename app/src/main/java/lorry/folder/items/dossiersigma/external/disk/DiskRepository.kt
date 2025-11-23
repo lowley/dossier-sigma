@@ -37,6 +37,7 @@ import lorry.folder.items.dossiersigma.basics.domain.SigmaFile
 import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.basics.domain.str
+import lorry.folder.items.dossiersigma.external.capsule.utilities.Country
 import lorry.folder.items.dossiersigma.headless.folderContentBack.utils.FolderFreshness
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 import okhttp3.OkHttpClient
@@ -257,7 +258,7 @@ class DiskRepository @Inject constructor(
                             if (newCapsule == null || oldCapsule == null)
                                 emptyList<Item>()
 
-                            if (itemDTO.isFile) {
+                            val result = if (itemDTO.isFile) {
                                 var file: Item = SigmaFile(
                                     parentPath = SigmaPath(itemDTO.path),
                                     name = itemDTO.name,
@@ -296,6 +297,10 @@ class DiskRepository @Inject constructor(
 
                                 file
                             } else {
+//                                val country = newCapsule?.getCountry()
+//                                if (country != null)
+//                                    println("got it")
+
                                 SigmaFolder(
                                     parentPath = SigmaPath(itemDTO.path),
                                     name = itemDTO.name,
@@ -311,6 +316,8 @@ class DiskRepository @Inject constructor(
                                     country = newCapsule.getCountry()
                                 )
                             }
+
+                            result
                         }
                     }.awaitAll()
             }
@@ -328,6 +335,17 @@ class DiskRepository @Inject constructor(
 
             return@withContext sorted
         }
+    }
+
+    override suspend fun getFolderCountry(folderPath: SigmaPath): Country? {
+        val newCapsuleManager = CapsuleComponent()
+        val newCapsule = newCapsuleManager.getCapsule(folderPath)
+        val capsule1 = newCapsule?.getCountry()
+
+        val oldCapsule = newCapsuleManager.getCapsule(folderPath, useOld = true)
+        val capsule2 = oldCapsule?.getCountry()
+
+        return capsule1 ?: capsule2
     }
 
     fun extractCoverBitmap(videoPath: SigmaPath): Bitmap? {
