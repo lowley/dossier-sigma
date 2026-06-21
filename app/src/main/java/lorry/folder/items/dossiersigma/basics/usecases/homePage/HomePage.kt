@@ -60,7 +60,7 @@ import kotlin.collections.indexOf
 import kotlin.math.roundToInt
 
 @Composable
-context(ColumnScope)
+context(column: ColumnScope)
 fun HomePage(
     homeItems: List<HomeItem>,
     onItemClicked: (HomeItem) -> Unit,

@@ -28,7 +28,7 @@ interface IItemsComponent {
     // folder content //
     ////////////////////
     @Composable
-    context(SigmaActivity, ColumnScope)
+    context(activity: SigmaActivity, column: ColumnScope)
     fun FolderContentFrontPage(
         onItemTapped: (Item) -> Unit,
         onItemLongPressed: (Item) -> Unit,

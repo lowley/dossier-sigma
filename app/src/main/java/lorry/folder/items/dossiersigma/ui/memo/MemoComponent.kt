@@ -64,7 +64,7 @@ class MemoComponent @AssistedInject constructor(
     // zoneUI //
     ////////////
     @Composable
-    context(BoxScope)
+    context(box: BoxScope)
     override fun Render(
         selectedItem: Item?,
         setSelectedItem: (Item?) -> Unit) {

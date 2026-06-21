@@ -13,7 +13,7 @@ interface IMemoComponent {
     fun toggleIsDisplayed()
 
     @Composable
-    context(BoxScope)
+    context(box: BoxScope)
     fun Render(selectedItem: Item?, setSelectedItem: (Item?) -> Unit)
 
 }

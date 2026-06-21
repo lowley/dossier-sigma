@@ -12,11 +12,12 @@ plugins {
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-        freeCompilerArgs.addAll(
-            "-Xcontext-receivers",
-            "-Xcontext-parameters",
-            "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode"
-        )
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 
@@ -78,6 +79,7 @@ android {
             excludes.add("**/libpenguin.so")
         }
     }
+
 }
 
 dependencies {
@@ -210,7 +212,7 @@ dependencies {
     ///////////////////////////////
     // bottomBar dans son module //
     ///////////////////////////////
-    implementation(project(":bottombar"))
+    // implementation(project(":bottombar"))
 
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
     
