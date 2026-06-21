@@ -11,4 +11,7 @@ dependencyResolutionManagement { }
 rootProject.name = "Dossier Sigma Master"
 include(":app")
 
+//includeBuild("../../IdeaProjects/Périscope")
+include(":bottombar")
+
 //includeBuild("../../IdeaProjects/WriterAPI")

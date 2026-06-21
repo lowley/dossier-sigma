@@ -26,14 +26,13 @@ import dev.materii.pullrefresh.PullRefreshLayout
 import dev.materii.pullrefresh.rememberPullRefreshState
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
-import lorry.folder.items.dossiersigma.basics.domain.lastSegment
 import lorry.folder.items.dossiersigma.basics.domain.str
 import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.IIndexBar
 import lorry.folder.items.dossiersigma.ui.folderContent.items.ItemsComponent
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
-context(SigmaActivity, ColumnScope)
+context(activity: SigmaActivity, column: ColumnScope)
 fun ItemsComponent.ItemsPage(
     onHoveredNotHovered: (Item?) -> Unit,
     onItemTapped: (Item) -> Unit,
@@ -44,74 +43,40 @@ fun ItemsComponent.ItemsPage(
     onRefresh: () -> Unit,
     indexBar: IIndexBar,
 ) {
-    val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsStateWithLifecycle()
-    val scrollStates =
-        remember { mutableMapOf<SigmaPath, LazyGridState>() }
-    val currentScrollState =
-        scrollStates.getOrPut(SigmaPath(currentFolder?.fullPath?.str ?: "")) {
-            LazyGridState()
-        }
+    val currentFolder by activity.mainViewModel.folderContentComponent.currentFolderFlow.collectAsStateWithLifecycle()
+    val scrollStates = remember { mutableMapOf<SigmaPath, LazyGridState>() }
+    val currentScrollState = scrollStates.getOrPut(SigmaPath(currentFolder?.fullPath?.str ?: "")) {
+        LazyGridState()
+    }
 
-    val currentPath =
-        mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
-            initialValue = null
-        )
-
-    val fastPathFlow = mainViewModel.folderContentComponent.fastPath
-    val fastPath = fastPathFlow.collectAsStateWithLifecycle()
-
-    val selectedItemFullPath = mainViewModel.selectedItemFullPath
+    val fastPath by activity.mainViewModel.folderContentComponent.fastPath.collectAsStateWithLifecycle()
+    val selectedItemFullPath = activity.mainViewModel.selectedItemFullPath
     val TAG = "dsplitms"
 
     PullToRefreshContainer(
         onRefresh = onRefresh
     ) {
         Box(
-            modifier = Modifier.Companion
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    start = 0.dp,
-                    end = 0.dp,
-                    top = 10.dp,
-                    bottom = 0.dp
-                )
+                .padding(top = 10.dp)
         ) {
             val items = currentFolder?.items.orEmpty()
-            val ready = currentFolder?.fullPath == fastPath.value && items.isNotEmpty()
-            val pathMatches = samePath(currentFolder?.fullPath, fastPath.value)
+            val pathMatches = samePath(currentFolder?.fullPath, fastPath)
 
-            Log.d(TAG, "################")
-            Log.d(TAG, "## ITEMS PAGE ##")
-            Log.d(TAG, "################")
-            Log.d(TAG, "Bonjour le \u200Bmonde\u200B")
-            Log.d(TAG, "Bonjour \u001B[31mmonde\u001B[0m en couleur !");
-            Log.d("SigmaTest", "Bonjour avec un tag \u200Binvisible\u200B")
-            Log.d(TAG, "éléments de décision: ① FASTPATH: ${fastPath.value?.lastSegment}, ② CURRENTFOLDER: ${currentFolder?.fullPath?.lastSegment}")
-            Log.d(TAG, "d'où: ② pathMatches=$pathMatches, ② items (dans currentFolder)=${items.size}")
+            Log.d(TAG, "ItemsPage: pathMatches=$pathMatches, items=${items.size}")
 
             when {
                 pathMatches && items.isNotEmpty() -> {
-                    Log.d(TAG, "      -> pathMatches && items.isNotEmpty() => AFFICHAGE DES ITEMS")
-
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(150.dp),
-                        modifier = Modifier.Companion
-                            .padding(start = 25.dp, end = 0.dp),
+                        modifier = Modifier.padding(start = 25.dp),
                         state = currentScrollState
                     ) {
-                        lazyGridItems(items, key = {
-                            it.fullPath.str + "-" + it.id
-                        }) { item ->
+                        lazyGridItems(items, key = { it.fullPath.str + "-" + it.id }) { item ->
                             ItemComponent(
                                 item = item,
-                                modifier = Modifier.Companion
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                                onItemUpdated = { item ->
-//                                                mainViewModel.updateItemInList(item)
-                                },
-//                                        onDrop = { tag: ColoredTag ->
-//                                            mainViewModel.assignColoredTagToItem(item, tag)
-//                                      }
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                                 onHoveredNotHovered = onHoveredNotHovered,
                                 selectedItemFullPath = selectedItemFullPath,
                                 draggableStartPosition = draggableStartPosition,
@@ -120,51 +85,42 @@ fun ItemsComponent.ItemsPage(
                                 onTopLeftPanelClick = onTopLeftPanelClick,
                                 getInfoSup = getInfoSup,
                                 getInfoInf = getInfoInf,
-                                dragState = dragState
+                                dragState = dragState,
+                                onItemUpdated = { }
                             )
                         }
                     }
                 }
 
                 !pathMatches -> {
-                    Log.d(TAG, "      -> !pathMatches => 'CHARGEMENT...'")
-
                     Text(
-                        modifier = Modifier.Companion
-                            .align(Alignment.Companion.Center),
+                        modifier = Modifier.align(Alignment.Center),
                         text = "Chargement...",
                     )
                 }
 
                 items.isEmpty() -> {
-                    Log.d(TAG, "      -> items.isEmpty() => 'DOSSIER VIDE'")
-
                     Text(
-                        modifier = Modifier.Companion
-                            .align(Alignment.Companion.Center),
+                        modifier = Modifier.align(Alignment.Center),
                         text = "Dossier vide",
                     )
                 }
 
                 else -> {
-                    Log.d(TAG, "      -> (pathMatches + items ∅)/(!pathMatches)/(items ≠ ∅) => 'ETAT INDETERMINE'")
-
                     Text(
-                        modifier = Modifier.Companion
-                            .align(Alignment.Companion.Center),
+                        modifier = Modifier.align(Alignment.Center),
                         text = "Etat indéterminé",
                     )
                 }
             }
 
             Box(
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.CenterStart)
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
                     .padding(start = 4.dp)
                     .fillMaxHeight()
                     .width(20.dp)
             ) {
-
                 indexBar.display(currentScrollState = currentScrollState)
             }
         }
@@ -192,16 +148,21 @@ fun PullToRefreshContainer(
     onRefresh: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    var isRefreshing by remember {
-        mutableStateOf(false)
-    }
-    var pullRefreshState = rememberPullRefreshState(
+    var isRefreshing by remember { mutableStateOf(false) }
+    
+    val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
-        onRefresh = onRefresh
+        onRefresh = {
+            isRefreshing = true
+            onRefresh()
+            // In a real app, onRefresh would be an async operation.
+            // Since onRefresh is a Unit function, we'll reset isRefreshing immediately
+            // or after a small delay to show the indicator.
+            isRefreshing = false 
+        }
     )
 
     PullRefreshLayout(
-        modifier = Modifier.Companion,
         state = pullRefreshState
     ) {
         content()

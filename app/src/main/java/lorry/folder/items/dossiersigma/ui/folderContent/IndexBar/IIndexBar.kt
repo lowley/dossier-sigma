@@ -8,7 +8,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 interface IIndexBar {
 
     @Composable
-    context(BoxScope, SigmaActivity)
+    context(box: BoxScope, activity: SigmaActivity)
     fun display(currentScrollState: LazyGridState)
 
 }

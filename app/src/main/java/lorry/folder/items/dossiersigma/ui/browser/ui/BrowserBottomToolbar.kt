@@ -30,7 +30,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 //implémentation ici: [[BrowserBottomToolbar]]
 
 @Composable
-context(SigmaActivity)
+context(activity: SigmaActivity)
 fun BrowserBottomToolbar(
 ) {
     Column(
@@ -55,7 +55,7 @@ fun BrowserBottomToolbar(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.Companion.CenterVertically
         ) {
-            val state by this@SigmaActivity.browser.vm.state.collectAsState()
+            val state by activity.browser.vm.state.collectAsState()
 
             Button(
                 onClick = { state.goBack() },
@@ -76,7 +76,7 @@ fun BrowserBottomToolbar(
             }
 
             Button(
-                onClick = { browser.changeState(
+                onClick = { activity.browser.changeState(
                     item = null,
                     target = BrowserTarget.GOOGLE,
                 ) },
@@ -96,7 +96,7 @@ fun BrowserBottomToolbar(
             }
 
             Button(
-                onClick = browser.vm::close,
+                onClick = activity.browser.vm::close,
                 modifier = Modifier.Companion.padding(horizontal = 5.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFe9c46a),

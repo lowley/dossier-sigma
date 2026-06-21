@@ -9,14 +9,25 @@ plugins {
     kotlin("kapt")
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        freeCompilerArgs.addAll(
+            "-Xcontext-receivers",
+            "-Xcontext-parameters",
+            "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode"
+        )
+    }
+}
+
 android {
     namespace = "lorry.folder.items.dossiersigma"
     compileSdk = 36
 
     defaultConfig {
         applicationId = "lorry.folder.items.dossiersigma.master"
-        minSdk = 33
-        targetSdk = 34
+        minSdk = 35
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -26,7 +37,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
+            //isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -36,33 +47,19 @@ android {
         debug {
             isDebuggable = true
             isMinifyEnabled = false   // R8 off
-            isShrinkResources = false
+            //isShrinkResources = false
         }
     }
-
-
-
-    tasks.withType<KotlinCompile>().configureEach {
-        compilerOptions {
-            freeCompilerArgs.add("-Xcontext-receivers")
-        }
-    }
-
-//    tasks.withType<KotlinCompile>().configureEach {
-//        compilerOptions {
-//            freeCompilerArgs.add("-Xcontext-parameters")
-//        }
-//    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
-    }
+//    kotlinOptions {
+//        jvmTarget = "11"
+//        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+//    }
 
     buildFeatures {
         compose = true
@@ -85,6 +82,7 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.hilt.work)
     // --- Unit tests (testImplementation) ---
     testImplementation(libs.junit)
@@ -192,10 +190,30 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
 
+    /////////////////////////////////
+    // programmation fonctionnelle //
+    /////////////////////////////////
+    implementation("io.arrow-kt:arrow-core:1.2.4")
+
+    //////////////////////////////
+    // injection de dépendances //
+    //////////////////////////////
+    implementation("io.insert-koin:koin-android:4.2.0-alpha1")
+
     ///////////////
     // WriterAPI //
     ///////////////
     //github -> https://jitpack.io/#lowley/WriterAPI
+//    implementation("com.github.lowley:periscope:v1.0.17")
+    //implementation("io.github.lowley:periscope:1.0.4")
+
+    ///////////////////////////////
+    // bottomBar dans son module //
+    ///////////////////////////////
+    implementation(project(":bottombar"))
+
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+    
 //    implementation("com.github.lowley:WriterAPI:v1.0.17")
 //    implementation("io.github.lowley:WriterAPI:1.0.0")
 

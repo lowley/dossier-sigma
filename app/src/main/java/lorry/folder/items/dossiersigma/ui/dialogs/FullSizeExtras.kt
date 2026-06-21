@@ -21,11 +21,12 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
 @Composable
-context(SigmaActivity, BoxScope)
+context(activity: SigmaActivity, box: BoxScope)
 fun FullSizeExtras(
     browser: IBrowser,
     bottomComponent: IToolbarComponent
 ) {
+    val mainViewModel: SigmaViewModel = activity.mainViewModel
     val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
     val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
     val isMoveFileDialogVisible by mainViewModel.isMoveFileDialogVisible.collectAsState()
@@ -47,7 +48,7 @@ fun FullSizeExtras(
                     mainViewModel.dialogOnOkLambda?.invoke(
                         text,
                         mainViewModel,
-                        this@SigmaActivity
+                        activity
                     )
                 }
                 mainViewModel.dialogOnOkLambda = null
@@ -57,7 +58,7 @@ fun FullSizeExtras(
                         it.invoke(
                             currentTool!!,
                             mainViewModel,
-                            this@SigmaActivity
+                            activity
                         )
                     }
                 }
@@ -73,7 +74,7 @@ fun FullSizeExtras(
                     mainViewModel.dialogYesNoLambda?.invoke(
                         yesNo,
                         mainViewModel,
-                        this@SigmaActivity
+                        activity
                     )
                 }
                 mainViewModel.dialogYesNoLambda = null
@@ -83,7 +84,7 @@ fun FullSizeExtras(
                         it.invoke(
                             currentTool!!,
                             mainViewModel,
-                            this@SigmaActivity
+                            activity
                         )
                     }
                 }
@@ -96,7 +97,7 @@ fun FullSizeExtras(
             onOverwrite = {
                 val intent =
                     Intent(
-                        this@SigmaActivity,
+                        activity,
                         MoveFileService::class.java
                     ).apply {
                         putExtra(
@@ -109,7 +110,7 @@ fun FullSizeExtras(
                         )
                         putExtra("addSuffix", "")
                     }
-                startService(intent)
+                activity.startService(intent)
                 mainViewModel.folderContentComponent.reloadCurrentFolder()
             },
             onCancel = {
@@ -126,7 +127,7 @@ fun FullSizeExtras(
             onCreateCopy = {
                 val intent =
                     Intent(
-                        this@SigmaActivity,
+                        activity,
                         MoveFileService::class.java
                     ).apply {
                         putExtra(
@@ -139,7 +140,7 @@ fun FullSizeExtras(
                         )
                         putExtra("addSuffix", " - copie")
                     }
-                startService(intent)
+                activity.startService(intent)
                 mainViewModel.folderContentComponent.reloadCurrentFolder()
             }
         )
@@ -153,30 +154,30 @@ fun FullSizeExtras(
                 mainViewModel.dialogTagLambda?.invoke(
                     infos!!,
                     mainViewModel,
-                    this@SigmaActivity
+                    activity
                 )
             },
-            mainActivity = this@SigmaActivity
+            mainActivity = activity
         )
     }
 
     if (isHomeItemDialogVisible) {
-        val dialogHomeItemInfos by homeViewModel.dialogHomeItemInfos.collectAsState()
+        val dialogHomeItemInfos by activity.homeViewModel.dialogHomeItemInfos.collectAsState()
 
-        HomeItemDialog(
+        activity.HomeItemDialog(
             viewModel = mainViewModel,
             onDatasCompleted = { infos: HomeItemInfos? ->
                 if (infos?.newTitle == null || infos.path == null)
                     return@HomeItemDialog
 
-                val uiState = homeViewModel.uiState.value
+                val uiState = activity.homeViewModel.uiState.value
                 if (uiState !is HomeUiState.Ready)
                     return@HomeItemDialog
 
                 val items = (uiState as HomeUiState.Ready).items
                 if (infos.oldTitle in items.map { it.title }) {
                     //modifier
-                    homeViewModel.setHomeItems(
+                    activity.homeViewModel.setHomeItems(
                         items
                             .map {
                                 if (it.title == infos.oldTitle)
@@ -199,21 +200,21 @@ fun FullSizeExtras(
                         )
                     )
 
-                    homeViewModel.setHomeItems(newList)
+                    activity.homeViewModel.setHomeItems(newList)
                 }
             },
             message = "Addition/Edition de raccourci",
-            homeItemInfos = homeViewModel.dialogHomeItemInfos,
+            homeItemInfos = activity.homeViewModel.dialogHomeItemInfos,
         )
     }
 
     if (isFilePickerVisible) {
-        FolderChooserDialog(
-            modifier = Modifier.Companion
-                .align(Alignment.Companion.Center),
+        activity.FolderChooserDialog(
+            modifier = Modifier,
+                //.align(Alignment.Center),
             viewModel = mainViewModel
         ) { path ->
-            onFolderChosen(path)
+            activity.onFolderChosen(path)
         }
     }
 

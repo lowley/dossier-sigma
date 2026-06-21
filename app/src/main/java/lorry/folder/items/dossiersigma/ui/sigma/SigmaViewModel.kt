@@ -385,37 +385,11 @@ class SigmaViewModel @Inject constructor(
     }
 
     fun sendAriane() {
-
-//        write {
-//            log("ceci est un petit <b>pas</b> pour l' <b>homme</b>")
-//        }
-
-//        Logger().log("test")
-//
-//        val event = RichLogEvent(
-//            timestampMillis = LocalDateTime.now().getLong(ChronoField.SECOND_OF_DAY),
-//            tag = TagType("PAS"),
-//            level = LevelType("INFO"),
-//            message = MessageType("Ariane tisse sa toile")
-//        )
-//
-//        viewModelScope.launch(Dispatchers.IO) {
-//            try {
-//                val socket = Socket("127.0.0.1", 7777)
-//                socket.use { socket ->
-//                    val writer = socket.getOutputStream().bufferedWriter(Charsets.UTF_8)
-//
-//                    val payload = Gson().toJson(event)
-//                    writer.write(payload)
-//                    writer.write("\n")
-//                    writer.flush()
-//                }
-//            } catch (ex: Exception) {
-//                ex.printStackTrace()
-//                val msg = ex.message
-//                println(msg)
-//            }
-//        }
+        /*
+        write {
+            log("ceci est un petit <b>pas</b> pour l' <b>homme</b>")
+        }
+        */
     }
 }
 

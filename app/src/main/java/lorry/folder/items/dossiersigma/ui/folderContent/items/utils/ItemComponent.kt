@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -68,6 +69,7 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.timeout
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
@@ -79,7 +81,7 @@ import java.io.File
 import java.io.FileOutputStream
 
 @Composable
-context(SigmaActivity)
+context(activity: SigmaActivity)
 fun ItemComponent(
     modifier: Modifier,
     item: Item,
@@ -95,27 +97,28 @@ fun ItemComponent(
     dragState: StateFlow<DragState?>,
 
     ) {
-    if (item.fullPath.str.contains("darkness"))
-        println("ok")
 
+    val mainViewModel = activity.mainViewModel
     val memo = item.memo
     val memoEmpty = memo?.isEmpty() ?: true
 
     val tag = item.tag
     val scale = item.scale
 
-    val image by mainViewModel.folderContentComponent.currentFolderFlow
-        .map { folder -> folder?.picture }
-        .collectAsState(initial = null)
+    val imageFlow = mainViewModel.folderContentComponent.currentFolderFlow
+    val image1 = imageFlow.collectAsState()
+    val image = image1.value?.picture
+        //.map { folder -> folder?.picture }
+        //.collectAsState(initial = null)
 
     val imageHeight = 160.dp
 
-    var bounds by remember { mutableStateOf<Rect?>(null) }
+    var bounds = remember { mutableStateOf<Rect?>(null) }
     val state by dragState.collectAsState()
 
     val isHovered = remember(state, bounds) {
         if (state != null && bounds != null && state?.offset != null)
-            state != null && bounds?.contains(state?.offset!!) == true
+            state != null && bounds.value?.contains(state?.offset!!) == true
         else false
     }
 
@@ -128,9 +131,11 @@ fun ItemComponent(
 
     Column {
         val shape1 = RoundedCornerShape(8.dp)
-        val isSelectedItemState by selectedItemFullPath
-            .map { it?.equalsTo(item.fullPath.str) == true }
+        val isSelectedItemStateFlow = selectedItemFullPath
+        val isSelectedItemState1 = isSelectedItemStateFlow
+            //.map { it?.equalsTo(item.fullPath.str) == true }
             .collectAsState(false)
+        val isSelectedItemState = isSelectedItemState1.equals(item.fullPath.str)
 
         var isStartInLittleBox by remember { mutableStateOf(false) }
         var areShortcutsDisplayed = remember { mutableStateOf(false) }
@@ -173,7 +178,7 @@ fun ItemComponent(
                 .height(imageHeight)
                 .onGloballyPositioned {
                     val pos = it.positionInRoot()
-                    bounds = Rect(
+                    val bounds = Rect(
                         offset = pos,
                         size = Size(
                             it.size.width.toFloat(),
@@ -382,7 +387,7 @@ fun TextSection(name: String, modifier: Modifier) {
 }
 
 @Composable
-context(SigmaActivity)
+context(activity: SigmaActivity)
 fun ImageSection(
     modifier: Modifier,
     image: Any?,
@@ -471,7 +476,7 @@ fun ImageSection(
 }
 
 @Composable
-context(BoxScope)
+context(box: BoxScope)
 fun Shortcuts(
     modifier: Modifier,
     areShortcutsDisplayed: MutableState<Boolean>,
@@ -494,9 +499,10 @@ fun Shortcuts(
                 || shortcuts[0] == name
             )
                 Box(
-                    modifier = Modifier
+                    modifier = with(box){Modifier
                         .matchParentSize()
                         .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
+                    }
                 ) {
 
                     Column(

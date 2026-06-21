@@ -66,7 +66,7 @@ class IndexBar @Inject constructor(
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    context(BoxScope, SigmaActivity)
+    context(box: BoxScope, activity: SigmaActivity)
     override fun display(currentScrollState: LazyGridState) {
         Column(
             modifier = Modifier
@@ -77,6 +77,7 @@ class IndexBar @Inject constructor(
         {
             val model by modelFlow.collectAsState(emptyList())
 
+            val mainViewModel = activity.mainViewModel
             model?.forEach { info ->
                 when (val c = info.content) {
 
