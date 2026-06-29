@@ -27,7 +27,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import kotlin.math.roundToInt
 
 @Composable
-context(ToolBarManager, BoxScope)
+context(toolbar: ToolBarManager, box: BoxScope)
 fun MobileSticker(
     dragState: DragState,
     activity: SigmaActivity,
@@ -47,9 +47,9 @@ fun MobileSticker(
             .width(85.dp)
             .fillMaxHeight()
             .clickable {
-                toolbarComponent.setCurrentTool(draggedTool)
-                viewModel.viewModelScope.launch {
-                    draggedTool.onClick(draggedTool, viewModel, activity)
+                toolbar.toolbarComponent.setCurrentTool(draggedTool)
+                activity.mainViewModel.viewModelScope.launch {
+                    draggedTool.onClick(draggedTool, activity.mainViewModel, activity)
                 }
             }
     ) {

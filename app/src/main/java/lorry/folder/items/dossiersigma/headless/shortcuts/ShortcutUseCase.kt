@@ -73,6 +73,17 @@ class ShortcutUseCase @Inject constructor(
     suspend fun createDestinationShortcutInventory() {
 
         destinationShortcuts.clear()
+
+        _destinationFolders.update {
+            val root = "/storage/emulated/0/Download/sexe"
+            val children = File(root)
+                .listFiles()
+                ?.filter { it.isDirectory }
+
+            children?.map { it.name.toSigmaPath() }?.toSet() ?: setOf()
+        }
+
+
         var secondLevel = destinationFolders.value.flatMap { firstLevel ->
             fileRepo.getFolderItems(firstLevel, SortingCriterion.ByDateDesc)
         }
@@ -92,7 +103,7 @@ class ShortcutUseCase @Inject constructor(
         video: SigmaFile,
         coverBitmapUrl: String? = null,
         coverBase64: String? = null,
-        rootDir: String = "/storage/7376-B000/SEXE 2",
+        rootDir: String = "/storage/emulated/0/Download/sexe",
     ) {
         var root = rootDir
         if (!File(root).exists())
@@ -132,6 +143,9 @@ class ShortcutUseCase @Inject constructor(
                     val encodedMp4 = "/videos/$correctVideoName"
 
                     Log.d(TAG, "création HTML: $destFullPath")
+
+                    if (currentFileShortcuts.contains("sc"))
+                        return
 
                     fileRepo.createShortcut(
                         text(encodedMp4, "vlc", coverBitmap, coverBase64),

@@ -77,8 +77,10 @@ class MemoComponent @AssistedInject constructor(
 
         if (isDisplayingMemo.value) {
             MemoEditor(
-                modifier = Modifier.Companion
-                    .align(Alignment.Companion.TopCenter),
+                modifier = with(box) {
+                    Modifier.Companion
+                        .align(Alignment.Companion.TopCenter)
+                },
                 isRichText = isDisplayingMemo,
                 richTextState = richTextState,
                 closeMemo = this@MemoComponent::closeMemo,

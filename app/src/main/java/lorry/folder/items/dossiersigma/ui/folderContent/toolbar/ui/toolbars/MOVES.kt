@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import lorry.folder.items.dossiersigma.R
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.basics.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.serviceVariants.moveToNAS.ManifestEntry
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolbarContent
@@ -106,9 +107,9 @@ object MOVES : Tools() {
                             FileProvider.getUriForFile(mainActivity, authority, manifestFile)
                         //* fin aire des images enregistrées dans un fichier
 
-                        val nasDirectory =
-                            mainActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull()
-                                ?: return@run
+                        val nasDirectory = "videos".toSigmaPath()
+                            //mainActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull()
+                            //    ?: return@run
 
                         val req = MoveToNASWorker.Companion.request(
                             manifestPath = manifestFile.absolutePath,

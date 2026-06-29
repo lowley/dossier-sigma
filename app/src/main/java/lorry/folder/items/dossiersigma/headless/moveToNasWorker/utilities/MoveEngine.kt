@@ -50,7 +50,7 @@ class MoveEngine @Inject constructor(
 
                 shortcutUseCase.manageHtmlFilesInDestinations(
                     copyPictures = true,
-                    rootDir = "/storage/emulated/0/Movies/sexe",
+                    rootDir = "/storage/emulated/0/Download/sexe",
                     onlyOneFileShortcutFile = SigmaFile(
                         fullPath = entry.fullPath,
                         picture = picture64,

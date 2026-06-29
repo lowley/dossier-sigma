@@ -56,7 +56,7 @@ fun SigmaActivity.SigmaFAB(
 
     ) {
 
-    val workManager = remember { WorkManager.getInstance(this@SigmaActivity) }
+    val workManager = remember { WorkManager.getInstance(this) }
     val infos by workManager.getWorkInfosByTagLiveData("move-to-nas-active")
         .observeAsState(initial = emptyList())
 
@@ -215,14 +215,14 @@ private fun SigmaActivity.copyEntireFolderToNAS() {
         val authority = "${packageName}.provider"
         val contentUri =
             FileProvider.getUriForFile(
-                this@SigmaActivity,
+                this@copyEntireFolderToNAS,
                 authority,
                 manifestFile
             )
         //* fin aire des images enregistrées dans un fichier
 
         val nasDirectory =
-            this@SigmaActivity.settingsViewModel.settings.nasFolderFlow.firstOrNull() ?: "".toSigmaPath()
+            this@copyEntireFolderToNAS.settingsViewModel.settings.nasFolderFlow.firstOrNull() ?: "".toSigmaPath()
 
         val req = MoveToNASWorker.request(
             manifestPath = manifestFile.absolutePath,
@@ -231,7 +231,7 @@ private fun SigmaActivity.copyEntireFolderToNAS() {
             picture64 = picture64
         )
 
-        WorkManager.getInstance(this@SigmaActivity)
+        WorkManager.getInstance(this@copyEntireFolderToNAS)
             .enqueueUniqueWork(
                 "move-to-nas",
                 ExistingWorkPolicy.KEEP,

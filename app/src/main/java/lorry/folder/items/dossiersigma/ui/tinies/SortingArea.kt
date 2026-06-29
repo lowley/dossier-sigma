@@ -30,7 +30,7 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 import lorry.folder.items.dossiersigma.ui.sigma.SortingCriterion
 
 @Composable
-context(RowScope)
+context(row: RowScope)
 fun SortingArea(
     modifier: Modifier,
     sortingFlow: StateFlow<SortingCriterion>,
@@ -38,11 +38,13 @@ fun SortingArea(
     onNameSortClick: () -> Unit,
 ) {
     Row(
-        modifier = modifier
-            .padding(0.dp)
-            .wrapContentWidth()
-            .height(30.dp)
-            .align(Alignment.Companion.CenterVertically),
+        modifier = with(row) {
+            modifier
+                .padding(0.dp)
+                .wrapContentWidth()
+                .height(30.dp)
+                .align(Alignment.Companion.CenterVertically)
+        },
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.Companion.CenterVertically
     ) {

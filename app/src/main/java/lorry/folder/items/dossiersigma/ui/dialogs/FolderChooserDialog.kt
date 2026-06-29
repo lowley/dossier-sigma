@@ -146,7 +146,7 @@ fun FileChooserToolbox(
                 .padding(horizontal = 5.dp)
                 .width(IntrinsicSize.Min),
             onClick = {
-                path.value = "/storage/emulated/0/Movies".toSigmaPath()
+                path.value = "/storage/emulated/0/Download".toSigmaPath()
             }
         ) {
             Text(text = "Movies")

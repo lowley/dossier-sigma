@@ -24,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -102,7 +103,7 @@ fun HomePage(
             columns = GridCells.Adaptive(150.dp),
             modifier = Modifier.Companion
                 .fillMaxSize()
-                .padding(horizontal = 10.dp, vertical = 10.dp)
+                .padding(start = 0.dp, end = 0.dp, top = 10.dp, bottom = 30.dp)
                 .background(Color.Companion.Transparent)
                 .onGloballyPositioned { layoutCoordinates ->
                     // On récupère les dimensions et la position de la grille à l'écran

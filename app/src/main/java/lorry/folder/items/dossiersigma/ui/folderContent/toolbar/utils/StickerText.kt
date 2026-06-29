@@ -10,13 +10,15 @@ import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
 
 @Composable
-context(BoxScope)
+context(box: BoxScope)
 fun StickerText(
     tool: Tool
 ) {
     Text(
-        modifier = Modifier.Companion
-            .align(Alignment.Companion.BottomCenter),
+        modifier = with(box) {
+            Modifier.Companion
+                .align(Alignment.Companion.BottomCenter)
+        },
         text = tool.text(),
         color = SigmaColors.current.onPrimary,
         fontSize = 12.sp

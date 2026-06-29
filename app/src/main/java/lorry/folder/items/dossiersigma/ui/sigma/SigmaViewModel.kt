@@ -32,6 +32,7 @@ import lorry.folder.items.dossiersigma.basics.domain.ColoredTag
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.headless.folderContentBack.IFolderContentBackComponent
+import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
 import lorry.folder.items.dossiersigma.headless.usecases.pictures.ChangingPictureUseCase
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.ToolBarManager
 import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.Tool
@@ -52,6 +53,7 @@ class SigmaViewModel @Inject constructor(
     val base64Embedder: IVideoInfoEmbedder,
     val folderContentComponent: IFolderContentBackComponent,
     val settingsManager: SettingsManager,
+    val shortcutUseCase: ShortcutUseCase,
     val rawFeed: IRawFeed
 ) : ViewModel() {
 

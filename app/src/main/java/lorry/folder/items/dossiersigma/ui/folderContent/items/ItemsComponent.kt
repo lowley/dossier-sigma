@@ -92,7 +92,7 @@ class ItemsComponent @AssistedInject constructor(
     // liste des items //
     /////////////////////
     @Composable
-    context(SigmaActivity, ColumnScope)
+    context(activity: SigmaActivity, column: ColumnScope)
     override fun FolderContentFrontPage(
         onItemTapped: (Item) -> Unit,
         onItemLongPressed: (Item) -> Unit,

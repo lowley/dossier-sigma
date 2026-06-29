@@ -27,7 +27,7 @@ import lorry.folder.items.dossiersigma.ui.folderContent.toolbar.ui.toColoredTag
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 
 @Composable
-context(ToolBarManager, RowScope)
+context(toolbar: ToolBarManager, row: RowScope)
 fun FixedSticker(
     modifier: Modifier = Modifier.Companion,
     tool: Tool,
@@ -43,9 +43,9 @@ fun FixedSticker(
             .width(85.dp)
             .fillMaxHeight()
             .clickable {
-                this@ToolBarManager.toolbarComponent.setCurrentTool(tool)
-                viewModel.viewModelScope.launch {
-                    tool.onClick(tool, viewModel, activity)
+                toolbar.toolbarComponent.setCurrentTool(tool)
+                activity.mainViewModel.viewModelScope.launch {
+                    tool.onClick(tool, activity.mainViewModel, activity)
                 }
             }
     ) {
@@ -71,7 +71,7 @@ fun FixedSticker(
                             val target = dragTargetItem.value
 
                             if (target != null) {
-                                viewModel.assignColoredTagToItem(
+                                activity.mainViewModel.assignColoredTagToItem(
                                     target,
                                     tool.toColoredTag()
                                 )

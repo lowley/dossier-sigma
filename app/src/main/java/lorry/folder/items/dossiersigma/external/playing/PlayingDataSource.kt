@@ -36,6 +36,8 @@ class PlayingDataSource @Inject constructor(
             val interestingContent = content
                 .substringAfter(startPattern)
                 .substringBefore(endPattern)
+                .replace("192.168.1.20", "10.0.0.1")
+                .replace(" ", "%20")
 
             if (interestingContent.isEmpty())
                 return

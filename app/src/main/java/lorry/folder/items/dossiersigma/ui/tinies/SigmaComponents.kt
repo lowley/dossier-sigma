@@ -15,25 +15,31 @@ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
 import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
 
 @Composable
-context(RowScope)
+context(row: RowScope)
 fun HomeButtonIcon(
     stuff: Pair<Int,Color>,
     onTapAction: (Offset) -> Unit,
+    onLongPressAction: (Offset) -> Unit,
 ){
     MorphingIcon(
-        modifier = Modifier
-            .pointerInput(true) {
-                detectTapGestures(
-                    onTap = {
-                        onTapAction(it)
-                    }
+        modifier = with(row) {
+            Modifier
+                .pointerInput(true) {
+                    detectTapGestures(
+                        onTap = {
+                            onTapAction(it)
+                        },
+                        onLongPress = {
+                            onLongPressAction(it)
+                        }
+                    )
+                }
+                .padding(
+                    start = 15.dp,
+                    end = 5.dp
                 )
-            }
-            .padding(
-                start = 15.dp,
-                end = 5.dp
-            )
-            .align(Alignment.Companion.CenterVertically),
+                .align(Alignment.Companion.CenterVertically)
+        },
         current = stuff.first,
         size = 35.dp,
         durationMs = 620,
@@ -62,12 +68,12 @@ fun HomeButtonIcon(
 //    )
 }
 
-context(SigmaActivity)
+context(activity: SigmaActivity)
 public fun initializeFileIntentLauncher(viewModel: SigmaViewModel) {
     val launcher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             val pathUri = result.data?.data
             viewModel.onFolderSelected(pathUri)
         }
-    intentWrapper.setLauncher(launcher as Object)
+    activity.intentWrapper.setLauncher(launcher as Object)
 }

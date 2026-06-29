@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -87,6 +88,7 @@ import lorry.folder.items.dossiersigma.external.intent.DSI_IntentWrapper
 import lorry.folder.items.dossiersigma.basics.domain.Item
 import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
 import lorry.folder.items.dossiersigma.basics.domain.str
+import lorry.folder.items.dossiersigma.basics.domain.toSigmaPath
 import lorry.folder.items.dossiersigma.headless.folderContentBack.ReloadType
 import lorry.folder.items.dossiersigma.headless.moveToNasWorker.MoveToNASWorker
 import lorry.folder.items.dossiersigma.headless.shortcuts.ShortcutUseCase
@@ -258,7 +260,8 @@ class SigmaActivity : ComponentActivity() {
         bottomComponent.observeDefaultContent()
 
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
+                .padding(top = 50.dp),
             color = colorScheme.background
         ) {
             val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
@@ -309,7 +312,7 @@ class SigmaActivity : ComponentActivity() {
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(65.dp)
+                                .height(115.dp)
                                 .background(SigmaColors.current.primary)
                         ) {
                             Spacer(
@@ -465,7 +468,7 @@ class SigmaActivity : ComponentActivity() {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(end = 15.dp),
+                                .padding(end = 0.dp),
                         ) {
 
                             ////////////////////////////
@@ -526,10 +529,13 @@ class SigmaActivity : ComponentActivity() {
 
                                     HomeButtonIcon(
                                         stuff = stuff
-                                    ) {
+                                    ,{
                                         mainViewModel.setIsSettingsPageVisible(false)
                                         homeViewModel.toggleHomePageVisible()
-                                    }
+                                    },{
+                                        mainViewModel.goToFolder(currentPath.value?.str?.substringBeforeLast("/")?.toSigmaPath() ?: "/".toSigmaPath())
+                                        }
+                                    )
 
                                     ////////////////
                                     // breadcrumb //
@@ -624,7 +630,7 @@ class SigmaActivity : ComponentActivity() {
                                                     )
                                                 },
                                             painter = painterResource(R.drawable.plus),
-                                            tint = SigmaColors.current.secondary,
+                                            tint = Color.Blue,
                                             contentDescription = null
                                         )
 
@@ -656,7 +662,8 @@ class SigmaActivity : ComponentActivity() {
                                                 },
                                             painter = painterResource(R.drawable.settings),
 
-                                            tint = SigmaColors.current.secondary,
+                                            tint = Color.Blue,
+                                            //SigmaColors
                                             contentDescription = null
                                         )
                                     }
@@ -681,6 +688,9 @@ class SigmaActivity : ComponentActivity() {
                                     modifier = Modifier
                                         .align(Alignment.CenterVertically)
                                         .wrapContentSize()
+                                        .defaultMinSize(20.dp, 20.dp)
+                                        .padding(end = 5.dp)
+                                        .background(Color.Yellow)
                                         .clickable {
                                             if (nasText != "1 -> NAS" &&
                                                 allNasText != "Tous -> NAS"

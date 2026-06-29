@@ -499,7 +499,7 @@ fun SigmaActivity.SettingsPage(
 }
 
 @Composable
-context(RowScope)
+context(row: RowScope)
 fun TitleZone(
     modifier: Modifier,
     text: String,
@@ -521,7 +521,7 @@ fun TitleZone(
 }
 
 @Composable
-context(RowScope)
+context(row: RowScope)
 fun inputZone(
     modifier: Modifier,
     label: String,

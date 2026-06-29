@@ -166,7 +166,7 @@ class DaemonService : LifecycleService() {
         updateNotification(color = Color.Black)
 
         fileObserver = SigmaFileObserver(
-            file = File("/storage/emulated/0/Movies"),
+            file = File("/storage/emulated/0/Download"),
             doOnEvent = { event, path ->
                 doOnEvent(event, path)
             }
