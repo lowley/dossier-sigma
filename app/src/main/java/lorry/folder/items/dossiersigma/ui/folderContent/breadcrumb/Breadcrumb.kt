@@ -54,7 +54,8 @@ fun BreadcrumbComponent.UI(
                     text = seg,
                 ) { onClick(("/" + segs.slice(0..i).joinToString("/")).toSigmaPath()) }
 
-                Separator()
+                // On ne met un séparateur ici que s'il reste d'autres éléments statiques derrière
+                if (i < segs.size - 2) Separator()
             }
 
             // dernier élément animé
@@ -82,8 +83,12 @@ fun BreadcrumbComponent.UI(
                     )
                 ) {
                     Row(
-                        modifier = Modifier.wrapContentWidth()
+                        modifier = Modifier.wrapContentWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // On inclut le séparateur dans l'animation pour qu'il disparaisse avec le segment
+                        if (segs.size > 1) Separator()
+
                         BreadcrumbChip(
                             text = lastSeg,
                         ) { }
