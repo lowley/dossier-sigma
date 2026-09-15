@@ -3,7 +3,6 @@ package lorry.folder.items.dossiersigma.ui.sigma
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.webkit.MimeTypeMap
 import androidx.core.content.FileProvider
 import android.graphics.Bitmap
@@ -373,22 +372,14 @@ class SigmaViewModel @Inject constructor(
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
-        val candidates = activity.packageManager.queryIntentActivities(
-            intent,
-            PackageManager.MATCH_DEFAULT_ONLY,
-        )
-
         val resolved = activity.packageManager.resolveActivity(
             intent,
             PackageManager.MATCH_DEFAULT_ONLY,
         ) ?: return false
 
-        val resolvedIsCandidate = candidates.any { candidate ->
-            candidate.activityInfo.packageName == resolved.activityInfo.packageName &&
-                candidate.activityInfo.name == resolved.activityInfo.name
-        }
-
-        if (!resolvedIsCandidate) return false
+        // Si Android renvoie son ResolverActivity, cela signifie qu'il n'y a pas
+        // d'application réellement définie par défaut pour ce type de fichier.
+        if (resolved.activityInfo.packageName == "android") return false
 
         return runCatching {
             activity.startActivity(intent)
