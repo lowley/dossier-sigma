@@ -2,6 +2,10 @@ package lorry.folder.items.dossiersigma.ui.sigma
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.webkit.MimeTypeMap
+import androidx.core.content.FileProvider
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.ui.geometry.Offset
@@ -346,6 +350,51 @@ class SigmaViewModel @Inject constructor(
 //        val initialDirectoryPath = "/storage/emulated/0/Movies"
 //        goToFolder(initialDirectoryPath, ITEMS_ORDERING_STRATEGY.DATE_DESC)
 //    }
+
+    fun openWithAndroidDefaultApp(fullPath: SigmaPath, activity: Activity): Boolean {
+        val file = fullPath.toFile()
+        if (!file.exists() || !file.isFile) return false
+
+        val extension = file.extension.lowercase()
+        val mimeType = MimeTypeMap.getSingleton()
+            .getMimeTypeFromExtension(extension)
+            ?: "*/*"
+
+        val uri = runCatching {
+            FileProvider.getUriForFile(
+                activity,
+                "${activity.packageName}.provider",
+                file,
+            )
+        }.getOrNull() ?: return false
+
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, mimeType)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+        val candidates = activity.packageManager.queryIntentActivities(
+            intent,
+            PackageManager.MATCH_DEFAULT_ONLY,
+        )
+
+        val resolved = activity.packageManager.resolveActivity(
+            intent,
+            PackageManager.MATCH_DEFAULT_ONLY,
+        ) ?: return false
+
+        val resolvedIsCandidate = candidates.any { candidate ->
+            candidate.activityInfo.packageName == resolved.activityInfo.packageName &&
+                candidate.activityInfo.name == resolved.activityInfo.name
+        }
+
+        if (!resolvedIsCandidate) return false
+
+        return runCatching {
+            activity.startActivity(intent)
+            true
+        }.getOrDefault(false)
+    }
 
     fun playVideoFile(videoFullPath: SigmaPath, activity: SigmaActivity) {
         viewModelScope.launch(Dispatchers.IO) {
