@@ -898,6 +898,10 @@ class SigmaActivity : ComponentActivity() {
                             key(currentPath.value ?: "") {
                                 folderContentFrontComponent.FolderContentFrontPage(
                                     onItemTapped = { item ->
+                                        Log.d(
+                                            "FolderSigmaClick",
+                                            "Clic item: name=${item.name}, path=${item.fullPath}, isFile=${item.isFile()}, isFolder=${item.isFolder()}"
+                                        )
                                         run {
 
                                             if (selectedItem != null) {
