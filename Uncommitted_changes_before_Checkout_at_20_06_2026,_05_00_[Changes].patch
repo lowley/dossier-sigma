@@ -1,0 +1,1014 @@
+Subject: [PATCH] Uncommitted changes before Checkout at 20/06/2026, 05:00 [Changes]
+---
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/sigma/SigmaViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/sigma/SigmaViewModel.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/sigma/SigmaViewModel.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/sigma/SigmaViewModel.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/sigma/SigmaViewModel.kt	(date 1781431539687)
+@@ -8,8 +8,8 @@
+ import androidx.lifecycle.ViewModel
+ import androidx.lifecycle.viewModelScope
+ import dagger.hilt.android.lifecycle.HiltViewModel
+-import io.github.lowley.logBook.log
+-import io.github.lowley.logBook.write
++//import io.github.lowley.logBook.log
++//import io.github.lowley.logBook.write
+ import kotlinx.coroutines.CoroutineScope
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.SupervisorJob
+@@ -388,9 +388,9 @@
+ 
+     fun sendAriane() {
+ 
+-        write {
+-            log("ceci est un petit <b>pas</b> pour l' <b>homme</b>")
+-        }
++//        write {
++//            log("ceci est un petit <b>pas</b> pour l' <b>homme</b>")
++//        }
+     }
+ }
+ 
+Index: app/src/main/java/lorry/folder/items/dossiersigma/SigmaApplication.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/SigmaApplication.kt b/app/src/main/java/lorry/folder/items/dossiersigma/SigmaApplication.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/SigmaApplication.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/SigmaApplication.kt	(date 1781431539683)
+@@ -10,7 +10,7 @@
+ import androidx.work.Configuration
+ import dagger.hilt.android.EntryPointAccessors
+ import dagger.hilt.android.HiltAndroidApp
+-import io.github.lowley.engineRoom.submarine.DiveLogging
++//import io.github.lowley.engineRoom.submarine.DiveLogging
+ import javax.inject.Inject
+ import lorry.folder.items.dossiersigma.external.capsule.utilities.AppContextProvider
+ 
+@@ -44,7 +44,7 @@
+ //            androidContext(this@SigmaApplication)
+ //        }
+ 
+-        DiveLogging.startService()
++        //DiveLogging.startService()
+ 
+ 
+     }
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/itemsPage.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/itemsPage.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/itemsPage.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/itemsPage.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/itemsPage.kt	(date 1781593293774)
+@@ -18,6 +18,7 @@
+ import androidx.compose.runtime.mutableStateOf
+ import androidx.compose.runtime.remember
+ import androidx.compose.runtime.setValue
++import androidx.compose.runtime.getValue
+ import androidx.compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.unit.dp
+@@ -25,15 +26,18 @@
+ import dev.materii.pullrefresh.PullRefreshLayout
+ import dev.materii.pullrefresh.rememberPullRefreshState
+ import lorry.folder.items.dossiersigma.basics.domain.Item
++import lorry.folder.items.dossiersigma.basics.domain.SigmaFolder
+ import lorry.folder.items.dossiersigma.basics.domain.SigmaPath
+ import lorry.folder.items.dossiersigma.basics.domain.lastSegment
+ import lorry.folder.items.dossiersigma.basics.domain.str
+ import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.IIndexBar
++import lorry.folder.items.dossiersigma.ui.folderContent.IndexBar.utilities.Content
+ import lorry.folder.items.dossiersigma.ui.folderContent.items.ItemsComponent
+ import lorry.folder.items.dossiersigma.ui.sigma.SigmaActivity
++import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
+ 
+ @Composable
+-context(SigmaActivity, ColumnScope)
++context(activity: SigmaActivity, column: ColumnScope)
+ fun ItemsComponent.ItemsPage(
+     onHoveredNotHovered: (Item?) -> Unit,
+     onItemTapped: (Item) -> Unit,
+@@ -44,7 +48,7 @@
+     onRefresh: () -> Unit,
+     indexBar: IIndexBar,
+ ) {
+-    val currentFolder by mainViewModel.folderContentComponent.currentFolderFlow.collectAsStateWithLifecycle()
++    val currentFolder by activity.mainViewModel.folderContentComponent.currentFolderFlow.collectAsStateWithLifecycle()
+     val scrollStates =
+         remember { mutableMapOf<SigmaPath, LazyGridState>() }
+     val currentScrollState =
+@@ -53,115 +57,121 @@
+         }
+ 
+     val currentPath =
+-        mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
++        activity.mainViewModel.folderContentComponent.currentPath.collectAsStateWithLifecycle(
+             initialValue = null
+         )
+ 
+-    val fastPathFlow = mainViewModel.folderContentComponent.fastPath
++    val fastPathFlow = activity.mainViewModel.folderContentComponent.fastPath
+     val fastPath = fastPathFlow.collectAsStateWithLifecycle()
+ 
+-    val selectedItemFullPath = mainViewModel.selectedItemFullPath
++    val selectedItemFullPath = activity.mainViewModel.selectedItemFullPath
+     val TAG = "dsplitms"
+ 
+-    PullToRefreshContainer(
+-        onRefresh = onRefresh
+-    ) {
+-        Box(
+-            modifier = Modifier.Companion
+-                .fillMaxSize()
+-                .padding(
+-                    start = 0.dp,
+-                    end = 0.dp,
+-                    top = 10.dp,
+-                    bottom = 0.dp
+-                )
+-        ) {
+-            val items = currentFolder?.items.orEmpty()
+-            val ready = currentFolder?.fullPath == fastPath.value && items.isNotEmpty()
+-            val pathMatches = samePath(currentFolder?.fullPath, fastPath.value)
+-
+-            Log.d(TAG, "################")
+-            Log.d(TAG, "## ITEMS PAGE ##")
+-            Log.d(TAG, "################")
+-            Log.d(TAG, "Bonjour le \u200Bmonde\u200B")
+-            Log.d(TAG, "Bonjour \u001B[31mmonde\u001B[0m en couleur !");
+-            Log.d("SigmaTest", "Bonjour avec un tag \u200Binvisible\u200B")
+-            Log.d(TAG, "éléments de décision: ① FASTPATH: ${fastPath.value?.lastSegment}, ② CURRENTFOLDER: ${currentFolder?.fullPath?.lastSegment}")
+-            Log.d(TAG, "d'où: ② pathMatches=$pathMatches, ② items (dans currentFolder)=${items.size}")
+-
+-            when {
+-                pathMatches && items.isNotEmpty() -> {
+-                    Log.d(TAG, "      -> pathMatches && items.isNotEmpty() => AFFICHAGE DES ITEMS")
+-
+-                    LazyVerticalGrid(
+-                        columns = GridCells.Adaptive(150.dp),
+-                        modifier = Modifier.Companion
+-                            .padding(start = 25.dp, end = 0.dp),
+-                        state = currentScrollState
+-                    ) {
+-                        lazyGridItems(items, key = {
+-                            it.fullPath.str + "-" + it.id
+-                        }) { item ->
+-                            ItemComponent(
+-                                item = item,
+-                                modifier = Modifier.Companion
+-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+-                                onHoveredNotHovered = onHoveredNotHovered,
+-                                selectedItemFullPath = selectedItemFullPath,
+-                                onItemTapped = onItemTapped,
+-                                onItemLongPressed = onItemLongPressed,
+-                                onTopLeftPanelClick = onTopLeftPanelClick,
+-                                getInfoSup = getInfoSup,
+-                                getInfoInf = getInfoInf,
+-                                dragState = dragState,
+-                            )
+-                        }
+-                    }
+-                }
+-
+-                !pathMatches -> {
+-                    Log.d(TAG, "      -> !pathMatches => 'CHARGEMENT...'")
+-
+-                    Text(
+-                        modifier = Modifier.Companion
+-                            .align(Alignment.Companion.Center),
+-                        text = "Chargement...",
+-                    )
+-                }
+-
+-                items.isEmpty() -> {
+-                    Log.d(TAG, "      -> items.isEmpty() => 'DOSSIER VIDE'")
+-
+-                    Text(
+-                        modifier = Modifier.Companion
+-                            .align(Alignment.Companion.Center),
+-                        text = "Dossier vide",
+-                    )
+-                }
+-
+-                else -> {
+-                    Log.d(TAG, "      -> (pathMatches + items ∅)/(!pathMatches)/(items ≠ ∅) => 'ETAT INDETERMINE'")
++    Text(
++        modifier = Modifier,
++        text = "truc"
++    )
+ 
+-                    Text(
+-                        modifier = Modifier.Companion
+-                            .align(Alignment.Companion.Center),
+-                        text = "Etat indéterminé",
+-                    )
+-                }
+-            }
+ 
+-            Box(
+-                modifier = Modifier.Companion
+-                    .align(Alignment.Companion.CenterStart)
+-                    .padding(start = 4.dp)
+-                    .fillMaxHeight()
+-                    .width(20.dp)
+-            ) {
+-
+-                indexBar.display(currentScrollState = currentScrollState)
+-            }
+-        }
+-    }
++//    PullToRefreshContainer(
++//        onRefresh = onRefresh
++//    ) {
++//        Box(
++//            modifier = Modifier.Companion
++//                .fillMaxSize()
++//                .padding(
++//                    start = 0.dp,
++//                    end = 0.dp,
++//                    top = 10.dp,
++//                    bottom = 0.dp
++//                )
++//        ) {
++//            val items = currentFolder?.items.orEmpty()
++//            val ready = currentFolder?.fullPath == fastPath.value && items.isNotEmpty()
++//            val pathMatches = samePath(currentFolder?.fullPath, fastPath.value)
++//
++//            Log.d(TAG, "################")
++//            Log.d(TAG, "## ITEMS PAGE ##")
++//            Log.d(TAG, "################")
++//            Log.d(TAG, "Bonjour le \u200Bmonde\u200B")
++//            Log.d(TAG, "Bonjour \u001B[31mmonde\u001B[0m en couleur !");
++//            Log.d("SigmaTest", "Bonjour avec un tag \u200Binvisible\u200B")
++//            Log.d(TAG, "éléments de décision: ① FASTPATH: ${fastPath.value?.lastSegment}, ② CURRENTFOLDER: ${currentFolder?.fullPath?.lastSegment}")
++//            Log.d(TAG, "d'où: ② pathMatches=$pathMatches, ② items (dans currentFolder)=${items.size}")
++//
++//            when {
++//                pathMatches && items.isNotEmpty() -> {
++//                    Log.d(TAG, "      -> pathMatches && items.isNotEmpty() => AFFICHAGE DES ITEMS")
++//
++//                    LazyVerticalGrid(
++//                        columns = GridCells.Adaptive(150.dp),
++//                        modifier = Modifier.Companion
++//                            .padding(start = 25.dp, end = 0.dp),
++//                        state = currentScrollState
++//                    ) {
++//                        lazyGridItems(items, key = {
++//                            it.fullPath.str + "-" + it.id
++//                        }) { item ->
++//                            ItemComponent(
++//                                item = item,
++//                                modifier = Modifier.Companion
++//                                    .padding(horizontal = 10.dp, vertical = 6.dp),
++//                                onHoveredNotHovered = onHoveredNotHovered,
++//                                selectedItemFullPath = selectedItemFullPath,
++//                                onItemTapped = onItemTapped,
++//                                onItemLongPressed = onItemLongPressed,
++//                                onTopLeftPanelClick = onTopLeftPanelClick,
++//                                getInfoSup = getInfoSup,
++//                                getInfoInf = getInfoInf,
++//                                dragState = dragState,
++//                            )
++//                        }
++//                    }
++//                }
++//
++//                !pathMatches -> {
++//                    Log.d(TAG, "      -> !pathMatches => 'CHARGEMENT...'")
++//
++//                    Text(
++//                        modifier = Modifier.Companion
++//                            .align(Alignment.Companion.Center),
++//                        text = "Chargement...",
++//                    )
++//                }
++//
++//                items.isEmpty() -> {
++//                    Log.d(TAG, "      -> items.isEmpty() => 'DOSSIER VIDE'")
++//
++//                    Text(
++//                        modifier = Modifier.Companion
++//                            .align(Alignment.Companion.Center),
++//                        text = "Dossier vide",
++//                    )
++//                }
++//
++//                else -> {
++//                    Log.d(TAG, "      -> (pathMatches + items ∅)/(!pathMatches)/(items ≠ ∅) => 'ETAT INDETERMINE'")
++//
++//                    Text(
++//                        modifier = Modifier.Companion
++//                            .align(Alignment.Companion.Center),
++//                        text = "Etat indéterminé",
++//                    )
++//                }
++//            }
++//
++//            Box(
++//                modifier = Modifier.Companion
++//                    .align(Alignment.Companion.CenterStart)
++//                    .padding(start = 4.dp)
++//                    .fillMaxHeight()
++//                    .width(20.dp)
++//            ) {
++//
++//                indexBar.display(currentScrollState = currentScrollState)
++//            }
++//        }
++//    }
+ }
+ 
+ fun <T> LazyGridScope.lazyGridItems(
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/dialogs/FullSizeExtras.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/dialogs/FullSizeExtras.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/dialogs/FullSizeExtras.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/dialogs/FullSizeExtras.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/dialogs/FullSizeExtras.kt	(date 1781450858388)
+@@ -21,11 +21,12 @@
+ import lorry.folder.items.dossiersigma.ui.sigma.SigmaViewModel
+ 
+ @Composable
+-context(SigmaActivity, BoxScope)
++context(activity: SigmaActivity, box: BoxScope)
+ fun FullSizeExtras(
+     browser: IBrowser,
+     bottomComponent: IToolbarComponent
+ ) {
++    val mainViewModel: SigmaViewModel = activity.mainViewModel
+     val isTextDialogVisible by mainViewModel.isTextDialogVisible.collectAsState()
+     val isYesNoDialogVisible by mainViewModel.isYesNoDialogVisible.collectAsState()
+     val isMoveFileDialogVisible by mainViewModel.isMoveFileDialogVisible.collectAsState()
+@@ -47,7 +48,7 @@
+                     mainViewModel.dialogOnOkLambda?.invoke(
+                         text,
+                         mainViewModel,
+-                        this@SigmaActivity
++                        activity
+                     )
+                 }
+                 mainViewModel.dialogOnOkLambda = null
+@@ -57,7 +58,7 @@
+                         it.invoke(
+                             currentTool!!,
+                             mainViewModel,
+-                            this@SigmaActivity
++                            activity
+                         )
+                     }
+                 }
+@@ -73,7 +74,7 @@
+                     mainViewModel.dialogYesNoLambda?.invoke(
+                         yesNo,
+                         mainViewModel,
+-                        this@SigmaActivity
++                        activity
+                     )
+                 }
+                 mainViewModel.dialogYesNoLambda = null
+@@ -83,7 +84,7 @@
+                         it.invoke(
+                             currentTool!!,
+                             mainViewModel,
+-                            this@SigmaActivity
++                            activity
+                         )
+                     }
+                 }
+@@ -96,7 +97,7 @@
+             onOverwrite = {
+                 val intent =
+                     Intent(
+-                        this@SigmaActivity,
++                        activity,
+                         MoveFileService::class.java
+                     ).apply {
+                         putExtra(
+@@ -109,7 +110,7 @@
+                         )
+                         putExtra("addSuffix", "")
+                     }
+-                startService(intent)
++                activity.startService(intent)
+                 mainViewModel.folderContentComponent.reloadCurrentFolder()
+             },
+             onCancel = {
+@@ -126,7 +127,7 @@
+             onCreateCopy = {
+                 val intent =
+                     Intent(
+-                        this@SigmaActivity,
++                        activity,
+                         MoveFileService::class.java
+                     ).apply {
+                         putExtra(
+@@ -139,7 +140,7 @@
+                         )
+                         putExtra("addSuffix", " - copie")
+                     }
+-                startService(intent)
++                activity.startService(intent)
+                 mainViewModel.folderContentComponent.reloadCurrentFolder()
+             }
+         )
+@@ -153,30 +154,30 @@
+                 mainViewModel.dialogTagLambda?.invoke(
+                     infos!!,
+                     mainViewModel,
+-                    this@SigmaActivity
++                    activity
+                 )
+             },
+-            mainActivity = this@SigmaActivity
++            mainActivity = activity
+         )
+     }
+ 
+     if (isHomeItemDialogVisible) {
+-        val dialogHomeItemInfos by homeViewModel.dialogHomeItemInfos.collectAsState()
++        val dialogHomeItemInfos by activity.homeViewModel.dialogHomeItemInfos.collectAsState()
+ 
+-        HomeItemDialog(
++        activity.HomeItemDialog(
+             viewModel = mainViewModel,
+             onDatasCompleted = { infos: HomeItemInfos? ->
+                 if (infos?.newTitle == null || infos.path == null)
+                     return@HomeItemDialog
+ 
+-                val uiState = homeViewModel.uiState.value
++                val uiState = activity.homeViewModel.uiState.value
+                 if (uiState !is HomeUiState.Ready)
+                     return@HomeItemDialog
+ 
+                 val items = (uiState as HomeUiState.Ready).items
+                 if (infos.oldTitle in items.map { it.title }) {
+                     //modifier
+-                    homeViewModel.setHomeItems(
++                    activity.homeViewModel.setHomeItems(
+                         items
+                             .map {
+                                 if (it.title == infos.oldTitle)
+@@ -199,21 +200,21 @@
+                         )
+                     )
+ 
+-                    homeViewModel.setHomeItems(newList)
++                    activity.homeViewModel.setHomeItems(newList)
+                 }
+             },
+             message = "Addition/Edition de raccourci",
+-            homeItemInfos = homeViewModel.dialogHomeItemInfos,
++            homeItemInfos = activity.homeViewModel.dialogHomeItemInfos,
+         )
+     }
+ 
+     if (isFilePickerVisible) {
+-        FolderChooserDialog(
+-            modifier = Modifier.Companion
+-                .align(Alignment.Companion.Center),
++        activity.FolderChooserDialog(
++            modifier = Modifier,
++                //.align(Alignment.Center),
+             viewModel = mainViewModel
+         ) { path ->
+-            onFolderChosen(path)
++            activity.onFolderChosen(path)
+         }
+     }
+ 
+Index: local.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/local.properties b/local.properties
+--- a/local.properties	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/local.properties	(date 1781430598742)
+@@ -1,10 +1,8 @@
+-## This file is automatically generated by Android Studio.
+-# Do not modify this file -- YOUR CHANGES WILL BE ERASED!
+-#
+-# This file should *NOT* be checked into Version Control Systems,
++## This file must *NOT* be checked into Version Control Systems,
+ # as it contains information specific to your local configuration.
+ #
+ # Location of the SDK. This is only used by Gradle.
+ # For customization when using a Version Control System, please read the
+ # header note.
+-sdk.dir=C\:\\Users\\olivier\\AppData\\Local\\Android\\Sdk
+\ No newline at end of file
++#Sun Jun 14 11:49:58 CEST 2026
++sdk.dir=/Users/lolveley/Library/Android/sdk
+Index: app/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/build.gradle.kts b/app/build.gradle.kts
+--- a/app/build.gradle.kts	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/build.gradle.kts	(date 1781585911449)
+@@ -15,8 +15,8 @@
+ 
+     defaultConfig {
+         applicationId = "lorry.folder.items.dossiersigma.master"
+-        minSdk = 33
+-        targetSdk = 34
++        minSdk = 35
++        targetSdk = 35
+         versionCode = 1
+         versionName = "1.0"
+ 
+@@ -26,7 +26,7 @@
+ 
+     buildTypes {
+         release {
+-            isMinifyEnabled = true
++            //isMinifyEnabled = true
+             proguardFiles(
+                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                 "proguard-rules.pro"
+@@ -36,13 +36,17 @@
+         debug {
+             isDebuggable = true
+             isMinifyEnabled = false   // R8 off
+-            isShrinkResources = false
++            //isShrinkResources = false
+         }
+     }
+ 
+     tasks.withType<KotlinCompile>().configureEach {
+         compilerOptions {
+-            freeCompilerArgs.add("-Xcontext-receivers")
++            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
++            freeCompilerArgs.addAll(
++                "-Xcontext-parameters",
++                "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode"
++            )
+         }
+     }
+ 
+@@ -57,10 +61,10 @@
+         targetCompatibility = JavaVersion.VERSION_11
+     }
+ 
+-    kotlinOptions {
+-        jvmTarget = "11"
+-        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+-    }
++//    kotlinOptions {
++//        jvmTarget = "11"
++//        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
++//    }
+ 
+     buildFeatures {
+         compose = true
+@@ -83,6 +87,7 @@
+ 
+ dependencies {
+ 
++    implementation(libs.androidx.compose.foundation)
+     implementation(libs.hilt.work)
+     // --- Unit tests (testImplementation) ---
+     testImplementation(libs.junit)
+@@ -202,7 +207,7 @@
+     ///////////////
+     //github -> https://jitpack.io/#lowley/WriterAPI
+ //    implementation("com.github.lowley:periscope:v1.0.17")
+-    implementation("io.github.lowley:periscope:1.0.4")
++    //implementation("io.github.lowley:periscope:1.0.4")
+ 
+     ///////////////////////////////
+     // bottomBar dans son module //
+Index: gradle/libs.versions.toml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/gradle/libs.versions.toml b/gradle/libs.versions.toml
+--- a/gradle/libs.versions.toml	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/gradle/libs.versions.toml	(date 1781434393086)
+@@ -23,6 +23,7 @@
+ hiltWorkVersion = "1.3.0"
+ appcompat = "1.7.1"
+ material = "1.13.0"
++foundation = "1.11.2"
+ 
+ [libraries]
+ accompanist-flowlayout = { module = "com.google.accompanist:accompanist-flowlayout", version.ref = "accompanistFlowlayout" }
+@@ -55,6 +56,7 @@
+ hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWorkVersion" }
+ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+ material = { group = "com.google.android.material", name = "material", version.ref = "material" }
++androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+ 
+ [plugins]
+ android-application = { id = "com.android.application", version.ref = "agp" }
+Index: settings.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/settings.gradle.kts b/settings.gradle.kts
+--- a/settings.gradle.kts	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/settings.gradle.kts	(date 1781430883319)
+@@ -11,5 +11,5 @@
+ rootProject.name = "Dossier Sigma Master"
+ include(":app")
+ 
+-includeBuild("../../IdeaProjects/Périscope")
++//includeBuild("../../IdeaProjects/Périscope")
+ include(":bottombar")
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/browser/ui/BrowserBottomToolbar.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/browser/ui/BrowserBottomToolbar.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/browser/ui/BrowserBottomToolbar.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/browser/ui/BrowserBottomToolbar.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/browser/ui/BrowserBottomToolbar.kt	(date 1781449795836)
+@@ -30,7 +30,7 @@
+ //implémentation ici: [[BrowserBottomToolbar]]
+ 
+ @Composable
+-context(SigmaActivity)
++context(activity: SigmaActivity)
+ fun BrowserBottomToolbar(
+ ) {
+     Column(
+@@ -55,7 +55,7 @@
+             horizontalArrangement = Arrangement.Center,
+             verticalAlignment = Alignment.Companion.CenterVertically
+         ) {
+-            val state by this@SigmaActivity.browser.vm.state.collectAsState()
++            val state by activity.browser.vm.state.collectAsState()
+ 
+             Button(
+                 onClick = { state.goBack() },
+@@ -76,7 +76,7 @@
+             }
+ 
+             Button(
+-                onClick = { browser.changeState(
++                onClick = { activity.browser.changeState(
+                     item = null,
+                     target = BrowserTarget.GOOGLE,
+                 ) },
+@@ -96,7 +96,7 @@
+             }
+ 
+             Button(
+-                onClick = browser.vm::close,
++                onClick = activity.browser.vm::close,
+                 modifier = Modifier.Companion.padding(horizontal = 5.dp),
+                 colors = ButtonDefaults.buttonColors(
+                     containerColor = Color(0xFFe9c46a),
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/ItemComponent.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/ItemComponent.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/ItemComponent.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/ItemComponent.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/utils/ItemComponent.kt	(date 1781449541920)
+@@ -57,7 +57,7 @@
+ import java.io.FileOutputStream
+ 
+ @Composable
+-context(SigmaActivity)
++context(activity: SigmaActivity)
+ fun ItemComponent(
+     modifier: Modifier,
+     item: Item,
+@@ -72,6 +72,7 @@
+ 
+     ) {
+ 
++    val mainViewModel = activity.mainViewModel
+     val memo = item.memo
+     val memoEmpty = memo?.isEmpty() ?: true
+ 
+@@ -146,7 +147,7 @@
+             override val country: Country?
+                 get() = item.country
+ 
+-            context(BoxScope)
++            context(box: BoxScope)
+             @Composable
+             override fun display(modifier: Modifier, name: String, country: Country?, fullPath: SigmaPath?) {
+                 BackgroundContent(
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IIndexBar.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IIndexBar.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IIndexBar.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IIndexBar.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IIndexBar.kt	(date 1781450858385)
+@@ -8,7 +8,7 @@
+ interface IIndexBar {
+ 
+     @Composable
+-    context(BoxScope, SigmaActivity)
++    context(box: BoxScope, activity: SigmaActivity)
+     fun display(currentScrollState: LazyGridState)
+ 
+ }
+\ No newline at end of file
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IndexBar.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IndexBar.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IndexBar.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IndexBar.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/IndexBar/IndexBar.kt	(date 1781450858396)
+@@ -66,7 +66,7 @@
+ 
+     @OptIn(ExperimentalMaterial3Api::class)
+     @Composable
+-    context(BoxScope, SigmaActivity)
++    context(box: BoxScope, activity: SigmaActivity)
+     override fun display(currentScrollState: LazyGridState) {
+         Column(
+             modifier = Modifier
+@@ -77,6 +77,7 @@
+         {
+             val model by modelFlow.collectAsState(emptyList())
+ 
++            val mainViewModel = activity.mainViewModel
+
+             model?.forEach { info ->
+                 when (val c = info.content) {
+ 
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/EquatorOverlays.kt
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/EquatorOverlays.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/EquatorOverlays.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/EquatorOverlays.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/EquatorOverlays.kt	(date 1781451004320)
+@@ -42,7 +42,7 @@
+ interface IOverlayContent {
+     val country: Country?
+ 
+-    context(BoxScope)
++    context(box: BoxScope)
+     @Composable
+     fun display(
+         modifier: Modifier,
+@@ -89,7 +89,7 @@
+         override val country: Country?
+             get() = overlayCountry
+ 
+-        context(BoxScope)
++        context(box: BoxScope)
+         @Composable
+         override fun display(modifier: Modifier, name: String, country: Country?, fullPath: SigmaPath?) {
+ 
+@@ -143,7 +143,7 @@
+         override val country: Country?
+             get() = null
+ 
+-        context(BoxScope)
++        context(box: BoxScope)
+         @Composable
+         override fun display(modifier: Modifier, name: String, country: Country?, fullPath: SigmaPath?) {
+ 
+@@ -154,7 +154,7 @@
+         override val country: Country?
+             get() = null
+ 
+-        context(BoxScope)
++        context(box: BoxScope)
+         @Composable
+         override fun display(modifier: Modifier, name: String, country: Country?, fullPath: SigmaPath?) {
+             val shortcuts = name
+@@ -167,7 +167,7 @@
+             )
+                 Box(
+                     modifier = Modifier
+-                        .matchParentSize()
++                        //.matchParentSize()
+                         .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
+                 )
+                 {
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/TopOverlay.kt
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/TopOverlay.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/TopOverlay.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/TopOverlay.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/TopOverlay.kt	(date 1781451004322)
+@@ -20,7 +20,7 @@
+     override val country: Country?
+         get() = null
+ 
+-    context(BoxScope)
++    context(box: BoxScope)
+     @Composable
+     override fun display(
+         modifier: Modifier,
+@@ -30,8 +30,8 @@
+     ) {
+         Text(
+             modifier = modifier
+-                .fillMaxSize()
+-                .align(Alignment.Center),
++                .fillMaxSize(),
++                //.align(Alignment.Center),
+             text = "Top Overlay"
+         )
+     }
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/BackgroundContent.kt
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/BackgroundContent.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/BackgroundContent.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/BackgroundContent.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/BackgroundContent.kt	(date 1781452265150)
+@@ -51,10 +51,10 @@
+ import lorry.folder.items.dossiersigma.external.capsule.utilities.produceCountryFromString
+ import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
+ 
+-context(BoxScope)
++context(box: BoxScope)
+ @Composable
+ fun BackgroundContent(
+-    modifier: Modifier.Companion,
++    modifier: Modifier = Modifier,
+     item: Item,
+     image: Any?,
+     scale: ContentScale?,
+@@ -69,9 +69,11 @@
+ //    )
+ 
+     ImageSection(
+-        modifier = modifier
+-            .align(Alignment.Companion.BottomCenter)
+-            .fillMaxSize()
++        modifier = with(box) {
++            modifier
++                .align(Alignment.Companion.BottomCenter)
++                .fillMaxSize()
++        }
+             .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+             .border(
+                 1.dp,
+@@ -106,8 +108,10 @@
+ 
+         //l'ajout à l'image proprement dit: encart supérieur gauche
+         Box(
+-            modifier = modifier
+-                .align(Alignment.Companion.TopStart)
++            modifier = with(box) {
++                modifier
++                    .align(Alignment.Companion.TopStart)
++            }
+                 .graphicsLayer {
+                     shape = shapeForInsert
+                     clip = true
+@@ -134,20 +138,19 @@
+                     painter = painterResource(id = R.drawable.obliques4), // Remplacez par votre fichier
+                     contentDescription = "Maillage de fond",
+                     contentScale = ContentScale.Companion.Crop, // Assure que l'image remplit l'espace
+-                    modifier = modifier.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
++                    modifier = Modifier.matchParentSize() // Fait en sorte que l'image prenne toute la taille de la Box
+                 )
+             }
+ 
+             Column(
+-                modifier = modifier
+-                    .align(Alignment.Companion.TopStart)
++                modifier = Modifier
+                     .padding(start = 0.dp, top = 0.dp)
+                     .width(boxWidth)
+             ) {
+                 val textHeight = 18.dp
+ 
+                 Text(
+-                    modifier = modifier
++                    modifier = Modifier
+                         .align(Alignment.Companion.CenterHorizontally)
+                         .padding(0.dp)
+                         .height(textHeight),
+@@ -159,7 +162,7 @@
+                 )
+ 
+                 Text(
+-                    modifier = modifier
++                    modifier = Modifier
+                         .align(Alignment.Companion.CenterHorizontally)
+                         .padding(
+                             top = 0.dp, start = 0.dp, bottom = 5.dp, end = 0.dp
+@@ -177,8 +180,10 @@
+     //2e encart: si répertoire: "DOSSIER"
+     if (item.isFolder())
+         Box(
+-            modifier = modifier
+-                .align(Alignment.Companion.BottomEnd)
++            modifier = with(box) {
++                modifier
++                    .align(Alignment.Companion.BottomEnd)
++            }
+                 .padding(end = 6.dp, bottom = 20.dp)
+                 .graphicsLayer {
+                     rotationZ = -15f
+@@ -205,8 +210,10 @@
+ 
+     if (item.country != null)
+         Box(
+-            modifier = modifier
+-                .align(Alignment.Companion.BottomStart)
++            modifier = with(box) {
++                modifier
++                    .align(Alignment.Companion.BottomStart)
++            }
+                 .graphicsLayer {
+ //                    shadowElevation = 4f
+                     shape = androidx.compose.foundation.shape.RoundedCornerShape(4.dp)
+@@ -225,7 +232,7 @@
+         }
+ }
+ 
+-context(BoxScope)
++context(box: BoxScope)
+ @Composable
+ fun CountryFlag(
+     country: Country?,
+@@ -238,8 +245,10 @@
+         Image(
+             painter = rememberAsyncImagePainter(model = resId),
+             contentDescription = contentDescription,
+-            modifier = modifier
+-                .align(Alignment.Companion.BottomStart)
++            modifier = with(box) {
++                modifier
++                    .align(Alignment.Companion.BottomStart)
++            }
+                 .padding(start = 15.dp, bottom = 10.dp)
+                 .size(width = 25.dp, height = 18.dp)
+         )
+Index: app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/BottomOverlay.kt
+===================================================================
+diff --git a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/BottomOverlay.kt b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/BottomOverlay.kt
+--- a/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/BottomOverlay.kt	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/app/src/main/java/lorry/folder/items/dossiersigma/ui/folderContent/items/sphere/overlays/BottomOverlay.kt	(date 1781450858392)
+@@ -20,7 +20,7 @@
+ import lorry.folder.items.dossiersigma.external.capsule.utilities.CountryFrench
+ import lorry.folder.items.dossiersigma.ui.sigma.SigmaColors
+ 
+-context(ColumnScope)
++context(column: ColumnScope)
+ @Composable
+ fun BottomOverlay(
+     modifier: Modifier = Modifier,
+@@ -29,7 +29,7 @@
+     override val country: Country?
+         get() = null
+ 
+-    context(BoxScope)
++    context(box: BoxScope)
+     @Composable
+     override fun display(modifier: Modifier, name: String, country: Country?, fullPath: SigmaPath?) {
+         val shortcuts = name
+@@ -42,7 +42,7 @@
+         )
+             Box(
+                 modifier = Modifier
+-                    .matchParentSize()
++                    //.matchParentSize()
+                     .background(Color.Black.copy(alpha = 0.5f)) // <-- voile assombrissant
+             )
+             {
+Index: bottombar/build.gradle.kts
+===================================================================
+diff --git a/bottombar/build.gradle.kts b/bottombar/build.gradle.kts
+--- a/bottombar/build.gradle.kts	(revision 28ee8d62f214a4a38370d47dfe495128e6106d3f)
++++ b/bottombar/build.gradle.kts	(date 1781586000787)
+@@ -30,7 +30,11 @@
+ 
+     tasks.withType<KotlinCompile>().configureEach {
+         compilerOptions {
+-            freeCompilerArgs.add("-Xcontext-receivers")
++            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
++            freeCompilerArgs.addAll(
++                "-Xcontext-parameters",
++                "-XXLanguage:+PropertyParamAnnotationDefaultTargetMode"
++            )
+         }
+     }
+ 
+@@ -39,10 +43,7 @@
+         targetCompatibility = JavaVersion.VERSION_11
+     }
+ 
+-    kotlinOptions {
+-        jvmTarget = "11"
+-        freeCompilerArgs = listOf("-XXLanguage:+PropertyParamAnnotationDefaultTargetMode")
+-    }
++
+ 
+     packaging {
+         resources {
