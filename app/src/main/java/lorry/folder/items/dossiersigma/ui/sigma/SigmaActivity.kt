@@ -902,17 +902,38 @@ class SigmaActivity : ComponentActivity() {
                                                 mainViewModel.goToFolder(item.fullPath)
                                             }
 
-                                            if (item.isFile() &&
-                                                (item.name.endsWith(".mp4") ||
-                                                        item.name.endsWith(".mkv") ||
-                                                        item.name.endsWith(".mpg") ||
-                                                        item.name.endsWith(".iso") ||
-                                                        item.name.endsWith(".avi"))
-                                            ) {
-                                                mainViewModel.playVideoFile(item.fullPath, this@SigmaActivity)
-                                            }
-                                            if (item.isFile() && item.name.endsWith(".html")) {
-                                                mainViewModel.playHtmlFile(item.fullPath, this@SigmaActivity)
+                                            if (item.isFile()) {
+                                                val extension = item.name
+                                                    .substringAfterLast('.', "")
+                                                    .lowercase()
+
+                                                if (extension == "html" || extension == "htm") {
+                                                    mainViewModel.playHtmlFile(
+                                                        item.fullPath,
+                                                        this@SigmaActivity
+                                                    )
+                                                } else if (
+                                                    !mainViewModel.openWithAndroidDefaultApp(
+                                                        item.fullPath,
+                                                        this@SigmaActivity
+                                                    )
+                                                ) {
+                                                    if (
+                                                        extension in listOf(
+                                                            "mp4",
+                                                            "mkv",
+                                                            "mpg",
+                                                            "mpeg",
+                                                            "iso",
+                                                            "avi"
+                                                        )
+                                                    ) {
+                                                        mainViewModel.playVideoFile(
+                                                            item.fullPath,
+                                                            this@SigmaActivity
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
 
