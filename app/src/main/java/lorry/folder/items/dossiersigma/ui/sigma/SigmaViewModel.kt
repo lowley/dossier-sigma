@@ -369,6 +369,9 @@ class SigmaViewModel @Inject constructor(
                 "application/vnd.apple.mpegurl",
                 "application/x-mpegURL",
                 "audio/x-mpegurl",
+                "video/*",
+                "application/octet-stream",
+                "*/*",
             )
             "m3u" -> listOf(
                 "audio/x-mpegurl",
@@ -393,6 +396,9 @@ class SigmaViewModel @Inject constructor(
 
         android.util.Log.d(tag, "uri=$uri")
 
+        var resolverIntent: Intent? = null
+        var resolverMimeType: String? = null
+
         for (mimeType in mimeTypes) {
             android.util.Log.d(tag, "Essai mimeType=$mimeType")
 
@@ -412,18 +418,35 @@ class SigmaViewModel @Inject constructor(
             )
 
             if (resolved == null) continue
-            if (resolved.activityInfo.packageName == "android") continue
+
+            if (resolved.activityInfo.packageName == "android") {
+                if (resolverIntent == null) {
+                    resolverIntent = intent
+                    resolverMimeType = mimeType
+                }
+                continue
+            }
 
             return runCatching {
                 activity.startActivity(intent)
-                android.util.Log.d(tag, "startActivity OK avec $mimeType")
+                android.util.Log.d(tag, "startActivity direct OK avec $mimeType")
                 true
             }.onFailure {
                 android.util.Log.e(tag, "Erreur startActivity avec $mimeType", it)
             }.getOrDefault(false)
         }
 
-        android.util.Log.d(tag, "Abandon: aucun MIME n'a résolu une application par défaut")
+        if (resolverIntent != null) {
+            return runCatching {
+                activity.startActivity(resolverIntent)
+                android.util.Log.d(tag, "Resolver Android lancé avec $resolverMimeType")
+                true
+            }.onFailure {
+                android.util.Log.e(tag, "Erreur lancement Resolver Android", it)
+            }.getOrDefault(false)
+        }
+
+        android.util.Log.d(tag, "Abandon: aucune application ne sait ouvrir ce fichier")
         return false
     }
 
